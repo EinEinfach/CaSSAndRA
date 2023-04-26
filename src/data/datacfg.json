@@ -1,0 +1,25 @@
+{"path":
+    [
+        {"user":
+            [
+                {"comm":"/src/data/user/commcfg.json"},
+                {"mapcfg":"/src/data/user/mapcfg.json"},
+                {"appcfg":"/src/data/user/appcfg.json"}
+            ]
+        },
+        {"measure":
+            [
+                {"state":"/src/data/measure/state.pickle"},
+                {"stats":"/src/data/measure/stats.pickle"},
+                {"props":"/src/data/measure/props.pickle"},
+                {"calcedstate":"/src/data/measure/calcstate.pickle"},
+                {"calcedstats":"/src/data/measure/calcstats.pickle"}
+            ]
+        },
+        {"map":
+            [
+                {"perimeter": "/src/data/map/perimeter.json"}
+            ]
+        }
+    ]
+}

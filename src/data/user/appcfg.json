@@ -1,0 +1,15 @@
+{
+    "datamaxage": 30,
+    "voltage_to_soc": [
+        {
+            "V": 22,
+            "SoC": 0
+        },
+        {
+            "V": 28,
+            "SoC": 100
+        }
+    ],
+    "time_to_offline": 60,
+    "current_thd_charge": -0.03
+}

@@ -1,0 +1,39 @@
+{
+    "USE": "HTTP",
+    "MQTT": [
+        {
+            "CLIENT_ID": "Ardumower"
+        },
+        {
+            "USERNAME": null
+        },
+        {
+            "PASSWORD": null
+        },
+        {
+            "MQTT_SERVER": "192.168.1.1"
+        },
+        {
+            "PORT": 1883
+        },
+        {
+            "MOWER_NAME": "ardumower/Ardumower"
+        }
+    ],
+    "HTTP": [
+        {
+            "IP": "http://192.168.1.1"
+        },
+        {
+            "PASSWORD": null
+        }
+    ],
+    "UART": [
+        {
+            "SERPORT": "/dev/ttyACM0"
+        },
+        {
+            "BAUDRATE": 115200
+        }
+    ]
+}

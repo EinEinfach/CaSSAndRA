@@ -1,0 +1,50 @@
+/*html margin-left*/
+.margin-5px{
+  margin-left: 5px;
+  margin-top: 5px;
+}
+
+/* restyle radio items */
+.radio-group .form-check {
+    padding-left: 0;
+    margin-top: 3px;
+    margin-left: 5px;
+  }
+  
+  .radio-group .btn-group > .form-check:not(:last-child) > .btn {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  
+  .radio-group .btn-group > .form-check:not(:first-child) > .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: -1px;
+  }
+
+.dropdown-container {
+    display: grid;
+    /*width: 55%;*/
+    margin-bottom: 5px;
+}
+
+.button-justify-start {
+  justify-self: start;
+}
+
+.map-graph {
+  float: none;
+  /*overflow: scroll;*/
+  /*border: thin grey dashed;*/
+}
+
+.button-margin {
+  margin-top: 3px;
+  margin-bottom: 3px;
+  margin-left: 3px;
+  margin-right: 3px;
+}
+
+.button-group {
+  margin-left: 10px;
+}

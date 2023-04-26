@@ -1,0 +1,10 @@
+{
+    "MOWOFFSET": 0.18,
+    "MOWANGLE": 0,
+    "MOWEDGE": "yes",
+    "DISTANCETOBORDER": 1,
+    "PATTERN": "lines",
+    "POSITIONMODE": "relative",
+    "LON": 0,
+    "LAT": 0
+}
