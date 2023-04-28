@@ -113,7 +113,13 @@ Als Ausgabe kommt(wichtig ist das Wort active(running)):
 	cassandra.service - CaSSAndRA service
      Loaded: loaded (/etc/systemd/system/cassandra.service; enabled; vendor preset: enabled)
      Active: active (running) since Thu 2023-04-27 07:48:22 CEST; 1 day 5h ago
-   
+
+## Bedienung
+### Einrichten der Kommunikation
+In der App geht auf "More" -> "Settings". Auf der Seite wählt "Communication". Sucht euch eine der Möglichkeiten aus, trägt die Daten ein (bitte haltet die Syntax, was CaSSAndRA euch vorschlägt,bei) und anschliessend mit "save and reboot" werden die Einstellungen übernommen und der Server neuegestartet:
+
+![connection](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/connection.jpeg)
+
 ## Authors
 
 - [@EinEinfach](https://www.github.com/EinEinfach)
