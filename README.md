@@ -17,13 +17,13 @@ Installation für linuxbasierte Betriebssysteme (alle Befehle werden im Terminal
 Als erstes muss die Repository heruntergeladen werden. Oder für die Profis unter euch einfach clonen.
 Entpackt die Dateien in den Ordner eurer Wahl (z.B.):
 
-	/home/ardumower/CaSSAndRa
+	/home/ardumower/CaSSAndRA
 Navigiert in den geclonten/entpackten Ordner:
 
- 	cd /home/ardumower/CaSSAndRa
+ 	cd /home/ardumower/CaSSAndRA
 Installiert die Abhängigkeiten, dazu im Terminal folgendes eingeben:
 
-    pip install -r /home/ardumower/CaSSAndRa/requirements.txt
+    pip install -r /home/ardumower/CaSSAndRA/requirements.txt
 danach könnt Ihr erst mal Kaffee holen gehen, denn das kann dauern. Bitte achtet drauf, dass die Installation ohne Fehlern abgeschlossen wird (Warnings können ignoriert werden).
 
 Wenn euch das Betriebssystem mit -bash: pip command not found begrüßt, 	müsst Ihr noch pip nachinstallieren: 
@@ -116,7 +116,7 @@ Als Ausgabe kommt(wichtig ist das Wort active(running)):
 
 ## Bedienung
 ### Einrichten der Kommunikation
-In der App geht auf "More" -> "Settings". Auf der Seite wählt "Communication". Sucht euch eine der Möglichkeiten aus, trägt die Daten ein (bitte haltet die Syntax, was CaSSAndRA euch vorschlägt,bei) und anschliessend mit "save and reboot" werden die Einstellungen übernommen und der Server neuegestartet:
+In der App klickt auf "More" -> "Settings". Auf der Seite wählt "Communication". Sucht euch eine der Möglichkeiten aus, trägt die Daten ein (bitte haltet die Syntax, was CaSSAndRA euch vorschlägt,bei) und anschliessend mit "save and reboot" werden die Einstellungen übernommen und der Server neuegestartet:
 
 ![connection](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/connection.jpeg)
 
@@ -135,6 +135,13 @@ Unter Settings "App" wählen. Hier gibt es die Möglichkeiten einige Anzeigen in
 3. Mindeststromstärke, ab der die Anzeige vom "docked" zu "charging" wechseln soll (Achtung: es muss ein negativer Wert sein)
 
 4. SoC Anzeige. Umrechnung Spannung zu Ladezustand (einfache lineare Interpolation). Als Voltage min (0%) wird die Abschaltspannung aus der config.h eurer sunray FW +0,5V empfohlen. Als Voltage max (100%) wird die Ladeschlussspannung aus der config.h eurer sunray FW -0,5V empfohlen. Die SoC Anzeige hat keinerlei steuerende Funktion und dient lediglich einer Übersicht auf der Startseite
+
+## Hochladen der Karte
+Aktuell gibt es nur eine Möglichkeit eine Karte in CaSSAndRA zu erstellen. Dies geschieht durch das Upload der zuvor aus Sunray App exportierten Karte.
+
+In der App klickt auf "More" -> "Mapping". Klickt auf den oberen grünen Button und navigiert zu eurer exportierten Sunray Datei. Wählt die Datei aus. Durch das Dropdownmenu unter dem Upload Button könnt Ihr eine der eingelesenen Karte auswählen (Die Nummerierung entspricht euren Kartenreihenfolge in der Sunray App). Wählt die gewünschte Karte. Ein Vorschau des Perimeters wird angezeigt. Drückt auf den unteren grünen Button zur übernahme der Karte.
+
+Wechselt auf die Startseite. Die neue Karte wird in der Übersicht angezeigt.
 ## Authors
 
 - [@EinEinfach](https://www.github.com/EinEinfach)
