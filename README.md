@@ -8,6 +8,7 @@ CaSSAndRA ist eine Python-Server-Anwedung, die es einem erlaubt den Ardumower (o
 - MQTT
 - UART (serieller Port)
 
+![introduction](https://img.youtube.com/vi/ZS4DnEkz1dI/0.jpg)](https://www.youtube.com/watch?v=ZS4DnEkz1dI)
 
 
 ## Wichtig (Bitte vor der Installation lesen):
@@ -136,7 +137,7 @@ Unter Settings "App" wählen. Hier gibt es die Möglichkeiten einige Anzeigen in
 
 4. SoC Anzeige. Umrechnung Spannung zu Ladezustand (einfache lineare Interpolation). Als Voltage min (0%) wird die Abschaltspannung aus der config.h eurer sunray FW +0,5V empfohlen. Als Voltage max (100%) wird die Ladeschlussspannung aus der config.h eurer sunray FW -0,5V empfohlen. Die SoC Anzeige hat keinerlei steuerende Funktion und dient lediglich einer Übersicht auf der Startseite
 
-## Hochladen der Karte
+### Hochladen der Karte
 Aktuell gibt es nur eine Möglichkeit eine Karte in CaSSAndRA zu erstellen. Dies geschieht durch das Upload der zuvor aus Sunray App exportierten Karte.
 
 In der App klickt auf "More" -> "Mapping". Klickt auf den oberen grünen Button und navigiert zu eurer exportierten Sunray Datei. Wählt die Datei aus. Durch das Dropdownmenu unter dem Upload Button könnt Ihr eine der eingelesenen Karte auswählen (Die Nummerierung entspricht euren Kartenreihenfolge in der Sunray App). Wählt die gewünschte Karte. Ein Vorschau des Perimeters wird angezeigt. Drückt auf den unteren grünen Button zur übernahme der Karte.
