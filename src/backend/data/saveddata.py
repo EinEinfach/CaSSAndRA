@@ -135,9 +135,6 @@ def read(absolute_path) -> None:
         logger.info('Backend: Map-Data are loaded successfully')
     except:
         logger.warning('Backend: Failed to load map data from file')
-        ###############temporaär#############################################################
-        #mapdata.perimeter = file.import_sunray(absolute_path.replace('/src/backend', '/src/data/import/sunray.txt', 1))
-        #####################################################################################
     
     #Create goto points if Map Data availible
     if not mapdata.perimeter.empty:
@@ -159,18 +156,20 @@ def save(name: str()) -> None:
         try:
             path_to_state_data = path_to_data['path'][1]['measure'][0]['state']
             roverdata.state.to_pickle(absolute_path.replace('/src/backend/data', path_to_state_data))
+            logger.info('Backend: State data are saved successfully in state.pickle')
             path_to_calcstate_data = path_to_data['path'][1]['measure'][3]['calcedstate']
-            roverdata.calced_from_state.to_pickle(absolute_path.replace('/src/backend', path_to_calcstate_data))
-            logger.info('Backend: State data are saved successfully in state.parquet')
+            roverdata.calced_from_state.to_pickle(absolute_path.replace('/src/backend/data', path_to_calcstate_data))
+            logger.info('Backend: Calced state data are saved successfully in calcstate.pickle')
         except:
             logger.warning('Backend: Could not save state data to the file')
     elif name == 'stats':
         try:
             path_to_stats_data = path_to_data['path'][1]['measure'][1]['stats']
             roverdata.stats.to_pickle(absolute_path.replace('/src/backend/data', path_to_stats_data))
+            logger.info('Backend: Statistics data are saved successfully in stats.pickle')
             path_to_calcstats_data = path_to_data['path'][1]['measure'][4]['calcedstats']
             roverdata.calced_from_stats.to_pickle(absolute_path.replace('/src/backend/data', path_to_calcstats_data))
-            logger.info('Backend: Statistics data are saved successfully in stats.parquet')
+            logger.info('Backend: Calced statistics data are saved successfully in calcstats.pickle')
         except:
             logger.warning('Backend: Could not save statistics data to the file')
     elif name == 'perimeter':
