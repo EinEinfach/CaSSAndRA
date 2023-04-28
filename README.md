@@ -24,7 +24,7 @@ Navigiert in den geclonten/entpackten Ordner:
 Installiert die Abhängigkeiten, dazu im Terminal folgendes eingeben:
 
     pip install -r /home/ardumower/CaSSAndRa/requirements.txt
-danach könnt Ihr erst mal Kaffee holen, denn das kann dauern. Bitte achtet drauf, dass die Installation ohne Fehlern abgeschlossen wird (Warnings können ignoriert werden).
+danach könnt Ihr erst mal Kaffee holen gehen, denn das kann dauern. Bitte achtet drauf, dass die Installation ohne Fehlern abgeschlossen wird (Warnings können ignoriert werden).
 
 Wenn euch das Betriebssystem mit -bash: pip command not found begrüßt, 	müsst Ihr noch pip nachinstallieren: 
 
@@ -67,7 +67,57 @@ Die App sollte euch jetzt mit 3 roten Ampeln begrüßen:
 
 ![first start](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/first_start.jpeg)
 
+Um den Server zu stoppen drück im Terminal Strg+C
 
+## CaSSAndRA als daemon Service einrichten
+Um CaSSAndRA bei jedem Systemstart automatisch ausführen. Kann die Ausführung der Anwendung über systemd realisiert werden. Checkt, ob auf eurem System systemd vorhanden ist:
+
+	systemd --version
+
+Sollte eine Meldung kommen, dass systemd nicht gefunden wurde, dann muss dieser nachinstalliert werden, oder wird dieser von eurem Betriebssystem nichzt unterstützt. Dann bitte an dieser Stelle abbrechen.
+
+Als nächstes legen wir eine neue service Datei an:
+
+	sudo nano /etc/systemd/system/cassandra.service
+
+Die geöfnete Datei füllt Ihr mit folgenden Iformationen:
+
+	[Unit]
+	Description=CaSSAndRA
+	After=multi-user.target
+
+	[Service]
+	Type=simple
+	Restart=always
+	#ExecStart: ggf. Pfad zu eurer app.py anpassen 
+	ExecStart=python3 /home/ardumower/CaSSAndRA/CaSSAndRA/app.py
+	[Install]
+	WantedBy=multi-user.target
+
+Datei speichern und schliessen.
+
+Als nächstes muss daemon neuegeladen werden:
+
+	sudo systemctl daemon-reload
+Aktiviert die Ausführung bei jedem Start:
+
+	sudo systemctl enable cassandra.service
+Und zum Schluss startet den Service:
+
+	sudo systemctl start cassandra
+Prüft den Status:
+
+	sudo systemctl status cassandra
+Als Ausgabe kommt(wichtig ist das Wort active(running)):
+
+	cassandra.service - CaSSAndRA service
+     Loaded: loaded (/etc/systemd/system/cassandra.service; enabled; vendor preset: enabled)
+     Active: active (running) since Thu 2023-04-27 07:48:22 CEST; 1 day 5h ago
+   Main PID: 9207 (python3)
+      Tasks: 1 (limit: 1596)
+        CPU: 3h 11min 42.890s
+     CGroup: /system.slice/cassandra.service
+             └─9207 python3 /home/ardumower/CaSSAndRA/CaSSAndRA/app.py
 
 ## Authors
 
