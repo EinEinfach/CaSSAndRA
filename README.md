@@ -8,7 +8,7 @@ CaSSAndRA ist eine Python-Server-Anwedung, die es einem erlaubt den Ardumower (o
 - MQTT
 - UART (serieller Port)
 
-![introduction](https://img.youtube.com/vi/ZS4DnEkz1dI/0.jpg)](https://www.youtube.com/watch?v=ZS4DnEkz1dI)
+![introduction](https://img.youtube.com/vi/ZS4DnEkz1dI/0.jpg)(https://www.youtube.com/watch?v=ZS4DnEkz1dI)
 
 
 ## Wichtig (Bitte vor der Installation lesen):
