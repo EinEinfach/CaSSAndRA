@@ -63,4 +63,4 @@ Herzlichen Glückwunsch die App ist erfolgreich gestartet und man kann die App i
 	http://IP-des-Rechners:8050
     
 Die App sollte euch jetzt mit 3 roten Ampeln begrüßen:
-![alt text](https://github.com/EinEinfach/CaSSAndRA/tree/master/docs/first_start.jpeg?raw=true)
+![first start](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/first_start.jpeg)
