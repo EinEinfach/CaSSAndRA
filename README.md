@@ -11,6 +11,7 @@ CaSSAndRA ist eine Python-Server-Anwedung, die es einem erlaubt den Ardumower (o
 
 
 ## Wichtig (Bitte vor der Installation lesen):
+Installation und Nutzung der App erfolgt auf eigene Gefahr. Ich übernehme keinerlei Haftung für die entstandenen Schäden durch die Nutzung der App. Es handelt sich hierbei um meinen Hobby-Projekt, der bei euch nicht funktionieren muss. Eurer Roboter muss mit einem Not-Aus Schalter ausgerüstet sein. Bei der Bedienung des Roboters aus der App bitte haltet immer Sichtkontakt zu dem Roboter und im Falle des unerewarteten Verhaltens schaltet diesen sofort über Not-Aus Schalter aus. Wenn Ihr damit einverstanden seid, dann fährt mit der Installation fort.
 ## Installation
 Installation für linuxbasierte Betriebssysteme (alle Befehle werden im Terminal ausgeführt):
 Als erstes muss die Repository heruntergeladen werden. Oder für die Profis unter euch einfach clonen.
@@ -65,3 +66,9 @@ Herzlichen Glückwunsch die App ist erfolgreich gestartet und man kann die App i
 Die App sollte euch jetzt mit 3 roten Ampeln begrüßen:
 
 ![first start](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/first_start.jpeg)
+
+
+
+## Authors
+
+- [@EinEinfach](https://www.github.com/EinEinfach)
