@@ -33,14 +33,14 @@ Wenn euch das Betriebssystem mit -bash: pip command not found begrüßt, 	müsst
 Prüft bitte mit folgendem Befehl den Bibliothekenpfad eurer pip-Installation:
 
 	python3 -m site --user-site
-Wechselt bitte in den Bibliothekenpfad und dort in den dash_daq Ordner (z.B.):
+Wechselt bitte in den Bibliothekenpfad(z.B.):
 
 	cd ./local/lib/python3.9/site-packages
 Sucht den dash_daq Ordner und wechselt dahin:
 
 	cd dash_daq
 
-Kopiert die dash_daq.min.js Datei in den dash_daq Ordner und ersetzt die vorhandene Datei:
+Kopiert die dash_daq.min.js Datei aus der von euch geclonten Repository in den dash_daq Binliotheken-Ordner und ersetzt die vorhandene Datei:
 
 	cp /home/ardumower/CaSSAndRA/bugfix_dash_daq_min/dash_daq.min.js dash_daq.min.js
     
