@@ -8,8 +8,7 @@ CaSSAndRA ist eine Python-Server-Anwedung, die es einem erlaubt den Ardumower (o
 - MQTT
 - UART (serieller Port)
 
-![introduction](https://img.youtube.com/vi/ZS4DnEkz1dI/0.jpg)(https://www.youtube.com/watch?v=ZS4DnEkz1dI)
-
+[![introduction](https://img.youtube.com/vi/ZS4DnEkz1dI/0.jpg)](https://www.youtube.com/watch?v=ZS4DnEkz1dI)
 
 ## Wichtig (Bitte vor der Installation lesen):
 Installation und Nutzung der App erfolgt auf eigene Gefahr. Ich übernehme keinerlei Haftung für die entstandenen Schäden durch die Nutzung der App. Es handelt sich hierbei um meinen Hobby-Projekt, der bei euch nicht funktionieren muss. Eurer Roboter muss mit einem Not-Aus Schalter ausgerüstet sein. Bei der Bedienung des Roboters aus der App bitte haltet immer Sichtkontakt zu dem Roboter und im Falle des unerewarteten Verhaltens schaltet diesen sofort über Not-Aus Schalter aus. Wenn Ihr damit einverstanden seid, dann fährt mit der Installation fort.
