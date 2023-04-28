@@ -113,12 +113,7 @@ Als Ausgabe kommt(wichtig ist das Wort active(running)):
 	cassandra.service - CaSSAndRA service
      Loaded: loaded (/etc/systemd/system/cassandra.service; enabled; vendor preset: enabled)
      Active: active (running) since Thu 2023-04-27 07:48:22 CEST; 1 day 5h ago
-   Main PID: 9207 (python3)
-      Tasks: 1 (limit: 1596)
-        CPU: 3h 11min 42.890s
-     CGroup: /system.slice/cassandra.service
-             └─9207 python3 /home/ardumower/CaSSAndRA/CaSSAndRA/app.py
-
+   
 ## Authors
 
 - [@EinEinfach](https://www.github.com/EinEinfach)
