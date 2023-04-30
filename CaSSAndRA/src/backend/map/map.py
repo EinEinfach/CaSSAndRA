@@ -49,15 +49,15 @@ def gotopoints(perimeter: Polygon, mowoffset: float) -> MultiPoint:
     offsy = bounds[1]
     mask_coordsx = []
     mask_coordsy = []
-    mask_coordsx.append(((bounds[0], 10*bounds[1]),(bounds[0], 10*bounds[3])))
-    mask_coordsy.append(((10*bounds[0], bounds[1]),(10*bounds[2], bounds[1])))
+    mask_coordsx.append(((bounds[0], bounds[1]-10),(bounds[0], bounds[3]+10)))
+    mask_coordsy.append(((bounds[0]-10, bounds[1]),(bounds[2]+10, bounds[1])))
     while True:
         offsx = offsx + mowoffset
         offsy = offsy + mowoffset
         if offsy > bounds[3] and offsx > bounds[2]:
             break
-        mask_coordsx.append(((offsx, 10*bounds[1]),(offsx, 10*bounds[3])))
-        mask_coordsy.append(((10*bounds[0], offsy),(10*bounds[2], offsy)))
+        mask_coordsx.append(((offsx, bounds[1]-10),(offsx, bounds[3]+10)))
+        mask_coordsy.append(((bounds[0]-10, offsy),(bounds[2]+10, offsy)))
     linemaskx = MultiLineString(mask_coordsx)
     linemasky = MultiLineString(mask_coordsy)
     points = linemaskx.intersection(linemasky)

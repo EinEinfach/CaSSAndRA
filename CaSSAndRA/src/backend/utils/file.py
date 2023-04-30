@@ -41,7 +41,13 @@ def import_sunray(df: pd.DataFrame()) -> list():
                     coords = pd.concat([coords, dockpoints_df], ignore_index=True)
                 except:
                     logger.info('Backend: No dockpoints found in sunray file')
-                coords = coords.drop(['delta', 'timestamp', 'sol'], axis=1)
+                coords = coords.drop(['delta', 'timestamp'], axis=1)
+                #Handle some sunray exports without sol Axis
+                try:
+                    coords = coords.drop(['sol'], axis=1)
+                except Exception as e:
+                    logger.info('Backend: Sunray file has no sol Axis')
+                    logger.debug(str(e))
                 coords['map_nr'] = map_number
                 coords_all = pd.concat([coords_all, coords], ignore_index=True)
 
