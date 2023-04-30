@@ -87,6 +87,8 @@ Die geöfnete Datei füllt Ihr mit folgenden Iformationen:
 	After=multi-user.target
 
 	[Service]
+	#Euer Benutzername
+	User=ardumower 
 	Type=simple
 	Restart=always
 	#ExecStart: ggf. Pfad zu eurer app.py anpassen 
