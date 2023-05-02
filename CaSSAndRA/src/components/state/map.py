@@ -147,14 +147,14 @@ def update(n_intervals: int,
           path_to_go = filtered[filtered.index >= current_mow_idx]
           #calc mow progress
           mow_progress = calceddata.calc_mow_progress(mapdata.mowpath, current_mow_idx)
-          traces.append(go.Scatter(x=path_finished['X'], y=path_finished['Y'], mode='lines', name='mow finished', line=dict(color='#e9e9e9')))
-          traces.append(go.Scatter(x=path_to_go['X'], y=path_to_go['Y'], mode='lines', name='mow to go', line=dict(color='#7fb249')))
+          traces.append(go.Scatter(x=path_finished['X'], y=path_finished['Y'], mode='lines', name='mow finished', opacity=0.5, line=dict(color='#e9e9e9')))
+          traces.append(go.Scatter(x=path_to_go['X'], y=path_to_go['Y'], mode='lines', name='mow to go', opacity=0.7, line=dict(color='#7fb249')))
           mowdata = [dict(text='Distance completed: '+str(mow_progress[0])+'m/'+str(mow_progress[1])+'m ('+str(mow_progress[2])+'%)', showarrow=False, xref="paper", yref="paper",x=1,y=1),
                      dict(text='Index completed: '+str(mow_progress[3])+'/'+str(mow_progress[4])+' ('+str(mow_progress[5])+'%)', showarrow=False, xref="paper", yref="paper",x=1,y=0.95), 
                      dict(text='Area to mow: '+str(mapdata.areatomow)+'sqm', showarrow=False, xref="paper", yref="paper",x=1,y=0.9)]
      elif not mapdata.preview.empty:
           filtered = mapdata.preview[mapdata.preview['type'] == 'preview route']
-          traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', line=dict(color='#7fb249')))
+          traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color='#7fb249')))
 
      #Plot rover position
      traces.append(go.Scatter(x=[current_df['position_x']], y=[current_df['position_y'],], 
