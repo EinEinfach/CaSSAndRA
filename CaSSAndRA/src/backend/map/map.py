@@ -5,6 +5,43 @@ import pandas as pd
 from shapely.geometry import *
 from shapely import affinity
 
+def selection(perimeter: Polygon, selection: dict()) -> Polygon():
+    try: 
+        logger.info('Backend: Check for selection and create a new perimter if there')
+        logger.debug('perimeter coords: '+str(perimeter.exterior.coords)+' selection: '+str(selection))
+
+        if selection == None:
+            logger.info('Backend: No selection detected, go further with whole perimeter')
+            return perimeter
+        
+        elif 'range' in selection:
+            logger.info('Backend: Selection box detected. Create an new perimeter with box select.') 
+            selection = selection['range']
+            selected_polygon = box(selection['x'][0], selection['y'][0],
+                                selection['x'][1], selection['y'][1])
+            new_perimeter = perimeter.intersection(selected_polygon)
+            return new_perimeter
+        
+        elif 'lassoPoints' in selection:
+            logger.info('Backend: Selection lasso detected. Create a new perimeter with lasso select.')
+            logger.debug('Lasso points: '+str(selection))
+            selection = selection['lassoPoints']
+            selection_list = list(zip(selection['x'], selection['y']))
+            selected_polygon = Polygon(selection_list)
+            if not selected_polygon.is_valid:
+                logger.warning('Backend: Selection not valid, calculation aborted')
+                return Polygon()
+            else:
+                new_perimeter = perimeter.intersection(selected_polygon)
+                return new_perimeter
+
+        else:
+            logger.warning('Backend: Map selection failed. Selection dict() is an unknown value')
+            return Polygon()
+    except Exception as e:
+        logger.warning('Backend: Map selection failed')
+        logger.debug(str(e))
+
 def create(map: pd.DataFrame) -> Polygon:
     logger.info('Backend: Create a shapely figure from data frame')
     perimeter = map[map['type'] == 'perimeter']
@@ -23,9 +60,15 @@ def create(map: pd.DataFrame) -> Polygon:
     return perimeter
 
 def turn(figure: Polygon, mowangle: int) -> Polygon:
-    logger.info('Backend: Turning shapely figure. Angle: {}'.format(-mowangle))
-    figure_rotated = affinity.rotate(figure, -mowangle, origin=(0, 0))
-    return figure_rotated
+    try: 
+        logger.info('Backend: Turning shapely figure: '+figure.geom_type+' Angle: {}'.format(-mowangle))
+        logger.debug(str(figure))
+        figure_rotated = affinity.rotate(figure, -mowangle, origin=(0, 0))
+        return figure_rotated
+    except Exception as e:
+        logger.warning('Backend: Shapely figure turning failed')
+        logger.debug(str(e))
+        return figure
 
 def linemask(perimeter: Polygon, mowoffset: float) -> MultiLineString:
     logger.info('Backend: Create line mask')
@@ -74,14 +117,10 @@ def border(perimeter: Polygon, distancetoborder: int, mowoffset: float) -> list(
     else: 
         for i in range(distancetoborder):
             perimeter = perimeter.buffer(mowoffset, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
+        perimeter = perimeter.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
         return perimeter, border
 
 def route(points: list()) -> LineString():
     logger.info('Backend: Transform route to shapely figure')
     route_as_line = LineString(points)
     return route_as_line
-"""
-if __name__ == '__main__':
-    test = Polygon(([0, 0], [0, 4], [4, 4], [4, 0]))
-    gotopoints(test, 0.1)
-"""

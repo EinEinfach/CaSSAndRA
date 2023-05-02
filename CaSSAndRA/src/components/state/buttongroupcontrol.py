@@ -92,10 +92,12 @@ def perfom_cmd(n_clicks_bgo: int, n_clicks_bs: int,
         if active_bh:
             cmdlist.cmd_dock = True
         elif active_bma:
-            path.calc(mapdata.mowoffsetstatepage, mapdata.mowanglestatepage, rover_position, mapdata.patternstatepage)
+            mapdata.mowpath = mapdata.preview
+            mapdata.mowpath['type'] = 'way'
             cmdlist.cmd_mow = True
         elif active_bzs:
-            path.calc(mapdata.mowoffsetstatepage, mapdata.mowanglestatepage, rover_position, mapdata.patternstatepage)
+            mapdata.mowpath = mapdata.preview
+            mapdata.mowpath['type'] = 'way'
             cmdlist.cmd_mow = True
         elif active_bgt:
             cmdlist.cmd_goto = True

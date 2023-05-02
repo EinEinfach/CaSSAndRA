@@ -47,6 +47,7 @@ def calcroute(perimeter, NUM_EDGE, MOW_OFFSET, START):
         route = list(perimeter.exterior.coords)
         ###Entferne Duplikate###
         route = list(dict.fromkeys(route))
+        logger.debug('current route coords: '+str(route))
         first_coords = [min(route, key=lambda coord: (coord[0]-start_coords[0][0])**2 + (coord[1]-start_coords[0][1])**2)]
         first_coords_nr = route.index(first_coords[0])
         route = route[first_coords_nr:]+route[:first_coords_nr]

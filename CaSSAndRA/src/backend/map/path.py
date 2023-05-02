@@ -8,6 +8,7 @@ from . import map, cutedge, lines
 from ..data import mapdata
 
 def calc(mowoffset: float, mowangle: int, start_pos: list(), pattern: str()):
+    logger.debug('Coverage path planning: mowoffset: '+str(mowoffset)+' mowangle: '+str(mowangle)+' startpos: '+str(start_pos)+' pattern: '+pattern)
     if pattern == 'lines' or pattern == 'squares' or pattern == 'rings':
         start_pos = Point(start_pos)
         start_pos = map.turn(start_pos, mowangle)
@@ -34,6 +35,6 @@ def calc(mowoffset: float, mowangle: int, start_pos: list(), pattern: str()):
 
     
     mapdata.areatomow = round(mapdata.selected_perimeter.area)
-    mapdata.mowpath = pd.DataFrame(route)
-    mapdata.mowpath.columns =['X', 'Y']
-    mapdata.mowpath['type'] = 'way'
+    mapdata.preview = pd.DataFrame(route)
+    mapdata.preview.columns = ['X', 'Y']
+    mapdata.preview['type'] = 'preview route'

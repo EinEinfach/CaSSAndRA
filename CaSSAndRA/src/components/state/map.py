@@ -4,7 +4,7 @@ import pandas as pd
 
 from .. import ids
 from src.backend.data import mapdata, roverdata, calceddata
-from src.backend.map import map, preview
+from src.backend.map import map, preview, path
 
 
 @callback(Output(ids.STATEMAP, 'figure'),
@@ -27,6 +27,9 @@ def update(n_intervals: int,
            buttoncancelclick: int, clickdata: dict(), 
            selecteddata: dict(), buttonzonenselectstate: bool,
            buttongotostate: bool) -> dict():
+     
+     current_df = roverdata.state.iloc[-1]
+     rover_position = [round(current_df['position_x'],2), round(current_df['position_x'],2)] 
      
      context = ctx.triggered_id
      context_triggered = ctx.triggered
@@ -55,8 +58,8 @@ def update(n_intervals: int,
           mapdata.gotopoint = pd.DataFrame() 
           mapdata.preview = pd.DataFrame()
           mapdata.mowpath = pd.DataFrame()
-          perimeter_preview = map.create(mapdata.perimeter)
-          preview.calc(mapdata.patternstatepage, perimeter_preview, None, mapdata.mowoffsetstatepage, mapdata.mowanglestatepage)
+          mapdata.selected_perimeter = map.create(mapdata.perimeter)
+          path.calc(mapdata.mowoffsetstatepage, mapdata.mowanglestatepage, rover_position, mapdata.patternstatepage)
           plotgotopoints = False
      elif context == ids.BUTTONZONESELECT and buttonzoneselect:
           mapdata.gotopoint = pd.DataFrame()
@@ -85,10 +88,10 @@ def update(n_intervals: int,
      elif context_triggered[0]['prop_id'] == ids.STATEMAP+'.selectedData' and buttonzonenselectstate and selecteddata:
           mapdata.mowpath = pd.DataFrame()
           perimeter_preview = map.create(mapdata.perimeter)
-          preview.calc(mapdata.patternstatepage, perimeter_preview, selecteddata, mapdata.mowoffsetstatepage, mapdata.mowanglestatepage)
+          mapdata.selected_perimeter = map.selection(perimeter_preview, selecteddata)
+          path.calc(mapdata.mowoffsetstatepage, mapdata.mowanglestatepage, rover_position, mapdata.patternstatepage)
      
      #Plots
-     current_df = roverdata.state.iloc[-1]
      traces = []
      #calceddata.calcmapdata_for_plot(mapdata.perimeter) 
      if not mapdata.perimeter.empty:
@@ -147,10 +150,9 @@ def update(n_intervals: int,
           mowdata = [dict(text='Distance to go: '+str(mapdata.distancetogo)+'m', showarrow=False, xref="paper", yref="paper",x=1,y=1), 
                      dict(text='Area to mow: '+str(mapdata.areatomow)+'sqm', showarrow=False, xref="paper", yref="paper",x=1,y=0.95)]
      elif not mapdata.preview.empty:
-        for mowline in mapdata.preview['type'].unique():
-            filtered = mapdata.preview[mapdata.preview['type']==mowline]
-            traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name=mowline, line=dict(color='#7fb249')))
-     
+          filtered = mapdata.preview[mapdata.preview['type'] == 'preview route']
+          traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', line=dict(color='#7fb249')))
+
      #Plot rover position
      traces.append(go.Scatter(x=[current_df['position_x']], y=[current_df['position_y'],], 
                              mode='markers',
