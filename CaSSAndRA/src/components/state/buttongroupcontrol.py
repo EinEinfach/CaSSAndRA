@@ -7,21 +7,21 @@ from src.backend.comm import cmdlist
 from src.backend.map import path
 from src.backend.data import mapdata, roverdata, appdata
 
-buttonhome = dbc.Button(id=ids.BUTTONHOME, size='lg',class_name='mx-1 mt-1 bi bi-house')
+buttonhome = dbc.Button(id=ids.BUTTONHOME, size='lg',class_name='mx-1 mt-1 bi bi-house', disabled=False)
                 
-buttonmowall = dbc.Button(id=ids.BUTTONMOWALL, size='lg', class_name='me-1 mt-1 bi bi-map-fill')
+buttonmowall = dbc.Button(id=ids.BUTTONMOWALL, size='lg', class_name='me-1 mt-1 bi bi-map-fill', disabled=False)
 
-buttongoto = dbc.Button(id=ids.BUTTONGOTO, size='lg', class_name='me-1 mt-1 bi bi-geo-alt-fill')
+buttongoto = dbc.Button(id=ids.BUTTONGOTO, size='lg', class_name='me-1 mt-1 bi bi-geo-alt-fill', disabled=False)
 
-buttonzoneselect = dbc.Button(id=ids.BUTTONZONESELECT, size='lg', class_name='me-1 mt-1 bi bi-pin-map-fill')
+buttonzoneselect = dbc.Button(id=ids.BUTTONZONESELECT, size='lg', class_name='me-1 mt-1 bi bi-pin-map-fill', disabled=False)
 
-buttoncancel = dbc.Button(id=ids.BUTTONCANCEL, size='lg', class_name='me-1 mt-1 bi bi-x-square-fill')
+buttoncancel = dbc.Button(id=ids.BUTTONCANCEL, size='lg', class_name='me-1 mt-1 bi bi-x-square-fill', disabled=False)
 
-buttonmowsettings = dbc.Button(id=ids.BUTTONMOWSETTINGS, size='lg', class_name='me-1 mt-1 bi bi-gear-fill')
+buttonmowsettings = dbc.Button(id=ids.BUTTONMOWSETTINGS, size='lg', class_name='me-1 mt-1 bi bi-gear-fill', disabled=False)
 
-buttongo = dbc.Button(id=ids.BUTTONGO, size='lg', class_name='mx-1 mt-1 bi bi-play-fill')
+buttongo = dbc.Button(id=ids.BUTTONGO, size='lg', class_name='mx-1 mt-1 bi bi-play-fill', disabled=False)
 
-buttonstop = dbc.Button(id=ids.BUTTONSTOP, size='lg', class_name='mx-1 mt-1 bi bi-stop-fill', color='danger')
+buttonstop = dbc.Button(id=ids.BUTTONSTOP, size='lg', class_name='mx-1 mt-1 bi bi-stop-fill', color='danger', disabled=False)
 
 #Create state of buttons
 @callback(Output(ids.BUTTONHOME, 'active'),
@@ -145,14 +145,16 @@ def update_button_disabled(n_intervals: int, n_clicks_bgo: int, n_clicks_bs: int
     if mapdata.perimeter.empty:
         return True, True, True, True, True
 
-    if context == ids.INTERVAL and time_since_buttongo.seconds > 15:
-        if current_rover_state != 'mow' and current_rover_state != 'docking' and current_rover_state != 'error':
-            return False, False, False, False, False
-        else:
-            return True, True, True, True, True
+    # if context == ids.INTERVAL and time_since_buttongo.seconds > 15:
+    #     if current_rover_state != 'mow' and current_rover_state != 'docking' and current_rover_state != 'error':
+    #         return False, False, False, False, False
+    #     else:
+    #         return True, True, True, True, True
     elif context == ids.BUTTONGO:
         appdata.time_buttongo_pressed = datetime.now()
         return True, True, True, True, True
+    elif context == ids.BUTTONSTOP:
+        return False, False, False, False, False
     else:
         return bh_disabled, bma_disabled, bzs_disabled, bgt_disabled, bc_disabled
 
