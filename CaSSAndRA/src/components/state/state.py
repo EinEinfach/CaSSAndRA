@@ -8,6 +8,10 @@ from .. import ids
           Input(ids.INTERVAL, 'n_intervals'))
 def update(n_intervals: int) -> html.Div():
     current_df = roverdata.calced_from_state.iloc[-1]
+    
+    #handle the error after start if soc still nan
+    if current_df['soc'] is None:
+        current_df['soc'] = 0
 
     #create colors
     if current_df['job'] == 'docking' or current_df['job'] == 'mow' or current_df['job'] == 'go to point' or current_df['job'] == 'charging':
