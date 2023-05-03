@@ -3,6 +3,7 @@ import dash_bootstrap_components as dbc
 
 from . import ids
 from src.backend.comm import cmdlist
+from src.backend.data.roverdata import robot
 
 
 confirm = dbc.Modal([
@@ -30,7 +31,7 @@ def toggle_modal(n_clicks_bsoff: int, n_clicks_bsr: int,
                  n_clicks_bok: int, modal_is_open: bool) -> list():
     context = ctx.triggered_id
 
-    if cmdlist.cmd_last_mowmotor_cmd == 'on':
+    if robot.last_mow_status:#cmdlist.cmd_last_mowmotor_cmd == 'on':
         buttonfanactive = True
     else:
         buttonfanactive = False

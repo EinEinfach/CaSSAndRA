@@ -4,7 +4,8 @@ logger = logging.getLogger(__name__)
 import numpy as np
 import pandas as pd
 
-from .. data import roverdata, mapdata
+from .. data import mapdata
+from .. data.roverdata import robot
 from . import cmdlist
 
 def takemap(perimeter: pd.DataFrame(), way: pd.DataFrame(), dock: bool) -> pd.DataFrame():
@@ -77,20 +78,23 @@ def goto() -> pd.DataFrame():
     msg = {'msg': 'AT+C,0,1,0.3,100,0,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command goto is send to rover')
+    robot.last_mow_status = False
     cmdlist.cmd_goto = False
     return buffer
 
 def stop():
-    msg = {'msg': 'AT+C,-1,0,-1,-1,-1,-1,-1,-1'}
+    msg = {'msg': 'AT+C,0,0,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command stop is send to rover')
+    robot.last_mow_status = False
     cmdlist.cmd_stop = False
     return buffer
 
 def dock() -> pd.DataFrame():
-    msg = {'msg': 'AT+C,-1,4,-1,-1,-1,-1,-1,-1'}
+    msg = {'msg': 'AT+C,0,4,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command dock is send to rover')
+    robot.last_mow_status = False
     cmdlist.cmd_dock = False
     return buffer
 
@@ -98,6 +102,7 @@ def mow() -> pd.DataFrame():
     msg = {'msg': 'AT+C,1,1,0.3,100,0,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command start is send to rover')
+    robot.last_mow_status = True
     cmdlist.cmd_mow = False
     return buffer
 
@@ -126,11 +131,13 @@ def togglemowmotor() -> pd.DataFrame():
     #mow motor switch on
     if cmdlist.cmd_last_mowmotor_cmd == 'off':
         msg = {'msg': 'AT+C,1,-1,-1,-1,-1,-1,-1,-1'}
+        robot.last_mow_status = True
         cmdlist.cmd_last_mowmotor_cmd = 'on'
         cmdlist.cmd_toggle_mow_motor = False
     #mow motor switch off
     else:
         msg = {'msg': 'AT+C,0,-1,-1,-1,-1,-1,-1,-1'}
+        robot.last_mow_status = False
         cmdlist.cmd_last_mowmotor_cmd = 'off'
         cmdlist.cmd_toggle_mow_motor = False
     buffer = pd.DataFrame([msg])

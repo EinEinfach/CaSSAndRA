@@ -55,7 +55,6 @@ class Mower:
         self.map_crc = state['map_crc']
         self.soc = self.calc_soc()
         self.solution = self.calc_solution()
-        #self.last_mow_status = self.set_mow_motor_status()
         self.timestamp = datetime.now()
         self.status = self.calc_status()
     
@@ -73,7 +72,7 @@ class Mower:
         delta_x = position_x - self.position_x
         delta_y = position_y - self.position_y
         direction_rad = math.atan2(delta_y, delta_x)
-        direction_deg = direction_rad*(180/math.pi)
+        direction_deg = round(direction_rad*(180/math.pi))
         if direction_deg < 0:
             direction_deg = round(360 + direction_deg)
         return direction_deg
@@ -83,9 +82,9 @@ class Mower:
             return 'offline'
         elif self.job == 0:
             return 'idle'
-        elif self.job == 1 and self.last_mow_status == 0:
+        elif self.job == 1 and self.last_mow_status == False:
             return 'transit'
-        elif self.job == 1 and self.last_mow_status == 1:
+        elif self.job == 1 and self.last_mow_status == True:
             return 'mow'
         elif self.job == 2 and self.amps <= -0.03:
             return 'charging'
@@ -113,10 +112,7 @@ class Mower:
             return 'float'
         else:
             return 'invalid'
-    
-    def set_mow_motor_status(self, at_cmd: str()) -> bool:
-        return True
-
+            
 #define robot instancs
 robot = Mower()
 

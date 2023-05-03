@@ -1,18 +1,12 @@
 from dash import html, Input, Output, callback
 import dash_bootstrap_components as dbc
 
-from src.backend.data import roverdata
 from src.backend.data.roverdata import robot
 from .. import ids
 
 @callback(Output(ids.STATESTRING, 'children'),
           Input(ids.INTERVAL, 'n_intervals'))
 def update(n_intervals: int) -> html.Div():
-    #current_df = roverdata.calced_from_state.iloc[-1]
-
-    #handle the error after start if soc still nan
-    #if current_df['soc'] is None:
-        #current_df['soc'] = 0
 
     #create colors
     if robot.status == 'docking' or robot.status == 'mow' or robot.status == 'transit' or robot.status == 'charging':
