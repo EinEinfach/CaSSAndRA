@@ -2,45 +2,46 @@ from dash import html, Input, Output, callback
 import dash_bootstrap_components as dbc
 
 from src.backend.data import roverdata
+from src.backend.data.roverdata import robot
 from .. import ids
 
 @callback(Output(ids.STATESTRING, 'children'),
           Input(ids.INTERVAL, 'n_intervals'))
 def update(n_intervals: int) -> html.Div():
-    current_df = roverdata.calced_from_state.iloc[-1]
-    
+    #current_df = roverdata.calced_from_state.iloc[-1]
+
     #handle the error after start if soc still nan
-    if current_df['soc'] is None:
-        current_df['soc'] = 0
+    #if current_df['soc'] is None:
+        #current_df['soc'] = 0
 
     #create colors
-    if current_df['job'] == 'docking' or current_df['job'] == 'mow' or current_df['job'] == 'go to point' or current_df['job'] == 'charging':
+    if robot.status == 'docking' or robot.status == 'mow' or robot.status == 'transit' or robot.status == 'charging':
         colorstate = 'success'
         inversestate = True
-    elif current_df['job'] == 'docked':
+    elif robot.status == 'docked':
         colorstate = 'light'
         inversestate = False
-    elif current_df['job'] == 'idle':
+    elif robot.status == 'idle':
         colorstate = 'warning'
         inversestate = True
     else:
         colorstate = 'danger'
         inversestate = True
     
-    if current_df['solution'] == 'fix':
+    if robot.solution == 'fix':
         colorsolution = 'light'
         inversesolution = False
-    elif current_df['solution'] == 'float':
+    elif robot.solution == 'float':
         colorsolution = 'warning'
         inversesolution = True
     else:
         colorsolution = 'danger'
         inversesolution = True
     
-    if current_df['soc'] > 30:
+    if robot.soc > 30:
         colorsoc = 'light'
         inversesoc = False
-    elif current_df['soc'] > 15:
+    elif robot.soc > 15:
         colorsoc = 'warning'
         inversesoc = True
     else:
@@ -53,7 +54,7 @@ def update(n_intervals: int) -> html.Div():
                     dbc.Card([
                         dbc.CardHeader('Solution'),
                         dbc.CardBody([
-                            html.H6(current_df['solution']),
+                            html.H6(robot.solution),
                             ]),
                     ],
                     className="text-center m-1 w-33", 
@@ -65,7 +66,7 @@ def update(n_intervals: int) -> html.Div():
                     dbc.Card([
                         dbc.CardHeader('State'),
                         dbc.CardBody([
-                            html.H6(current_df['job']),
+                            html.H6(robot.status),
                             ]),
                     ],
                     className="text-center m-1 w-33",
@@ -76,7 +77,7 @@ def update(n_intervals: int) -> html.Div():
                     dbc.Card([
                         dbc.CardHeader('SoC'),
                         dbc.CardBody([
-                            html.H6('{}%'.format(round(current_df['soc']))),
+                            html.H6('{}%'.format(robot.soc)),
                             ]),
                     ],
                     className="text-center m-1 w-33",

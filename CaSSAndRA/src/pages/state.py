@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 #local imports
 from src.components import ids, modalmowsettings
 from src.components.state import map, dropdownmaplinetype, buttongroupcontrol, state
-from src.backend.data import roverdata
+#from src.backend.data import roverdata
 
 dash.register_page(
     __name__,

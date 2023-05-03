@@ -6,6 +6,7 @@ from .. import ids
 from src.backend.comm import cmdlist
 from src.backend.map import path
 from src.backend.data import mapdata, roverdata, appdata
+from src.backend.data.roverdata import robot
 
 buttonhome = dbc.Button(id=ids.BUTTONHOME, size='lg',class_name='mx-1 mt-1 bi bi-house', disabled=False)
                 
@@ -81,10 +82,7 @@ def perfom_cmd(n_clicks_bgo: int, n_clicks_bs: int,
                active_bzs: bool, active_bgt: bool) -> list():
     
     context = ctx.triggered_id
-    rover_current_df = roverdata.state.iloc[-1]
-    rover_position = [round(rover_current_df['position_x'],2), round(rover_current_df['position_x'],2)]  
-    rover_current_calced_df = roverdata.calced_from_state.iloc[-1]
-    rover_state = rover_current_calced_df['job']
+    rover_state = robot.status
 
     if context == ids.BUTTONGO:
         buttongostate = True
@@ -138,8 +136,6 @@ def perfom_cmd(n_clicks_bgo: int, n_clicks_bs: int,
 def update_button_disabled(n_intervals: int, n_clicks_bgo: int, n_clicks_bs: int,
                            bh_disabled: bool, bma_disabled: bool, bzs_disabled: bool,
                            bgt_disabled: bool, bc_disabled: bool) -> list():
-    time_since_buttongo = appdata.time_buttongo_pressed - datetime.now()
-    current_rover_state = roverdata.calced_from_state.iloc[-1]['job']
     context = ctx.triggered_id
 
     if mapdata.perimeter.empty:

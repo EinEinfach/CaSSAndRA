@@ -3,8 +3,9 @@ import plotly.graph_objects as go
 import pandas as pd
 
 from .. import ids
-from src.backend.data import mapdata, roverdata, calceddata
+from src.backend.data import mapdata, calceddata
 from src.backend.map import map, preview, path
+from src.backend.data.roverdata import robot
 
 
 @callback(Output(ids.STATEMAP, 'figure'),
@@ -28,8 +29,7 @@ def update(n_intervals: int,
            selecteddata: dict(), buttonzonenselectstate: bool,
            buttongotostate: bool) -> dict():
      
-     current_df = roverdata.state.iloc[-1]
-     rover_position = [round(current_df['position_x'],2), round(current_df['position_x'],2)] 
+     rover_position = [robot.position_x, robot.position_y] 
      
      context = ctx.triggered_id
      context_triggered = ctx.triggered
@@ -38,14 +38,6 @@ def update(n_intervals: int,
      else:
           plotgotopoints = False
 
-     # linetype = None
-     # if dropdownmaplinetype == []:
-     #      linetype = 'lines'
-     # elif len(dropdownmaplinetype) == 2:
-     #      linetype = 'lines+markers'
-     # else:
-     #      linetype = dropdownmaplinetype[0]
-    
      mowdata = []
      #Check control buttons state
      if context == ids.BUTTONHOME and buttonhome:
@@ -140,10 +132,10 @@ def update(n_intervals: int,
      #Plot preview lines or mowpath, if there
      if not mapdata.mowpath.empty:
           filtered = mapdata.mowpath[mapdata.mowpath['type'] == 'way']
-          current_mow_idx = current_df['position_mow_point_index'] - 1
+          current_mow_idx = robot.position_mow_point_index - 1
           if current_mow_idx < 0:
                current_mow_idx = 0
-          path_finished = filtered[filtered.index < current_df['position_mow_point_index']]
+          path_finished = filtered[filtered.index < robot.position_mow_point_index]
           path_to_go = filtered[filtered.index >= current_mow_idx]
           #calc mow progress
           mow_progress = calceddata.calc_mow_progress(mapdata.mowpath, current_mow_idx)
@@ -157,7 +149,7 @@ def update(n_intervals: int,
           traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color='#7fb249')))
 
      #Plot rover position
-     traces.append(go.Scatter(x=[current_df['position_x']], y=[current_df['position_y'],], 
+     traces.append(go.Scatter(x=[robot.position_x], y=[robot.position_y], 
                              mode='markers',
                              name='Rover', 
                              marker={'size': 12, 'color': 'red'},
@@ -166,8 +158,8 @@ def update(n_intervals: int,
                     )
      
      #Plot target point
-     if current_df['job'] == 4 or current_df['job'] == 1:
-          traces.append(go.Scatter(x=[current_df['target_x']], y=[current_df['target_y']],
+     if robot.job == 4 or robot.job == 1:
+          traces.append(go.Scatter(x=[robot.target_x], y=[robot.target_y],
                                    mode='markers',
                                    name='Target',
                                    marker = dict(

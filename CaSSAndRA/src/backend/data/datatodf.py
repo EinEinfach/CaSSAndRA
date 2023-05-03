@@ -7,6 +7,7 @@ from datetime import datetime
 
 #local imports
 from . import roverdata, calceddata
+from . roverdata import robot
 
 #Add data from MQTT conection
 def add_state_to_df_from_mqtt(data: dict()) -> None:
@@ -29,6 +30,7 @@ def add_state_to_df_from_mqtt(data: dict()) -> None:
                     'map_crc':data['map_crc'],
                     'timestamp': str(datetime.now())}
         state_to_df = pd.DataFrame(data=state_to_df, index=[0])
+        robot.set_state(state_to_df)
         roverdata.state = pd.concat([roverdata.state, state_to_df], ignore_index=True)
         calceddata.calcdata_from_state()
     except:
@@ -120,6 +122,7 @@ def add_state_to_df(data: str()) -> None:
                         'position_visible_satellites_dgps',
                         'map_crc',
                         'timestamp']
+    robot.set_state(state_to_df)
     roverdata.state = pd.concat([roverdata.state, state_to_df], ignore_index=True)
     calceddata.calcdata_from_state()
 
