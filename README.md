@@ -144,6 +144,13 @@ Aktuell gibt es nur eine Möglichkeit eine Karte in CaSSAndRA zu erstellen. Dies
 In der App klickt auf "More" -> "Mapping". Klickt auf den oberen grünen Button und navigiert zu eurer exportierten Sunray Datei. Wählt die Datei aus. Durch das Dropdownmenu unter dem Upload Button könnt Ihr eine der eingelesenen Karte auswählen (Die Nummerierung entspricht euren Kartenreihenfolge in der Sunray App). Wählt die gewünschte Karte. Ein Vorschau des Perimeters wird angezeigt. Drückt auf den unteren grünen Button zur übernahme der Karte.
 
 Wechselt auf die Startseite. Die neue Karte wird in der Übersicht angezeigt.
+
+## Update
+Die App wird von mir in kleinen Schritten verbessert bzw. die gemeldeten Probleme behoben. Um die Änderungen auch bei euch produktiv zu schalten, geht beim Update wie folgt vor. 
+1. Sichert euren /src/data Ordner
+2. Clont erneuet die Repository und ersetzt alle Dateien und Ordner in eurem Produktivverzeichnis durch die neuen heruntergeladenen Dateien.
+3. Ersetzt den herunntergeladenen /src/data Ordner durch den im Schritt 1 von euch gesichrten Ordner.
+4. App kann wie gwohnt gestartet werden
 ## Authors
 
 - [@EinEinfach](https://www.github.com/EinEinfach)
