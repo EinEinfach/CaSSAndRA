@@ -63,7 +63,9 @@ class Mower:
             delta_x = position_x - self.position_x
             delta_y = position_y - self.position_y
             delta_distance = (delta_x**2+delta_y**2)**(1/2)
-            speed = round(delta_distance/(datetime.now() - timestamp).seconds, 2)
+            timedelta = datetime.now() - timestamp
+            timedelta_seconds = timedelta.seconds + timedelta.microseconds*1000000
+            speed = round(delta_distance/timedelta_seconds, 2)
         else:
             speed = 0
         return speed
