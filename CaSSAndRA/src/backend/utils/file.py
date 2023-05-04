@@ -26,30 +26,31 @@ def import_sunray(df: pd.DataFrame()) -> list():
         for map_number in range(len(df)): 
             if not df[df.index == map_number].isnull().values.any():
                 coords = pd.DataFrame(df['perimeter'][map_number])
-                coords['type'] = 'perimeter'    
-                try:
-                    coords_exclusions = df['exclusions'][map_number]
-                    for i, exclusion in enumerate(coords_exclusions):
-                        exclusion_df = pd.DataFrame(exclusion)
-                        exclusion_df['type'] = 'exclusion_'+str(i)
-                        coords = pd.concat([coords, exclusion_df], ignore_index=True)
-                except:
-                    logger.info('Backend: No exclusions found in sunray file')
-                try: 
-                    dockpoints_df = pd.DataFrame(df['dockpoints'][map_number])
-                    dockpoints_df['type'] = 'dockpoints'
-                    coords = pd.concat([coords, dockpoints_df], ignore_index=True)
-                except:
-                    logger.info('Backend: No dockpoints found in sunray file')
-                coords = coords.drop(['delta', 'timestamp'], axis=1)
-                #Handle some sunray exports without sol Axis
-                try:
-                    coords = coords.drop(['sol'], axis=1)
-                except Exception as e:
-                    logger.info('Backend: Sunray file has no sol Axis')
-                    logger.debug(str(e))
-                coords['map_nr'] = map_number
-                coords_all = pd.concat([coords_all, coords], ignore_index=True)
+                coords['type'] = 'perimeter'  
+                if not coords.empty:  
+                    try:
+                        coords_exclusions = df['exclusions'][map_number]
+                        for i, exclusion in enumerate(coords_exclusions):
+                            exclusion_df = pd.DataFrame(exclusion)
+                            exclusion_df['type'] = 'exclusion_'+str(i)
+                            coords = pd.concat([coords, exclusion_df], ignore_index=True)
+                    except:
+                        logger.info('Backend: No exclusions found in sunray file')
+                    try: 
+                        dockpoints_df = pd.DataFrame(df['dockpoints'][map_number])
+                        dockpoints_df['type'] = 'dockpoints'
+                        coords = pd.concat([coords, dockpoints_df], ignore_index=True)
+                    except:
+                        logger.info('Backend: No dockpoints found in sunray file')
+                    coords = coords.drop(['delta', 'timestamp'], axis=1)
+                    #Handle some sunray exports without sol Axis
+                    try:
+                        coords = coords.drop(['sol'], axis=1)
+                    except Exception as e:
+                        logger.info('Backend: Sunray file has no sol Axis')
+                        logger.debug(str(e))
+                    coords['map_nr'] = map_number
+                    coords_all = pd.concat([coords_all, coords], ignore_index=True)
 
         return coords_all, 0
     
