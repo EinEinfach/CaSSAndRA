@@ -1,11 +1,9 @@
 from dash import html, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
-from datetime import datetime
 
 from .. import ids
 from src.backend.comm import cmdlist
-from src.backend.map import path
-from src.backend.data import mapdata, roverdata, appdata
+from src.backend.data import mapdata
 from src.backend.data.roverdata import robot
 
 buttonhome = dbc.Button(id=ids.BUTTONHOME, size='lg',class_name='mx-1 mt-1 bi bi-house', disabled=False)
@@ -100,7 +98,7 @@ def perfom_cmd(n_clicks_bgo: int, n_clicks_bs: int,
         elif active_bgt:
             cmdlist.cmd_goto = True
         else:
-            mapdata.mowpath = roverdata.current_task
+            mapdata.mowpath = robot.current_task
             cmdlist.cmd_resume = True
     
     if context == ids.BUTTONSTOP:

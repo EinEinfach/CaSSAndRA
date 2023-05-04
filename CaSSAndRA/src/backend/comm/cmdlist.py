@@ -15,7 +15,6 @@ cmd_take_map = False
 cmd_toggle_mow_motor = False
 
 cmd_standby = ''
-cmd_last_mowmotor_cmd = 'off'
 
 
 

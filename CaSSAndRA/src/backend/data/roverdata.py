@@ -25,13 +25,18 @@ class Mower:
     amps: float = 0
     position_visible_satellites_dgps: int = 0
     map_crc: int = 0
-    last_mow_status: bool = False
     soc: float = 0
     solution: str = 'invalid'
     speed: float = 0
     status: str = 'offline'
     direction: float = 0
     timestamp = datetime.now()
+    #commanded
+    last_mow_status: bool = False
+    cmd_move_lin: float = 0
+    cmd_move_ang: float = 0
+    last_cmd: pd.DataFrame = pd.DataFrame()
+    current_task: pd.DataFrame = pd.DataFrame()
 
     def set_state(self, state: pd.DataFrame()) -> None:
         state = state.iloc[-1]
@@ -128,10 +133,6 @@ online = pd.DataFrame()
 calced_from_state = pd.DataFrame()
 calced_from_stats = pd.DataFrame()
 
-#commanded
-cmd_move = [0, 0]
-last_cmd = pd.DataFrame()
-current_task = pd.DataFrame()
 
 
 

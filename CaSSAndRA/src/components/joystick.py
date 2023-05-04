@@ -4,7 +4,7 @@ import math
 
 from . import ids
 from src.backend.comm import cmdlist
-from src.backend.data import roverdata
+from src.backend.data.roverdata import robot
 
 
 @callback(Output(ids.LINEAR_SPEED, 'children'),
@@ -19,8 +19,8 @@ def update_output(angle, force):
     force_y = -1*round(math.cos(math.radians(angle))*force, 2)
     if context == ids.JOYSTICK:
         cmdlist.cmd_move = True
-        roverdata.cmd_move[0] = force_x
-        roverdata.cmd_move[1] = force_y
+        robot.cmd_move_lin = force_x
+        robot.cmd_move_ang = force_y
     return f'{force_x}', f'{force_y}'
     
 joystick = html.Div(
