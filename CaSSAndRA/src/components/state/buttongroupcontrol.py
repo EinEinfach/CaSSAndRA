@@ -140,18 +140,8 @@ def update_button_disabled(n_intervals: int, n_clicks_bgo: int, n_clicks_bs: int
 
     if mapdata.perimeter.empty:
         return True, True, True, True, True
-
-    # if context == ids.INTERVAL and time_since_buttongo.seconds > 15:
-    #     if current_rover_state != 'mow' and current_rover_state != 'docking' and current_rover_state != 'error':
-    #         return False, False, False, False, False
-    #     else:
-    #         return True, True, True, True, True
-    elif context == ids.BUTTONGO:
-        appdata.time_buttongo_pressed = datetime.now()
+    elif robot.job == 1 or robot.job == 4:
         return True, True, True, True, True
-    elif context == ids.BUTTONSTOP:
-        return False, False, False, False, False
     else:
-        return bh_disabled, bma_disabled, bzs_disabled, bgt_disabled, bc_disabled
-
+        return False, False, False, False, False 
 

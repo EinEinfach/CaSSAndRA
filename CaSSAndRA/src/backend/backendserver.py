@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 from threading import Thread, Event
+from datetime import datetime
 import time
 import os
 
@@ -13,10 +14,10 @@ restart = Event()
 #from comm import mqttcomm, cmdlist, cmdtorover, comcfg
 
 def connect_http(connect_data: dict(), connection: int, restart: Event, absolute_path: str()) -> None:
-    #httpcomm.start_http(connect_data, connection_status)
-    stats_couter = 0
-    state_counter = 0
-    save_cnt = 0
+    start_time_state = datetime.now()
+    start_time_stats = datetime.now()
+    start_time_save = datetime.now()
+    time_to_wait = 1
     data_clean_finished = False
 
     while True:
@@ -26,29 +27,26 @@ def connect_http(connect_data: dict(), connection: int, restart: Event, absolute
         elif connection[0] != 200:
             connection = httpcomm.connect_http(connect_data)
         else:
-            if state_counter == 10:
+            if (datetime.now() - start_time_state).seconds > time_to_wait:
                 connection_status = httpcomm.get_state(connect_data, connection)
                 connection[0] = connection_status
-                state_counter = 0
-            if stats_couter == 150:
+                start_time_state = datetime.now()
+            if (datetime.now() - start_time_stats).seconds > 60*time_to_wait:
                 connection_status = httpcomm.get_stats(connect_data, connection)
                 connection[0] = connection_status
-                stats_couter = 0
-            state_counter += 1
-            stats_couter += 1
-            save_cnt += 1
+                start_time_stats = datetime.now()
 
             connection_status = httpcomm.cmd_to_rover(connect_data, connection)
             connection[0] = connection_status
 
-        if save_cnt >= 1500:
+        if (datetime.now() - start_time_save).seconds >= 600*time_to_wait:
             logger.info('Backend: Writing State-Data to the file')
             saveddata.save('state')
             logger.info('Backend: Writing Statistics-Data to the file')
             saveddata.save('stats')
             # logger.info('Backend: Writing Map-Data to the file')
             # saveddata.save('perimeter', absolute_path)
-            save_cnt = 0
+            start_time_save = datetime.now()
         
         calceddata.calc_rover_state()
         data_clean_finished = cleandata.check(data_clean_finished)
@@ -56,7 +54,8 @@ def connect_http(connect_data: dict(), connection: int, restart: Event, absolute
         time.sleep(0.4)
 
 def connect_mqtt(mqtt_client, connect_data: dict(), restart: Event, absolute_path: str()) -> None:
-    save_cnt = 0
+    start_time_save = datetime.now()
+    time_to_wait = 1
     data_clean_finished = False
 
     mqttcomm.start_mqtt(mqtt_client, connect_data)
@@ -67,25 +66,25 @@ def connect_mqtt(mqtt_client, connect_data: dict(), restart: Event, absolute_pat
             return
         
         mqttcomm.cmd_to_rover(mqtt_client, connect_data)
-        save_cnt += 1
-        if save_cnt >= 6000:
+        if (datetime.now() - start_time_save).seconds >= 600*time_to_wait:
             logger.info('Backend: Writing State-Data to the file')
             saveddata.save('state')
             logger.info('Backend: Writing Statistics-Data to the file')
             saveddata.save('stats')
             # logger.info('Backend: Writing Map-Data to the file')
             # saveddata.save('perimeter', absolute_path)
-            save_cnt = 0
+            start_time_save = datetime.now()
              
         calceddata.calc_rover_state()     
         data_clean_finished = cleandata.check(data_clean_finished)
         time.sleep(0.1)
 
 def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, absolute_path: str()) -> None:
-    save_cnt = 0
+    start_time_state = datetime.now()
+    start_time_stats = datetime.now()
+    start_time_save = datetime.now()
+    time_to_wait = 1
     data_clean_finished = False
-    start_state = time.time()
-    start_stats = time.time()
     while True:
         if restart.is_set():
             logger.info('Backend: Server thread is stopped')
@@ -103,31 +102,28 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
                         uartcomm.on_state(data)
                     if data.find('T, ') == 0:
                         #logger.debug(data)
-                        uartcomm.on_stats(data)
-                    perform_state_req = time.time() - start_state
-                    perform_stats_req = time.time() - start_stats  
-                    if perform_state_req > 4:
-                        start_state = time.time()
+                        uartcomm.on_stats(data) 
+                    if (datetime.now() - start_time_state).seconds > time_to_wait:
                         ser.write(b'AT+S\n')
-                    elif perform_stats_req > 60:
-                        start_stats = time.time()
+                        start_time_state = datetime.now()
+                    elif (datetime.now() - start_time_stats).seconds > 60*time_to_wait:
                         ser.write(b'AT+T\n')
+                        start_time_stats = datetime.now()
                 except Exception as e:
-                    logger.warning('Backend: Exception in UART communication occur, trying to reconnect')
+                    logger.warning('Backend: Exception in UART communication occured, trying to reconnect')
                     logger.debug(str(e))
                     connection = False
 
             connection = uartcomm.cmd_to_rover(ser)
 
-        save_cnt += 1
-        if save_cnt >= 6000:
+        if (datetime.now() - start_time_save).seconds >= 600*time_to_wait:
             logger.info('Backend: Writing State-Data to the file')
             saveddata.save('state')
             logger.info('Backend: Writing Statistics-Data to the file')
             saveddata.save('stats')
             # logger.info('Backend: Writing Map-Data to the file')
             # saveddata.save('perimeter', absolute_path)
-            save_cnt = 0
+            start_time_save = datetime.now()
 
         calceddata.calc_rover_state()     
         data_clean_finished = cleandata.check(data_clean_finished)

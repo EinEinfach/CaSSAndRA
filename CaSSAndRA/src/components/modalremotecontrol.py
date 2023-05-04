@@ -31,7 +31,7 @@ def toggle_modal(n_clicks_bsoff: int, n_clicks_bsr: int,
                  n_clicks_bok: int, modal_is_open: bool) -> list():
     context = ctx.triggered_id
 
-    if robot.last_mow_status:#cmdlist.cmd_last_mowmotor_cmd == 'on':
+    if robot.last_mow_status:
         buttonfanactive = True
     else:
         buttonfanactive = False
