@@ -23,6 +23,8 @@ def read(absolute_path) -> None:
             f.close()
         path_to_state_data = path_to_data['path'][1]['measure'][0]['state']
         roverdata.state = pd.read_pickle(absolute_path.replace('/src/backend', path_to_state_data))
+        if not 'lateral_error' in roverdata.state.columns:
+            roverdata.state['lateral_error'] = 0
         logger.info('Backend: State data are loaded successfully')
     except:
         logger.warning('Backend: Failed to load state data, create a default data frame')
@@ -42,6 +44,7 @@ def read(absolute_path) -> None:
                  "amps":{"0":0},
                  "position_visible_satellites_dgps":{"0":0},
                  "map_crc":{"0":0},
+                 "lateral_error": {"0":0},
                  "timestamp":{"0":str(datetime.now())}}
         roverdata.state = pd.DataFrame(data=state)
         #calceddata.calcdata_from_state()
@@ -50,6 +53,8 @@ def read(absolute_path) -> None:
     try:
         path_to_stats_data = path_to_data['path'][1]['measure'][1]['stats']
         roverdata.stats = pd.read_pickle(absolute_path.replace('/src/backend', path_to_stats_data))
+        if not 'duration_mow_motor_recovery' in roverdata.stats:
+            roverdata.stats['duration_mow_motor_recovery'] = 0
         logger.info('Backend: Statistics data are loaded successfully')
     except:
         logger.warning('Backend: Failed to load statistics data, create a default data frame')
@@ -77,6 +82,7 @@ def read(absolute_path) -> None:
                  "reset_cause":{"0":0},
                  "temp_min":{"0":0},
                  "temp_max":{"0":0},
+                 "duration_mow_motor_recovery":{"0":0},
                  "timestamp":{"0":str(datetime.now())}}
         roverdata.stats = pd.DataFrame(data=stats)
 

@@ -28,6 +28,7 @@ def add_state_to_df_from_mqtt(data: dict()) -> None:
                     'amps':data['amps'],
                     'position_visible_satellites_dgps':data['position']['visible_satellites_dgps'],
                     'map_crc':data['map_crc'],
+                    'lateral_error': 0,
                     'timestamp': str(datetime.now())}
         state_to_df = pd.DataFrame(data=state_to_df, index=[0])
         robot.set_state(state_to_df)
@@ -74,6 +75,7 @@ def add_stats_to_df_from_mqtt(data: dict()) -> None:
                     'reset_cause':data['reset_cause'],
                     'temp_min':data['temp_min'],
                     'temp_min':data['temp_min'],
+                    'duration_mow_motor_recovery': 0,
                     'timestamp': str(datetime.now())}
         stats_to_df = pd.DataFrame(data=stats_to_df, index=[0])
         roverdata.stats = pd.concat([roverdata.stats, stats_to_df], ignore_index=True)
@@ -98,70 +100,86 @@ def add_online_to_df_from_mqtt(data: str()) -> None:
 
 #Add data from HTTP and UART conection
 def add_state_to_df(data: str()) -> None:
-    data_list = data.split(',')
-    del data_list[-1]
-    del data_list[-1]
-    del data_list[0]
-    data_list = [float(x) if '.' in x else int(x) for x in data_list]
-    data_list.append(str(datetime.now()))
-    state_to_df = pd.DataFrame([data_list])
-    state_to_df.columns = ['battery_voltage',
-                        'position_x',
-                        'position_y',
-                        'position_delta',
-                        'position_solution',
-                        'job',
-                        'position_mow_point_index',
-                        'position_age',
-                        'sensor',
-                        'target_x',
-                        'target_y',
-                        'position_accuracy',
-                        'position_visible_satellites',
-                        'amps',
-                        'position_visible_satellites_dgps',
-                        'map_crc',
-                        'timestamp']
-    robot.set_state(state_to_df)
-    roverdata.state = pd.concat([roverdata.state, state_to_df], ignore_index=True)
-    calceddata.calcdata_from_state()
+    try: 
+        data_list = data.split(',')
+        del data_list[-1]
+        del data_list[0]
+        #handle old AT+S strings (older than 1.0.264)
+        if len(data_list) < 17:
+            logger.debug('AT+S string to short, add dummy lateral error')
+            data_list.append('0')
+        data_list = [float(x) if '.' in x else int(x) for x in data_list]
+        data_list.append(str(datetime.now()))
+        state_to_df = pd.DataFrame([data_list])
+        state_to_df.columns = ['battery_voltage',
+                            'position_x',
+                            'position_y',
+                            'position_delta',
+                            'position_solution',
+                            'job',
+                            'position_mow_point_index',
+                            'position_age',
+                            'sensor',
+                            'target_x',
+                            'target_y',
+                            'position_accuracy',
+                            'position_visible_satellites',
+                            'amps',
+                            'position_visible_satellites_dgps',
+                            'map_crc',
+                            'lateral_error',
+                            'timestamp']
+        robot.set_state(state_to_df)
+        roverdata.state = pd.concat([roverdata.state, state_to_df], ignore_index=True)
+        calceddata.calcdata_from_state()
+    except Exception as e:
+        logger.error('Backend: Failed to write state data to data frame')
+        logger.debug(str(e))
 
 def add_stats_to_df(data: str()) -> None:
-    data_list = data.split(',')
-    del data_list[-1]
-    del data_list[0]
-    data_list = [float(x) if '.' in x else int(x) for x in data_list]
-    data_list.append(str(datetime.now()))
-    stats_to_df = pd.DataFrame([data_list])
-    stats_to_df.columns = [
-                            'duration_idle',
-                            'duration_charge',
-                            'duration_mow',
-                            'duration_mow_float',
-                            'duration_mow_fix',
-                            'counter_float_recoveries',
-                            'distance_mow_traveled',
-                            'time_max_dpgs_age',
-                            'counter_imu_triggered',
-                            'temp_min',
-                            'temp_max',
-                            'counter_gps_chk_sum_errors',
-                            'counter_dgps_chk_sum_errors',
-                            'time_max_cycle',
-                            'serial_buffer_size',
-                            'duration_mow_invalid',
-                            'counter_invalid_recoveries',
-                            'counter_obstacles',
-                            'free_memory',
-                            'reset_cause',
-                            'counter_gps_jumps',
-                            'counter_sonar_triggered',
-                            'counter_bumper_triggered',
-                            'counter_gps_motion_timeout',
-                            'timestamp'
-                           ]
-    roverdata.stats = pd.concat([roverdata.stats, stats_to_df], ignore_index=True)
-    calceddata.calcdata_from_stats()
+    try: 
+        data_list = data.split(',')
+        del data_list[-1]
+        del data_list[0]
+        #handle old AT+T strings (older then 1.0.3XX)
+        if len(data_list) < 25:
+            data_list.append('0')
+        data_list = [float(x) if '.' in x else int(x) for x in data_list]
+        data_list.append(str(datetime.now()))
+        stats_to_df = pd.DataFrame([data_list])
+        stats_to_df.columns = [
+                                'duration_idle',
+                                'duration_charge',
+                                'duration_mow',
+                                'duration_mow_float',
+                                'duration_mow_fix',
+                                'counter_float_recoveries',
+                                'distance_mow_traveled',
+                                'time_max_dpgs_age',
+                                'counter_imu_triggered',
+                                'temp_min',
+                                'temp_max',
+                                'counter_gps_chk_sum_errors',
+                                'counter_dgps_chk_sum_errors',
+                                'time_max_cycle',
+                                'serial_buffer_size',
+                                'duration_mow_invalid',
+                                'counter_invalid_recoveries',
+                                'counter_obstacles',
+                                'free_memory',
+                                'reset_cause',
+                                'counter_gps_jumps',
+                                'counter_sonar_triggered',
+                                'counter_bumper_triggered',
+                                'counter_gps_motion_timeout',
+                                'duration_mow_motor_recovery',
+                                'timestamp'
+                            ]
+        roverdata.stats = pd.concat([roverdata.stats, stats_to_df], ignore_index=True)
+        calceddata.calcdata_from_stats()
+    except Exception as e:
+        logger.error('Backend: Failed to write stats data to data frame')
+        logger.debug(str(e))
 
 def add_props_to_df_from_http(data: str()) -> None:
     pass
