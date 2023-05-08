@@ -34,8 +34,9 @@ def add_state_to_df_from_mqtt(data: dict()) -> None:
         robot.set_state(state_to_df)
         roverdata.state = pd.concat([roverdata.state, state_to_df], ignore_index=True)
         calceddata.calcdata_from_state()
-    except:
-        logger.warning('Backend: Received state message is not valid and will be ignored')
+    except Exception as e:
+        logger.error('Backend: Failed to write state data to data frame')
+        logger.debug(str(e))
     
 
 def add_props_to_df_from_mqtt(data: dict()) -> None:
@@ -80,8 +81,9 @@ def add_stats_to_df_from_mqtt(data: dict()) -> None:
         stats_to_df = pd.DataFrame(data=stats_to_df, index=[0])
         roverdata.stats = pd.concat([roverdata.stats, stats_to_df], ignore_index=True)
         calceddata.calcdata_from_stats()
-    except:
-        logger.warning('Backend: Received stats message is not valid and will be ignored')
+    except Exception as e:
+        logger.error('Backend: Failed to write stats data to data frame')
+        logger.debug(str(e))
 
 def add_online_to_df_from_mqtt(data: str()) -> None:
     if 'true' in data:
