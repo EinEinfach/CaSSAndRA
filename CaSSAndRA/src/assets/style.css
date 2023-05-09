@@ -60,6 +60,12 @@ nav ~ div {
   height: unset !important;
 }
 
+/* keep buttons in navbar to the right */
+.navbar-collapse {
+  flex-grow: 0;
+}
+
+
 /* montserrat-regular - latin */
 @font-face {
   font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
