@@ -1,6 +1,7 @@
 # package imports
 import dash
 from dash import html
+import dash_bootstrap_components as dbc
 
 from src.components import ids
 from src.components.settings import accordion, modal
@@ -11,13 +12,13 @@ dash.register_page(
     title='Settings'
 )
 
-layout = html.Div(
+layout = dbc.Container(
     [
         html.H4('Settings'),
-        html.Div(accordion.accordion_connection),
-        html.Div(modal.connection),
-        html.Div(modal.mapandposition),
-        html.Div(modal.app),
+        dbc.Row(accordion.accordion_connection),
+        dbc.Row(modal.connection),
+        dbc.Row(modal.mapandposition),
+        dbc.Row(modal.app),
         html.Div(id=ids.SETTINGSHIDDEN)#, style={'display': 'none'}),
-    ]
+    ],fluid=True
 )

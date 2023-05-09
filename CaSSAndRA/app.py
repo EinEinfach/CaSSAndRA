@@ -30,8 +30,7 @@ def serve_layout():
             modalinfo.info,
             dash.page_container
             #footer
-        ]
-    )
+        ], className='d-flex flex-column h-100 w-100 fixed-top')
 
 def main() -> None:
     backendserver.start()

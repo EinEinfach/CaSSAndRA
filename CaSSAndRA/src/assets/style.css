@@ -49,6 +49,17 @@
   margin-left: 10px;
 }
 
+
+/* necessary to be able to fill remaining space with map */
+#_pages_content,
+nav ~ div {
+  display: contents;
+}
+
+.user-select-none.svg-container {
+  height: unset !important;
+}
+
 /* montserrat-regular - latin */
 @font-face {
   font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */

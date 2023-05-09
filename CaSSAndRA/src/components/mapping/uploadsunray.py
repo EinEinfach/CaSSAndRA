@@ -18,8 +18,8 @@ uploadsunray = dbc.Col([
                             ], justify='center'),
                                                   
                         ]), 
-                    ], className='text-center m-1 w-90')
-                ])
+                    ], className='text-center my-2')
+                ],xs=12, sm=6)
 
 
 @callback(Output(ids.MODALSUNRAYIMPORT, 'is_open'),
