@@ -141,9 +141,26 @@ Unter Settings "App" wählen. Hier gibt es die Möglichkeiten einige Anzeigen in
 ### Hochladen der Karte
 Aktuell gibt es nur eine Möglichkeit eine Karte in CaSSAndRA zu erstellen. Dies geschieht durch das Upload der zuvor aus Sunray App exportierten Karte.
 
-In der App klickt auf "More" -> "Mapping". Klickt auf den oberen grünen Button und navigiert zu eurer exportierten Sunray Datei. Wählt die Datei aus. Durch das Dropdownmenu unter dem Upload Button könnt Ihr eine der eingelesenen Karte auswählen (Die Nummerierung entspricht euren Kartenreihenfolge in der Sunray App). Wählt die gewünschte Karte. Ein Vorschau des Perimeters wird angezeigt. Drückt auf den unteren grünen Button zur übernahme der Karte.
+In der App klickt auf "More" -> "Mapping". 
 
-Wechselt auf die Startseite. Die neue Karte wird in der Übersicht angezeigt.
+Im Bereich "Upload sunray file" klickt auf den Button mit "txt-Datei-Icon". 
+
+Wählt eure Sunray-Export Datei. 
+
+Im Dropdownmenü könnt Ihr jetzt die gewünschte Karte auswählen. 
+
+Ein Vorschau der Karte wird in Rot angezeigt mit dem Hinweis "From upload (please save first)".
+![upload](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/upload.jpeg) 
+
+Um die gewünschte Karte zu speichern klickt auf die Wolke mit Plus. 
+
+Im poup-Menü wählt einen eineindeutigen Namen und klickt OK. 
+
+Die Karte wird gespeichert und kann im Berech "Saved perimeters" im Dropdownmenü ausgewählt werden. 
+
+Mit der Wolke mit dem ausgehenden Pfeil kann die Karte aktiv geschaltet werden. 
+
+Wechselt auf die Startseite. Die neue Karte wird in der Übersicht angezeigt und kann verwendet werden.
 
 ## Update
 Die App wird von mir in kleinen Schritten verbessert bzw. die gemeldeten Probleme behoben. Um die Änderungen auch bei euch produktiv zu schalten, geht beim Update wie folgt vor. 
