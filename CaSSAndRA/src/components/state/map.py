@@ -4,7 +4,8 @@ import pandas as pd
 
 from .. import ids
 from src.backend.data import mapdata, calceddata
-from src.backend.map import map, preview, path
+from src.backend.data.mapdata import current_map
+from src.backend.map import map, path
 from src.backend.data.roverdata import robot
 
 
@@ -42,31 +43,31 @@ def update(n_intervals: int,
      #Check control buttons state
      if context == ids.BUTTONHOME and buttonhome:
           #What to do, if home button active
-          mapdata.gotopoint = pd.DataFrame() 
-          mapdata.preview = pd.DataFrame()
-          mapdata.mowpath = pd.DataFrame()
+          current_map.gotopoint = pd.DataFrame() 
+          current_map.preview = pd.DataFrame()
+          current_map.mowpath = pd.DataFrame()
           plotgotopoints = False
      elif context == ids.BUTTONMOWALL and buttonmowall:
-          mapdata.gotopoint = pd.DataFrame() 
-          mapdata.preview = pd.DataFrame()
-          mapdata.mowpath = pd.DataFrame()
-          mapdata.selected_perimeter = map.create(mapdata.perimeter)
+          current_map.gotopoint = pd.DataFrame() 
+          current_map.preview = pd.DataFrame()
+          current_map.mowpath = pd.DataFrame()
+          mapdata.selected_perimeter = current_map.perimeter_polygon
           path.calc(mapdata.mowoffsetstatepage, mapdata.mowanglestatepage, rover_position, mapdata.patternstatepage)
           plotgotopoints = False
      elif context == ids.BUTTONZONESELECT and buttonzoneselect:
-          mapdata.gotopoint = pd.DataFrame()
-          mapdata.preview = pd.DataFrame()
-          mapdata.mowpath = pd.DataFrame()
+          current_map.gotopoint = pd.DataFrame()
+          current_map.preview = pd.DataFrame()
+          current_map.mowpath = pd.DataFrame()
           plotgotopoints = False
      elif context == ids.BUTTONGOTO and buttongoto:
-          mapdata.gotopoint = pd.DataFrame()
-          mapdata.preview = pd.DataFrame()
-          mapdata.mowpath = pd.DataFrame()
+          current_map.gotopoint = pd.DataFrame()
+          current_map.preview = pd.DataFrame()
+          current_map.mowpath = pd.DataFrame()
           plotgotopoints = True
      elif context == ids.BUTTONCANCEL:
-          mapdata.gotopoint = pd.DataFrame()
-          mapdata.preview = pd.DataFrame()
-          mapdata.mowpath = pd.DataFrame()
+          current_map.gotopoint = pd.DataFrame()
+          current_map.preview = pd.DataFrame()
+          current_map.mowpath = pd.DataFrame()
           plotgotopoints = False
 
 
@@ -76,18 +77,18 @@ def update(n_intervals: int,
          selecteddata = None
 
      if context_triggered[0]['prop_id'] == ids.STATEMAP+'.clickData' and buttongoto:
-          preview.gotopoint(clickdata)
+          current_map.set_gotopoint(clickdata)
      elif context_triggered[0]['prop_id'] == ids.STATEMAP+'.selectedData' and buttonzonenselectstate and selecteddata:
-          mapdata.mowpath = pd.DataFrame()
-          perimeter_preview = map.create(mapdata.perimeter)
+          current_map.mowpath = pd.DataFrame()
+          perimeter_preview = current_map.perimeter_polygon
           mapdata.selected_perimeter = map.selection(perimeter_preview, selecteddata)
           path.calc(mapdata.mowoffsetstatepage, mapdata.mowanglestatepage, rover_position, mapdata.patternstatepage)
      
      #Plots
      traces = []
      #calceddata.calcmapdata_for_plot(mapdata.perimeter) 
-     if not mapdata.perimeter.empty:
-          coords = calceddata.calcmapdata_for_plot(mapdata.perimeter)
+     if not current_map.perimeter.empty:
+          coords = current_map.perimeter_for_plot
           #Plot perimeter and exlusions
           coords_filtered = coords.loc[coords['type'] != 'dockpoints']
           for trace in coords_filtered['type'].unique():
@@ -109,14 +110,14 @@ def update(n_intervals: int,
      
      #Plot invisible goto points
      if plotgotopoints:
-          traces.append(go.Scatter(x=mapdata.gotopoints['X'], y=mapdata.gotopoints['Y'], 
+          traces.append(go.Scatter(x=current_map.gotopoints['X'], y=current_map.gotopoints['Y'], 
                                    mode='markers', 
                                    marker=dict(opacity=0),
                                    hoverinfo='x, y'))
                
      #Plot goto point, if there 
-     if not mapdata.gotopoint.empty:  
-          current_goto = mapdata.gotopoint.iloc[-1]  
+     if not current_map.gotopoint.empty:  
+          current_goto = current_map.gotopoint.iloc[-1]  
           traces.append(go.Scatter(x=[current_goto['X']], y=[current_goto['Y']],
                                    name='go to', 
                                    mode='markers',
@@ -130,22 +131,22 @@ def update(n_intervals: int,
                                    )
      
      #Plot preview lines or mowpath, if there
-     if not mapdata.mowpath.empty:
-          filtered = mapdata.mowpath[mapdata.mowpath['type'] == 'way']
+     if not current_map.mowpath.empty:
+          filtered = current_map.mowpath[current_map.mowpath['type'] == 'way']
           current_mow_idx = robot.position_mow_point_index - 1
           if current_mow_idx < 0:
                current_mow_idx = 0
           path_finished = filtered[filtered.index < robot.position_mow_point_index]
           path_to_go = filtered[filtered.index >= current_mow_idx]
           #calc mow progress
-          mow_progress = calceddata.calc_mow_progress(mapdata.mowpath, current_mow_idx)
+          mow_progress = calceddata.calc_mow_progress(current_map.mowpath, current_mow_idx)
           traces.append(go.Scatter(x=path_finished['X'], y=path_finished['Y'], mode='lines', name='mow finished', opacity=0.5, line=dict(color='#e9e9e9')))
           traces.append(go.Scatter(x=path_to_go['X'], y=path_to_go['Y'], mode='lines', name='mow to go', opacity=0.7, line=dict(color='#7fb249')))
           mowdata = [dict(text='Distance: '+str(mow_progress[0])+'m/'+str(mow_progress[1])+'m ('+str(mow_progress[2])+'%)', showarrow=False, xref="paper", yref="paper",x=1,y=1),
                      dict(text='Index: '+str(mow_progress[3])+'/'+str(mow_progress[4])+' ('+str(mow_progress[5])+'%)', showarrow=False, xref="paper", yref="paper",x=1,y=0.95), 
                      dict(text='Area to mow: '+str(mapdata.areatomow)+'sqm', showarrow=False, xref="paper", yref="paper",x=1,y=0.9)]
-     elif not mapdata.preview.empty:
-          filtered = mapdata.preview[mapdata.preview['type'] == 'preview route']
+     elif not current_map.preview.empty:
+          filtered = current_map.preview[current_map.preview['type'] == 'preview route']
           traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color='#7fb249')))
 
      #Plot rover position

@@ -5,6 +5,7 @@ import pandas as pd
 
 from src.backend.data import mapdata
 from src.backend.data.roverdata import robot
+from src.backend.data.mapdata import current_map
 from . import cmdtorover, cmdlist
 
 def checkmowmotor(msg: pd.DataFrame, oldstate: bool) -> bool:
@@ -27,16 +28,16 @@ def check() -> pd.DataFrame():
         msg_pckg = cmdtorover.move([robot.cmd_move_lin, robot.cmd_move_ang])  
 
     elif cmdlist.cmd_goto:
-        map_msg = cmdtorover.takemap(mapdata.perimeter, mapdata.gotopoint, dock=False)
+        map_msg = cmdtorover.takemap(current_map.perimeter, current_map.gotopoint, dock=False)
         goto_msg = cmdtorover.goto()
         msg_pckg = pd.concat([map_msg, goto_msg], ignore_index=True)
-        robot.current_task = mapdata.gotopoint
+        robot.current_task = current_map.gotopoint
         robot.last_cmd = goto_msg
         robot.last_mow_status = checkmowmotor(goto_msg, robot.last_mow_status)
         cmdlist.cmd_goto = False
 
     elif cmdlist.cmd_dock:
-         map_msg = cmdtorover.takemap(mapdata.perimeter, pd.DataFrame(), dock=True)
+         map_msg = cmdtorover.takemap(current_map.perimeter, pd.DataFrame(), dock=True)
          dock_msg = cmdtorover.dock()
          msg_pckg = pd.concat([map_msg, dock_msg], ignore_index=True)
          robot.last_cmd = dock_msg
@@ -44,10 +45,10 @@ def check() -> pd.DataFrame():
          cmdlist.cmd_dock = False
     
     elif cmdlist.cmd_mow:
-        map_msg = cmdtorover.takemap(mapdata.perimeter, mapdata.mowpath, dock=True)
+        map_msg = cmdtorover.takemap(current_map.perimeter, current_map.mowpath, dock=True)
         mow_msg = cmdtorover.mow()
         msg_pckg = pd.concat([map_msg, mow_msg], ignore_index=True)
-        robot.current_task = mapdata.mowpath
+        robot.current_task = current_map.mowpath
         robot.last_cmd = mow_msg
         robot.last_mow_status = checkmowmotor(mow_msg, robot.last_mow_status)
         cmdlist.cmd_mow = False

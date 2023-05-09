@@ -5,6 +5,7 @@ from .. import ids
 from src.backend.comm import cmdlist
 from src.backend.data import mapdata
 from src.backend.data.roverdata import robot
+from src.backend.data.mapdata import current_map
 
 buttonhome = dbc.Button(id=ids.BUTTONHOME, size='lg',class_name='mx-1 mt-1 bi bi-house', disabled=False)
                 
@@ -88,17 +89,17 @@ def perfom_cmd(n_clicks_bgo: int, n_clicks_bs: int,
         if active_bh:
             cmdlist.cmd_dock = True
         elif active_bma:
-            mapdata.mowpath = mapdata.preview
-            mapdata.mowpath['type'] = 'way'
+            current_map.mowpath = current_map.preview
+            current_map.mowpath['type'] = 'way'
             cmdlist.cmd_mow = True
         elif active_bzs:
-            mapdata.mowpath = mapdata.preview
-            mapdata.mowpath['type'] = 'way'
+            current_map.mowpath = current_map.preview
+            current_map.mowpath['type'] = 'way'
             cmdlist.cmd_mow = True
         elif active_bgt:
             cmdlist.cmd_goto = True
         else:
-            mapdata.mowpath = robot.current_task
+            current_map.mowpath = robot.current_task
             cmdlist.cmd_resume = True
     
     if context == ids.BUTTONSTOP:
@@ -136,7 +137,7 @@ def update_button_disabled(n_intervals: int, n_clicks_bgo: int, n_clicks_bs: int
                            bgt_disabled: bool, bc_disabled: bool) -> list():
     context = ctx.triggered_id
 
-    if mapdata.perimeter.empty:
+    if current_map.perimeter.empty:
         return True, True, True, True, True
     elif robot.job == 1 or robot.job == 4:
         return True, True, True, True, True

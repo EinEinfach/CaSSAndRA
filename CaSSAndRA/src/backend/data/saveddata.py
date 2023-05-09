@@ -6,9 +6,8 @@ import json
 import pandas as pd
 import os
 
-from . import roverdata, mapdata, calceddata
-from src.backend.utils import file
-from src.backend.map import map, preview
+from . import roverdata
+from .mapdata import current_map, mapping_maps
 
 #import roverdata, mapdata
 
@@ -134,19 +133,41 @@ def read(absolute_path) -> None:
                             "timestamp":{"0":str(datetime.now())}}
         roverdata.calced_from_stats = pd.DataFrame(data=calced_from_stats)
 
-    #Try to read Map Data from file
+def read_perimeter() -> None:
+    absolute_path = os.path.dirname(__file__)
+    try:
+        current_map.name = current_map.read_map_name()
+    except Exception as e:
+        logger.warning('Backend: Could not read perimeter name from tmp.json')
+        logger.debug(str(e))
+        current_map.name = ''
+    if current_map.name == '':
+        logger.warning('Backend: Selected perimeter name is an empty string. Please upload or create a new perimeter')
+        return
+    try:
+        with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
+            path_to_data = json.load(f)
+            f.close()
+    except Exception as e:
+        logger.error('Backend: Could not save data to the file. Missing datacfg.json')
+        logger.debug(str(e))
+        return
     try:
         path_to_map_data = path_to_data['path'][2]['map'][0]['perimeter']
-        mapdata.perimeter = pd.read_json(absolute_path.replace('/src/backend', path_to_map_data))
-        logger.info('Backend: Map-Data are loaded successfully')
-    except:
-        logger.warning('Backend: Failed to load map data from file')
-    
-    #Create goto points if Map Data availible
-    if not mapdata.perimeter.empty:
-        perimeter = map.create(mapdata.perimeter, )
-        gotopoints = map.gotopoints(perimeter, 0.5)
-        preview.gotopoints(gotopoints)
+        mapping_maps.saved = pd.read_json(absolute_path.replace('/src/backend/data', path_to_map_data))
+        logger.info('Backend: Saved perimeters are loaded successfully')
+    except Exception as e:
+        logger.warning('Backend: Failed to load saved perimeters from file')
+        logger.debug(str(e))
+        return
+    try:
+        current_map.perimeter = mapping_maps.saved[mapping_maps.saved['name'] == current_map.name]
+        current_map.perimeter = current_map.perimeter.reset_index(drop=True)
+        current_map.create(current_map.name)
+        logger.info('Backend: Selected perimeter: '+current_map.name)
+    except Exception as e:
+        logger.error('Backend: Loading saved perimeter failed')
+        logger.debug(str(e))
 
 def save(name: str()) -> None:
     absolute_path = os.path.dirname(__file__)
@@ -155,8 +176,9 @@ def save(name: str()) -> None:
         with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
             path_to_data = json.load(f)
             f.close()
-    except:
-        logger.warning('Backend: Could not save data to the file. Missing datacfg.json')
+    except Exception as e:
+        logger.error('Backend: Could not save data to the file. Missing datacfg.json')
+        logger.debug(str(e))
         return
     if name == 'state':
         try:
@@ -166,8 +188,9 @@ def save(name: str()) -> None:
             path_to_calcstate_data = path_to_data['path'][1]['measure'][3]['calcedstate']
             roverdata.calced_from_state.to_pickle(absolute_path.replace('/src/backend/data', path_to_calcstate_data))
             logger.info('Backend: Calced state data are saved successfully in calcstate.pickle')
-        except:
-            logger.warning('Backend: Could not save state data to the file')
+        except Exception as e:
+            logger.error('Backend: Could not save state data to the file')
+            logger.debug(str(e))
     elif name == 'stats':
         try:
             path_to_stats_data = path_to_data['path'][1]['measure'][1]['stats']
@@ -176,14 +199,28 @@ def save(name: str()) -> None:
             path_to_calcstats_data = path_to_data['path'][1]['measure'][4]['calcedstats']
             roverdata.calced_from_stats.to_pickle(absolute_path.replace('/src/backend/data', path_to_calcstats_data))
             logger.info('Backend: Calced statistics data are saved successfully in calcstats.pickle')
-        except:
-            logger.warning('Backend: Could not save statistics data to the file')
-    elif name == 'perimeter':
-        try:
-            mapdata.perimeter.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), date_format='iso')
-            logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
-        except:
-            logger.warning('Backend: Could not save perimeter data to the file')
+        except Exception as e:
+            logger.error('Backend: Could not save statistics data to the file')
+            logger.debug(str(e))
+
+def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimeter_name: str()) -> None:
+    absolute_path = os.path.dirname(__file__)
+    try:
+        with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
+            path_to_data = json.load(f)
+            f.close()
+    except Exception as e:
+        logger.error('Backend: Could not save data to the file. Missing datacfg.json')
+        logger.debug(str(e))
+        return
+    try:
+        perimeter['name'] = perimeter_name
+        perimeter_arr = pd.concat([perimeter_arr, perimeter], ignore_index=True)
+        perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), date_format='iso')
+        logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
+        mapping_maps.saved = perimeter_arr
+    except:
+        logger.warning('Backend: Could not save perimeter data to the file')
 
 if __name__ == '__main__':
     read()

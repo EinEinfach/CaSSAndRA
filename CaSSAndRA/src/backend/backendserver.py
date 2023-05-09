@@ -140,6 +140,8 @@ def start() -> None:
     cfg.read_appcfg(absolute_path)
     logger.info('Backend: Read saved data')
     saveddata.read(absolute_path)
+    logger.info('Backend: Read map data file')
+    saveddata.read_perimeter()
 
     # logger.info('Backend: Starting thread for saving data')
     # save_data_thread = threading.Thread(target=save_data)

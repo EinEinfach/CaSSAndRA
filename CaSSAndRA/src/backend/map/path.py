@@ -6,6 +6,7 @@ from shapely.geometry import *
 
 from . import map, cutedge, lines
 from ..data import mapdata
+from ..data.mapdata import current_map
 
 def calc(mowoffset: float, mowangle: int, start_pos: list(), pattern: str()):
     logger.debug('Coverage path planning: mowoffset: '+str(mowoffset)+' mowangle: '+str(mowangle)+' startpos: '+str(start_pos)+' pattern: '+pattern)
@@ -33,8 +34,11 @@ def calc(mowoffset: float, mowangle: int, start_pos: list(), pattern: str()):
         mapdata.distancetogo = mapdata.distancetogo + round(route2.length)
         route.extend(list(route2.coords))
 
-    
-    mapdata.areatomow = round(mapdata.selected_perimeter.area)
-    mapdata.preview = pd.DataFrame(route)
-    mapdata.preview.columns = ['X', 'Y']
-    mapdata.preview['type'] = 'preview route'
+    current_map.areatomow = round(mapdata.selected_perimeter.area)
+    current_map.calc_route_preview(route) 
+    #to remove after switching to dataclass
+    # mapdata.areatomow = round(mapdata.selected_perimeter.area)
+    # mapdata.preview = pd.DataFrame(route)
+    # mapdata.preview.columns = ['X', 'Y']
+    # mapdata.preview['type'] = 'preview route'
+    ##################################

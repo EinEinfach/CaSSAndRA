@@ -4,6 +4,7 @@ import json
 import os
 
 from ..data import mapdata, appdata
+from src.backend.data.mapdata import current_map, mapping_maps
 
 def read_commcfg(absolute_path) -> dict():
     try:
@@ -163,7 +164,7 @@ def save_mapcfg(changed_data: dict()):
         logger.debug(str(e))
         return
     f.close()
-    try: 
+    try:
         map_data['MOWOFFSET'] = changed_data['MOWOFFSET']
         map_data['MOWANGLE'] = changed_data['MOWANGLE']
         map_data['MOWEDGE'] = changed_data['MOWEDGE']
