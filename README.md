@@ -150,6 +150,7 @@ Wählt eure Sunray-Export Datei.
 Im Dropdownmenü könnt Ihr jetzt die gewünschte Karte auswählen. 
 
 Ein Vorschau der Karte wird in Rot angezeigt mit dem Hinweis "From upload (please save first)".
+
 ![upload](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/upload.jpeg) 
 
 Um die gewünschte Karte zu speichern klickt auf die Wolke mit Plus. 
