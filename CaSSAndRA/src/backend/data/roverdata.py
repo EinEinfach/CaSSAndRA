@@ -6,6 +6,8 @@ import math
 from datetime import datetime
 from dataclasses import dataclass
 
+from . import appdata
+
 #mower class
 @dataclass
 class Mower:
@@ -93,7 +95,7 @@ class Mower:
             return 'transit'
         elif self.job == 1 and self.last_mow_status == True:
             return 'mow'
-        elif self.job == 2 and self.amps <= -0.03:
+        elif self.job == 2 and self.amps <= appdata.current_thd_charge:
             return 'charging'
         elif self.job == 2:
             return 'docked'
@@ -105,7 +107,7 @@ class Mower:
             return 'unknown'
     
     def calc_soc(self) -> float:
-        soc = 0+(self.battery_voltage-22)*((100-0)/(28-22))
+        soc = 0+(self.battery_voltage-appdata.soc_lookup_table[0]['V'])*((100-0)/(appdata.soc_lookup_table[1]['V']-appdata.soc_lookup_table[0]['V']))
         if soc < 0:
             soc = 0
         elif soc > 100:
