@@ -3,11 +3,11 @@ import dash_bootstrap_components as dbc
 
 from .. import ids
 
-uploadsunrayfile = dbc.Button(size='lg', class_name='mt-1 bi bi-filetype-txt')
+uploadsunrayfile = dbc.Button(size='lg', class_name='mt-1 bi bi-filetype-txt', title="Upload Sunray File")
 
 okbuttonsunrayimport = dbc.Button('OK', id=ids.OKBUTTONSUNRAYIMPORT, class_name='ms-auto', n_clicks=0)
 
-saveimportedperimeter = dbc.Button(id=ids.BUTTONSAVEIMPORTEDPERIMETER, size='lg', class_name='mt-1 bi bi-cloud-plus', n_clicks=0)
+saveimportedperimeter = dbc.Button(id=ids.BUTTONSAVEIMPORTEDPERIMETER, size='lg', class_name='mt-1 bi bi-cloud-plus', n_clicks=0, title="Save imported Perimeter")
 
 okbuttonoverwriteperimter= dbc.Button('OK', id=ids.OKBUTTONOVERWRITEPERIMTER, class_name='ms-auto', n_clicks=0)
 
