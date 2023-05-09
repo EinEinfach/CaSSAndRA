@@ -13,9 +13,9 @@ okbuttonoverwriteperimter= dbc.Button('OK', id=ids.OKBUTTONOVERWRITEPERIMTER, cl
 
 okbuttonfigurefinished = dbc.Button('OK', id=ids.OKBUTTONFIGUREFINISHED, class_name='ms-auto', n_clicks=0)
 
-selectperimeter = dbc.Button(id=ids.BUTTONSELECTPERIMETER, size='lg', class_name='mt-1 bi bi-cloud-download', n_clicks=0)
+selectperimeter = dbc.Button(id=ids.BUTTONSELECTPERIMETER, size='lg', class_name='mt-1 bi bi-cloud-download', n_clicks=0, title="Use selected Perimeter")
 
-removeperimeter = dbc.Button(id=ids.BUTTONREMOVEPERIMETER, size='lg', class_name='mt-1 bi bi-cloud-minus', n_clicks=0)
+removeperimeter = dbc.Button(id=ids.BUTTONREMOVEPERIMETER, size='lg', class_name='mt-1 bi bi-cloud-minus', n_clicks=0, title="Remove Perimeter")
 
 okbuttonselectedperimeter = dbc.Button('OK', id=ids.OKBUTTONSELECTEDPERIMETER, class_name='ms-auto', n_clicks=0)
 
