@@ -44,6 +44,12 @@ def main() -> None:
             {   # check if device is a mobile device. This is a must if you do any mobile styling
                 'name': 'viewport',
                 'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.5, minimum-scale=0.5' 
+            },{
+                'name':"apple-mobile-web-app-capable",
+                'content':"yes",
+            },{
+                'name':'theme-color' ,
+                'content':'#78c2ad'
             }
         ],
         suppress_callback_exceptions=True,
