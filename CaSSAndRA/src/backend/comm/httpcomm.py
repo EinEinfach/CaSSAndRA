@@ -12,15 +12,20 @@ from . import cmdtorover, cmdlist, message
 Headers = {"Content-Type": "text/plain"}
 
 def checkchecksum(res: str()) -> bool:
-    res_splited = res.split(',')
-    check_sum = res_splited[-1]
-    res = res.replace(','+check_sum, '')
-    check_sum = hex(int(check_sum, 16))
-    calced_check_sum = hex(sum(res.encode('ascii')) % 256)
-    logger.debug('Recieved checksum:'+str(check_sum)+' Calced checksum: '+str(calced_check_sum))
-    if calced_check_sum == check_sum:
-        return True
-    else:
+    try:
+        res_splited = res.split(',')
+        check_sum = res_splited[-1]
+        res = res.replace(','+check_sum, '')
+        check_sum = hex(int(check_sum, 16))
+        calced_check_sum = hex(sum(res.encode('ascii')) % 256)
+        logger.debug('Recieved checksum:'+str(check_sum)+' Calced checksum: '+str(calced_check_sum))
+        if calced_check_sum == check_sum:
+            return True
+        else:
+            return False
+    except Exception as e:
+        logger.warning('Backend: Could not calculate checksum.')
+        logger.debug(str(e))
         return False
 
 def reqandchecksum(req: str()) -> str():
@@ -103,7 +108,10 @@ def get_state(connect_data: dict(), connection: list()) -> int:
         res = requests.post(url=connect_data['HTTP'][0]['IP'], headers=Headers, data=data+'\n', timeout=2)
         logger.debug('Status code: '+str(res.status_code))
         logger.debug('Content: '+res.text)
-        if res.status_code == 200 and checkchecksum(res.text) and len(res.text) > 20:
+        if len(res.text) == 0:
+            logger.warning('Backend: HTTP request for state delivered implausible string')
+            return -1
+        elif res.status_code == 200 and checkchecksum(res.text) and len(res.text) > 20:
             datatodf.add_state_to_df(res.text)
             return res.status_code
         else:
@@ -132,7 +140,10 @@ def get_stats(connect_data: dict(), connection: list()) -> int:
         res = requests.post(url=connect_data['HTTP'][0]['IP'], headers=Headers, data=data+'\n', timeout=2)
         logger.debug('Status code: '+str(res.status_code))
         logger.debug('Content: '+res.text)
-        if res.status_code == 200 and checkchecksum(res.text) and len(res.text) > 20:
+        if len(res.text) == 0:
+            logger.warning('Backend: HTTP request for state delivered implausible string')
+            return -1
+        elif res.status_code == 200 and checkchecksum(res.text) and len(res.text) > 20:
             datatodf.add_stats_to_df(res.text)
             return res.status_code
         else:

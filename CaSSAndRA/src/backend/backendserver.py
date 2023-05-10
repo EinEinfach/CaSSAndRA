@@ -130,6 +130,7 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
         time.sleep(0.1)
 
 def start() -> None:
+    logger.info('Backend: Starting backend server')
     absolute_path = os.path.dirname(__file__) 
     logger.debug('absolute_path: '+absolute_path)
     logger.info('Backend: Read communication config file')
