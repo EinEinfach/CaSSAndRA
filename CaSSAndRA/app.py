@@ -50,6 +50,7 @@ def main() -> None:
             }
         ],
         suppress_callback_exceptions=True,
+        prevent_initial_callbacks='initial_duplicate',
         title='CASSANDRA'
     )
     app.layout = serve_layout   # set the layout to the serve_layout function

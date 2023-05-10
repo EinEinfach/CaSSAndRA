@@ -19,7 +19,7 @@ def connect_http(connect_data: dict(), connection: int, restart: Event, absolute
     start_time_save = datetime.now()
     time_to_wait = 1
     data_clean_finished = False
-
+    time.sleep(2*time_to_wait)
     while True:
         if restart.is_set():
             logger.info('Backend: Server thread is stopped')
@@ -85,6 +85,7 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
     start_time_save = datetime.now()
     time_to_wait = 1
     data_clean_finished = False
+    time.sleep(2*time_to_wait)
     while True:
         if restart.is_set():
             logger.info('Backend: Server thread is stopped')
