@@ -15,41 +15,31 @@ dash.register_page(
 )
 
 def update_layout() -> html.Div:
-    return html.Div([
-            dbc.Row([
-                dbc.Col([
-                    dbc.Row(id=ids.STATESTRING),
-                    html.Div([dcc.Graph(id=ids.STATEMAP)], className='map-graph'),
-                    dbc.Row([
-                        html.Div([
+    return dbc.Container([
+                dbc.Row(id=ids.STATESTRING),
+                dbc.Row([dcc.Graph(id=ids.STATEMAP)], className='map-graph flex-fill'),
+                dbc.Row([
+                            dbc.Col([
                                 buttongroupcontrol.buttonhome,
                                 buttongroupcontrol.buttonmowall,
                                 buttongroupcontrol.buttonzoneselect,
                                 buttongroupcontrol.buttongoto,
                                 buttongroupcontrol.buttonmowsettings,
-                                buttongroupcontrol.buttoncancel,
-                                ], className='text-center'),    
-                    ]),
-                    dbc.Row([
-                        dbc.Col([buttongroupcontrol.buttongo], class_name='d-grid col-md4'),
-                        dbc.Col([buttongroupcontrol.buttonstop], class_name='d-grid col-md4'),
-                    ]),
-                    modalmowsettings.mowsettings,
-                    # dbc.Row([
-                    #     html.Div(['Show'], className='margin-5px'),
-                    #     dbc.Col([html.Div([dropdownmaplinetype.dropdown], className='dropdown-container')])
-                    # ]),
-                ], xs=12, sm=6, lg=6),
-                dbc.Col([
-                html.Div([
-                    html.Div(id=ids.STATEHIDDEN, style={'display': 'none'}),
-                    html.Div(id=ids.STATEHIDDEN2), #style={'display': 'none'}),
-                    html.Div(id=ids.STATEHIDDEN3, style={'display': 'none'}),
-                    #dbc.Row(html.Div(id=ids.MAPDATABLOCK, style={'marginTop':20}))    
-                    ])
-                ], xs=12, sm=6, lg=6)
-            ]),
-
-    ])
+                                buttongroupcontrol.buttoncancel
+                            ],className="col-md-6 col-12 text-center d-flex justify-content-between"),
+                ],className="mb-2"),
+                dbc.Row([
+                    dbc.Col([buttongroupcontrol.buttongo], class_name='d-grid col-md4'),
+                    dbc.Col([buttongroupcontrol.buttonstop], class_name='d-grid col-md4'),
+                ]),
+                modalmowsettings.mowsettings,
+                # dbc.Row([
+                #     html.Div(['Show'], className='margin-5px'),
+                #     dbc.Col([html.Div([dropdownmaplinetype.dropdown], className='dropdown-container')])
+                # ]),
+                #html.Div(id=ids.STATEHIDDEN, style={'display': 'none'}),
+                #html.Div(id=ids.STATEHIDDEN2), #style={'display': 'none'}),
+                #html.Div(id=ids.STATEHIDDEN3, style={'display': 'none'}),
+    ],fluid=True, className='mb-2 d-flex h-100 flex-column')
 
 layout = update_layout()

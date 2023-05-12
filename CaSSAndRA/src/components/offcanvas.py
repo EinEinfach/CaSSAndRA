@@ -28,7 +28,8 @@ offcanvas =dbc.Offcanvas([
                         dbc.Button(id=ids.BUTTONFAN, 
                                    class_name='bi bi-fan mt-4', 
                                    color='info', 
-                                   size='lg'
+                                   size='lg',
+                                   title="Start mowing"
                         ), class_name='text-center'
                     ),
                 ),
@@ -37,21 +38,24 @@ offcanvas =dbc.Offcanvas([
                         dbc.Button(id=ids.BUTTONSUNRAYOFF, 
                                    class_name='bi bi-lightbulb-off mt-4', 
                                    color='danger', 
-                                   size='lg'
+                                   size='lg',
+                                   title="Shutdown Sunray"
                         ), class_name='text-center'
                     ),
                     dbc.Col(
                         dbc.Button(id=ids.BUTTONSUNRAYREBOOT, 
                                    class_name='bi bi-bootstrap-reboot mt-4', 
                                    color='warning', 
-                                   size='lg'
+                                   size='lg',
+                                   title="Reboot Sunray"
                         ), class_name='text-center'
                     ),
                     dbc.Col(
                         dbc.Button(id=ids.BUTTONGPSREBOOT, 
                                    class_name='bi bi-stars mt-4', 
                                    color='info', 
-                                   size='lg'
+                                   size='lg',
+                                   title="Reboot GPS"
                         ), class_name='text-center'
                     ),
                     #html.Div(id='offcanvas-hidden')

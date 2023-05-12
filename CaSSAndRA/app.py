@@ -11,6 +11,7 @@ frontend_logger = logging.getLogger('werkzeug')
 frontend_logger.setLevel(logging.ERROR)
 
 # package imports
+import os
 import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
@@ -29,29 +30,33 @@ def serve_layout():
             modalinfo.info,
             dash.page_container
             #footer
-        ]
-    )
+        ], className='d-flex flex-column h-100 w-100 fixed-top')
 
 def main() -> None:
     backendserver.start()
+    assets_path = os.getcwd() +'/src/assets'
     
     app = dash.Dash(
         __name__,
         use_pages=True,    # turn on Dash pages
         pages_folder='src/pages',
-        external_stylesheets=[
-            dbc.themes.MINTY,
-            dbc.icons.BOOTSTRAP
-        ],  # fetch the proper css items we want
         meta_tags=[
             {   # check if device is a mobile device. This is a must if you do any mobile styling
                 'name': 'viewport',
                 'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.5, minimum-scale=0.5' 
+            },{
+                'name':"apple-mobile-web-app-capable",
+                'content':"yes",
+            },{
+                'name':'theme-color' ,
+                'content':'#78c2ad'
             }
         ],
         suppress_callback_exceptions=True,
         prevent_initial_callbacks='initial_duplicate',
-        title='CASSANDRA'
+        title='CASSANDRA',
+        update_title = 'CASSANDRA updating...',
+        assets_folder=assets_path
     )
     app.layout = serve_layout   # set the layout to the serve_layout function
 

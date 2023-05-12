@@ -24,8 +24,7 @@ def toggle_modal(n_clicks_bmi: int, modal_is_open: bool) -> bool:
 @callback(Output(ids.MODALINFOBODY, 'children'),
           [Input(ids.INTERVAL, 'n_intervals')])
 def update_modal_body(n_intervals: int) -> html.Div:
-    
-    return html.Div([
+    return dbc.Container([
             dbc.Row([
                 dbc.Col([
                     dbc.Card([
@@ -68,6 +67,6 @@ def update_modal_body(n_intervals: int) -> html.Div:
 
                 )
             ]),
-        ])
+        ],fluid=True)
 
 

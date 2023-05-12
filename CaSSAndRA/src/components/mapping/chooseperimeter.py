@@ -16,8 +16,8 @@ chooseperimeter = dbc.Col([
                                 dbc.Col(buttons.removeperimeter)   
                             ], justify='center'),                      
                         ]), 
-                    ], className='text-center m-1 w-90')
-                ])
+                    ], className='text-center my-2')
+                ],xs=12, sm=6)
 
 @callback(Output(ids.DROPDOWNCHOOSEPERIMETER, 'options'),
           Output(ids.DROPDOWNCHOOSEPERIMETER, 'value'),

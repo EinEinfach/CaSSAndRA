@@ -1,0 +1,14 @@
+{
+    "name": "CaSSAndRA",
+    "short_name": "CaSSAndRA",
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#78c2ad",
+    "description": "Cascaded Sunray Server And Rover Application",
+    "icons": [
+        {
+          "src": "/assets/favicon.ico",
+          "sizes": "512x512"
+        }
+    ]
+}

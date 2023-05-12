@@ -48,3 +48,50 @@
 .button-group {
   margin-left: 10px;
 }
+
+
+/* necessary to be able to fill remaining space with map */
+#_pages_content,
+nav ~ div {
+  display: contents;
+}
+
+.user-select-none.svg-container {
+  height: unset !important;
+}
+
+/* keep buttons in navbar to the right */
+.navbar-collapse {
+  flex-grow: 0;
+}
+
+
+/* montserrat-regular - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400;
+  src: url('fonts/montserrat-v25-latin-regular.woff2') format('woff2'), /* Chrome 36+, Opera 23+, Firefox 39+ */
+       url('fonts/montserrat-v25-latin-regular.woff') format('woff'); /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* montserrat-500 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 500;
+  src: url('fonts/montserrat-v25-latin-500.woff2') format('woff2'), /* Chrome 36+, Opera 23+, Firefox 39+ */
+       url('fonts/montserrat-v25-latin-500.woff') format('woff'); /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* montserrat-700 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 700;
+  src: url('fonts/montserrat-v25-latin-700.woff2') format('woff2'), /* Chrome 36+, Opera 23+, Firefox 39+ */
+       url('fonts/montserrat-v25-latin-700.woff') format('woff'); /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}

@@ -14,39 +14,27 @@ dash.register_page(
 )
 
 def update_layout() -> html.Div:
-    return html.Div([
+    return dbc.Container([
+            dbc.Row([dcc.Graph(ids.MAPPINGMAP)], className='map-graph flex-fill'),
             dbc.Row([
                 dbc.Col([
-                    html.Div([dcc.Graph(ids.MAPPINGMAP)], className='map-graph'),
-                    dbc.Row([
-                        html.Div([
-                            buttongroupcontrol.buttonperimeteradd,
-                            buttongroupcontrol.buttonperimeterdiff,
-                            buttongroupcontrol.buttonhomeadd,
-                            buttongroupcontrol.buttonaddnewpoint,
-                            buttongroupcontrol.buttondeletelastpoint,
-                            buttongroupcontrol.buttonfinishfigure,
-                            ], className='text-center'),    
-                    ]),
-                    dbc.Row([
-                        dbc.Col([
-                            html.Div([
-                                chooseperimeter.chooseperimeter,
-                        ], className='text-center'),
-                        ]),
-                        dbc.Col([
-                            html.Div([
-                                uploadsunray.uploadsunray,
-                            ], className='text-center'),
-                        ]),
-                    ], justify='evenly'),
-                ], xs=12, sm=6, lg=6),
-                modal.sunrayimportstatus,
-                modal.overwriteperimter,
-                modal.figurefinished,
-                modal.selectperimeter,
-                html.Div(id=ids.MAPPINGHIDDEN, style={'display': 'none'}),
-                ])
-            ])
+                        buttongroupcontrol.buttonperimeteradd,
+                        buttongroupcontrol.buttonperimeterdiff,
+                        buttongroupcontrol.buttonhomeadd,
+                        buttongroupcontrol.buttonaddnewpoint,
+                        buttongroupcontrol.buttondeletelastpoint,
+                        buttongroupcontrol.buttonfinishfigure,
+                        ], className='text-center d-flex justify-content-between', xs=12, md=6, lg=6),
+            ]),
+            dbc.Row([
+                chooseperimeter.chooseperimeter,
+                uploadsunray.uploadsunray,
+            ], ),
+            modal.sunrayimportstatus,
+            modal.overwriteperimter,
+            modal.figurefinished,
+            modal.selectperimeter,
+            html.Div(id=ids.MAPPINGHIDDEN, style={'display': 'none'}),
+            ],fluid=True,className="mb-2 d-flex h-100 flex-column")
 
 layout = update_layout()

@@ -7,21 +7,21 @@ from src.backend.data import mapdata
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import current_map
 
-buttonhome = dbc.Button(id=ids.BUTTONHOME, size='lg',class_name='mx-1 mt-1 bi bi-house', disabled=False)
+buttonhome = dbc.Button(id=ids.BUTTONHOME, size='lg',class_name='mx-1 mt-1 bi bi-house', title='Go Home (dock)', disabled=False)
                 
-buttonmowall = dbc.Button(id=ids.BUTTONMOWALL, size='lg', class_name='me-1 mt-1 bi bi-map-fill', disabled=False)
+buttonmowall = dbc.Button(id=ids.BUTTONMOWALL, size='lg', class_name='me-1 mt-1 bi bi-map-fill', title='Mow All', disabled=False)
 
-buttongoto = dbc.Button(id=ids.BUTTONGOTO, size='lg', class_name='me-1 mt-1 bi bi-geo-alt-fill', disabled=False)
+buttongoto = dbc.Button(id=ids.BUTTONGOTO, size='lg', class_name='me-1 mt-1 bi bi-geo-alt-fill', title='Select GoTo', disabled=False)
 
-buttonzoneselect = dbc.Button(id=ids.BUTTONZONESELECT, size='lg', class_name='me-1 mt-1 bi bi-pin-map-fill', disabled=False)
+buttonzoneselect = dbc.Button(id=ids.BUTTONZONESELECT, size='lg', class_name='me-1 mt-1 bi bi-pin-map-fill', title='Select Zone to mow', disabled=False)
 
-buttoncancel = dbc.Button(id=ids.BUTTONCANCEL, size='lg', class_name='me-1 mt-1 bi bi-x-square-fill', disabled=False)
+buttoncancel = dbc.Button(id=ids.BUTTONCANCEL, size='lg', class_name='me-1 mt-1 bi bi-x-square-fill', title='Cancel', disabled=False)
 
-buttonmowsettings = dbc.Button(id=ids.BUTTONMOWSETTINGS, size='lg', class_name='me-1 mt-1 bi bi-gear-fill', disabled=False)
+buttonmowsettings = dbc.Button(id=ids.BUTTONMOWSETTINGS, size='lg', class_name='me-1 mt-1 bi bi-gear-fill',title='Mower Settings', disabled=False)
 
-buttongo = dbc.Button(id=ids.BUTTONGO, size='lg', class_name='mx-1 mt-1 bi bi-play-fill', disabled=False)
+buttongo = dbc.Button(id=ids.BUTTONGO, size='lg', class_name='mx-1 mt-1 bi bi-play-fill', title='Start Mowing', disabled=False)
 
-buttonstop = dbc.Button(id=ids.BUTTONSTOP, size='lg', class_name='mx-1 mt-1 bi bi-stop-fill', color='danger', disabled=False)
+buttonstop = dbc.Button(id=ids.BUTTONSTOP, size='lg', class_name='mx-1 mt-1 bi bi-stop-fill', color='danger', title='STOP', disabled=False)
 
 #Create state of buttons
 @callback(Output(ids.BUTTONHOME, 'active'),
