@@ -59,6 +59,11 @@
        url('fonts/montserrat-v25-latin-regular.woff') format('woff'); /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
+/* keep buttons in navbar to the right */
+.navbar-collapse {
+  flex-grow: 0;
+}
+
 /* montserrat-500 - latin */
 @font-face {
   font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
