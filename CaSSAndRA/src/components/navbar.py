@@ -21,8 +21,8 @@ navbar = dbc.NavbarSimple(
                 in_navbar=True,
                 label="More",
             ),
-            dbc.Button(id=ids.OPEN_OFFCANVAS, n_clicks=0, size='lg',class_name='bi bi-joystick ms-3'),
-            dbc.Button(id=ids.BUTTONOPENMODALINFO, n_clicks=0, size='lg',class_name='bi bi-info-square ms-3')
+            dbc.Button(id=ids.OPEN_OFFCANVAS, n_clicks=0, size='lg',class_name='bi bi-joystick ms-3', title='open remote control'),
+            dbc.Button(id=ids.BUTTONOPENMODALINFO, n_clicks=0, size='lg',class_name='bi bi-info-square ms-3', title='open infobox')
         ],
         brand="CaSSAndRA",
         brand_href="/",
