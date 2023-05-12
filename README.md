@@ -14,7 +14,8 @@ CaSSAndRA ist eine Python-Server-Anwedung, die es einem erlaubt den Ardumower (o
 Installation und Nutzung der App erfolgt auf eigene Gefahr. Ich übernehme keinerlei Haftung für die entstandenen Schäden durch die Nutzung der App. Es handelt sich hierbei um meinen Hobby-Projekt, der bei euch nicht funktionieren muss. Eurer Roboter muss mit einem Not-Aus Schalter ausgerüstet sein. Bei der Bedienung des Roboters aus der App bitte haltet immer Sichtkontakt zu dem Roboter und im Falle des unerewarteten Verhaltens schaltet diesen sofort über Not-Aus Schalter aus. Wenn Ihr damit einverstanden seid, dann fährt mit der Installation fort.
 ## Installation
 Installation für linuxbasierte Betriebssysteme (alle Befehle werden im Terminal ausgeführt):
-Als erstes muss die Repository heruntergeladen werden. Oder für die Profis unter euch einfach clonen.
+Als erstes muss die Repository heruntergeladen werden. Oder für die Profis unter euch einfach clonen (Achtung! In diesem Beispiel ist ardumower der Username unter dem alles installiert wird. Ersetzt ardumower durch euren Username unter dem das System läuft).
+
 Entpackt die Dateien in den Ordner eurer Wahl (z.B.):
 
 	/home/ardumower/CaSSAndRA
@@ -33,16 +34,24 @@ Wenn euch das Betriebssystem mit -bash: pip command not found begrüßt, 	müsst
 Prüft bitte mit folgendem Befehl den Bibliothekenpfad eurer pip-Installation:
 
 	python3 -m site --user-site
-Wechselt bitte in den Bibliothekenpfad(z.B.):
+Wechselt bitte in den Bibliothekenpfad(z.B.). Achtung beim 64bit System kann der Ordner lib64 heißen:
 
 	cd ./local/lib/python3.9/site-packages
 Sucht den dash_daq Ordner und wechselt dahin:
 
 	cd dash_daq
 
-Kopiert die dash_daq.min.js Datei aus der von euch geclonten Repository in den dash_daq Binliotheken-Ordner und ersetzt die vorhandene Datei:
+Kopiert die dash_daq.min.js Datei aus der von euch geclonten Repository in den dash_daq Bibliotheken-Ordner und ersetzt die vorhandene Datei:
 
 	cp /home/ardumower/CaSSAndRA/bugfix_dash_daq_min/dash_daq.min.js dash_daq.min.js
+
+## Probleme bei der Installation:
+
+Es hat sich herausgestellt, dass besonders Raspberry Pi OS 32bit (bullseye) bei der Installation der Pandas Bibliothek Probleme bereiten kann. Deutlich reibungsloser funktioniert es mit der 64bit Version. Solltet Ihr Probleme bei der Installation auf der Raspberry Pi OS haben, prüft als erstes welche Version von Raspberry Pi OS auf eurem Einplatinencomputer läuft:  
+
+	uname -r
+
+Kommt als Antwort armv7l, dann habt Ihr 32bit Version. Kommt als Antwort aarch64, dann habt Ihr 64bit Version und die Ursache für das Problem liegt woanders
     
 ## CaSSAndRA starten
 CaSSAndRA das erste mal starten (alle Befehle, bis auf den letzten Aufruf (dieser erfolgt im Browser) werden im Terminal ausgeführt):
