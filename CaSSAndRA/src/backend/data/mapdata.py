@@ -88,6 +88,8 @@ class Perimeter:
     
     def create(self, name: str()) -> None:
         self.name = name
+        self.preview = pd.DataFrame()
+        self.mowpath = pd.DataFrame()
         self.create_perimeter_polygon()
         self.create_perimeter_for_plot()
         self.create_go_to_points()
@@ -116,10 +118,26 @@ class Perimeter:
         try:
             with open(absolute_path.replace('/src/backend/data', '/src/data/map/tmp.json'), 'w') as f:
                 json.dump(tmp_data, f, indent=4)
-            logger.info('Backend: Perimeter name is successfully staved in tmp.json')
+            logger.info('Backend: Perimeter name is successfully saved in tmp.json')
         except Exception as e:
             logger.error('Backend: Could not saved perimeter name to tmp.json')
             logger.debug(str(e))
+    
+    def clear_map(self) -> None:
+        self.name = ''
+        self.perimeter = pd.DataFrame()
+        self.preview = pd.DataFrame()
+        self.mowpath = pd.DataFrame()
+        perimeter_polygon = Polygon()
+        perimeter_for_plot = pd.DataFrame()
+        gotopoints = pd.DataFrame()
+        gotopoint = pd.DataFrame()
+        mowpath = pd.DataFrame()
+        preview = pd.DataFrame()
+        areatomow = 0
+        distancetogo = 0
+        self.save_map_name()
+
 @dataclass
 class Perimeters:
     selected: str() = ''

@@ -28,6 +28,8 @@ def update_layout() -> html.Div:
                             buttongroupcontrol.buttonfinishfigure,
                             ], className='text-center'),    
                     ]),
+                ], xs=12, sm=6, lg=6),
+                dbc.Col([
                     dbc.Row([
                         dbc.Col([
                             html.Div([
@@ -43,8 +45,10 @@ def update_layout() -> html.Div:
                 ], xs=12, sm=6, lg=6),
                 modal.sunrayimportstatus,
                 modal.overwriteperimter,
-                modal.figurefinished,
+                modal.newperimeter,
                 modal.selectperimeter,
+                modal.copyperimeter,
+                modal.removeperimeter,
                 html.Div(id=ids.MAPPINGHIDDEN, style={'display': 'none'}),
                 ])
             ])

@@ -20,7 +20,7 @@ import dash_bootstrap_components as dbc
 from src.components import ids, navbar, offcanvas, modalremotecontrol, modalinfo
 from src.backend import backendserver
 
-def serve_layout():
+def serve_layout() -> html.Div:
     return html.Div(
         [
             dcc.Interval(id=ids.INTERVAL, interval=1*4000, n_intervals=0),
@@ -30,7 +30,7 @@ def serve_layout():
             modalinfo.info,
             dash.page_container
             #footer
-        ]
+        ], className='d-flex flex-column h-100 w-100 fixed-top'
     )
 
 def main() -> None:

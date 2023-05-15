@@ -13,6 +13,8 @@ chooseperimeter = dbc.Col([
                             dcc.Dropdown(id=ids.DROPDOWNCHOOSEPERIMETER, className='m-1'),
                             dbc.Row([
                                 dbc.Col(buttons.selectperimeter),
+                                dbc.Col(buttons.addnewperimeter),
+                                dbc.Col(buttons.copyperimeter),
                                 dbc.Col(buttons.removeperimeter)   
                             ], justify='center'),                      
                         ]), 

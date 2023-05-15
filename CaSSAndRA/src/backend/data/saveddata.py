@@ -9,9 +9,6 @@ import os
 from . import roverdata
 from .mapdata import current_map, mapping_maps
 
-#import roverdata, mapdata
-
-
 def read(absolute_path) -> None:
     #cwd = Path.cwd()
     
@@ -141,15 +138,12 @@ def read_perimeter() -> None:
         logger.warning('Backend: Could not read perimeter name from tmp.json')
         logger.debug(str(e))
         current_map.name = ''
-    if current_map.name == '':
-        logger.warning('Backend: Selected perimeter name is an empty string. Please upload or create a new perimeter')
-        return
     try:
         with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
             path_to_data = json.load(f)
             f.close()
     except Exception as e:
-        logger.error('Backend: Could not save data to the file. Missing datacfg.json')
+        logger.error('Backend: Could not read perimeter from file. Missing datacfg.json')
         logger.debug(str(e))
         return
     try:
@@ -161,6 +155,12 @@ def read_perimeter() -> None:
         logger.debug(str(e))
         return
     try:
+        if mapping_maps.saved.empty:
+            logger.info('Backend: perimeter.json contains no map data')
+            return
+        if current_map.name == '':
+            logger.info('Backend: No perimeter selected, go ahead without selection')
+            return
         current_map.perimeter = mapping_maps.saved[mapping_maps.saved['name'] == current_map.name]
         current_map.perimeter = current_map.perimeter.reset_index(drop=True)
         current_map.create(current_map.name)
@@ -204,23 +204,78 @@ def save(name: str()) -> None:
             logger.debug(str(e))
 
 def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimeter_name: str()) -> None:
+    if perimeter_name is None:
+        logger.info('Backend: Could not save perimeter. Perimeter name is not valid')
+    elif perimeter_arr.empty or not (perimeter_name in perimeter_arr['name'].unique()):
+        absolute_path = os.path.dirname(__file__)
+        try:
+            with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
+                path_to_data = json.load(f)
+                f.close()
+        except Exception as e:
+            logger.error('Backend: Could not save data to the file. Missing datacfg.json')
+            logger.debug(str(e))
+            return
+        try:
+            perimeter['name'] = perimeter_name
+            perimeter_arr = pd.concat([perimeter_arr, perimeter], ignore_index=True)
+            perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), indent=2, date_format='iso')
+            logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
+            mapping_maps.saved = perimeter_arr
+        except Exception as e:
+            logger.warning('Backend: Could not save perimeter data to the file')
+            logger.debug(str(e))
+    else:
+        logger.info('Backend: Could not save perimeter. Perimeter name is already exsist.')
+
+def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str()) -> None:
     absolute_path = os.path.dirname(__file__)
     try:
         with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
             path_to_data = json.load(f)
             f.close()
     except Exception as e:
-        logger.error('Backend: Could not save data to the file. Missing datacfg.json')
+        logger.error('Backend: Could not remove perimeter data from file. Missing datacfg.json')
         logger.debug(str(e))
         return
     try:
-        perimeter['name'] = perimeter_name
-        perimeter_arr = pd.concat([perimeter_arr, perimeter], ignore_index=True)
-        perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), date_format='iso')
-        logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
+        perimeter_arr = perimeter_arr[perimeter_arr['name'] != perimeter_name]
+        perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), indent=2, date_format='iso')
+        logger.info('Backend: Perimeter is successfully removed from perimeter.json')
         mapping_maps.saved = perimeter_arr
-    except:
-        logger.warning('Backend: Could not save perimeter data to the file')
+        mapping_maps.selected_save = pd.DataFrame()
+        #remove also perimeter in current map, if matched
+        if perimeter_name == current_map.name:
+            current_map.clear_map()
+    except Exception as e:
+        logger.error('Backend: Could not remove perimeter data from file')
+        logger.debug(str(e))
+
+def copy_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), cpy_perimeter_name: str()) -> None:
+    if cpy_perimeter_name is None:
+        logger.info('Backend: Could not copy perimeter. Perimeter name is not valid')
+    elif not cpy_perimeter_name in perimeter_arr['name'].unique():
+        absolute_path = os.path.dirname(__file__)
+        try:
+            with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
+                path_to_data = json.load(f)
+                f.close()
+        except Exception as e:
+            logger.error('Backend: Could not save data to the file. Missing datacfg.json')
+            logger.debug(str(e))
+            return
+        try:
+            perimeter = perimeter_arr[perimeter_arr['name'] == perimeter_name]
+            perimeter['name'] = cpy_perimeter_name
+            perimeter_arr = pd.concat([perimeter_arr, perimeter], ignore_index=True)
+            perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), indent=2, date_format='iso')
+            logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
+            mapping_maps.saved = perimeter_arr
+        except Exception as e:
+            logger.warning('Backend: Could not save perimeter data to the file')
+            logger.debug(str(e))
+    else:
+        logger.info('Backend: Could not copy perimeter. Perimeter name is already exsist.')
 
 if __name__ == '__main__':
     read()
