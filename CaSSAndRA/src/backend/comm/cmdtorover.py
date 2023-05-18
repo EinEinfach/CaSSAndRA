@@ -96,7 +96,7 @@ def dock() -> pd.DataFrame():
     return buffer
 
 def mow() -> pd.DataFrame():
-    msg = {'msg': 'AT+C,1,1,0.3,100,0,-1,-1,-1'}
+    msg = {'msg': 'AT+C,1,1,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command start is send to rover')
     cmdlist.cmd_mow = False
