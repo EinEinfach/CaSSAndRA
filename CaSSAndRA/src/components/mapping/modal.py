@@ -82,6 +82,20 @@ removeperimeter = dbc.Modal(
                     is_open=False,          
                 )
 
+finishmapping = dbc.Modal(
+                    [
+                        dbc.ModalHeader(dbc.ModalTitle('Info')),
+                        dbc.ModalBody('Finish mapping? Please give an unique name'),
+                        dbc.ModalBody(dbc.Input(id=ids.INPUTNEWPERIMETERNAME, type='text')),
+                        dbc.ModalFooter([
+                            buttons.okbuttonfinishmapping,  
+                            ] 
+                        ),
+                    ],
+                    id=ids.MODALFINISHMAPPING,
+                    is_open=False,          
+                )
+
 @callback(Output(ids.MODALOVERWRITEPERIMETER, 'is_open'),
           [Input(ids.BUTTONSAVEIMPORTEDPERIMETER, 'n_clicks'),
            Input(ids.OKBUTTONOVERWRITEPERIMTER, 'n_clicks'),
@@ -121,7 +135,7 @@ def selected_perimeter(bsp_n_clicks: int, bok_n_clicks: int,
           [Input(ids.BUTTONADDNEWPERIMETER, 'n_clicks'),
            Input(ids.OKBUTTONNEWPERIMETER, 'n_clicks'),
            State(ids.MODALADDNEWPERIMETER, 'is_open')])
-def update_mapping(baddp_n_clicks: int, bok_n_clicks, is_open: bool) -> bool:
+def new_perimeter(baddp_n_clicks: int, bok_n_clicks, is_open: bool) -> bool:
     if baddp_n_clicks or bok_n_clicks:
         return not is_open
     return is_open
@@ -153,5 +167,20 @@ def remove_perimeter(brp_n_clicks: int, bok_n_clicks,
     if context == ids.OKBUTTONREMOVEPERIMETER:
         saveddata.remove_perimeter(mapping_maps.saved, selected_perimeter)
     if brp_n_clicks or bok_n_clicks:
+        return not is_open
+    return is_open
+
+@callback(Output(ids.MODALFINISHMAPPING, 'is_open'),
+          [Input(ids.BUTTONFINISHFIGURE, 'n_clicks'),
+           Input(ids.OKBUTTONFINISHMAPPING, 'n_clicks'),
+           State(ids.INPUTNEWPERIMETERNAME, 'value'),
+           State(ids.MODALFINISHMAPPING, 'is_open')])
+def finish_mapping(bff_n_clicks: int, bok_n_clicks: int, 
+                   perimeter_name: str(), is_open: bool) -> bool:
+    context = ctx.triggered_id
+    if context == ids.OKBUTTONFINISHMAPPING:
+        mapping_maps.check_dockpoints()
+        saveddata.save_perimeter(mapping_maps.saved, mapping_maps.build, perimeter_name)
+    if bff_n_clicks or bok_n_clicks:
         return not is_open
     return is_open

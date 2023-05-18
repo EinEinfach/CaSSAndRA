@@ -49,6 +49,7 @@ def update_layout() -> html.Div:
                 modal.selectperimeter,
                 modal.copyperimeter,
                 modal.removeperimeter,
+                modal.finishmapping,
                 html.Div(id=ids.MAPPINGHIDDEN, style={'display': 'none'}),
                 ])
             ])

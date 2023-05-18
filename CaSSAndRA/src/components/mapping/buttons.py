@@ -19,6 +19,7 @@ okbuttonselectedperimeter = dbc.Button('OK', id=ids.OKBUTTONSELECTEDPERIMETER, c
 okbuttonnewperimeter = dbc.Button('OK', id=ids.OKBUTTONNEWPERIMETER, class_name='ms-auto', n_clicks=0)
 okbuttoncopyperimeter = dbc.Button('OK', id=ids.OKBUTTONCOPYPERIMETER, class_name='ms-auto', n_clicks=0)
 okbuttonremoveperimeter = dbc.Button('OK', id=ids.OKBUTTONREMOVEPERIMETER, class_name='ms-auto', n_clicks=0)
+okbuttonfinishmapping = dbc.Button('OK', id=ids.OKBUTTONFINISHMAPPING, class_name='ms-auto', n_clicks=0)
 
 @callback(Output(ids.BUTTONSELECTPERIMETER, 'disabled'),
           Output(ids.BUTTONREMOVEPERIMETER, 'disabled'),

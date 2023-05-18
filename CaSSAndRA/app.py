@@ -2,7 +2,7 @@
 import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-            level=logging.INFO,
+            level=logging.DEBUG,
             format='%(asctime)s %(levelname)s %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S',
         )
@@ -30,7 +30,7 @@ def serve_layout() -> html.Div:
             modalinfo.info,
             dash.page_container
             #footer
-        ], className='d-flex flex-column h-100 w-100 fixed-top'
+        ], 
     )
 
 def main() -> None:

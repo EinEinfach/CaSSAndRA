@@ -24,19 +24,21 @@ chooseperimeter = dbc.Col([
 @callback(Output(ids.DROPDOWNCHOOSEPERIMETER, 'options'),
           Output(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
           [Input(ids.OKBUTTONOVERWRITEPERIMTER, 'n_clicks'),
+           Input(ids.OKBUTTONNEWPERIMETER, 'n_clicks'),
            Input(ids.INTERVAL, 'n_intervals'),
            State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            State(ids.DROPDOWNCHOOSEPERIMETER, 'options')])
-def update_dropdown_chooseperimeter(bok_nclicks: int, n_intervals: int, 
+def update_dropdown_chooseperimeter(bok_nclicks: int, n_intervals: int, bok2_nclicks: int, 
                                     dropdown_val_state: str(), dropdown_opt_state: list()) -> list():
-    # context = ctx.triggered_id
-    # if context == ids.INTERVAL:
-    #     return dropdown_opt_state, dropdown_val_state
+    context = ctx.triggered_id
     try:
         options = mapping_maps.saved.name.unique()
         value = dropdown_val_state
     except:
         options = []
         value = None
+    if context == ids.OKBUTTONNEWPERIMETER:
+        value = None
+        mapping_maps.init()
     return options, value
 
