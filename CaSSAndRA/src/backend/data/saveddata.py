@@ -243,7 +243,7 @@ def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str()) -> None
         perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), indent=2, date_format='iso')
         logger.info('Backend: Perimeter is successfully removed from perimeter.json')
         mapping_maps.saved = perimeter_arr
-        mapping_maps.select_saved(pd.DataFrame())
+        mapping_maps.select_saved(pd.DataFrame(columns=['X', 'Y', 'type', 'name']))
         #remove also perimeter in current map, if matched
         if perimeter_name == current_map.name:
             current_map.clear_map()

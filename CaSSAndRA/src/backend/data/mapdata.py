@@ -150,7 +150,7 @@ class Perimeters:
     saved: pd.DataFrame = pd.DataFrame()
     selected_save: pd.DataFrame = pd.DataFrame()
     build: pd.DataFrame = pd.DataFrame()
-    dockpoints: pd.DataFrame = pd.DataFrame()
+    dockpoints: pd.DataFrame = pd.DataFrame(columns=['X', 'Y'])
     import_status: int = -1   
     select_imported_status: int = -1  
 
@@ -228,145 +228,170 @@ class Perimeters:
             return
     
     def select_saved(self, perimeter: pd.DataFrame) -> None:
-        self.selected_save = perimeter[['X', 'Y', 'type', 'name']]
-        self.build = perimeter[['X', 'Y', 'type', 'name']]
+        self.selected_save = perimeter
+        self.build = perimeter
         self.dockpoints = self.build[self.build['type'] == 'dockpoints']
 
     def add_point(self, create: str()) -> None:
-        logger.debug('Mapping add point: '+str(robot.position_x)+' '+str(robot.position_y))
-        #remove unfinished figure
-        if create != 'figure' and not self.build.empty:
-            logger.debug('Mapping remove unfinished figure')
-            self.build = self.build[self.build['type'] != 'figure']
-        #create point and add to data frame
-        point = {'X': [robot.position_x], 'Y': [robot.position_y], 'type': [create]}
-        df = pd.DataFrame(point)
-        logger.debug('Mapping moved data to data frame: '+str(point))
-        df.columns = ['X', 'Y', 'type']
-        self.build = pd.concat([self.build, df], ignore_index=True)
+        try:
+            logger.debug('Mapping add point: '+str(robot.position_x)+' '+str(robot.position_y))
+            #remove unfinished figure
+            if create != 'figure' and not self.build.empty:
+                logger.debug('Mapping remove unfinished figure')
+                self.build = self.build[self.build['type'] != 'figure']
+            #create point and add to data frame
+            point = {'X': [robot.position_x], 'Y': [robot.position_y], 'type': [create]}
+            df = pd.DataFrame(point)
+            logger.debug('Mapping moved data to data frame: '+str(point))
+            df.columns = ['X', 'Y', 'type']
+            self.build = pd.concat([self.build, df], ignore_index=True)
+        except Exception as e:
+            logger.error('Backend: Add point not possible')
+            logger.debug(str(e))
         
     def remove_point(self, create: str()) -> None:
-        logger.debug('Mapping removing last point')
-        df = self.build[self.build['type'] == create]
-        if not df.empty:
-            self.build = self.build[:-1]
+        try: 
+            logger.debug('Mapping removing last point')
+            df = self.build[self.build['type'] == create]
+            if not df.empty:
+                self.build = self.build[:-1]
+        except Exception as e:
+            logger.error('Backend: Remove point not possible')
+            logger.debug(str(e))
     
     def add_figure(self, selection: dict()) -> None:
-        #remove unfinished figure
-        if not self.build.empty:
-            self.build = self.build[self.build['type'] != 'figure']
-            logger.debug('Mapping remove unfinished figure')
-        if selection == None:
-            logger.debug('Mapping no selection detected, break')
-            return
-        elif 'range' in selection:
-            logger.debug('Mapping selection box detected. Create an new figure with box select.') 
-            selection = selection['range']
-            points = {'X': [selection['x'][0], selection['x'][1], selection['x'][1], selection['x'][0]],
-                      'Y': [selection['y'][0], selection['y'][0], selection['y'][1], selection['y'][1]]}
-            df = pd.DataFrame(points)
-            df['type'] = 'figure'
-            self.build = pd.concat([self.build, df], ignore_index=True)
-        elif 'lassoPoints' in selection:
-            logger.debug('Mapping selection lasso detected. Create a new figure with lasso select.')
-            logger.debug('Lasso points: '+str(selection))
-            selection = selection['lassoPoints']
-            selection_list = list(zip(selection['x'], selection['y']))
-            df = pd.DataFrame(selection_list)
-            df.columns = ['X', 'Y']
-            df['type'] = 'figure'
-            self.build = pd.concat([self.build, df], ignore_index=True)
-        else:
-            logger.warning('Backend: Selection in mapping is an unknown figure')
+        try: 
+            #remove unfinished figure
+            if not self.build.empty:
+                self.build = self.build[self.build['type'] != 'figure']
+                logger.debug('Mapping remove unfinished figure')
+            if selection == None:
+                logger.debug('Mapping no selection detected, break')
+                return
+            elif 'range' in selection:
+                logger.debug('Mapping selection box detected. Create an new figure with box select.') 
+                selection = selection['range']
+                points = {'X': [selection['x'][0], selection['x'][1], selection['x'][1], selection['x'][0]],
+                        'Y': [selection['y'][0], selection['y'][0], selection['y'][1], selection['y'][1]]}
+                df = pd.DataFrame(points)
+                df['type'] = 'figure'
+                self.build = pd.concat([self.build, df], ignore_index=True)
+            elif 'lassoPoints' in selection:
+                logger.debug('Mapping selection lasso detected. Create a new figure with lasso select.')
+                logger.debug('Lasso points: '+str(selection))
+                selection = selection['lassoPoints']
+                selection_list = list(zip(selection['x'], selection['y']))
+                df = pd.DataFrame(selection_list)
+                df.columns = ['X', 'Y']
+                df['type'] = 'figure'
+                self.build = pd.concat([self.build, df], ignore_index=True)
+            else:
+                logger.warning('Backend: Selection in mapping is an unknown figure')
+        except Exception as e:
+            logger.error('Backend: Add a figure not possible')
+            logger.debug(str(e))
 
     def figure_action(self, action: str()) -> None:
-        logger.debug('Mapping finish figure as: '+action)
-        df = self.build[self.build['type'] == 'figure']
-        df['type'] = 'perimeter'
-        new_perimeter = map.create(df)
-        if new_perimeter.geom_type != 'Polygon' or not new_perimeter.is_valid:
-            logger.info('Backend: New figure is not a polygon or not valid polygon, try again')
-            self.build = self.build[self.build['type'] != 'figure']
-            return
-        logger.debug('Mapping figure coords: '+str(new_perimeter.exterior.coords))
-        df = self.build[self.build['type'] != 'figure']
-        old_perimeter = map.create(df)
-        if action == 'add':
-            new_perimeter = old_perimeter.union(new_perimeter)
-            if new_perimeter.geom_type != 'Polygon':
-                logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
-                new_perimeter = old_perimeter
-        else:
-            new_perimeter = old_perimeter.difference(new_perimeter)
-            if new_perimeter.geom_type != 'Polygon':
-                logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
-                new_perimeter = old_perimeter
-        logger.debug('Mapping new perimeter is empty: '+str(new_perimeter.is_empty))
-        if new_perimeter.is_empty:
-            logger.debug('Mapping ignore figure create empty data frame')
-            self.build = pd.DataFrame()
-        else:
-            logger.debug('Mapping create a new data frame')
-            dockpoints = self.build[self.build['type'] == 'dockpoints']
-            self.build = pd.DataFrame(list(new_perimeter.exterior.coords))
-            self.build.columns = ['X', 'Y']
-            self.build['type'] = 'perimeter'
-            for i, exclusion in enumerate(new_perimeter.interiors):
-                exclusion_df = pd.DataFrame(list(new_perimeter.interiors[i].coords))
-                exclusion_df.columns = ['X', 'Y']
-                exclusion_df['type'] = 'exclusion_'+str(i)
-                self.build = pd.concat([self.build, exclusion_df], ignore_index=True)
-            if not dockpoints.empty:
-                self.build = pd.concat([self.build, dockpoints], ignore_index=True)
+        try:
+            logger.debug('Mapping finish figure as: '+action)
+            df = self.build[self.build['type'] == 'figure']
+            df['type'] = 'perimeter'
+            new_perimeter = map.create(df)
+            if new_perimeter.geom_type != 'Polygon' or not new_perimeter.is_valid:
+                logger.info('Backend: New figure is not a polygon or not valid polygon, try again')
+                self.build = self.build[self.build['type'] != 'figure']
+                return
+            logger.debug('Mapping figure coords: '+str(new_perimeter.exterior.coords))
+            df = self.build[self.build['type'] != 'figure']
+            old_perimeter = map.create(df)
+            if action == 'add':
+                new_perimeter = old_perimeter.union(new_perimeter)
+                if new_perimeter.geom_type != 'Polygon':
+                    logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
+                    new_perimeter = old_perimeter
+            else:
+                new_perimeter = old_perimeter.difference(new_perimeter)
+                if new_perimeter.geom_type != 'Polygon':
+                    logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
+                    new_perimeter = old_perimeter
+            logger.debug('Mapping new perimeter is empty: '+str(new_perimeter.is_empty))
+            if new_perimeter.is_empty:
+                logger.debug('Mapping ignore figure create empty data frame')
+                self.build = pd.DataFrame()
+            else:
+                logger.debug('Mapping create a new data frame')
+                dockpoints = self.build[self.build['type'] == 'dockpoints']
+                self.build = pd.DataFrame(list(new_perimeter.exterior.coords))
+                self.build.columns = ['X', 'Y']
+                self.build['type'] = 'perimeter'
+                for i, exclusion in enumerate(new_perimeter.interiors):
+                    exclusion_df = pd.DataFrame(list(new_perimeter.interiors[i].coords))
+                    exclusion_df.columns = ['X', 'Y']
+                    exclusion_df['type'] = 'exclusion_'+str(i)
+                    self.build = pd.concat([self.build, exclusion_df], ignore_index=True)
+                if not dockpoints.empty:
+                    self.build = pd.concat([self.build, dockpoints], ignore_index=True)
+        except Exception as e:
+            logger.error('Backend: Action to the figure not possible')
+            logger.debug(str(e))
 
     def is_changed(self) -> bool:
-        if self.build.empty:
-            return True
-        elif self.build[self.build['type'] == 'perimeter'].empty:
-            return True
-        else:
-            df1 = self.build[self.build['type']!='figure']
-            try:
-                df1 = df1.drop(columns=['map_nr', 'name'])
-            except:
-                pass
-            df2 = self.selected_save
-            try:
-                df2 = df2.drop(columns=['map_nr', 'name'])
-            except:
-                pass
-            equal = df1.equals(df2)
-            return equal
+        try: 
+            if self.build.empty:
+                return True
+            elif self.build[self.build['type'] == 'perimeter'].empty:
+                return True
+            else:
+                df1 = self.build[self.build['type']!='figure']
+                try:
+                    df1 = df1.drop(columns=['map_nr', 'name'])
+                except:
+                    pass
+                df2 = self.selected_save
+                try:
+                    df2 = df2.drop(columns=['map_nr', 'name'])
+                except:
+                    pass
+                equal = df1.equals(df2)
+                return equal
+        except Exception as e:
+            logger.error('Backend: Check saved and build map not possible')
+            logger.debug(str(e))
+            return False
     
     def check_dockpoints(self) -> None:
-        old_dockpoints = self.dockpoints
-        old_dockpoints = old_dockpoints[['X', 'Y']]
-        old_dockpoints = old_dockpoints.reset_index(drop=True)
-        if not self.build.empty:
-            new_dockpoints = self.build[self.build['type'] == 'dockpoints']
-            new_dockpoints = new_dockpoints[['X', 'Y']]
-            new_dockpoints = new_dockpoints.reset_index(drop=True)
-            equal = old_dockpoints.equals(new_dockpoints)
-            if equal:
-                logger.debug('Mapping dockpoints are not changed, adjustment not neccessary')
-            else:
-                dockpoints = self.build[self.build['type'] == 'dockpoints']
-                if len(dockpoints) < 2:
-                    logger.debug('Mapping dockpoints are changed, but contains only one coordinate, adjustment not possible')
+        try:
+            old_dockpoints = self.dockpoints
+            old_dockpoints = old_dockpoints[['X', 'Y']]
+            old_dockpoints = old_dockpoints.reset_index(drop=True)
+            if not self.build.empty:
+                new_dockpoints = self.build[self.build['type'] == 'dockpoints']
+                new_dockpoints = new_dockpoints[['X', 'Y']]
+                new_dockpoints = new_dockpoints.reset_index(drop=True)
+                equal = old_dockpoints.equals(new_dockpoints)
+                if equal:
+                    logger.debug('Mapping dockpoints are not changed, adjustment not neccessary')
                 else:
-                    coord = dockpoints.iloc[-1]
-                    last_coord = [coord['X'], coord['Y']]
-                    coord = dockpoints.iloc[-2]
-                    before_last_coord = [coord['X'], coord['Y']]
-                    last_vector = [last_coord[0]-before_last_coord[0], last_coord[1]-before_last_coord[1]]
-                    last_vector_angle = math.atan2(last_vector[1], last_vector[0])
-                    new_vector = [math.cos(last_vector_angle)*0.1, math.sin(last_vector_angle)*0.1]
-                    new_last_coord = [last_coord[0]+new_vector[0], last_coord[1]+new_vector[1]]
-                    self.build.iloc[-1, self.build.columns.get_loc('X')] = new_last_coord[0]
-                    self.build.iloc[-1, self.build.columns.get_loc('Y')] = new_last_coord[1]
-                    logger.debug('Mapping dockpoints are changed, the lastpoint is adjusted. Old values: '+str(last_coord)+' New values: '+str(new_last_coord))
-        else:
-            logger.debug('Mapping new map is an empty dataframe, dockpoints are not changed, adjustment not neccessary')
+                    dockpoints = self.build[self.build['type'] == 'dockpoints']
+                    if len(dockpoints) < 2:
+                        logger.debug('Mapping dockpoints are changed, but contains only one coordinate, adjustment not possible')
+                    else:
+                        coord = dockpoints.iloc[-1]
+                        last_coord = [coord['X'], coord['Y']]
+                        coord = dockpoints.iloc[-2]
+                        before_last_coord = [coord['X'], coord['Y']]
+                        last_vector = [last_coord[0]-before_last_coord[0], last_coord[1]-before_last_coord[1]]
+                        last_vector_angle = math.atan2(last_vector[1], last_vector[0])
+                        new_vector = [math.cos(last_vector_angle)*0.1, math.sin(last_vector_angle)*0.1]
+                        new_last_coord = [last_coord[0]+new_vector[0], last_coord[1]+new_vector[1]]
+                        self.build.iloc[-1, self.build.columns.get_loc('X')] = new_last_coord[0]
+                        self.build.iloc[-1, self.build.columns.get_loc('Y')] = new_last_coord[1]
+                        logger.debug('Mapping dockpoints are changed, the lastpoint is adjusted. Old values: '+str(last_coord)+' New values: '+str(new_last_coord))
+            else:
+                logger.debug('Mapping new map is an empty dataframe, dockpoints are not changed, adjustment not neccessary')
+        except Exception as e:
+            logger.error('Backend: Dockpoints adjustment not possible')
+            logger.debug(str(e))
     
 
 
