@@ -315,6 +315,7 @@ class Perimeters:
                     logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
                     new_perimeter = old_perimeter
             logger.debug('Mapping new perimeter is empty: '+str(new_perimeter.is_empty))
+            new_perimeter = new_perimeter.simplify(0.02)
             if new_perimeter.is_empty:
                 logger.debug('Mapping ignore figure create empty data frame')
                 self.build = pd.DataFrame()
