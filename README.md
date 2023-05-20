@@ -158,7 +158,7 @@ Positioniert den Roboter an der Stelle, wo ein neuer Punkt aufgezeichnet soll un
 
 ![add_remove_point](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/add_remove_point.jpeg) 
 
-Ist die Figur fertig kann diese dem Fläche hinzugefügt werden (Perimeter), oder aus der Fläche entfernt werden (Exclusion). Hierzu klickt auf die entsprechende Buttons.
+Ist die Figur fertig kann diese der Fläche hinzugefügt werden (Perimeter), oder aus der Fläche entfernt werden (Exclusion). Hierzu klickt auf die entsprechende Buttons.
 
 ![add_remove_figure](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/add_remove_figure.jpeg) 
 
