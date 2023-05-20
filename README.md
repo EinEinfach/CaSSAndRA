@@ -127,7 +127,7 @@ Als Ausgabe kommt(wichtig ist das Wort active(running)):
 
 ## Bedienung
 ### Einrichten der Kommunikation
-In der App klickt auf "More" -> "Settings". Auf der Seite wählt "Communication". Sucht euch eine der Möglichkeiten aus, trägt die Daten ein (bitte haltet die Syntax, was CaSSAndRA euch vorschlägt,bei) und anschliessend mit "save and reboot" werden die Einstellungen übernommen und der Server neuegestartet:
+In der App klickt auf "Settings". Auf der Seite wählt "Communication". Sucht euch eine der Möglichkeiten aus, trägt die Daten ein (bitte haltet die Syntax, was CaSSAndRA euch vorschlägt,bei) und anschliessend mit "save and reboot" werden die Einstellungen übernommen und der Server neuegestartet:
 
 ![connection](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/connection.jpeg)
 
@@ -147,10 +147,31 @@ Unter Settings "App" wählen. Hier gibt es die Möglichkeiten einige Anzeigen in
 
 4. SoC Anzeige. Umrechnung Spannung zu Ladezustand (einfache lineare Interpolation). Als Voltage min (0%) wird die Abschaltspannung aus der config.h eurer sunray FW +0,5V empfohlen. Als Voltage max (100%) wird die Ladeschlussspannung aus der config.h eurer sunray FW -0,5V empfohlen. Die SoC Anzeige hat keinerlei steuerende Funktion und dient lediglich einer Übersicht auf der Startseite
 
-### Hochladen der Karte
-Aktuell gibt es nur eine Möglichkeit eine Karte in CaSSAndRA zu erstellen. Dies geschieht durch das Upload der zuvor aus Sunray App exportierten Karte.
+### Erstellen einer Karte
+Eine neue Karte oder bereits vorhandene Karte kann im Bereich Mapping erstellt/geändert werden. 
 
-In der App klickt auf "More" -> "Mapping". 
+In der App klickt auf "Mapping". Um eine vorhandene Karte zu ändern, wählt im Bereich "saved perimeters" die gewünschte Karte. Nun kann mit der Bearbeitung gestartet werden. Eine zusätzliche Sicherung der vorhandenen Karte vor der Bearbeitung ist nicht notwendig. Nach dem Fertigstellen der Karte wird man aufgefordert die bearbeitete Karte in einem separaten Slot zu speichern. Um eine neue Karte zu erstellen klickt auf das Dateisymbol mit dem Plus im Berech "saved perimeters". 
+
+![create_new_perimeter](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/create_new_perimeter.jpeg) 
+
+Positioniert den Roboter an der Stelle, wo ein neuer Punkt aufgezeichnet soll und drückt auf "add new point" zum hinzufügen einer neuen Koordinate oder "remove last point" zum Löschen der letztgesetzten Koordinate.
+
+![add_remove_point](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/add_remove_point.jpeg) 
+
+Ist die Figur fertig kann diese dem Fläche hinzugefügt werden (Perimeter), oder aus der Fläche entfernt werden (Exclusion). Hierzu klickt auf die entsprechende Buttons.
+
+![add_remove_figure](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/add_remove_figure.jpeg) 
+
+Um eine Figur zu erstellen können bereits bekannte Werkzeuge Box-Select oder Lasso-Select genutzt werden. So funiktioniert z.B. auch das Löschen einer Exclusion umkreist die Exclusion mit Lasso-Select und wählt zur Fläche hinzufügen. Die neue Figur wird dem Perimeter hinzugefügt und überklebt sozusagen die vorhandene Exclusion. 
+
+Um einen Dockpfad aufzuzeichnen selektiert hierzu das Symbol mit dem Haus. Danach kann mit den Buttons "add new point" und "remove last point" der neue Dockpfad aufgezeichnet werden. Wenn ein neuer Dockpfad aufgenommen wurde oder ein vohandener überarbeitet wurde merkt das CaSSAndRA und beim Speichern des neuen Perimeters verschiebt CaSSAndRA den letzten Dockpoint automatisch um 10cm in die Dockrichtung um das sichere Andocken zu gewährleisten. 
+
+Wenn das neue Perimeter aufgenommen wurde kann das mit entsprechednen Button bestätigt werden und CaSSAndRA fordert euch auf einen neuen Namen für die erstellte Karte zu wählen.
+
+![save_new_perimeter](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/save_new_perimeter.jpeg) 
+
+### Importieren einer Karte
+Es gibt die Möglichkeit eine Karte, die in der Sunray App ersstellt wurde zu importtieren. 
 
 Im Bereich "Upload sunray file" klickt auf den Button mit "txt-Datei-Icon". 
 
