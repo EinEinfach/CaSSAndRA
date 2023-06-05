@@ -10,6 +10,7 @@ from src.backend.data.roverdata import robot
 
 
 @callback(Output(ids.STATEMAP, 'figure'),
+          Output(ids.INTERVAL, 'disabled', allow_duplicate=True),
           [Input(ids.INTERVAL, 'n_intervals'),
            #Input(ids.DROPDOWNMAPLINETYPE, 'value'),
            Input(ids.BUTTONHOME, 'n_clicks'),
@@ -21,7 +22,7 @@ from src.backend.data.roverdata import robot
            Input(ids.STATEMAP, 'selectedData'),
            State(ids.BUTTONZONESELECT, 'active'),
            State(ids.BUTTONGOTO, 'active'),
-           ])
+           ], prevent_initial_call=True)
 def update(n_intervals: int, 
            #dropdownmaplinetype: list(), 
            buttonhome: int, buttonmowall: int, 
@@ -29,7 +30,6 @@ def update(n_intervals: int,
            buttoncancelclick: int, clickdata: dict(), 
            selecteddata: dict(), buttonzonenselectstate: bool,
            buttongotostate: bool) -> dict():
-     
      rover_position = [robot.position_x, robot.position_y] 
      
      context = ctx.triggered_id
@@ -212,7 +212,7 @@ def update(n_intervals: int,
      #                #paper_bgcolor='rgba(0,0,0,0)',
      #                #plot_bgcolor='rgba(0,0,0,0)'
      #                )            
-     return fig
+     return fig, False
 
 # @callback(Output(ids.STATEHIDDEN, 'children'),
 #           [Input(ids.INTERVAL, 'n_intervals'),

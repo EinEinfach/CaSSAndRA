@@ -19,7 +19,7 @@ def update_layout() -> html.Div:
             dbc.Row([
                 dbc.Col([
                     dbc.Row(id=ids.STATESTRING),
-                    html.Div([dcc.Graph(id=ids.STATEMAP)], className='map-graph'),
+                    dbc.Spinner(delay_show=500, children=html.Div([dcc.Graph(id=ids.STATEMAP)], className='map-graph')),
                     dbc.Row([
                         html.Div([
                                 buttongroupcontrol.buttonhome,

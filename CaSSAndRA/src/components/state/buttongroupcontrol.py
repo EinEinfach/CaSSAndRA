@@ -144,3 +144,17 @@ def update_button_disabled(n_intervals: int, n_clicks_bgo: int, n_clicks_bs: int
     else:
         return False, False, False, False, False 
 
+#disable intervall if coverage pahth planner is running
+@callback(Output(ids.INTERVAL, 'disabled', allow_duplicate=True),
+          [Input(ids.BUTTONMOWALL, 'n_clicks'),
+           Input(ids.STATEMAP, 'selectedData'),
+           State(ids.BUTTONZONESELECT, 'active')], prevent_initial_call=True)
+def disable_intervall(bma_nclicks: int, selection: dict(), bzs_state: bool) -> bool:
+    context = ctx.triggered_id
+    if context == ids.BUTTONMOWALL:
+        return True
+    elif context==ids.STATEMAP and bzs_state == True:
+        return True
+    else:
+        return False
+

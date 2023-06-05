@@ -60,7 +60,6 @@ def main() -> None:
             },
         ],
         suppress_callback_exceptions=True,
-        prevent_initial_callbacks='initial_duplicate',
         title='CASSANDRA',
         update_title = 'CASSANDRA updating...',
         assets_folder=assets_path, 
