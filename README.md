@@ -125,6 +125,53 @@ Als Ausgabe kommt(wichtig ist das Wort active(running)):
      Loaded: loaded (/etc/systemd/system/cassandra.service; enabled; vendor preset: enabled)
      Active: active (running) since Thu 2023-04-27 07:48:22 CEST; 1 day 5h ago
 
+## CaSSAndRA im Docker Container einrichten
+1. Dateien aus dem git herunterladen
+2. die Datei requirements.txt in das Unterverzeichnis mit dem File app.py verschieben/kopieren
+3. in das Verzeichnis mit der Datei app.py wechseln
+4. group-id und user-id des aktuell genutzten Users herausfinden (id -u, id -g)
+5. Username, Gruppenname (des aktuellen Users) merken
+6. ein File "dockerfile" mit folgendem Inhalt anlegen (USERNAME, GROUP, GROUP-ID und USER-ID mit den herausgefundenen Daten ersetzen):
+	
+		FROM python:3.10-slim 
+		RUN addgroup --gid <GROUP-ID> <GROUP>
+		RUN adduser --gecos "" --disabled-password --uid <USER-ID> --gid <GROUP-ID> <USERNAME>
+		WORKDIR /usr/src/cassandra
+		COPY requirements.txt .
+		RUN pip install --upgrade pip
+		RUN pip install -r requirements.txt
+		COPY . .
+		RUN chown -R <USERNAME>:<GROUP> /usr/src/cassandra
+		RUN chmod 777 /usr/src/cassandra
+		USER <USERNAME>
+		CMD ["python3","app.py"]
+
+Beispiel:
+
+		FROM python:3.10-slim
+		RUN addgroup --gid 65548 ardumower
+		RUN adduser --gecos "" --disabled-password --uid 1053 --gid 65548 ardumower
+		WORKDIR /usr/src/cassandra
+		COPY requirements.txt .
+		RUN pip install --upgrade pip
+		RUN pip install -r requirements.txt
+		COPY . .
+		RUN chown -R ardumower:ardumower /usr/src/cassandra
+		RUN chmod 777 /usr/src/cassandra
+		USER ardumower
+		CMD ["python3","app.py"]
+7. Image erstellen
+
+		docker build -f dockerfile -t <IMAGENAME> .
+Beispiel:
+
+		sudo docker build -f dockerfile -t cassandra:slim .
+8. Dann den Container starten (NETWORK ist ggf. optional):
+
+		docker run -e TZ=Europe/Berlin -p 8050:8050 -v <PFAD-ZUM-data-FOLDER>:/usr/src/cassandra/src/data --name cassandra --network="<NETWORK>" -d <IMAGENAME>
+Beispiel:
+
+		docker run -e TZ=Europe/Berlin -p 8050:8050 -v /home/ardumower/cassandra/data:/usr/src/cassandra/src/data --name cassandra --network="netz1" -d cassandra:slim
 ## Bedienung
 ### Einrichten der Kommunikation
 In der App klickt auf "Settings". Auf der Seite wählt "Communication". Sucht euch eine der Möglichkeiten aus, trägt die Daten ein (bitte haltet die Syntax, was CaSSAndRA euch vorschlägt,bei) und anschliessend mit "save and reboot" werden die Einstellungen übernommen und der Server neuegestartet:
