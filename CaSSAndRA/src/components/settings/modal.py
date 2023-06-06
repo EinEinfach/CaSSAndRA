@@ -40,3 +40,13 @@ app = dbc.Modal(
             is_open=False,
         )
 
+robot = dbc.Modal(
+            [
+                dbc.ModalHeader(dbc.ModalTitle('Info')),
+                dbc.ModalBody('Robot settings are saved successfully'),
+                dbc.ModalFooter([])
+            ],
+            id=ids.MODALROBOTSETTINGS,
+            is_open=False,
+        )
+

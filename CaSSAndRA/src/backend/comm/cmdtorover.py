@@ -6,6 +6,7 @@ import pandas as pd
 
 from .. data import mapdata
 from .. data.roverdata import robot
+from .. data.cfgdata import rovercfg
 from . import cmdlist
 
 def takemap(perimeter: pd.DataFrame(), way: pd.DataFrame(), dock: bool) -> pd.DataFrame():
@@ -75,7 +76,7 @@ def move(movement: list()) -> pd.DataFrame():
         return buffer
 
 def goto() -> pd.DataFrame():
-    msg = {'msg': 'AT+C,0,1,0.3,100,0,-1,-1,-1'}
+    msg = {'msg': 'AT+C,0,1,'+str(rovercfg.gotospeed_setpoint)+',100,0,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command goto is send to rover')
     cmdlist.cmd_goto = False
@@ -96,7 +97,7 @@ def dock() -> pd.DataFrame():
     return buffer
 
 def mow() -> pd.DataFrame():
-    msg = {'msg': 'AT+C,1,1,-1,-1,-1,-1,-1,-1'}
+    msg = {'msg': 'AT+C,1,1,'+str(rovercfg.mowspeed_setpoint)+',-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command start is send to rover')
     cmdlist.cmd_mow = False
@@ -144,4 +145,12 @@ def takepositionmode() -> pd.DataFrame():
     msg = {'msg': 'AT+P,'+positionmode+str(mapdata.lon)+','+str(mapdata.lat)}
     buffer = pd.DataFrame([msg])
     cmdlist.cmd_set_positionmode = False
+    return buffer
+
+def changespeed(new_speed: float) -> pd.DataFrame():
+    msg = {'msg': 'AT+C,-1,-1,'+str(new_speed)+',-1,-1,-1,-1,-1'}
+    buffer = pd.DataFrame([msg])
+    logger.debug('Backend: Command change speed is send to rover, new value is: '+str(new_speed))
+    cmdlist.cmd_changemowspeed = False
+    cmdlist.cmd_changegotospeed = False
     return buffer

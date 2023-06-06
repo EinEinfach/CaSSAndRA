@@ -13,6 +13,8 @@ cmd_shutdown = False
 cmd_stop = False
 cmd_take_map = False
 cmd_toggle_mow_motor = False
+cmd_changemowspeed = False
+cmd_changegotospeed = False
 
 cmd_standby = ''
 

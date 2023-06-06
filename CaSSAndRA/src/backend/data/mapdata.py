@@ -182,8 +182,9 @@ class Perimeters:
                             coords_exclusions = df['exclusions'][map_number]
                             for i, exclusion in enumerate(coords_exclusions):
                                 exclusion_df = pd.DataFrame(exclusion)
-                                exclusion_df['type'] = 'exclusion_'+str(i)
-                                coords = pd.concat([coords, exclusion_df], ignore_index=True)
+                                if len(exclusion_df) > 3:
+                                    exclusion_df['type'] = 'exclusion_'+str(i)
+                                    coords = pd.concat([coords, exclusion_df], ignore_index=True)
                         except:
                             logger.info('Backend: No exclusions found in sunray file')
                         try: 

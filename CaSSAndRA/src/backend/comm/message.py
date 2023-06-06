@@ -78,6 +78,14 @@ def check() -> pd.DataFrame():
     elif cmdlist.cmd_set_positionmode:
         msg_pckg = cmdtorover.takepositionmode()
         cmdlist.cmd_set_positionmode = False
+    
+    elif cmdlist.cmd_changemowspeed:
+        msg_pckg = cmdtorover.changespeed(robot.mowspeed_setpoint)
+        cmdlist.cmd_changemowspeed = False
+
+    elif cmdlist.cmd_changegotospeed:
+        msg_pckg = cmdtorover.changespeed(robot.gotospeed_setpoint)
+        cmdlist.cmd_changegotospeed = False
 
     else:
         msg_pckg = pd.DataFrame()

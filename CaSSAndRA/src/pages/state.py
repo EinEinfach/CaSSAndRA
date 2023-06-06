@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 
 #local imports
 from src.components import ids, modalmowsettings
-from src.components.state import map, dropdownmaplinetype, buttongroupcontrol, state
+from src.components.state import map, buttongroupcontrol, state
 
 dash.register_page(
     __name__,
@@ -43,7 +43,7 @@ def update_layout() -> html.Div:
                 dbc.Col([
                 html.Div([
                     html.Div(id=ids.STATEHIDDEN, style={'display': 'none'}),
-                    html.Div(id=ids.STATEHIDDEN2), #style={'display': 'none'}),
+                    html.Div(id=ids.STATEHIDDEN2, style={'display': 'none'}),
                     html.Div(id=ids.STATEHIDDEN3, style={'display': 'none'}),
                     #dbc.Row(html.Div(id=ids.MAPDATABLOCK, style={'marginTop':20}))    
                     ])

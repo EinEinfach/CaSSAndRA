@@ -7,6 +7,7 @@ from datetime import datetime
 from dataclasses import dataclass
 
 from . import appdata
+from .cfgdata import rovercfg
 
 #mower class
 @dataclass
@@ -30,6 +31,8 @@ class Mower:
     soc: float = 0
     solution: str = 'invalid'
     speed: float = 0
+    mowspeed_setpoint: float = rovercfg.mowspeed_setpoint
+    gotospeed_setpoint: float = rovercfg.gotospeed_setpoint
     status: str = 'offline'
     direction: float = 0
     timestamp = datetime.now()
@@ -121,6 +124,16 @@ class Mower:
             return 'float'
         else:
             return 'invalid'
+    
+    def change_speed(self, choise: str(), speeddiff: float) -> None:
+        if choise == 'mow':
+            new_setpoint = round(self.mowspeed_setpoint + speeddiff, 2)
+            new_setpoint = max(0, new_setpoint)
+            self.mowspeed_setpoint = min(1, new_setpoint)
+        elif choise == 'goto':
+            new_setpoint = round(self.gotospeed_setpoint + speeddiff, 2)
+            new_setpoint = max(0, new_setpoint)
+            self.gotospeed_setpoint = min(1, new_setpoint)
             
 #define robot instancs
 robot = Mower()
