@@ -1,4 +1,4 @@
-# package imports
+#package imports
 import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
@@ -19,7 +19,16 @@ def update_layout() -> html.Div:
             dbc.Row([
                 dbc.Col([
                     dbc.Row(id=ids.STATESTRING),
-                    dbc.Spinner(delay_show=1000, children=html.Div([dcc.Graph(id=ids.STATEMAP)], className='map-graph')),
+                    html.Div(className='loader-wrapper', 
+                             children=[
+                                 dbc.Spinner(delay_show=1000, 
+                                             children=html.Div([
+                                                        dcc.Graph(id=ids.STATEMAP)
+                                                        ], className='map-graph'
+                                                    )
+                                )
+                            ]
+                    ),
                     dbc.Row([
                         html.Div([
                                 buttongroupcontrol.buttonhome,
@@ -35,21 +44,15 @@ def update_layout() -> html.Div:
                         dbc.Col([buttongroupcontrol.buttonstop], class_name='d-grid col-md4'),
                     ]),
                     modalmowsettings.mowsettings,
-                    # dbc.Row([
-                    #     html.Div(['Show'], className='margin-5px'),
-                    #     dbc.Col([html.Div([dropdownmaplinetype.dropdown], className='dropdown-container')])
-                    # ]),
                 ], xs=12, sm=6, lg=6),
                 dbc.Col([
                 html.Div([
                     html.Div(id=ids.STATEHIDDEN, style={'display': 'none'}),
                     html.Div(id=ids.STATEHIDDEN2, style={'display': 'none'}),
-                    html.Div(id=ids.STATEHIDDEN3, style={'display': 'none'}),
-                    #dbc.Row(html.Div(id=ids.MAPDATABLOCK, style={'marginTop':20}))    
+                    html.Div(id=ids.STATEHIDDEN3, style={'display': 'none'}),   
                     ])
                 ], xs=12, sm=6, lg=6)
             ]),
-
     ])
 
 layout = update_layout()

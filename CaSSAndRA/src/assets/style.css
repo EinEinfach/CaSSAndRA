@@ -83,3 +83,8 @@
   src: url('fonts/montserrat-v25-latin-700.woff2') format('woff2'), /* Chrome 36+, Opera 23+, Firefox 39+ */
        url('fonts/montserrat-v25-latin-700.woff') format('woff'); /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
+
+/* visible background during wait spinner */
+.loader-wrapper > div {
+  visibility: visible !important;
+}
