@@ -51,7 +51,11 @@ Es hat sich herausgestellt, dass besonders Raspberry Pi OS 32bit (bullseye) bei 
 
 	uname -r
 
-Kommt als Antwort armv7l, dann habt Ihr 32bit Version. Kommt als Antwort aarch64, dann habt Ihr 64bit Version und die Ursache für das Problem liegt woanders
+Kommt als Antwort armv7l, dann habt Ihr 32bit Version. Kommt als Antwort aarch64, dann habt Ihr 64bit Version und die Ursache für das Problem liegt woanders.
+
+Für die 32bit Version von bullseye müssen vorher auf dem Raspberry Pi noch folgendes nachinstalliert werden:
+		
+		sudo apt install libatlas-base-dev libgeos-dev
     
 ## CaSSAndRA starten
 CaSSAndRA das erste mal starten (alle Befehle, bis auf den letzten Aufruf (dieser erfolgt im Browser) werden im Terminal ausgeführt):
