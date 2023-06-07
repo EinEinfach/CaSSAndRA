@@ -17,7 +17,16 @@ def update_layout() -> html.Div:
     return html.Div([
             dbc.Row([
                 dbc.Col([
-                    html.Div([dcc.Graph(ids.MAPPINGMAP)], className='map-graph'),
+                    html.Div(className='loader-wrapper', 
+                             children=[
+                                 dbc.Spinner(delay_show=1000, 
+                                             children=html.Div([
+                                                        dcc.Graph(id=ids.MAPPINGMAP)
+                                                        ], className='map-graph'
+                                                    )
+                                )
+                            ]
+                    ),
                     dbc.Row([
                         html.Div([
                             buttongroupcontrol.buttonperimeteradd,
