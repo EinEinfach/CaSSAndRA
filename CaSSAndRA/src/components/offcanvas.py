@@ -1,6 +1,7 @@
 #package imports
 from dash import html, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
+import time
 
 #locale imports
 from . import joystick, ids
@@ -39,7 +40,7 @@ offcanvas =dbc.Offcanvas([
                     dbc.Col([
                         dbc.Button(id=ids.BUTTONSLOWER, 
                                    size='lg', 
-                                   class_name='mx-1 mt-1 bi bi-dash-square', 
+                                   class_name='mx-1 bi bi-dash-square', 
                                    title='slower')
                                    ], 
                                 class_name='d-grid col-md4'
@@ -47,26 +48,34 @@ offcanvas =dbc.Offcanvas([
                     dbc.Col([
                         dbc.Button(id=ids.BUTTONFASTER, 
                                    size='lg', 
-                                   class_name='mx-1 mt-1 bi bi-plus-square', 
+                                   class_name='mx-1 bi bi-plus-square', 
                                    title='faster')
                                    ], 
                                 class_name='d-grid col-md4'
                         ),
                 ]),
-                dbc.Row(
+                dbc.Row([
+                    dbc.Col(),
                     dbc.Col(
                         dbc.Button(id=ids.BUTTONFAN, 
-                                   class_name='bi bi-fan mt-4', 
+                                   class_name='bi bi-fan mt-2', 
                                    color='info', 
                                    size='lg',
                                    title='start/stop blade motor'
                         ), class_name='text-center'
                     ),
-                ),
+                    dbc.Col(
+                        dbc.Button(id=ids.BUTTONNEXTPOINT, 
+                                   class_name='bi bi-skip-end mt-2',  
+                                   size='lg',
+                                   title='skip next point'
+                        ), class_name='text-center'
+                    ),
+                ]),
                 dbc.Row([
                     dbc.Col(
                         dbc.Button(id=ids.BUTTONSUNRAYOFF, 
-                                   class_name='bi bi-lightbulb-off mt-4', 
+                                   class_name='bi bi-lightbulb-off mt-2', 
                                    color='danger', 
                                    size='lg',
                                    title='shutdown'
@@ -74,7 +83,7 @@ offcanvas =dbc.Offcanvas([
                     ),
                     dbc.Col(
                         dbc.Button(id=ids.BUTTONSUNRAYREBOOT, 
-                                   class_name='bi bi-bootstrap-reboot mt-4', 
+                                   class_name='bi bi-bootstrap-reboot mt-2', 
                                    color='warning', 
                                    size='lg',
                                    title='reboot sunray fw'
@@ -82,7 +91,7 @@ offcanvas =dbc.Offcanvas([
                     ),
                     dbc.Col(
                         dbc.Button(id=ids.BUTTONGPSREBOOT, 
-                                   class_name='bi bi-stars mt-4', 
+                                   class_name='bi bi-stars mt-2', 
                                    color='info', 
                                    size='lg',
                                    title='reboot gps'
@@ -139,6 +148,18 @@ def update_display_speed_setpoint(bs_active: bool, bf_active: bool, nintervals: 
         return 'mow speed: '+str(robot.mowspeed_setpoint)
     else:
         return '---'
+
+@callback(Output(ids.BUTTONNEXTPOINT, 'active'),
+          [Input(ids.BUTTONNEXTPOINT, 'n_clicks')])
+def update_next_point(bnp_nclicks: int) -> bool:
+    context = ctx.triggered_id
+    if context == ids.BUTTONNEXTPOINT:
+        cmdlist.cmd_stop = True
+        time.sleep(1)
+        cmdlist.cmd_skipnextpoint = True
+        time.sleep(0.5)
+        cmdlist.cmd_resume = True
+    return False
 
 
     

@@ -81,11 +81,18 @@ def check() -> pd.DataFrame():
     
     elif cmdlist.cmd_changemowspeed:
         msg_pckg = cmdtorover.changespeed(robot.mowspeed_setpoint)
+        robot.last_mow_status = checkmowmotor(msg_pckg, robot.last_mow_status)
         cmdlist.cmd_changemowspeed = False
 
     elif cmdlist.cmd_changegotospeed:
         msg_pckg = cmdtorover.changespeed(robot.gotospeed_setpoint)
+        robot.last_mow_status = checkmowmotor(msg_pckg, robot.last_mow_status)
         cmdlist.cmd_changegotospeed = False
+    
+    elif cmdlist.cmd_skipnextpoint:
+        msg_pckg = cmdtorover.skipnextpoint()
+        robot.last_mow_status = checkmowmotor(msg_pckg, robot.last_mow_status)
+        cmdlist.cmd_skipnextpoint = False
 
     else:
         msg_pckg = pd.DataFrame()

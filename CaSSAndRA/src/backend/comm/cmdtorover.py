@@ -154,3 +154,10 @@ def changespeed(new_speed: float) -> pd.DataFrame():
     cmdlist.cmd_changemowspeed = False
     cmdlist.cmd_changegotospeed = False
     return buffer
+
+def skipnextpoint() -> pd.DataFrame():
+    msg = {'msg': 'AT+C,-1,-1,-1,-1,-1,-1,1,-1'}
+    buffer = pd.DataFrame([msg])
+    logger.debug('Backend: Command skip next point is send to rover')
+    cmdlist.cmd_skipnextpoint = False
+    return buffer

@@ -15,6 +15,7 @@ cmd_take_map = False
 cmd_toggle_mow_motor = False
 cmd_changemowspeed = False
 cmd_changegotospeed = False
+cmd_skipnextpoint = False
 
 cmd_standby = ''
 
