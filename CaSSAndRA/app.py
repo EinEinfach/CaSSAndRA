@@ -1,3 +1,5 @@
+#Version:0.26.2
+
 # create logger
 import logging
 logger = logging.getLogger(__name__)
@@ -30,8 +32,7 @@ def serve_layout() -> html.Div:
             modalinfo.info,
             dash.page_container
             #footer
-        ], 
-    )
+        ], className='d-flex flex-column h-100 w-100 fixed-top') 
 
 def main() -> None:
     backendserver.start()

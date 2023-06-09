@@ -341,9 +341,9 @@ def calcroute(perimeter, borders, line_mask, edges_pol, route):
 
     while True:
         ###Debug##
-        #logger.debug(str(len(lines_to_go)))
-        #logger.debug(str(while_cnt)+' '+str(while_1)+' '+str(while_21)+' '+str(while_22)+' '+str(while_31)+' '+str(while_32)+' '+str(while_4)+' '+str(while_5))
-        #logger.debug(str(len(route))+' '+str(route[-1]))
+        # logger.debug(str(len(lines_to_go)))
+        # logger.debug(str(while_cnt)+' '+str(while_1)+' '+str(while_21)+' '+str(while_22)+' '+str(while_31)+' '+str(while_32)+' '+str(while_4)+' '+str(while_5))
+        # logger.debug(str(len(route))+' '+str(route[-1]))
 
         ##########
 
@@ -445,42 +445,44 @@ def calcroute(perimeter, borders, line_mask, edges_pol, route):
                 while_22 += 1
                 ###########
 
+        #################Don't use, dead lock possible################
         ###Es sind keine direkte Übergänge, weder nach oben, noch nach unten möglich. Prüfe die Rückkehr über die gespeicherte Route###
-        if len(line_for_return) != 0 and line_going == None:
-            line_going, line_going_nr = calc_shortest_path(lines_to_go, perimeter_offs, line_for_return, route, transit_lines)
-            ###Wechsel über die gespeicherte Route nicht möglich (Sackgasse im konkaven Polygon?), ist die Rückkehrlinie in Range?###
-            if not line_going:
-                lines_in_range_cnt, line_in_range, line_nr = check_for_lines_in_range(lines_to_go_cpy, perimeter_offs, [line_gone_nr], line_for_return[-1], route)
-                if lines_in_range_cnt == 0:
-                    pass
-                else:
-                    line_going = line_in_range
-                    line_going_nr = line_for_return[-1]
-                    coords_next_line = list(line_going.coords)
-                    coords_next_line.append(route[-1])
-                    ###Entferne Duplikate###
-                    coords_next_line = list(dict.fromkeys(coords_next_line))
-                    route.extend(coords_next_line)  
-                    line_level = lines_to_go[line_for_return[-1]][2]
-                    line_for_return.remove(line_going_nr)
+        # if len(line_for_return) != 0 and line_going == None:
+        #     line_going, line_going_nr = calc_shortest_path(lines_to_go, perimeter_offs, line_for_return, route, transit_lines)
+        #     ###Wechsel über die gespeicherte Route nicht möglich (Sackgasse im konkaven Polygon?), ist die Rückkehrlinie in Range?###
+        #     if not line_going:
+        #         lines_in_range_cnt, line_in_range, line_nr = check_for_lines_in_range(lines_to_go_cpy, perimeter_offs, [line_gone_nr], line_for_return[-1], route)
+        #         if lines_in_range_cnt == 0:
+        #             pass
+        #         else:
+        #             line_going = line_in_range
+        #             line_going_nr = line_for_return[-1]
+        #             coords_next_line = list(line_going.coords)
+        #             coords_next_line.append(route[-1])
+        #             ###Entferne Duplikate###
+        #             coords_next_line = list(dict.fromkeys(coords_next_line))
+        #             route.extend(coords_next_line)  
+        #             line_level = lines_to_go[line_for_return[-1]][2]
+        #             line_for_return.remove(line_going_nr)
 
-                    ###Debug###
-                    while_31 += 1
-                    ###########
-            else:
-                #coords_next_line, line_to_go_nr, line_level = put_route_together(line_going, lines_to_go)
-                coords_next_line = list(line_going.coords)
-                coords_next_line.append(route[-1])
-                ###Entferne Duplikate###
-                coords_next_line = list(dict.fromkeys(coords_next_line))
-                route.extend(coords_next_line)   
-                line_level = lines_to_go[line_going_nr][2]  
-                line_for_return.remove(line_going_nr)  
+        #             ###Debug###
+        #             while_31 += 1
+        #             ###########
+        #     else:
+        #         #coords_next_line, line_to_go_nr, line_level = put_route_together(line_going, lines_to_go)
+        #         coords_next_line = list(line_going.coords)
+        #         coords_next_line.append(route[-1])
+        #         ###Entferne Duplikate###
+        #         coords_next_line = list(dict.fromkeys(coords_next_line))
+        #         route.extend(coords_next_line)   
+        #         line_level = lines_to_go[line_going_nr][2]  
+        #         line_for_return.remove(line_going_nr)  
 
-                ###Debug###
-                while_32 += 1
-                ###########
-        
+        #         ###Debug###
+        #         while_32 += 1
+        #         ###########
+        #######################################################################
+
         ###Prüfe ob der Übergang zur Exclusion möglich ist, wenn ja, dann geh zur Exclusion, komme aber nicht wieder###
         if line_to_edge != None and line_to_edge.length < 6*0.18 and line_going == None:
             coords_next_line, edge_nr = put_edge_route_together(line_to_edge, edges_to_cut, edge_nr, perimeter_offs)
