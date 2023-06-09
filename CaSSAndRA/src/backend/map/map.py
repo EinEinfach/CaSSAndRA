@@ -110,7 +110,11 @@ def gotopoints(perimeter: Polygon, mowoffset: float) -> MultiPoint:
 def border(perimeter: Polygon, distancetoborder: int, mowoffset: float) -> list():
     logger.info('Backend: Create map borders and area to mow')
     mowoffset = -mowoffset
-    border = perimeter
+    if perimeter.geom_type == 'MultiPolygon':
+        logger.warning('Backend: Current selection contains more than one closed perimeters. Continue with first one')
+        border = perimeter.geoms[0]
+    else: 
+        border = perimeter
     if distancetoborder == 0:
         border = border.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
         return perimeter, border

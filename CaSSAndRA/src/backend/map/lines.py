@@ -341,8 +341,10 @@ def calcroute(perimeter, borders, line_mask, edges_pol, route):
 
     while True:
         ###Debug##
-        if while_cnt == 312:
-            pass
+        #logger.debug(str(len(lines_to_go)))
+        #logger.debug(str(while_cnt)+' '+str(while_1)+' '+str(while_21)+' '+str(while_22)+' '+str(while_31)+' '+str(while_32)+' '+str(while_4)+' '+str(while_5))
+        #logger.debug(str(len(route))+' '+str(route[-1]))
+
         ##########
 
         line_to_edge, edge_nr = calc_shortest_path_edge(edges_to_cut, perimeter_offs, route)
@@ -534,12 +536,20 @@ def calcroute(perimeter, borders, line_mask, edges_pol, route):
             start_coords_nr = perimeter_coords.index(start_coords[0])
             possible_way = LineString([route[-1], perimeter_coords[start_coords_nr]])
             
+            try_cnt = 1
             while not possible_way.covered_by(perimeter_offs):
                 start_coords_nr = start_coords_nr - 1
-                possible_way = LineString([route[-1], perimeter_coords[start_coords_nr]])
-                if start_coords == perimeter_coords[start_coords_nr]:
-                    logger.debug('calc lines: Kein direkter Übergang zur Perimetergrenze möglich')
-                    break
+                try:
+                    possible_way = LineString([route[-1], perimeter_coords[start_coords_nr]])
+                except Exception as e:
+                #if start_coords == perimeter_coords[start_coords_nr]:
+                    logger.debug('calc lines: Kein direkter Übergang zur Perimetergrenze möglich. Setze eine Koordinate zurück')
+                    route.append(route[-2*try_cnt])
+                    start_coords = [min(perimeter_coords, key=lambda coord: (coord[0]-route[-1][0])**2 + (coord[1]-route[-1][1])**2)]
+                    start_coords_nr = perimeter_coords.index(start_coords[0])
+                    possible_way = LineString([route[-1], perimeter_coords[start_coords_nr]])
+                    try_cnt += 1
+              
             perimeter_coords = perimeter_coords[start_coords_nr:]+perimeter_coords[:start_coords_nr]
             perimeter_coords.append(perimeter_coords[0])
             perimeter_coords_rev = perimeter_coords[::-1]

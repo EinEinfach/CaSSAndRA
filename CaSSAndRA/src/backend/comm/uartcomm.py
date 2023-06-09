@@ -23,11 +23,6 @@ def cmd_to_rover(ser: serial) -> bool:
         logger.debug(str(e))
         return False
             
-    
-        
-
-
-
 def connect_uart(connect_data: dict()) -> list():
     try:
         ser = serial.Serial(connect_data['UART'][0]['SERPORT'], connect_data['UART'][1]['BAUDRATE'], timeout=3)
