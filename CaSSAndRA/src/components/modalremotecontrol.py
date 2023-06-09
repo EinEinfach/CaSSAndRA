@@ -1,9 +1,11 @@
 from dash import html, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
+import time
 
 from . import ids
 from src.backend.comm import cmdlist
 from src.backend.data.roverdata import robot
+from src.backend import backendserver
 
 
 confirm = dbc.Modal([
@@ -43,7 +45,7 @@ def toggle_modal(n_clicks_bsoff: int, n_clicks_bsr: int,
     elif context == ids.BUTTONSUNRAYREBOOT:
         cmdlist.cmd_standby = 'reboot'
         modalheader = 'Info'
-        modaltext = 'Reboot Sunray FW?'
+        modaltext = 'Reboot Sunray FW and Backend-Server?'
     elif context == ids.BUTTONGPSREBOOT:
         cmdlist.cmd_standby = 'gps-reboot'
         modalheader = 'Info'
@@ -68,6 +70,8 @@ def toggle_modal(n_clicks_bsoff: int, n_clicks_bsr: int,
         elif cmdlist.cmd_standby == 'reboot':
             cmdlist.cmd_reboot = True
             cmdlist.cmd_standby = ''
+            time.sleep(5)
+            backendserver.stop()
         elif cmdlist.cmd_standby == 'gps-reboot':
             cmdlist.cmd_gps_reboot = True
             cmdlist.cmd_standby = ''

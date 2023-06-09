@@ -86,7 +86,7 @@ offcanvas =dbc.Offcanvas([
                                    class_name='bi bi-bootstrap-reboot mt-2', 
                                    color='warning', 
                                    size='lg',
-                                   title='reboot sunray fw'
+                                   title='reboot sunray fw and backend server'
                         ), class_name='text-center'
                     ),
                     dbc.Col(

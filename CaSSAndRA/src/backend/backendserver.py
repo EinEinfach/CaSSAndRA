@@ -88,7 +88,10 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
     time.sleep(2*time_to_wait)
     while True:
         if restart.is_set():
+            ser.close()
             logger.info('Backend: Server thread is stopped')
+            logger.info('Backend: Starting delay time')
+            time.sleep(10)
             return
         if not connection:
             time.sleep(1)
