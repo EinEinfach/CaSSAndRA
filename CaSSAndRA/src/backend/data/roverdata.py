@@ -5,6 +5,8 @@ import pandas as pd
 import math
 from datetime import datetime
 from dataclasses import dataclass
+import os
+from PIL import Image
 
 from . import appdata
 from .cfgdata import rovercfg
@@ -42,11 +44,14 @@ class Mower:
     cmd_move_ang: float = 0
     last_cmd: pd.DataFrame = pd.DataFrame()
     current_task: pd.DataFrame = pd.DataFrame()
+    #frontend
+    rover_image: Image = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/rover0grad.png'))
 
     def set_state(self, state: pd.DataFrame()) -> None:
         state = state.iloc[-1]
         self.speed = self.calc_speed(state['position_x'], state['position_y'], self.timestamp)
         self.direction = self.calc_direction(state['position_x'], state['position_y'])
+        self.rover_image = self.set_rover_image()
         self.battery_voltage = round(state['battery_voltage'], 2)
         self.position_x = round(state['position_x'], 2)
         self.position_y = round(state['position_y'], 2)
@@ -74,20 +79,34 @@ class Mower:
             delta_y = position_y - self.position_y
             delta_distance = (delta_x**2+delta_y**2)**(1/2)
             timedelta = datetime.now() - timestamp
-            timedelta_seconds = timedelta.seconds + timedelta.microseconds*1000000
+            timedelta_seconds = timedelta.total_seconds()
             speed = round(delta_distance/timedelta_seconds, 2)
         else:
             speed = 0
         return speed
     
     def calc_direction(self, position_x: float, position_y: float) -> float:
+        timedelta = datetime.now() - self.timestamp
+        timedelta_seconds = timedelta.total_seconds()
         delta_x = position_x - self.position_x
         delta_y = position_y - self.position_y
+        distance = (delta_x**2 + delta_y**2)**(1/2)
+        #avoid jumping of angle
+        if distance < 0.05:
+            return self.direction
+        #if docked the no change of angle needed
+        if self.job == 2:
+            return self.direction
+        #calc new angle
         direction_rad = math.atan2(delta_y, delta_x)
         direction_deg = round(direction_rad*(180/math.pi))
         if direction_deg < 0:
             direction_deg = round(360 + direction_deg)
-        return direction_deg
+        #check for angular speed (if to high, then backwards movement)
+        if (abs(direction_deg-self.direction)/(timedelta_seconds)) > 100:
+            return self.direction
+        else:
+            return direction_deg
 
     def calc_status(self) -> str():
         if (datetime.now()-self.timestamp).seconds > 60:
@@ -134,8 +153,63 @@ class Mower:
             new_setpoint = round(self.gotospeed_setpoint + speeddiff, 2)
             new_setpoint = max(0, new_setpoint)
             self.gotospeed_setpoint = min(1, new_setpoint)
+    
+    def set_rover_image(self) -> None:
+        absolute_path = os.path.dirname(__file__).replace('/backend/data', '/assets/icons/')
+        if self.direction < 7.5 or self.direction >= 352.5:
+            return Image.open(absolute_path+'rover0grad.png')
+        elif self.direction >= 7.5 and self.direction < 22.5:
+            return Image.open(absolute_path+'rover15grad.png') 
+        elif self.direction >= 22.5 and self.direction < 37.5:
+            return Image.open(absolute_path+'rover30grad.png') 
+        elif self.direction >= 37.5 and self.direction < 52.5:
+            return Image.open(absolute_path+'rover45grad.png') 
+        elif self.direction >= 52.5 and self.direction < 67.5:
+            return Image.open(absolute_path+'rover60grad.png') 
+        elif self.direction >= 67.5 and self.direction < 82.5:
+            return Image.open(absolute_path+'rover75grad.png') 
+        elif self.direction >= 82.5 and self.direction < 97.5:
+            return Image.open(absolute_path+'rover90grad.png') 
+        elif self.direction >= 97.5 and self.direction < 112.5:
+            return Image.open(absolute_path+'rover105grad.png') 
+        elif self.direction >= 112.5 and self.direction < 127.5:
+            return Image.open(absolute_path+'rover120grad.png') 
+        elif self.direction >= 127.5 and self.direction < 142.5:
+            return Image.open(absolute_path+'rover135grad.png') 
+        elif self.direction >= 142.5 and self.direction < 157.5:
+            return Image.open(absolute_path+'rover150grad.png') 
+        elif self.direction >= 157.5 and self.direction < 172.5:
+            return Image.open(absolute_path+'rover165grad.png') 
+        elif self.direction >= 172.5 and self.direction < 187.5:
+            return Image.open(absolute_path+'rover180grad.png') 
+        elif self.direction >= 187.5 and self.direction < 202.5:
+            return Image.open(absolute_path+'rover195grad.png') 
+        elif self.direction >= 202.5 and self.direction < 217.5:
+            return Image.open(absolute_path+'rover210grad.png') 
+        elif self.direction >= 217.5 and self.direction < 232.5:
+            return Image.open(absolute_path+'rover225grad.png') 
+        elif self.direction >= 232.5 and self.direction < 247.5:
+            return Image.open(absolute_path+'rover240grad.png') 
+        elif self.direction >= 247.5 and self.direction < 262.5:
+            return Image.open(absolute_path+'rover255grad.png') 
+        elif self.direction >= 262.5 and self.direction < 277.5:
+            return Image.open(absolute_path+'rover270grad.png') 
+        elif self.direction >= 277.5 and self.direction < 292.5:
+            return Image.open(absolute_path+'rover285grad.png') 
+        elif self.direction >= 292.5 and self.direction < 307.5:
+            return Image.open(absolute_path+'rover300grad.png') 
+        elif self.direction >= 307.5 and self.direction < 322.5:
+            return Image.open(absolute_path+'rover315grad.png') 
+        elif self.direction >= 322.5 and self.direction < 337.5:
+            return Image.open(absolute_path+'rover330grad.png')
+        elif self.direction >= 337.5 and self.direction < 352.5:
+            return Image.open(absolute_path+'rover345grad.png')  
+        elif self.direction >= 352.5:
+            return Image.open(absolute_path+'rover0grad.png') 
+        else:
+            return Image.open(absolute_path+'rover0grad.png')
             
-#define robot instancs
+#define robot instance
 robot = Mower()
 
 #measured

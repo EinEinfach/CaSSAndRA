@@ -36,9 +36,3 @@ def calc(mowoffset: float, mowangle: int, start_pos: list(), pattern: str()):
 
     current_map.areatomow = round(mapdata.selected_perimeter.area)
     current_map.calc_route_preview(route) 
-    #to remove after switching to dataclass
-    # mapdata.areatomow = round(mapdata.selected_perimeter.area)
-    # mapdata.preview = pd.DataFrame(route)
-    # mapdata.preview.columns = ['X', 'Y']
-    # mapdata.preview['type'] = 'preview route'
-    ##################################

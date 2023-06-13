@@ -12,7 +12,6 @@ from src.backend.data.roverdata import robot
 @callback(Output(ids.STATEMAP, 'figure'),
           Output(ids.INTERVAL, 'disabled', allow_duplicate=True),
           [Input(ids.INTERVAL, 'n_intervals'),
-           #Input(ids.DROPDOWNMAPLINETYPE, 'value'),
            Input(ids.BUTTONHOME, 'n_clicks'),
            Input(ids.BUTTONMOWALL, 'n_clicks'),
            Input(ids.BUTTONZONESELECT, 'n_clicks'),
@@ -23,15 +22,14 @@ from src.backend.data.roverdata import robot
            State(ids.BUTTONZONESELECT, 'active'),
            State(ids.BUTTONGOTO, 'active'),
            ], prevent_initial_call=True)
-def update(n_intervals: int, 
-           #dropdownmaplinetype: list(), 
+def update(n_intervals: int,
            buttonhome: int, buttonmowall: int, 
            buttonzoneselect: int, buttongoto: int,
            buttoncancelclick: int, clickdata: dict(), 
            selecteddata: dict(), buttonzonenselectstate: bool,
            buttongotostate: bool) -> dict():
      rover_position = [robot.position_x, robot.position_y] 
-     
+
      context = ctx.triggered_id
      context_triggered = ctx.triggered
      if buttongotostate:
@@ -150,13 +148,13 @@ def update(n_intervals: int,
           traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color='#7fb249')))
 
      #Plot rover position
-     traces.append(go.Scatter(x=[robot.position_x], y=[robot.position_y], 
-                             mode='markers',
-                             name='Rover', 
-                             marker={'size': 12, 'color': 'red'},
-                             hoverinfo='skip'
-                            )
-                    )
+     # traces.append(go.Scatter(x=[robot.position_x], y=[robot.position_y], 
+     #                         mode='markers',
+     #                         name='Rover', 
+     #                         marker={'size': 12, 'color': 'red'},
+     #                         hoverinfo='skip'
+     #                        )
+     #                )
      
      #Plot target point
      if robot.job == 4 or robot.job == 1:
@@ -181,6 +179,19 @@ def update(n_intervals: int,
                                         r=20, #right margin 20px
                                         t=30, #top margin 20px
                               ),
+                              images=[
+                                   dict(source=robot.rover_image,
+                                        xref='x',
+                                        yref='y',
+                                        x=robot.position_x,
+                                        y=robot.position_y,
+                                        sizex=0.8,
+                                        sizey=0.8,
+                                        xanchor='center',
+                                        yanchor='middle',
+                                        sizing='contain',
+                                        opacity=1,
+                                        layer='above')],
                               showlegend=False,
                               uirevision=1,
                               hovermode='closest',

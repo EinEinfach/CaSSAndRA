@@ -1,4 +1,4 @@
-#Version:0.27.0
+#Version:0.28.0
 
 # create logger
 import logging
@@ -11,6 +11,9 @@ logging.basicConfig(
 
 frontend_logger = logging.getLogger('werkzeug')
 frontend_logger.setLevel(logging.ERROR)
+
+pil_logger = logging.getLogger('PIL')
+pil_logger.setLevel(logging.WARNING)
 
 # package imports
 import os
@@ -25,7 +28,7 @@ from src.backend import backendserver
 def serve_layout() -> html.Div:
     return html.Div(
         [
-            dcc.Interval(id=ids.INTERVAL, interval=1*4000, n_intervals=0),
+            dcc.Interval(id=ids.INTERVAL, interval=1*1000, n_intervals=0),
             navbar.navbar,
             offcanvas.offcanvas,
             modalremotecontrol.confirm,

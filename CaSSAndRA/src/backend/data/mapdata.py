@@ -23,8 +23,8 @@ class Perimeter:
     gotopoint: pd.DataFrame = pd.DataFrame()
     mowpath: pd.DataFrame = pd.DataFrame()
     preview: pd.DataFrame = pd.DataFrame()
-    areatomow: float() = 0
-    distancetogo: float() = 0
+    areatomow: float = 0
+    distancetogo: float = 0
 
     def set_gotopoint(self, clickdata: dict) -> None:
         goto = {'X':[clickdata['points'][0]['x']], 'Y':[clickdata['points'][0]['y']], 'type': ['way']}

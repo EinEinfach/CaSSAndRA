@@ -17,6 +17,7 @@ numpy==1.24.3
 packaging==23.1
 paho-mqtt==1.6.1
 pandas==2.0.1
+Pillow==9.5.0
 plotly==5.14.1
 pyserial==3.5
 python-dateutil==2.8.2
