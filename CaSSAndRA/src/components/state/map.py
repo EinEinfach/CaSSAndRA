@@ -122,7 +122,7 @@ def update(n_intervals: int,
                                    marker = dict(
                                              size=10, 
                                              color='orange', 
-                                             symbol='cross',
+                                             symbol='x-thin-open',
                                              line = dict(width=2, color="DarkSlateGrey")
                                              ),
                                         )
@@ -164,7 +164,7 @@ def update(n_intervals: int,
                                    marker = dict(
                                              size=10, 
                                              color='green', 
-                                             symbol='x',
+                                             symbol='cross-thin-open',
                                              line = dict(width=2, color="DarkSlateGrey")
                                              ),
                                    ))

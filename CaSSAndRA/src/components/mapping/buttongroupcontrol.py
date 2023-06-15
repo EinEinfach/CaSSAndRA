@@ -25,17 +25,15 @@ buttonfinishfigure = dbc.Button(id=ids.BUTTONFINISHFIGURE, size='lg', class_name
           Output(ids.BUTTONADDNEWPOINT, 'disabled'),
           Output(ids.BUTTONDELETELASTPOINT, 'disabled'),
           Output(ids.BUTTONFINISHFIGURE, 'disabled'),
-          [Input(ids.BUTTONADDNEWPOINT, 'n_clicks'),
-           Input(ids.BUTTONDELETELASTPOINT, 'n_clicks'), 
+          [Input(ids.BUTTONDELETELASTPOINT, 'n_clicks'), 
            Input(ids.BUTTONHOMEADD, 'n_clicks'),
            Input(ids.BUTTONPERIMETERADD, 'n_clicks'),
            Input(ids.BUTTONPERIMETERDIFF, 'n_clicks'),
            Input(ids.MAPPINGMAP, 'figure'),
            State(ids.BUTTONHOMEADD, 'active')])
-def create_figure(banp_n_clicks: int, bdlp_n_clicks: int,
-                  bha_n_clicks: int, bpa_n_clicks: int,
-                  bpd_n_clicks: int, map_figure: dict(),
-                  bha_state: bool) -> list():
+def create_figure(bdlp_n_clicks: int, bha_n_clicks: int, 
+                  bpa_n_clicks: int, bpd_n_clicks: int, 
+                  map_figure: dict(), bha_state: bool) -> list():
     context = ctx.triggered_id
     if mapping_maps.selected == 'from upload':
         return True, True, True, True, True, True
@@ -45,9 +43,7 @@ def create_figure(banp_n_clicks: int, bdlp_n_clicks: int,
     else:
         create = 'figure'
 
-    if context == ids.BUTTONADDNEWPOINT:
-        mapping_maps.add_point(create)
-    elif context == ids.BUTTONDELETELASTPOINT:
+    if context == ids.BUTTONDELETELASTPOINT:
         mapping_maps.remove_point(create)
     elif context == ids.BUTTONPERIMETERADD:
         mapping_maps.figure_action('add')

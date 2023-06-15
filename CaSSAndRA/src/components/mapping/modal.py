@@ -5,6 +5,7 @@ from .. import ids
 from . import buttons
 from src.backend.data import saveddata
 from src.backend.data.mapdata import current_map, mapping_maps
+from src.backend.data.roverdata import robot
 
 sunrayimportstatus = dbc.Modal(
                         [
@@ -96,6 +97,19 @@ finishmapping = dbc.Modal(
                     is_open=False,          
                 )
 
+nofixsolution = dbc.Modal(
+                    [
+                        dbc.ModalHeader(dbc.ModalTitle('Warning')),
+                        dbc.ModalBody('No fix solution available! Continue anyway?'),
+                        dbc.ModalFooter([
+                            buttons.okbuttonnofixsolution,  
+                            ] 
+                        ),
+                    ],
+                    id=ids.MODALNOFIXSOLUTION,
+                    is_open=False,          
+                )
+
 @callback(Output(ids.MODALOVERWRITEPERIMETER, 'is_open'),
           [Input(ids.BUTTONSAVEIMPORTEDPERIMETER, 'n_clicks'),
            Input(ids.OKBUTTONOVERWRITEPERIMTER, 'n_clicks'),
@@ -184,3 +198,26 @@ def finish_mapping(bff_n_clicks: int, bok_n_clicks: int,
     if bff_n_clicks or bok_n_clicks:
         return not is_open
     return is_open
+
+@callback(Output(ids.MODALNOFIXSOLUTION, 'is_open'),
+          [Input(ids.BUTTONADDNEWPOINT, 'n_clicks'),
+           Input(ids.OKBUTTONNOFIXSOLUTION, 'n_clicks'),
+           State(ids.BUTTONHOMEADD, 'n_clicks'),
+           State(ids.MODALNOFIXSOLUTION, 'is_open')])
+def nofix_solution(banp_n_clicks: int, bok_n_clicks, bha_state: bool,
+                   is_open: bool) -> bool:
+    context = ctx.triggered_id
+    if bha_state:
+        create = 'dockpoints'
+    else:
+        create = 'figure'
+    if context == ids.BUTTONADDNEWPOINT and robot.position_solution == 2:
+        mapping_maps.add_point(create)
+        return is_open
+    elif context == ids.BUTTONADDNEWPOINT and robot.position_solution != 2:
+        return not is_open
+    elif context == ids.OKBUTTONNOFIXSOLUTION:
+        mapping_maps.add_point(create)
+    else:
+        return is_open
+   

@@ -74,7 +74,7 @@ def update(n_intervals: int, selected_perimeter: str(), selected_import: int,
                                 name='unsaved figure', 
                                 mode='lines+markers', 
                                 line=dict(color='#FF0000'), 
-                                marker=dict(size=5),
+                                marker=dict(size=6),
                                 hoverinfo='skip'))
 
     #Check interactions with graph
@@ -88,7 +88,13 @@ def update(n_intervals: int, selected_perimeter: str(), selected_import: int,
     traces.append(go.Scatter(x=[robot.position_x], y=[robot.position_y], 
                             mode='markers',
                             name='Rover', 
-                            marker={'size': 12, 'color': 'red'},
+                            marker = dict(
+                                        size=10, 
+                                        color='grey', 
+                                        symbol='cross-thin-open',
+                                        line = dict(width=2, color="DarkSlateGrey")
+                                    ),
+                            #marker={'size': 12, 'color': 'red'},
                             hoverinfo='skip'
                             )
                     )
@@ -102,6 +108,19 @@ def update(n_intervals: int, selected_perimeter: str(), selected_import: int,
                                     r=20, #right margin 20px
                                     t=30, #top margin 20px
                         ),
+                        images=[
+                                   dict(source=robot.rover_image,
+                                        xref='x',
+                                        yref='y',
+                                        x=robot.position_x,
+                                        y=robot.position_y,
+                                        sizex=0.8,
+                                        sizey=0.8,
+                                        xanchor='center',
+                                        yanchor='middle',
+                                        sizing='contain',
+                                        opacity=0.3,
+                                        layer='above')],
                         showlegend=False,
                         uirevision=1,
                         hovermode='closest',
