@@ -266,7 +266,7 @@ Klickt auf das Karten-Symbol mit einer Pinnadel (rechts neben dem Karten-Symbol)
 ### Mäher zum beliebigen Punkt auf der Karte fahren lassen
 Klickt auf das Positions-Symbol (rechts neben dem Karten-Symbol mit einer Pinnadel). Klickt auf der Karte auf die gewünschte Position. Anschliessend klickt auf Play -> der Mäher fährt zu der gewünschten Position auf der Karte
 
-![using_app_goto](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow_goto.jpeg) 
+![using_app_goto](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_goto.jpeg) 
 
 Aktuelle Einschränkungen: Befindet sich die Ladestation außerhalb des Perimeters und der Mäher soll aus der Ladestation zum gewünschten Punkt fahren, wird die Aufgabe mit einem Fehler abgebrochen
 
