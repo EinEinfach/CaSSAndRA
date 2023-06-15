@@ -244,6 +244,38 @@ Mit der Wolke mit dem ausgehenden Pfeil kann die Karte aktiv geschaltet werden.
 
 Wechselt auf die Startseite. Die neue Karte wird in der Übersicht angezeigt und kann verwendet werden.
 
+## Starten einer Aufgabe
+
+Auf der Übersichtsseite (zu erreichen über Betätigen CaSSAndRA Schriftzug im oberen Bildschirmberech) kann dem Roboter eine Aufgabe zugewiesen werden.
+
+![using_app_overview](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_overview.jpeg) 
+
+### Zur Ladestation zurückkehren
+Klickt auf das Häuschen-Symbol und anschliessend auf Play -> Der Mäher kehrt zur Ladestation zurück
+
+### Mähe die gesamte Fläche
+Klickt auf das Karten-Symbol (rechts neben dem Häuschen-Symbol). CaSSAndRA berechnet die Mähwege nach euren Einstellungen. Je nach Leistung eures Rechners bzw. der Größe der Karte kann die Berechnung etwas dauern. Die berechneten Wege erscheinen grün auf der Karte. Anschliessend klickt auf Play -> der Mäher fängt an die gesamte Fläche zu mähen
+
+![using_app_mow](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow.jpeg) 
+
+### Mähe ausgewählte FLäche
+Klickt auf das Karten-Symbol mit einer Pinnadel (rechts neben dem Karten-Symbol). Wählt im oberen Kartenbereich Box Select oder Lasso Select Werkzeug. Markiert anschliessend auf der Karte die gewünschte Fläche. Je nach Leistung eures Rechners bzw. der Größe der Karte kann die Berechnung etwas dauern. Die berechneten Wege erscheinen grün auf der Karte. Anschliessend klickt auf Play -> der Mäher fängt an die ausgewählte Fläche zu mähen
+
+![using_app_mow_zone](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow_zone.jpeg) 
+
+### Mäher zum beliebigen Punkt auf der Karte fahren lassen
+Klickt auf das Positions-Symbol (rechts neben dem Karten-Symbol mit einer Pinnadel). Klickt auf der Karte auf die gewünschte Position. Anschliessend klickt auf Play -> der Mäher fährt zu der gewünschten Position auf der Karte
+
+![using_app_goto](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow_goto.jpeg) 
+
+Aktuelle Einschränkungen: Befindet sich die Ladestation außerhalb des Perimeters und der Mäher soll aus der Ladestation zum gewünschten Punkt fahren, wird die Aufgabe mit einem Fehler abgebrochen
+
+### Temporäre Mäheinstellungen
+Klickt auf das Zahnradsysmbol. Es können diverse Mäheinstellungen vorgenommen werden. Diese Einstellungen werden nicht gespeichert und wirken sich nur temporär aus. Wird der Server neuegestartet so werden die Werte aus dem Settingsbereich übernommen
+
+### Auswahl abbrechen
+Klickt auf das Symbol mit dem X (rechts neben der Zahnradsymbol) so wird die ausgewählte, nicht gestartete Aufgabe abgebrochen
+
 ## Update
 Die App wird von mir in kleinen Schritten verbessert bzw. die gemeldeten Probleme behoben. Um die Änderungen auch bei euch produktiv zu schalten, geht beim Update wie folgt vor. 
 1. Sichert euren /src/data Ordner
