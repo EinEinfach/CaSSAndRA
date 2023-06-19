@@ -34,9 +34,11 @@ def reqandchecksum(req: str()) -> str():
     res = req+','+res
     return res  
 
-def cmd_to_rover(connect_data: dict(), connection: list()):#, msg_pckg: pd.DataFrame()) -> int():
+def cmd_to_rover(connect_data: dict(), connection: list()) -> int():
     msg_pckg = message.check()
-    connection_status = 200
+    connection_status = connection[0]
+    if connection_status != 200:
+        return connection_status
     if connection[1] == 1:
         try:
             encryptkey = int(connect_data['HTTP'][1]['PASSWORD'])%int(connection[2])

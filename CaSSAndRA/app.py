@@ -1,4 +1,4 @@
-#Version:0.29.1 -> Bugfix offline state
+#Version:0.29.2 -> Bugfix reconnect failed after sunray fw reboot if encryption true 
 
 # create logger
 import logging
@@ -71,7 +71,7 @@ def main() -> None:
     app.layout = serve_layout   # set the layout to the serve_layout function
 
     #app.run_server(host='127.0.0.1', port=8050, debug=True, dev_tools_props_check=True)
-    app.run_server('0.0.0.0', debug=False)
+    app.run_server('0.0.0.0', debug=False, port=8050)
 
 if __name__ == "__main__":
     main()
