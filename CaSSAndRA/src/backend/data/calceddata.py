@@ -8,6 +8,7 @@ from shapely.geometry import *
 
 #local imports
 from . import roverdata, appdata, mapdata
+from . roverdata import robot
 
 def calcdata_from_state():
     logger.debug('Backend: Calc data from state data frame')
@@ -119,15 +120,15 @@ def calcmapdata_for_plot(mapcoords: pd.DataFrame()) -> pd.DataFrame():
 
 def calc_rover_state():
     #check if rover online
-    last_rover_state = roverdata.calced_from_state.iloc[-1]['job']
+    last_rover_state = robot.status
     if last_rover_state != 'offline':
-        last_timestamp = roverdata.state.iloc[-1]['timestamp']
-        last_timestamp = last_timestamp = datetime.strptime(last_timestamp, '%Y-%m-%d %H:%M:%S.%f')
+        last_timestamp = robot.timestamp
         now = datetime.now()
         difference = now - last_timestamp
         difference = difference.total_seconds()
         if difference > appdata.time_to_offline:
             logger.warning('Backend: Could not connect to the rover. State set to offline')
+            robot.status = 'offline'
             calced_from_state = {'solution':'invalid', 'job':'offline', 'sensor': 'no error', 'timestamp': str(now)}
             calced_from_state = pd.DataFrame(calced_from_state, index=[0])
             roverdata.calced_from_state = pd.concat([roverdata.calced_from_state, calced_from_state], ignore_index=True)
