@@ -37,6 +37,7 @@ class Mower:
     gotospeed_setpoint: float = rovercfg.gotospeed_setpoint
     status: str = 'offline'
     direction: float = 0
+    backwards: bool = False
     timestamp = datetime.now()
     #commanded
     last_mow_status: bool = False
@@ -93,8 +94,9 @@ class Mower:
         distance = (delta_x**2 + delta_y**2)**(1/2)
         #avoid jumping of angle
         if distance < 0.05:
+            self.backwards = False
             return self.direction
-        #if docked the no change of angle needed
+        #if docked no change of angle need
         if self.job == 2:
             return self.direction
         #calc new angle
@@ -102,11 +104,22 @@ class Mower:
         direction_deg = round(direction_rad*(180/math.pi))
         if direction_deg < 0:
             direction_deg = round(360 + direction_deg)
-        #check for angular speed (if to high, then backwards movement)
-        if (abs(direction_deg-self.direction)/(timedelta_seconds)) > 100:
-            return self.direction
-        else:
+        #check if time between messages to long, reset backwards movement
+        if timedelta_seconds > 3:
+            self.backwards = False
             return direction_deg
+        #check for angular speed (if to high, then backwards movement)
+        logger.debug('Calced angle speed: '+str(abs(direction_deg-self.direction)/(timedelta_seconds))+' Timedelta: '+str(timedelta_seconds))
+        logger.debug('Calced angle: '+str(direction_deg))
+        if (abs(direction_deg-self.direction)/(timedelta_seconds)) > 50 and self.backwards == False:
+            self.backwards = True
+            if direction_deg >= 180:
+                direction_deg = direction_deg - 180
+            else:
+                direction_deg = direction_deg + 180
+        elif (abs(direction_deg-self.direction)/(timedelta_seconds)) > 60 and self.backwards == True:
+            self.backwards = False
+        return direction_deg
 
     def calc_status(self) -> str():
         if (datetime.now()-self.timestamp).seconds > 60:
@@ -221,9 +234,4 @@ online = pd.DataFrame()
 #calced
 calced_from_state = pd.DataFrame()
 calced_from_stats = pd.DataFrame()
-
-
-
-
-
 

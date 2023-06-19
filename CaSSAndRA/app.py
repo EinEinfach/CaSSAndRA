@@ -1,4 +1,4 @@
-#Version:0.29.2 -> Bugfix reconnect failed after sunray fw reboot if encryption true 
+#Version:0.30.0 -> Detecting backwards movement of robot and rendering right picture in plot. Threshold 50deg/s. 
 
 # create logger
 import logging
