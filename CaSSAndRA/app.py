@@ -1,4 +1,4 @@
-#Version:0.30.0 -> Detecting backwards movement of robot and rendering right picture in plot. Threshold 50deg/s. 
+#Version:0.31.0 -> New cutedge function for pathpalnner. New pathplannercfg. Updated Accordion Settings
 
 # create logger
 import logging
@@ -29,13 +29,14 @@ def serve_layout() -> html.Div:
     return html.Div(
         [
             dcc.Interval(id=ids.INTERVAL, interval=1*3000, n_intervals=0),
+            dcc.Location(id=ids.URLUPDATE, refresh=True),
             navbar.navbar,
             offcanvas.offcanvas,
             modalremotecontrol.confirm,
             modalinfo.info,
             dash.page_container
             #footer
-        ], className='d-flex flex-column h-100 w-100 fixed-top') 
+        ]) 
 
 def main() -> None:
     backendserver.start()

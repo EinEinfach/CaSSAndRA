@@ -19,7 +19,7 @@ connection = dbc.Modal(
 mapandposition = dbc.Modal(
             [
                 dbc.ModalHeader(dbc.ModalTitle('Warning')),
-                dbc.ModalBody('Are you sure? This will overwrite your map settings and restart backend server'),
+                dbc.ModalBody('Are you sure? This will overwrite your map settings for coverage path planner'),
                 dbc.ModalFooter([
                     buttons.okbuttonmapsettings,  
                 ] ),
@@ -42,9 +42,11 @@ app = dbc.Modal(
 
 robot = dbc.Modal(
             [
-                dbc.ModalHeader(dbc.ModalTitle('Info')),
-                dbc.ModalBody('Robot settings are saved successfully'),
-                dbc.ModalFooter([])
+                dbc.ModalHeader(dbc.ModalTitle('Warning')),
+                dbc.ModalBody('Are you sure? This will overwrite your robot settings'),
+                dbc.ModalFooter([
+                    buttons.okbuttonrobotsettings
+                ])
             ],
             id=ids.MODALROBOTSETTINGS,
             is_open=False,

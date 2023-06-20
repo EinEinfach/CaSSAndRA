@@ -227,11 +227,11 @@ def check_for_lines_in_range(lines_to_go, perimeter_offs, lines_to_check, curren
     return lines_in_range_cnt, line_for_return, line_nr
 
 
-def calcroute(perimeter, borders, line_mask, edges_pol, route):
+def calcroute(perimeter, borders, line_mask, edges_pol, route, parameters):
     MAX_NUM_CHECK = 50
 
-    perimeter_offs = borders
-    transit_lines = calc_transit_lines(perimeter_offs, mapdata.mowoffset)
+    perimeter_offs = borders.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
+    transit_lines = calc_transit_lines(perimeter_offs, parameters.width)
     ################################################################################################
 
     ###Berechne die Mählinien, die abgefahren werden müssen###
@@ -301,6 +301,10 @@ def calcroute(perimeter, borders, line_mask, edges_pol, route):
     possible_start_line_nr1 = min(lines_to_go, key=lambda line: (lines_to_go[line][3][0][0]-route[-1][0])**2 + (lines_to_go[line][3][0][1]-route[-1][1])**2)
     possible_start_line_nr2 = min(lines_to_go, key=lambda line: (lines_to_go[line][3][1][0]-route[-1][0])**2 + (lines_to_go[line][3][1][1]-route[-1][1])**2)
     possible_start_nr = [possible_start_line_nr1, possible_start_line_nr2]
+    ###No mow border selected deliver route with just start point, leads to problems if it outside perimeter
+    if len(route) == 1:
+        route = []
+        route.append(lines_to_go[possible_start_line_nr1][0].coords[0])
     line_going, line_going_nr = calc_shortest_path(lines_to_go, perimeter_offs, possible_start_nr, route, transit_lines)
     line_to_edge, edge_nr = calc_shortest_path_edge(edges_to_cut, perimeter_offs, route)
     if line_to_edge != None and line_to_edge.length < line_going.length:

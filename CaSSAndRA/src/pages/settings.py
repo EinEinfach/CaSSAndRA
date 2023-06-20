@@ -14,7 +14,6 @@ dash.register_page(
 
 def update_layout() -> html.Div:
     return html.Div([
-                html.H4('Settings'),
                 html.Div(accordion.accordion_settings),
                 html.Div(modal.connection),
                 html.Div(modal.mapandposition),

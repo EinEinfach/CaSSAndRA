@@ -1,0 +1,10 @@
+{
+    "pattern": "lines",
+    "width": 0.18,
+    "angle": 0,
+    "distancetoborder": 2,
+    "mowarea": "yes",
+    "mowborder": "yes",
+    "mowexclusion": "yes",
+    "mowborderccw": "yes"
+}

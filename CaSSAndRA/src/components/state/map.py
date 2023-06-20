@@ -7,6 +7,7 @@ from src.backend.data import mapdata, calceddata
 from src.backend.data.mapdata import current_map
 from src.backend.map import map, path
 from src.backend.data.roverdata import robot
+from src.backend.data.cfgdata import pathplannercfgstate
 
 
 @callback(Output(ids.STATEMAP, 'figure'),
@@ -50,7 +51,7 @@ def update(n_intervals: int,
           current_map.preview = pd.DataFrame()
           current_map.mowpath = pd.DataFrame()
           mapdata.selected_perimeter = current_map.perimeter_polygon
-          path.calc(mapdata.mowoffsetstatepage, mapdata.mowanglestatepage, rover_position, mapdata.patternstatepage)
+          path.calc(pathplannercfgstate, rover_position)
           plotgotopoints = False
      elif context == ids.BUTTONZONESELECT and buttonzoneselect:
           current_map.gotopoint = pd.DataFrame()
@@ -80,7 +81,7 @@ def update(n_intervals: int,
           current_map.mowpath = pd.DataFrame()
           perimeter_preview = current_map.perimeter_polygon
           mapdata.selected_perimeter = map.selection(perimeter_preview, selecteddata)
-          path.calc(mapdata.mowoffsetstatepage, mapdata.mowanglestatepage, rover_position, mapdata.patternstatepage)
+          path.calc(pathplannercfgstate, rover_position)
      
      #Plots
      traces = []

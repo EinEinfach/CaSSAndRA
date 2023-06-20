@@ -393,11 +393,7 @@ class Perimeters:
                 logger.debug('Mapping new map is an empty dataframe, dockpoints are not changed, adjustment not neccessary')
         except Exception as e:
             logger.error('Backend: Dockpoints adjustment not possible')
-            logger.debug(str(e))
-    
-
-
-           
+            logger.debug(str(e))          
 
 
 

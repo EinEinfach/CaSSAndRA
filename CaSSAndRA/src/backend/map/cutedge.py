@@ -3,69 +3,88 @@ logger = logging.getLogger(__name__)
 
 from shapely.geometry import *
 
-def separate_perimeter(perimeter):
-    edge_to_cut = []
-    if perimeter.geom_type == 'MultiPolygon':
-        for i in range(len(perimeter.geoms)):
-            perimeter_pol_coords = list(perimeter.geoms[i].exterior.coords)
-            perimeter_pol = Polygon(perimeter_pol_coords)
-            if not perimeter_pol.is_empty:
-                edge_to_cut.append(perimeter_pol) 
-            for k in range(len(perimeter.geoms[i].interiors)):
-                exclusion_pol_coords = list(perimeter.geoms[i].interiors[k].coords)
-                exclusion_pol = Polygon(exclusion_pol_coords)
-                if not exclusion_pol.is_empty:
-                    edge_to_cut.append(exclusion_pol)          
-        return edge_to_cut  
-         
-    elif perimeter.geom_type == 'Polygon':
-        perimeter_pol_coords = list(perimeter.exterior.coords)
-        perimeter_pol = Polygon(perimeter_pol_coords)
-        if not perimeter_pol.is_empty:
-            edge_to_cut.append(perimeter_pol) 
-        for i in range(len(perimeter.interiors)):
-            exclusion_pol_coords = list(perimeter.interiors[i].coords)
-            exclusion_pol = Polygon(exclusion_pol_coords)
-            if not exclusion_pol.is_empty:
-                edge_to_cut.append(exclusion_pol)
-        return edge_to_cut
-    else:
-        logger.error('Backend(cutedge.py): Beim Berechnen der Kantenroute entstand eine unbekannte Shapely Figur:' +perimeter.geom_type+'. Die Berechnung wurde abgebrochen')
-        return -1  
+def check_direct_way(border: Polygon, start: list, end: list) -> bool:
+    way = LineString([start, end])
+    direct_way_possible = way.within(border)
+    return direct_way_possible
 
-def calcroute(perimeter, NUM_EDGE, MOW_OFFSET, START):
-    logger.info('Backend: Calc route for cutedge')
-    mowoffs = -MOW_OFFSET
-    num_edge_per = min(NUM_EDGE, 2)
-    start_coords = START
-    route = []
+def create_route(perimeter: Polygon, mowborder: str, mowexclusion: str, 
+                 mowborderccw: str, last_coord: list, border: Polygon,
+                 figure: str) -> list():
+    route_tmp = []
     edges_pol = []
-
-    ###Berechne die äußere Kante zum Mähen und füge die Strecke der Route zu###
-    if num_edge_per != 0:
-        ###Starte mit dem äußeren Perimeter###
-        route = list(perimeter.exterior.coords)
-        ###Entferne Duplikate###
-        route = list(dict.fromkeys(route))
-        logger.debug('current route coords: '+str(route))
-        first_coords = [min(route, key=lambda coord: (coord[0]-start_coords[0][0])**2 + (coord[1]-start_coords[0][1])**2)]
-        first_coords_nr = route.index(first_coords[0])
-        route = route[first_coords_nr:]+route[:first_coords_nr]
-        route.append(route[0])
-    
-        ##Berechne die restlichen Kanten zum Mähen, füge die nicht der Route zu. Sollen mehrere Runden gedreht werden, so wird die Funktion auch so oft aufgerufen## 
+    if mowborder == 'yes':
+        route_tmp = list(perimeter.exterior.coords)
+        ###Remove double values###
+        route_tmp = list(dict.fromkeys(route_tmp))
+        ring = LinearRing(route_tmp)
+        ###Check is counter clock wise###
+        if not ring.is_ccw and mowborderccw == 'yes':
+            route_tmp.reverse()
+        ###Look for shortest way from start point###
+        first_coords = [min(route_tmp, key=lambda coord: (coord[0]-last_coord[0])**2 + (coord[1]-last_coord[1])**2)]
+        first_coords_nr = route_tmp.index(first_coords[0])
+        route_tmp = route_tmp[first_coords_nr:]+route_tmp[:first_coords_nr]
+        route_tmp.append(route_tmp[0])
+        if figure == 'MultiPolygon':
+            direct_way_possible = check_direct_way(border, last_coord, route_tmp[0])
+            if not direct_way_possible:
+                logger.debug('Coverage path planner (planing route for cut to edge): No direct way for cut to edge possible, figure saved as to do for path planner')
+                edges_pol.append(Polygon(perimeter.exterior.coords))
+                route_tmp = []
+    if mowexclusion == 'yes':
         for i in range(len(perimeter.interiors)):
             edges_pol.append(Polygon(perimeter.interiors[i].coords))
-        
-        new_perimeter = perimeter
-        for i in range(1, num_edge_per):
-            new_perimeter = new_perimeter.buffer(mowoffs, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
-            new_perimeter = new_perimeter.simplify(0.05, preserve_topology=False)
-            edges_pol.extend(separate_perimeter(new_perimeter))
+    return route_tmp, edges_pol
 
-    else:
-        route.append(START)
+def calcroute(area_to_mow, parameters, start):
+    logger.info('Backend: Calc route for cutedge')
+    mowoffs = -parameters.width
+    mowborder = parameters.mowborder
+    mowexclusion = parameters.mowexclusion
+    mowborderccw = parameters.mowborderccw
+    distancetoborder = parameters.distancetoborder
+    num_edge_per = min(parameters.distancetoborder, 2)
+    start_coords = start
+    route = []
+    route_tmp = []
+    edges_pol = []
+
+    area_to_mow_tmp = area_to_mow
+    last_coord = start[0]
+    for i in range(distancetoborder+1):
+        if area_to_mow_tmp.is_empty:
+            logger.info('Coverage path planner (planing route for cut to edge): Could not finished distancetoborderloop, please check your settings. Max value: '+str(i))
+            break
+        elif area_to_mow_tmp.geom_type == 'MultiPolygon':
+            logger.debug('Coverage path planner (planing route for cut to edge): MultiPolygon detected, creating loop')
+            for single_polygon in area_to_mow_tmp.geoms:
+                route_tmp, edges_pol_tmp = create_route(single_polygon, mowborder, mowexclusion, mowborderccw, last_coord, area_to_mow, 'MultiPolygon')
+                logger.debug('Coverage path planner (planing route for cut to edge): Loop call delivered route: '+str(route_tmp))
+                logger.debug('Coverage path planner (planing route for cut to edge): Loop call delivered figures to mow: '+str(len(edges_pol_tmp)))
+                if route_tmp != []:
+                    route.extend(route_tmp)
+                    last_coord = route[-1]
+                edges_pol.extend(edges_pol_tmp)
+        elif area_to_mow_tmp.geom_type == 'Polygon':
+            logger.debug('Coverage path planner (planing route for cut to edge): Polygon detected')
+            route_tmp, edges_pol_tmp = create_route(area_to_mow_tmp, mowborder, mowexclusion, mowborderccw, last_coord, area_to_mow, 'Polygon')
+            logger.debug('Coverage path planner (planing route for cut to edge): Call delivered route: '+str(route_tmp))
+            logger.debug('Coverage path planner (planing route for cut to edge): Call delivered figures to mow: '+str(len(edges_pol_tmp)))
+            if route_tmp != []:
+                route.extend(route_tmp)
+                last_coord = route[-1]
+            edges_pol.extend(edges_pol_tmp)
+        else:
+            logger.error('Coverage path planner (planing route for cut to edge): Unknown figure, calculation incomplete. Shapely: '+area_to_mow_tmp.geom_type)
+            break
     
-    logger.info('Backend: Route for cutedge complete')
-    logger.debug('Cutedge route: '+str(len(route))+' points; figures to calculate: '+str(len(edges_pol)))
+        area_to_mow_tmp = area_to_mow_tmp.buffer(mowoffs, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
+        area_to_mow_tmp = area_to_mow_tmp.simplify(0.05, preserve_topology=False)
+
+    if route == []:
+        route.extend(start)
+    
+    logger.info('Coverage path planner (planing route for cut to edge): Calculation finished')
+    logger.debug('Coverage path planner (planing route for cut to edge): Route '+str(len(route))+' points; Exclusions to calculate: '+str(len(edges_pol)))
     return route, edges_pol

@@ -137,12 +137,12 @@ def togglemowmotor() -> pd.DataFrame():
     return buffer
 
 def takepositionmode() -> pd.DataFrame():
-    positionmode = mapdata.positionmode
+    positionmode = rovercfg.positionmode
     if positionmode == 'absolute':
         positionmode = '1,'
     else:
         positionmode = '0,'
-    msg = {'msg': 'AT+P,'+positionmode+str(mapdata.lon)+','+str(mapdata.lat)}
+    msg = {'msg': 'AT+P,'+positionmode+str(rovercfg.lon)+','+str(rovercfg.lat)}
     buffer = pd.DataFrame([msg])
     cmdlist.cmd_set_positionmode = False
     return buffer

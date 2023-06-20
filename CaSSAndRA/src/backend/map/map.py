@@ -116,7 +116,7 @@ def border(perimeter: Polygon, distancetoborder: int, mowoffset: float) -> list(
     else: 
         border = perimeter
     if distancetoborder == 0:
-        border = border.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
+        #border = border.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
         return perimeter, border
     else: 
         for i in range(distancetoborder):
