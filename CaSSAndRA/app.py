@@ -1,4 +1,4 @@
-#Version:0.31.0 -> New cutedge function for pathpalnner. New pathplannercfg. Updated Accordion Settings
+#Version:0.31.1 -> Avoiding to read not existing mapcfg.json
 
 # create logger
 import logging
