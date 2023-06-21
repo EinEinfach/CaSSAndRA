@@ -1,4 +1,4 @@
-#Version:0.32.0 -> New rover pictures available (default, alfred, ardumower, landrumower). Pictures are selectable in settings. New dataclass AppCfg
+#Version:0.32.1 -> Small visual improvements in settings accordion
 
 # create logger
 import logging

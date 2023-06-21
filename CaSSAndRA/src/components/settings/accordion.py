@@ -30,29 +30,29 @@ accordion_settings = dbc.Accordion([
 
                                     html.Div([
                                         dbc.FormText('Client-ID'),
-                                        dbc.Input(value = appdata.commcfg['MQTT'][0]['CLIENT_ID'], className='mb-3', id=ids.MQTTCLIENTID),
+                                        dbc.Input(value = appdata.commcfg['MQTT'][0]['CLIENT_ID'], id=ids.MQTTCLIENTID),
                                         dbc.FormText('Username'),
-                                        dbc.Input(placeholder='your MQTT-Server username, leave empty if not in use', className='mb-3', id=ids.MQTTUSERNAME),
+                                        dbc.Input(placeholder='your MQTT-Server username, leave empty if not in use', id=ids.MQTTUSERNAME),
                                         dbc.FormText('Password'),
-                                        dbc.Input(placeholder='your MQTT-Server password, leave empty if not in use', className='mb-3', id=ids.MQTTPASSWORD),
+                                        dbc.Input(placeholder='your MQTT-Server password, leave empty if not in use', id=ids.MQTTPASSWORD),
                                         dbc.FormText('MQTT-Server'),
-                                        dbc.Input(value = appdata.commcfg['MQTT'][3]['MQTT_SERVER'], className='mb-3', id=ids.MQTTSERVER),
+                                        dbc.Input(value = appdata.commcfg['MQTT'][3]['MQTT_SERVER'], id=ids.MQTTSERVER),
                                         dbc.FormText('Port'),
-                                        dbc.Input(value = appdata.commcfg['MQTT'][4]['PORT'], className='mb-3', id=ids.MQTTPORT, type='number'),
+                                        dbc.Input(value = appdata.commcfg['MQTT'][4]['PORT'], id=ids.MQTTPORT, type='number'),
                                         dbc.FormText('Mower name with prefix'),
-                                        dbc.Input(value = appdata.commcfg['MQTT'][5]['MOWER_NAME'], className='mb-3', id=ids.MQTTROVERNAME)  
+                                        dbc.Input(value = appdata.commcfg['MQTT'][5]['MOWER_NAME'], id=ids.MQTTROVERNAME)  
                                     ], id=ids.MQTTCONNECTIONSTYLE),
 
                                     html.Div([dbc.FormText('IP-Adress of your rover'),
-                                        dbc.Input(value = appdata.commcfg['HTTP'][0]['IP'], className='mb-3', id=ids.IPADRESSROVER),
+                                        dbc.Input(value = appdata.commcfg['HTTP'][0]['IP'], id=ids.IPADRESSROVER),
                                         dbc.FormText('Connection password (see your config.h)'),
-                                        dbc.Input(placeholder='see config.h of sunray FW', className='mb-3', id=ids.SUNRAYPASS),
+                                        dbc.Input(placeholder='see config.h of sunray FW', id=ids.SUNRAYPASS),
                                     ], id=ids.HTTPCONNECTIONSTYLE),
 
                                     html.Div([dbc.FormText('Serial port'),
-                                        dbc.Input(value = appdata.commcfg['UART'][0]['SERPORT'], className='mb-3', id=ids.SERPORT),
+                                        dbc.Input(value = appdata.commcfg['UART'][0]['SERPORT'], id=ids.SERPORT),
                                         dbc.FormText('Baudrate'),
-                                        dbc.Input(value = appdata.commcfg['UART'][1]['BAUDRATE'], className='mb-3', id=ids.BAUDRATE, type='number'),
+                                        dbc.Input(value = appdata.commcfg['UART'][1]['BAUDRATE'], id=ids.BAUDRATE, type='number'),
                                     ], id=ids.UARTCONNECTIONSTYLE)     
                                 ]),
                             ],
@@ -73,11 +73,11 @@ accordion_settings = dbc.Accordion([
                                     value=pathplannercfg.pattern
                                 ),
                                 dbc.FormText('Mow width'),
-                                dbc.Input(value=pathplannercfg.width, className='mb-3', id=ids.MOWOFFSETSETTINGS, type='number', min=0.01, max=1, step=0.01),
+                                dbc.Input(value=pathplannercfg.width, id=ids.MOWOFFSETSETTINGS, type='number', min=0.01, max=1, step=0.01),
                                 dbc.FormText('Mow angle'),
-                                dbc.Input(value=pathplannercfg.angle, className='mb-3', id=ids.MOWANGLESETTINGS, type='number', min=0, max=359, step=1),
+                                dbc.Input(value=pathplannercfg.angle, id=ids.MOWANGLESETTINGS, type='number', min=0, max=359, step=1),
                                 dbc.FormText('Distance to border'),
-                                dbc.Input(value=pathplannercfg.distancetoborder, className='mb-3', id=ids.DISTANCETOBORDERSETTINGS, type='number', min=0, max=5, step=1),
+                                dbc.Input(value=pathplannercfg.distancetoborder, id=ids.DISTANCETOBORDERSETTINGS, type='number', min=0, max=5, step=1),
                                 dbc.FormText('Mow area'),
                                 dbc.Select(
                                     id=ids.MOWAREASETTINGS,
@@ -133,20 +133,20 @@ accordion_settings = dbc.Accordion([
                                     value=appcfg.rover_picture
                                 ),
                             dbc.FormText('Max age for measured data [days]'),
-                            dbc.Input(value=appcfg.datamaxage, className='mb-3', type='number', min=1, step=1, id=ids.MAXAGESETTINGS),
+                            dbc.Input(value=appcfg.datamaxage, type='number', min=1, step=1, id=ids.MAXAGESETTINGS),
                             dbc.FormText('Time to wait before offline [s]'),
-                            dbc.Input(value=appcfg.time_to_offline, className='mb-3', type='number', min=30, step=1, id=ids.TIMETOOFFLINESETTINGS),
+                            dbc.Input(value=appcfg.time_to_offline, type='number', min=30, step=1, id=ids.TIMETOOFFLINESETTINGS),
                             dbc.FormText('Min charge current [A]'),
-                            dbc.Input(value=appcfg.current_thd_charge, className='mb-3', type='number', max=0, step=0.01, id=ids.CURRENTTHDCHARGESETTINGS),
+                            dbc.Input(value=appcfg.current_thd_charge, type='number', max=0, step=0.01, id=ids.CURRENTTHDCHARGESETTINGS),
                             dbc.FormText('Voltage [V] to SoC [%]'),
                             dbc.Row([
                                 dbc.Col([
                                     dbc.FormText('Voltage min (0% SoC)'),
-                                    dbc.Input(value=appcfg.voltage_0, className='mb-3', type='number', min=0, step=0.1, id=ids.VOLTAGEMINSETTINGS),
+                                    dbc.Input(value=appcfg.voltage_0, type='number', min=0, step=0.1, id=ids.VOLTAGEMINSETTINGS),
                                 ]),   
                                 dbc.Col([
                                     dbc.FormText('Voltage max (100% SoC)'),
-                                    dbc.Input(value=appcfg.voltage_100, className='mb-3', type='number', min=0, step=0.1, id=ids.VOLTAGEMAXSETTINGS),
+                                    dbc.Input(value=appcfg.voltage_100, type='number', min=0, step=0.1, id=ids.VOLTAGEMAXSETTINGS),
                                 ]),                         
                             ]),
                         ], title='App'),
@@ -170,18 +170,18 @@ accordion_settings = dbc.Accordion([
                                     dbc.Row([
                                         dbc.Col([
                                             dbc.FormText('Lon'),
-                                            dbc.Input(value=rovercfg.lon, className='mb-3', id=ids.POSITIONMODELON, type='number'),
+                                            dbc.Input(value=rovercfg.lon, id=ids.POSITIONMODELON, type='number'),
                                         ]),
                                         dbc.Col([
                                             dbc.FormText('Lat'),
-                                            dbc.Input(value=rovercfg.lat, className='mb-3', id=ids.POSITIONMODELAT, type='number'),
+                                            dbc.Input(value=rovercfg.lat, id=ids.POSITIONMODELAT, type='number'),
                                         ]),
                                     ]),
                                 ], id=ids.POSITIONMODESTYLE),
                             dbc.FormText('Default mow speed setpoint [m/s]'),
-                            dbc.Input(value=rovercfg.mowspeed_setpoint, className='mb-3', type='number', min=0.1, max=1.0, step=0.01, id=ids.MOWSPEEDSETPOINTSETTINGS),
+                            dbc.Input(value=rovercfg.mowspeed_setpoint, type='number', min=0.1, max=1.0, step=0.01, id=ids.MOWSPEEDSETPOINTSETTINGS),
                             dbc.FormText('Default transit speed setpoint [m/s]'),
-                            dbc.Input(value=rovercfg.gotospeed_setpoint, className='mb-3', type='number', min=0.1, max=1.0, step=0.01, id=ids.GOTOSPEEDSETPOINTSETTINSGS),
+                            dbc.Input(value=rovercfg.gotospeed_setpoint, type='number', min=0.1, max=1.0, step=0.01, id=ids.GOTOSPEEDSETPOINTSETTINSGS),
                         ], title='Robot'),
                     ], start_collapsed=True, id=ids.ACCORDIONSETTINGS
                 )
