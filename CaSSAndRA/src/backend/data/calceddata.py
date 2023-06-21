@@ -9,6 +9,7 @@ from shapely.geometry import *
 #local imports
 from . import roverdata, appdata, mapdata
 from . roverdata import robot
+from . cfgdata import appcfg
 
 def calcdata_from_state():
     logger.debug('Backend: Calc data from state data frame')
@@ -25,7 +26,7 @@ def calcdata_from_state():
         job = 'docking'
     elif current_df['job'] == 3:
         job = 'error'
-    elif current_df['job'] == 2 and current_df['amps'] >= appdata.current_thd_charge:
+    elif current_df['job'] == 2 and current_df['amps'] >= appcfg.current_thd_charge:
         job = 'docked'
     elif current_df['job'] == 2:
         job = 'charging'
@@ -75,7 +76,7 @@ def calcdata_from_state():
     else:
         sensor = 'unknown'
     #calc soc-value
-    soc = appdata.soc_lookup_table[0]['SoC']+(current_df['battery_voltage']-appdata.soc_lookup_table[0]['V'])*((appdata.soc_lookup_table[1]['SoC']-appdata.soc_lookup_table[0]['SoC'])/(appdata.soc_lookup_table[1]['V']-appdata.soc_lookup_table[0]['V']))
+    soc = 0+(current_df['battery_voltage']-appcfg.voltage_0)*((100)/(appcfg.voltage_100-appcfg.voltage_0))
     if soc < 0:
         soc = 0
     elif soc > 100:
@@ -126,7 +127,7 @@ def calc_rover_state():
         now = datetime.now()
         difference = now - last_timestamp
         difference = difference.total_seconds()
-        if difference > appdata.time_to_offline:
+        if difference > appcfg.time_to_offline:
             logger.warning('Backend: Could not connect to the rover. State set to offline')
             robot.status = 'offline'
             calced_from_state = {'solution':'invalid', 'job':'offline', 'sensor': 'no error', 'timestamp': str(now)}

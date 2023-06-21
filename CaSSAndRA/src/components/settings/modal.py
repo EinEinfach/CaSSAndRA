@@ -31,7 +31,7 @@ mapandposition = dbc.Modal(
 app = dbc.Modal(
             [
                 dbc.ModalHeader(dbc.ModalTitle('Warning')),
-                dbc.ModalBody('Are you sure? This will overwrite your app settings and restart backend server'),
+                dbc.ModalBody('Are you sure? This will overwrite your app settings'),
                 dbc.ModalFooter([
                     buttons.okbuttonappsettings,  
                 ] ),

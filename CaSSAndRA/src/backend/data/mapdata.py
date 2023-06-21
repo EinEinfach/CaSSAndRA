@@ -418,23 +418,23 @@ selected_zone = pd.DataFrame()
 zone = pd.DataFrame()
 
 #mow settings from mapcfg.json
-mowoffset = float()
-mowangle = int()
-mowedge = bool()
-distancetoborder = int()
-pattern = str()
+#mowoffset = float()
+#mowangle = int()
+#mowedge = bool()
+#distancetoborder = int()
+#pattern = str()
 
 #positionmode from mapcfg.json
-positionmode = str()
-lon = float()
-lat = float()
+#positionmode = str()
+#lon = float()
+#lat = float()
 
 #mow settings from state page
-mowoffsetstatepage = float()
-mowanglestatepage = int()
-mowedgestatepage = bool()
-distancetoborderstatepage = int()
-patternstatepage = str()
+#mowoffsetstatepage = float()
+#mowanglestatepage = int()
+#mowedgestatepage = bool()
+#distancetoborderstatepage = int()
+#patternstatepage = str()
 
 #temp mapdata
 selected_perimeter = Polygon()

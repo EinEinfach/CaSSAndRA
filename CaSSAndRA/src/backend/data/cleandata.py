@@ -7,12 +7,13 @@ from datetime import datetime, timedelta
 
 #local imports
 from . import roverdata, appdata
+from . cfgdata import appcfg
 
 def check(data_clean_finished: bool) -> bool:
     now = datetime.now()
     if now.hour == 0 and not data_clean_finished:
-        logger.info('Backend: Cleaning meausered and calced data. Max age: '+str(appdata.datamaxage)+' days')
-        delta_time = str(datetime.now() - timedelta(appdata.datamaxage))
+        logger.info('Backend: Cleaning meausered and calced data. Max age: '+str(appcfg.datamaxage)+' days')
+        delta_time = str(datetime.now() - timedelta(appcfg.datamaxage))
 
         #Clean state data 
         state = roverdata.state[(roverdata.state['timestamp'] > delta_time)]

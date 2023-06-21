@@ -9,7 +9,7 @@ import os
 from PIL import Image
 
 from . import appdata
-from .cfgdata import rovercfg
+from .cfgdata import rovercfg, appcfg
 
 #mower class
 @dataclass
@@ -46,7 +46,7 @@ class Mower:
     last_cmd: pd.DataFrame = pd.DataFrame()
     current_task: pd.DataFrame = pd.DataFrame()
     #frontend
-    rover_image: Image = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/rover0grad.png'))
+    rover_image: Image = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png'))
 
     def set_state(self, state: pd.DataFrame()) -> None:
         state = state.iloc[-1]
@@ -130,7 +130,7 @@ class Mower:
             return 'transit'
         elif self.job == 1 and self.last_mow_status == True:
             return 'mow'
-        elif self.job == 2 and self.amps <= appdata.current_thd_charge:
+        elif self.job == 2 and self.amps <= appcfg.current_thd_charge:
             return 'charging'
         elif self.job == 2:
             return 'docked'
@@ -142,7 +142,7 @@ class Mower:
             return 'unknown'
     
     def calc_soc(self) -> float:
-        soc = 0+(self.battery_voltage-appdata.soc_lookup_table[0]['V'])*((100-0)/(appdata.soc_lookup_table[1]['V']-appdata.soc_lookup_table[0]['V']))
+        soc = 0+(self.battery_voltage-appcfg.voltage_0)*((100-0)/(appcfg.voltage_100-appcfg.voltage_0))
         if soc < 0:
             soc = 0
         elif soc > 100:
@@ -168,7 +168,7 @@ class Mower:
             self.gotospeed_setpoint = min(1, new_setpoint)
     
     def set_rover_image(self) -> None:
-        absolute_path = os.path.dirname(__file__).replace('/backend/data', '/assets/icons/')
+        absolute_path = os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture)
         if self.direction < 7.5 or self.direction >= 352.5:
             return Image.open(absolute_path+'rover0grad.png')
         elif self.direction >= 7.5 and self.direction < 22.5:

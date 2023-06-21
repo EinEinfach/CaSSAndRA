@@ -7,7 +7,7 @@ from . import buttons
 from src.backend import backendserver
 from src.backend.comm import cfg
 from src.backend.data import appdata, mapdata
-from src.backend.data.cfgdata import rovercfg, pathplannercfg
+from src.backend.data.cfgdata import rovercfg, pathplannercfg, appcfg
 from src.backend.comm import cmdlist
 
 accordion_settings = dbc.Accordion([
@@ -121,21 +121,32 @@ accordion_settings = dbc.Accordion([
                             [
                             html.P('Settings for calculation inside the app'),
                             html.Div(buttons.savebuttonappsettings),
+                            dbc.FormText('Mower picture'),
+                                dbc.Select(
+                                    id=ids.ROVERPICTURESETTINGS,
+                                    options=[
+                                        {'label': 'default', 'value': 'default/'},
+                                        {'label': 'ardumower', 'value': 'ardumower/'},
+                                        {'label': 'alfred', 'value': 'alfred/'},
+                                        {'label': 'landrumower', 'value': 'landrumower/'},
+                                    ],
+                                    value=appcfg.rover_picture
+                                ),
                             dbc.FormText('Max age for measured data [days]'),
-                            dbc.Input(value=appdata.datamaxage, className='mb-3', type='number', min=1, step=1, id=ids.MAXAGESETTINGS),
+                            dbc.Input(value=appcfg.datamaxage, className='mb-3', type='number', min=1, step=1, id=ids.MAXAGESETTINGS),
                             dbc.FormText('Time to wait before offline [s]'),
-                            dbc.Input(value=appdata.time_to_offline, className='mb-3', type='number', min=30, step=1, id=ids.TIMETOOFFLINESETTINGS),
+                            dbc.Input(value=appcfg.time_to_offline, className='mb-3', type='number', min=30, step=1, id=ids.TIMETOOFFLINESETTINGS),
                             dbc.FormText('Min charge current [A]'),
-                            dbc.Input(value=appdata.current_thd_charge, className='mb-3', type='number', max=0, step=0.01, id=ids.CURRENTTHDCHARGESETTINGS),
+                            dbc.Input(value=appcfg.current_thd_charge, className='mb-3', type='number', max=0, step=0.01, id=ids.CURRENTTHDCHARGESETTINGS),
                             dbc.FormText('Voltage [V] to SoC [%]'),
                             dbc.Row([
                                 dbc.Col([
                                     dbc.FormText('Voltage min (0% SoC)'),
-                                    dbc.Input(value=appdata.soc_lookup_table[0]['V'], className='mb-3', type='number', min=0, step=0.1, id=ids.VOLTAGEMINSETTINGS),
+                                    dbc.Input(value=appcfg.voltage_0, className='mb-3', type='number', min=0, step=0.1, id=ids.VOLTAGEMINSETTINGS),
                                 ]),   
                                 dbc.Col([
                                     dbc.FormText('Voltage max (100% SoC)'),
-                                    dbc.Input(value=appdata.soc_lookup_table[1]['V'], className='mb-3', type='number', min=0, step=0.1, id=ids.VOLTAGEMAXSETTINGS),
+                                    dbc.Input(value=appcfg.voltage_100, className='mb-3', type='number', min=0, step=0.1, id=ids.VOLTAGEMAXSETTINGS),
                                 ]),                         
                             ]),
                         ], title='App'),
@@ -150,7 +161,7 @@ accordion_settings = dbc.Accordion([
                                             {'label': 'absolute', 'value': 'absolute'},
                                             {'label': 'relative', 'value': 'relative'},
                                         ],
-                                        value=mapdata.positionmode,
+                                        value=rovercfg.positionmode,
                                         id=ids.RADIOPOSITIONMODE,
                                         inline=True
                                     ), 
@@ -159,11 +170,11 @@ accordion_settings = dbc.Accordion([
                                     dbc.Row([
                                         dbc.Col([
                                             dbc.FormText('Lon'),
-                                            dbc.Input(value=mapdata.lon, className='mb-3', id=ids.POSITIONMODELON, type='number'),
+                                            dbc.Input(value=rovercfg.lon, className='mb-3', id=ids.POSITIONMODELON, type='number'),
                                         ]),
                                         dbc.Col([
                                             dbc.FormText('Lat'),
-                                            dbc.Input(value=mapdata.lat, className='mb-3', id=ids.POSITIONMODELAT, type='number'),
+                                            dbc.Input(value=rovercfg.lat, className='mb-3', id=ids.POSITIONMODELAT, type='number'),
                                         ]),
                                     ]),
                                 ], id=ids.POSITIONMODESTYLE),
@@ -276,24 +287,32 @@ def update_pathplanner_settings_data(bsr_n_clicks: int, bok_n_clicks: int,
     return is_open
 
 @callback(Output(ids.MODALAPPSETTINGS, 'is_open'),
-          [Input(ids.BUTTONSAVEANDREBOOTAPPSETTINGS, 'n_clicks'),
+          [Input(ids.BUTTONSAVEAAPPSETTINGS, 'n_clicks'),
            Input(ids.BUTTONOKAPPSETTINGS, 'n_clicks'),
            State(ids.MODALAPPSETTINGS, 'is_open'),
            State(ids.MAXAGESETTINGS, 'value'),
            State(ids.TIMETOOFFLINESETTINGS, 'value'),
            State(ids.CURRENTTHDCHARGESETTINGS, 'value'),
            State(ids.VOLTAGEMINSETTINGS, 'value'),
-           State(ids.VOLTAGEMAXSETTINGS, 'value')])
+           State(ids.VOLTAGEMAXSETTINGS, 'value'),
+           State(ids.ROVERPICTURESETTINGS, 'value')])
 def update_app_data(bsr_n_clicks: int, bok_n_clicks: int, is_open: bool, 
                     maxage: int, timetooffline: int, currentthd: float,
-                    voltagemin: float, voltagemax: float) -> bool():
+                    voltagemin: float, voltagemax: float, roverpicture: str) -> bool():
     context = ctx.triggered_id
     if context == ids.BUTTONOKAPPSETTINGS:
-        appdata = {'datamaxage': maxage, 'time_to_offline': timetooffline, 'current_thd_charge': currentthd,
-                   'voltage_to_soc': [{'V': voltagemin, 'SoC': 0}, {'V': voltagemax, 'SoC': 100}]}
-
-        cfg.save_appcfg(appdata)
-        backendserver.stop()
+        if maxage != None:
+            appcfg.datamaxage = maxage
+        if timetooffline != None:
+            appcfg.time_to_offline = timetooffline
+        if currentthd != None:
+            appcfg.current_thd_charge = currentthd
+        if voltagemin != None:
+            appcfg.voltage_0 = voltagemin
+        if voltagemax != None:
+            appcfg.voltage_100 = voltagemax
+        appcfg.rover_picture = roverpicture
+        appcfg.save_appcfg()
     if bsr_n_clicks or bok_n_clicks:
         return not is_open
     return is_open
@@ -344,6 +363,15 @@ def update_robotsettings_on_reload(pathname: str) -> list:
           [Input(ids.URLUPDATE, 'pathname')])
 def update_pathplandersettings_on_reload(pathname: str) -> list:
     return pathplannercfg.width, pathplannercfg.angle, pathplannercfg.mowborder, pathplannercfg.distancetoborder, pathplannercfg.pattern, pathplannercfg.mowarea, pathplannercfg.mowexclusion, pathplannercfg.mowborderccw
-    
+
+@callback(Output(ids.MAXAGESETTINGS, 'value'),
+          Output(ids.TIMETOOFFLINESETTINGS, 'value'),
+          Output(ids.CURRENTTHDCHARGESETTINGS, 'value'),
+          Output(ids.VOLTAGEMINSETTINGS, 'value'),
+          Output(ids.VOLTAGEMAXSETTINGS, 'value'),
+          Output(ids.ROVERPICTURESETTINGS, 'value'),
+          [Input(ids.URLUPDATE, 'pathname')])
+def update_appsettings_on_reload(pathname: str) -> list:
+    return appcfg.datamaxage, appcfg.time_to_offline, appcfg.current_thd_charge, appcfg.voltage_0, appcfg.voltage_100, appcfg.rover_picture
   
    

@@ -1,5 +1,6 @@
 {
     "datamaxage": 30,
+    "time_to_offline": 30,
     "voltage_to_soc": [
         {
             "V": 22,
@@ -10,6 +11,6 @@
             "SoC": 100
         }
     ],
-    "time_to_offline": 60,
-    "current_thd_charge": -0.03
+    "current_thd_charge": -0.03,
+    "rover_picture": "ardumower/"
 }

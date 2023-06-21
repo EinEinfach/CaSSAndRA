@@ -1,4 +1,4 @@
-#Version:0.31.1 -> Avoiding to read not existing mapcfg.json
+#Version:0.32.0 -> New rover pictures available (default, alfred, ardumower, landrumower). Pictures are selectable in settings. New dataclass AppCfg
 
 # create logger
 import logging
