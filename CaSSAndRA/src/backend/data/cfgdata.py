@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 import os
 import json
 from dataclasses import dataclass
+import base64
 
 ABSOLUTE_PATH = os.path.dirname(__file__)
 
@@ -76,6 +77,10 @@ class AppCfg:
             logger.error('Backend: Could not save appcfg.json. Unexpected behaivor')
             logger.debug(str(e))
             return -1
+    
+    def show_preview_image(self, path: str) -> str:
+        encoded_image = base64.b64encode(open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+path+'rover90grad.png'), 'rb').read())
+        return 'data:image/png;base64,{}'.format(encoded_image.decode()) 
 
 #rovercfg class
 @dataclass

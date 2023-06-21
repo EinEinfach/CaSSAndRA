@@ -1,4 +1,4 @@
-#Version:0.32.1 -> Small visual improvements in settings accordion
+#Version:0.33.0 -> Preview of selected rover picture in settings
 
 # create logger
 import logging

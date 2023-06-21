@@ -120,7 +120,14 @@ accordion_settings = dbc.Accordion([
                         dbc.AccordionItem(
                             [
                             html.P('Settings for calculation inside the app'),
-                            html.Div(buttons.savebuttonappsettings),
+                            dbc.Row([
+                                dbc.Col([
+                                    html.Div(buttons.savebuttonappsettings),
+                                ]),
+                                dbc.Col([
+                                    html.Img(id=ids.ROVERPICTUREPREVIEWSETTINGS, height=80, width=80)
+                                ])
+                            ]),
                             dbc.FormText('Mower picture'),
                                 dbc.Select(
                                     id=ids.ROVERPICTURESETTINGS,
@@ -316,6 +323,13 @@ def update_app_data(bsr_n_clicks: int, bok_n_clicks: int, is_open: bool,
     if bsr_n_clicks or bok_n_clicks:
         return not is_open
     return is_open
+
+@callback(Output(ids.ROVERPICTUREPREVIEWSETTINGS, 'src'),
+          [Input(ids.ROVERPICTURESETTINGS, 'value'),
+           State(ids.ROVERPICTURESETTINGS, 'value')])
+def update_rover_picture_preview(preview_picture: str, preview_picture_state: str) -> str:
+    return appcfg.show_preview_image(preview_picture_state)
+    #return preview_picture_state
 
 @callback(Output(ids.MODALROBOTSETTINGS, 'is_open'),
           Input(ids.BUTTONSAVEROBOTSETTINGS, 'n_clicks'),
