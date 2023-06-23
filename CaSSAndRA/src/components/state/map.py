@@ -90,6 +90,8 @@ def update(n_intervals: int,
           coords = current_map.perimeter_for_plot
           #Plot perimeter and exlusions
           coords_filtered = coords.loc[coords['type'] != 'dockpoints']
+          range_x = [coords_filtered['X'].min()-1, coords_filtered['X'].max()+1]
+          range_y = [coords_filtered['Y'].min()-1, coords_filtered['Y'].max()+1]
           for trace in coords_filtered['type'].unique():
                filtered = coords_filtered.loc[coords['type']==trace]
                traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
@@ -172,9 +174,9 @@ def update(n_intervals: int,
 
 
      fig = {'data': traces, 
-           'layout': go.Layout(yaxis={'scaleratio': 1, 
-                                      'scaleanchor': 'x',},
-                              margin=dict(
+           'layout': go.Layout(yaxis=dict(range=range_y, scaleratio=1, scaleanchor='x'),
+                               xaxis=dict(range=range_x),
+                               margin=dict(
                                         b=20, #bottom margin 40px
                                         l=20, #left margin 40px
                                         r=20, #right margin 20px
@@ -225,28 +227,3 @@ def update(n_intervals: int,
      #                #plot_bgcolor='rgba(0,0,0,0)'
      #                )            
      return fig, False
-
-# @callback(Output(ids.STATEHIDDEN, 'children'),
-#           [Input(ids.INTERVAL, 'n_intervals'),
-#            Input(ids.DROPDOWNMAPTRACES, 'value'),
-#            Input(ids.DROPDOWNMAPLINETYPE, 'value'),
-#            Input(ids.BUTTONHOME, 'n_clicks'),
-#            Input(ids.BUTTONMOWALL, 'n_clicks'),
-#            Input(ids.BUTTONZONESELECT, 'n_clicks'),
-#            Input(ids.BUTTONGOTO, 'n_clicks'),
-#            Input(ids.BUTTONCANCEL, 'n_clicks'),
-#            Input(ids.STATEMAP, 'clickData'),
-#            Input(ids.STATEMAP, 'selectedData'),
-#            State(ids.BUTTONZONESELECT, 'active')
-#            ])
-# def update_hidden(n_intervals: int, dropdownmaptraces: list(), 
-#            dropdownmaplinetype: list(), 
-#            buttonhome: bool, buttonmowall: bool, 
-#            buttonzoneselect: bool, buttongoto: bool,
-#            buttoncancelclick: int, 
-#            clickData: dict(), 
-#            selectedData: dict(),
-#            state: bool):
-#      context = ctx.triggered_id
-#      context_triggered = ctx.triggered
-#      return html.Div(str(state))

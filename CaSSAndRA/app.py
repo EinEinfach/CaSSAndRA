@@ -1,4 +1,4 @@
-#Version:0.33.1 -> Fix leaving perimeter during line calculation
+#Version:0.34.0 -> Ignore dockpath at inital scaling of plot at state page
 
 # create logger
 import logging
