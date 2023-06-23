@@ -229,8 +229,10 @@ def check_for_lines_in_range(lines_to_go, perimeter_offs, lines_to_check, curren
 
 def calcroute(perimeter, borders, line_mask, edges_pol, route, parameters):
     MAX_NUM_CHECK = 50
-
-    perimeter_offs = borders.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
+    if parameters.distancetoborder == 0:
+        perimeter_offs = borders.buffer(0.01, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
+    else:
+        perimeter_offs = borders
     transit_lines = calc_transit_lines(perimeter_offs, parameters.width)
     ################################################################################################
 

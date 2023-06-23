@@ -1,4 +1,4 @@
-#Version:0.33.0 -> Preview of selected rover picture in settings
+#Version:0.33.1 -> Fix leaving perimeter during line calculation
 
 # create logger
 import logging
