@@ -64,7 +64,7 @@ class Mower:
         self.sensor = state['sensor']
         self.target_x = round(state['target_x'], 2)
         self.target_y = round(state['target_y'], 2)
-        self.position_accuracy = state['position_accuracy']
+        self.position_accuracy = round(state['position_accuracy'], 2)
         self.position_visible_satellites = state['position_visible_satellites']
         self.amps = round(state['amps'], 2)
         self.position_visible_satellites_dgps = state['position_visible_satellites_dgps']
