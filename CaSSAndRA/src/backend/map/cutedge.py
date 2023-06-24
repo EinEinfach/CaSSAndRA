@@ -52,7 +52,7 @@ def calcroute(area_to_mow, parameters, start):
 
     area_to_mow_tmp = area_to_mow
     last_coord = start[0]
-    for i in range(distancetoborder+1):
+    for i in range(distancetoborder):
         if area_to_mow_tmp.is_empty:
             logger.info('Coverage path planner (planing route for cut to edge): Could not finished distancetoborderloop, please check your settings. Max value: '+str(i))
             break
