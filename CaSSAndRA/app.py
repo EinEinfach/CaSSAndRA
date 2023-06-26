@@ -1,4 +1,4 @@
-#Version:0.36.0 -> Mow cut edge border is now an int. Together with distance to border it opens up new possibilities when defining the cut edge route 
+#Version:0.36.1 -> Update pathplannercfg.json mowborder str -> int 
 
 # create logger
 import logging

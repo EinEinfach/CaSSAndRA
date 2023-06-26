@@ -4,7 +4,7 @@
     "angle": 0,
     "distancetoborder": 2,
     "mowarea": "yes",
-    "mowborder": "yes",
+    "mowborder": 0,
     "mowexclusion": "yes",
     "mowborderccw": "yes"
 }
