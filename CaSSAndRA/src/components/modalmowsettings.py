@@ -21,72 +21,72 @@ mowsettings = dbc.Modal([
                             ),
                             html.P(['width'], className='mb-0'),
                             dbc.Input(id=ids.INPUTMOWOFFSETSTATE, 
-                                      value=pathplannercfgstate.width, 
-                                      type='number', 
-                                      min=0, 
-                                      max=1, 
-                                      step=0.01, 
-                                      size='sm'
+                                    value=pathplannercfgstate.width, 
+                                    type='number', 
+                                    min=0, 
+                                    max=1, 
+                                    step=0.01, 
+                                    size='sm'
                             ), 
                             
                             #Angle
-							dbc.Row([
-                               dbc.Col([  
-                            		html.P(['Angle'], className='mb-0'),
-                            	]),
-								dbc.Col([  
-                            		html.P(['Min'], className='mb-0'),
-                            	]),
-								dbc.Col([  
-                            		html.P(['Max'], className='mb-0'),
-                            	]),
-								dbc.Col([  
-                            		html.P(['Randomize'], className='mb-0'),
-                            	]),
+                            dbc.Row([
+                                dbc.Col([  
+                                    html.P(['Angle'], className='mb-0'),
+                                ]),
+                                dbc.Col([  
+                                    html.P(['Min'], className='mb-0'),
+                                ]),
+                                dbc.Col([  
+                                    html.P(['Max'], className='mb-0'),
+                                ]),
+                                dbc.Col([  
+                                    html.P(['Randomize'], className='mb-0'),
+                                ]),
                             ]),
                             dbc.Row([
-                               dbc.Col([  
-									dbc.Input(id=ids.INPUTMOWOANGLESTATE, 
-												value=pathplannercfgstate.angle, 
-												type='number', 
-												min=0, 
-												max=359, 
-												step=1, 
-												size='sm'
-										),
-								]),
-								dbc.Col([ 
-									dbc.Input(id=ids.INPUTMOWOANGLESTATEMIN, 
-												value=pathplannercfgstate.anglemin, 
-												type='number', 
-												min=0, 
-												max=359, 
-												step=1, 
-												size='sm'
-										),
-								]),
+                            dbc.Col([  
+                                    dbc.Input(id=ids.INPUTMOWOANGLESTATE, 
+                                                value=pathplannercfgstate.angle, 
+                                                type='number', 
+                                                min=0, 
+                                                max=359, 
+                                                step=1, 
+                                                size='sm'
+                                        ),
+                                ]),
                                 dbc.Col([ 
-									dbc.Input(id=ids.INPUTMOWOANGLESTATEMAX, 
-												value=pathplannercfgstate.anglemax, 
-												type='number', 
-												min=0, 
-												max=359, 
-												step=1, 
-												size='sm'
-										),
-								]),
+                                    dbc.Input(id=ids.INPUTMOWOANGLESTATEMIN, 
+                                                value=pathplannercfgstate.anglemin, 
+                                                type='number', 
+                                                min=0, 
+                                                max=359, 
+                                                step=1, 
+                                                size='sm'
+                                        ),
+                                ]),
+                                dbc.Col([ 
+                                    dbc.Input(id=ids.INPUTMOWOANGLESTATEMAX, 
+                                                value=pathplannercfgstate.anglemax, 
+                                                type='number', 
+                                                min=0, 
+                                                max=359, 
+                                                step=1, 
+                                                size='sm'
+                                        ),
+                                ]),
                                 dbc.Col([ 
                                     dbc.Button('Random', id=ids.BUTTONRANDOMIZEANGLE, className='ms-auto', n_clicks=0)
-								]),
+                                ]),
                             ]),
                             html.P(['Distance to border'], className='mb-0'),
                             dbc.Input(id=ids.INPUTDISTANCETOBORDERSTATE, 
-                                      value=pathplannercfgstate.distancetoborder, 
-                                      type='number', 
-                                      min=0, 
-                                      max=5, 
-                                      step=1, 
-                                      size='sm'
+                                    value=pathplannercfgstate.distancetoborder, 
+                                    type='number', 
+                                    min=0, 
+                                    max=5, 
+                                    step=1, 
+                                    size='sm'
                             ),
                             html.P(['Mow area'], className='mb-0'),
                             dbc.Select(
@@ -160,6 +160,10 @@ def toggle_modal(n_clicks_bms: int, n_clicks_bok: int, n_clicks_barng: int,
     if context == ids.BUTTONOKINPUTMAPSETTINGS:
         if pattern != 'lines' and pattern != 'squares' and pattern != 'rings':
             pathplannercfgstate.pattern = 'lines'
+        else:
+            pathplannercfgstate.pattern = pattern
+        if mowoffset != None:
+            pathplannercfgstate.width = mowoffset
         if mowangle != None:
             pathplannercfgstate.angle = mowangle
         if mowanglemin != None:
