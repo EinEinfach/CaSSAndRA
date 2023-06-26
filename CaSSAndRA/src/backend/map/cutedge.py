@@ -40,10 +40,13 @@ def create_route(perimeter: Polygon, mowborder: str, mowexclusion: str,
 def calcroute(area_to_mow, parameters, start):
     logger.info('Backend: Calc route for cutedge')
     mowoffs = -parameters.width
-    mowborder = parameters.mowborder
+    if parameters.mowborder != 0:
+        mowborder = 'yes'
+    else:
+        mowborder = 'no'
     mowexclusion = parameters.mowexclusion
     mowborderccw = parameters.mowborderccw
-    distancetoborder = parameters.distancetoborder
+    rounds = parameters.mowborder
     num_edge_per = min(parameters.distancetoborder, 2)
     start_coords = start
     route = []
@@ -52,7 +55,7 @@ def calcroute(area_to_mow, parameters, start):
 
     area_to_mow_tmp = area_to_mow
     last_coord = start[0]
-    for i in range(distancetoborder+1):
+    for i in range(rounds):
         if area_to_mow_tmp.is_empty:
             logger.info('Coverage path planner (planing route for cut to edge): Could not finished distancetoborderloop, please check your settings. Max value: '+str(i))
             break

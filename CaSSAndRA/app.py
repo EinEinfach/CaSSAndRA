@@ -1,4 +1,4 @@
-#Version:0.35.0 -> Remove plotly logo from graphs
+#Version:0.36.0 -> Mow cut edge border is now an int. Together with distance to border it opens up new possibilities when defining the cut edge route 
 
 # create logger
 import logging

@@ -40,7 +40,7 @@ mowsettings = dbc.Modal([
                                       value=pathplannercfgstate.distancetoborder, 
                                       type='number', 
                                       min=0, 
-                                      max=6, 
+                                      max=5, 
                                       step=1, 
                                       size='sm'
                             ),
@@ -53,14 +53,14 @@ mowsettings = dbc.Modal([
                                 ],
                                 value=pathplannercfgstate.mowarea
                             ),
-                            html.P(['Mow cut edge border'], className='mb-0'),
-                            dbc.Select(
-                                id=ids.INPUTMOWCUTEDGEBORDERSTATE, 
-                                options=[
-                                    {'label': 'yes', 'value': 'yes'},
-                                    {'label': 'no', 'value': 'no'}
-                                ],
-                                value=pathplannercfgstate.mowborder
+                            html.P(['Mow cut edge border (rounds)'], className='mb-0'),
+                            dbc.Input(id=ids.INPUTMOWCUTEDGEBORDERSTATE, 
+                                      value=pathplannercfgstate.mowborder, 
+                                      type='number', 
+                                      min=0, 
+                                      max=6, 
+                                      step=1, 
+                                      size='sm'
                             ),
                             html.P(['Mow cut edge exclusion'], className='mb-0'),
                             dbc.Select(

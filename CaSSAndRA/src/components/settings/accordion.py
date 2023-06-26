@@ -87,15 +87,8 @@ accordion_settings = dbc.Accordion([
                                     ],
                                     value=pathplannercfg.mowarea
                                 ),
-                                dbc.FormText('Mow cut edge border'),
-                                dbc.Select(
-                                    id=ids.MOWEDGESETTINGS,
-                                    options=[
-                                        {'label': 'yes', 'value': 'yes'},
-                                        {'label': 'no', 'value': 'no'},
-                                    ],
-                                    value=pathplannercfg.mowborder
-                                ),
+                                dbc.FormText('Mow cut edge border (rounds)'),
+                                dbc.Input(value=pathplannercfg.mowborder, id=ids.MOWEDGESETTINGS, type='number', min=0, max=6, step=1),
                                 dbc.FormText('Mow cut edge exclusion'),
                                 dbc.Select(
                                     id=ids.MOWEDGEEXCLUSIONSETTINGS,

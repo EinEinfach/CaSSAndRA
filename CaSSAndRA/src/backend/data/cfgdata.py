@@ -156,7 +156,7 @@ class PathPlannerCfg:
     angle: int = 0
     distancetoborder: int = 1
     mowarea: str() = 'yes'
-    mowborder: str() = 'yes'
+    mowborder: int = 1
     mowexclusion: str() = 'yes'
     mowborderccw: str() = 'yes'
 
