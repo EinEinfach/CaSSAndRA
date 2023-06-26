@@ -4,6 +4,8 @@ import dash_bootstrap_components as dbc
 from . import ids
 from src.backend.data.cfgdata import pathplannercfgstate
 
+import random
+
 mowsettings = dbc.Modal([
                         dbc.ModalHeader(dbc.ModalTitle('Mow settings')),
                         dbc.ModalBody([
@@ -26,15 +28,57 @@ mowsettings = dbc.Modal([
                                       step=0.01, 
                                       size='sm'
                             ), 
-                            html.P(['angle'], className='mb-0'),
-                            dbc.Input(id=ids.INPUTMOWOANGLESTATE, 
-                                      value=pathplannercfgstate.angle, 
-                                      type='number', 
-                                      min=0, 
-                                      max=359, 
-                                      step=1, 
-                                      size='sm'
-                            ),
+                            
+                            #Angle
+							dbc.Row([
+                               dbc.Col([  
+                            		html.P(['Angle'], className='mb-0'),
+                            	]),
+								dbc.Col([  
+                            		html.P(['Min'], className='mb-0'),
+                            	]),
+								dbc.Col([  
+                            		html.P(['Max'], className='mb-0'),
+                            	]),
+								dbc.Col([  
+                            		html.P(['Randomize'], className='mb-0'),
+                            	]),
+                            ]),
+                            dbc.Row([
+                               dbc.Col([  
+									dbc.Input(id=ids.INPUTMOWOANGLESTATE, 
+												value=pathplannercfgstate.angle, 
+												type='number', 
+												min=0, 
+												max=359, 
+												step=1, 
+												size='sm'
+										),
+								]),
+								dbc.Col([ 
+									dbc.Input(id=ids.INPUTMOWOANGLESTATEMIN, 
+												value=pathplannercfgstate.anglemin, 
+												type='number', 
+												min=0, 
+												max=359, 
+												step=1, 
+												size='sm'
+										),
+								]),
+                                dbc.Col([ 
+									dbc.Input(id=ids.INPUTMOWOANGLESTATEMAX, 
+												value=pathplannercfgstate.anglemax, 
+												type='number', 
+												min=0, 
+												max=359, 
+												step=1, 
+												size='sm'
+										),
+								]),
+                                dbc.Col([ 
+                                    dbc.Button('Random', id=ids.BUTTONRANDOMIZEANGLE, className='ms-auto', n_clicks=0)
+								]),
+                            ]),
                             html.P(['Distance to border'], className='mb-0'),
                             dbc.Input(id=ids.INPUTDISTANCETOBORDERSTATE, 
                                       value=pathplannercfgstate.distancetoborder, 
@@ -88,46 +132,65 @@ mowsettings = dbc.Modal([
                 )
 
 @callback(Output(ids.MODALMOWSETTINGS, 'is_open'),
+          Output(ids.INPUTMOWOANGLESTATE, 'value', allow_duplicate=True),
           [Input(ids.BUTTONMOWSETTINGS, 'n_clicks'),
            Input(ids.BUTTONOKINPUTMAPSETTINGS, 'n_clicks'),
+           Input(ids.BUTTONRANDOMIZEANGLE, 'n_clicks'),
            State(ids.MODALMOWSETTINGS, 'is_open'),
            State(ids.INPUTPATTERNSTATE, 'value'),
            State(ids.INPUTMOWOFFSETSTATE, 'value'),
            State(ids.INPUTMOWOANGLESTATE, 'value'),
+           State(ids.INPUTMOWOANGLESTATEMIN, 'value'),
+           State(ids.INPUTMOWOANGLESTATEMAX, 'value'),
            State(ids.INPUTDISTANCETOBORDERSTATE, 'value'),
            State(ids.INPUTMOWAREASTATE, 'value'),
            State(ids.INPUTMOWCUTEDGEBORDERSTATE, 'value'),
            State(ids.INPUTMOWCUTEDGEEXCLUSIONSTATE, 'value'),
-           State(ids.INPUTMOWCUTEDGEBORDERCCWSTATE, 'value')])
-def toggle_modal(n_clicks_bms: int, n_clicks_bok: int,
+           State(ids.INPUTMOWCUTEDGEBORDERCCWSTATE, 'value')],
+           prevent_initial_call=True
+           )
+def toggle_modal(n_clicks_bms: int, n_clicks_bok: int, n_clicks_barng: int,
                  modal_is_open: bool, pattern: str(),
                  mowoffset: float, mowangle: int,
+                 mowanglemin: int, mowanglemax: int,
                  distancetoborder: int, mowarea: str,
                  mowborder: str, mowexclusion: str,
-                 mowborderccw: str) -> bool:
+                 mowborderccw: str):
     context = ctx.triggered_id
     if context == ids.BUTTONOKINPUTMAPSETTINGS:
         if pattern != 'lines' and pattern != 'squares' and pattern != 'rings':
             pathplannercfgstate.pattern = 'lines'
-        else:
-            pathplannercfgstate.pattern = pattern
-        if mowoffset != None:
-            pathplannercfgstate.width = mowoffset
         if mowangle != None:
             pathplannercfgstate.angle = mowangle
+        if mowanglemin != None:
+            pathplannercfgstate.anglemin = mowanglemin
+        if mowanglemax != None:
+            pathplannercfgstate.anglemax = mowanglemax
         if distancetoborder != None:
             pathplannercfgstate.distancetoborder = distancetoborder
         pathplannercfgstate.mowarea = mowarea
         pathplannercfgstate.mowborder = mowborder
         pathplannercfgstate.mowexclusion = mowexclusion
         pathplannercfgstate.mowborderccw = mowborderccw
+        
+    if context == ids.BUTTONRANDOMIZEANGLE:
+        if mowanglemin != None:
+            pathplannercfgstate.anglemin = mowanglemin
+        if mowanglemax != None:
+            pathplannercfgstate.anglemax = mowanglemax
+        pathplannercfgstate.angle = random.randint(pathplannercfgstate.anglemin, pathplannercfgstate.anglemax)
+        
+        return modal_is_open, pathplannercfgstate.angle
+        
             
     if n_clicks_bms or n_clicks_bok:
-        return not modal_is_open
-    return modal_is_open
+        return not modal_is_open, pathplannercfgstate.angle
+    return modal_is_open, pathplannercfgstate.angle
 
 @callback(Output(ids.INPUTMOWOFFSETSTATE, 'value'),
           Output(ids.INPUTMOWOANGLESTATE, 'value'),
+          Output(ids.INPUTMOWOANGLESTATEMIN, 'value'),
+          Output(ids.INPUTMOWOANGLESTATEMAX, 'value'),
           Output(ids.INPUTMOWCUTEDGEBORDERSTATE, 'value'),
           Output(ids.INPUTDISTANCETOBORDERSTATE, 'value'),
           Output(ids.INPUTPATTERNSTATE, 'value'),
@@ -136,5 +199,5 @@ def toggle_modal(n_clicks_bms: int, n_clicks_bok: int,
           Output(ids.INPUTMOWCUTEDGEBORDERCCWSTATE, 'value'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_pathplandersettings_on_reload(pathname: str) -> list:
-    return pathplannercfgstate.width, pathplannercfgstate.angle, pathplannercfgstate.mowborder, pathplannercfgstate.distancetoborder, pathplannercfgstate.pattern, pathplannercfgstate.mowarea, pathplannercfgstate.mowexclusion, pathplannercfgstate.mowborderccw
+    return pathplannercfgstate.width, pathplannercfgstate.angle, pathplannercfgstate.anglemin, pathplannercfgstate.anglemax, pathplannercfgstate.mowborder, pathplannercfgstate.distancetoborder, pathplannercfgstate.pattern, pathplannercfgstate.mowarea, pathplannercfgstate.mowexclusion, pathplannercfgstate.mowborderccw
     

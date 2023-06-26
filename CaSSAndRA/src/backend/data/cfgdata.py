@@ -154,6 +154,8 @@ class PathPlannerCfg:
     pattern: str() = 'lines'
     width: float = 0.18
     angle: int = 0
+    anglemin: int = 0
+    anglemax: int = 359
     distancetoborder: int = 1
     mowarea: str() = 'yes'
     mowborder: int = 1
@@ -184,6 +186,8 @@ class PathPlannerCfg:
             self.pattern = pathplannercfg_from_file['pattern']
             self.width = pathplannercfg_from_file['width']
             self.angle = pathplannercfg_from_file['angle']
+            self.anglemin = pathplannercfg_from_file['anglemin']
+            self.anglemax = pathplannercfg_from_file['anglemax']
             self.distancetoborder = pathplannercfg_from_file['distancetoborder']
             self.mowarea = pathplannercfg_from_file['mowarea']
             self.mowborder = pathplannercfg_from_file['mowborder']
@@ -208,6 +212,8 @@ class PathPlannerCfg:
             new_data['pattern'] = self.pattern
             new_data['width'] = self.width
             new_data['angle'] = self.angle
+            new_data['anglemin'] = self.anglemin
+            new_data['anglemax'] = self.anglemax
             new_data['distancetoborder'] = self.distancetoborder
             new_data['mowarea'] = self.mowarea
             new_data['mowborder'] = self.mowborder
