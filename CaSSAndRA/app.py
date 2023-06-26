@@ -1,4 +1,4 @@
-#Version:0.34.0 -> Ignore dockpath at inital scaling of plot at state page
+#Version:0.35.0 -> Remove plotly logo from graphs
 
 # create logger
 import logging
