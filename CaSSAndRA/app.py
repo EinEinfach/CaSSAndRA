@@ -1,4 +1,4 @@
-#Version:0.36.1 -> Update pathplannercfg.json mowborder str -> int 
+#Version:0.37.0 -> New coverage path planner for lines and squares. New A* pathfinder for coverage path planner (see new requirements.txt)
 
 # create logger
 import logging

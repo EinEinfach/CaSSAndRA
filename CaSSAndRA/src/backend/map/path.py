@@ -19,7 +19,7 @@ def calc(parameters, start_pos: list()):
         area_to_mow, border = map.border(selected_area_turned, parameters.distancetoborder, parameters.width)
         route, edge_polygons = cutedge.calcroute(border, parameters, list(start_pos.coords))
         line_mask = map.linemask(area_to_mow, parameters.width)
-        route = lines.calcroute(area_to_mow, border, line_mask, edge_polygons, route, parameters)
+        route = lines.calcroute(area_to_mow, border, line_mask, edge_polygons, route, parameters, parameters.angle)
         route = map.turn(route, -parameters.angle)
         route = list(route.coords)
 
@@ -30,7 +30,7 @@ def calc(parameters, start_pos: list()):
         selected_area_turned = map.turn(mapdata.selected_perimeter, parameters.angle+90)
         area_to_mow, border = map.border(selected_area_turned, parameters.distancetoborder, parameters.width)
         line_mask = map.linemask(area_to_mow, parameters.width)
-        route2 = lines.calcroute(area_to_mow, border, line_mask, [], list(last_coord.coords), parameters)
+        route2 = lines.calcroute(area_to_mow, border, line_mask, [], list(last_coord.coords), parameters, parameters.angle+90)
         route2 = map.turn(route2, -parameters.angle-90)
         route.extend(list(route2.coords))
 

@@ -7,6 +7,7 @@ import os
 import json
 import pandas as pd
 import math
+import networkx as nx
 from dataclasses import dataclass
 from shapely.geometry import *
 
@@ -19,10 +20,12 @@ class Perimeter:
     perimeter: pd.DataFrame = pd.DataFrame()
     perimeter_polygon: Polygon = Polygon()
     perimeter_for_plot: pd.DataFrame = pd.DataFrame()
+    perimeter_points: MultiPoint = MultiPoint()
     gotopoints: pd.DataFrame = pd.DataFrame()
     gotopoint: pd.DataFrame = pd.DataFrame()
     mowpath: pd.DataFrame = pd.DataFrame()
     preview: pd.DataFrame = pd.DataFrame()
+    astar_graph: nx.Graph = nx.Graph()
     areatomow: float = 0
     distancetogo: float = 0
 
@@ -44,7 +47,10 @@ class Perimeter:
             exclusions = df[df['type'] == exclusion]
             exclusion_coords = exclusions[['X', 'Y']]
             exclusions = Polygon(exclusion_coords.values.tolist())
-            perimeter = perimeter.difference(exclusions)
+            if exclusions.is_valid:
+                perimeter = perimeter.difference(exclusions)
+            else:
+                perimeter = perimeter.difference(exclusions.convex_hull)
         self.perimeter_polygon = perimeter
     
     def create_perimeter_for_plot(self) -> None:
@@ -61,6 +67,14 @@ class Perimeter:
             else:
                 coords = perimeter[perimeter['type'] == type]
                 self.perimeter_for_plot = pd.concat([self.perimeter_for_plot, coords], ignore_index=True)
+    
+    def create_points_from_polygon(self) -> None:
+        perimeter_coords = list(self.perimeter_polygon.exterior.coords)
+        for excl in self.perimeter_polygon.interiors:
+            excl_coords = list(excl.coords)
+            perimeter_coords.extend(excl_coords)
+        perimeter_points = MultiPoint((perimeter_coords))
+        self.perimeter_points = perimeter_points
     
     def create_go_to_points(self) -> None:
         perimeter = self.perimeter_polygon
@@ -89,6 +103,57 @@ class Perimeter:
             coords_df['type'] = 'possible gotos'
             gotopoints = pd.concat([gotopoints, coords_df], ignore_index=True)
             self.gotopoints = gotopoints
+
+    def create_networkx_graph(self):
+        G = nx.Graph()
+        #Create networkx edges for perimeter
+        logger.info('Backend: Create networkx edges for perimeter (A* pathfinder)')
+        perimeter_coords = list(self.perimeter_polygon.exterior.coords)
+        for i in range(len(perimeter_coords)-1):
+            line = LineString(([perimeter_coords[i], perimeter_coords[i+1]]))
+            G.add_edge(list(line.coords)[0], list(line.coords)[1], weight=line.length)
+        logger.debug('NetworkX perimeter edges: '+str(len(G.edges)))
+        
+        #Create networkx edges for exclusions
+        logger.info('Backend: Create networkx edges for exclusions (A* pathfinder)')
+        for excl in self.perimeter_polygon.interiors:
+            excl_coords = list(excl.coords)
+            for i in range(len(excl_coords)-1):
+                line = LineString(([excl_coords[i], excl_coords[i+1]]))
+                G.add_edge(list(line.coords)[0], list(line.coords)[1], weight=line.length)
+        logger.debug('NetworkX perimeter + exlusion edges: '+str(len(G.edges)))
+
+        #Create networkx edges betweed exclusions and perimeter
+        logger.info('Backend: Create networkx edges between exclusions and perimeter (A* pathfinder)')
+        for excl in self.perimeter_polygon.interiors:
+            connected_to_perimeter = False
+            excl_coords = list(excl.coords)
+            for i in range(len(excl_coords)-1):
+                for k in range(len(perimeter_coords)-1):
+                    possible_way = self.check_direct_way(excl_coords[i], perimeter_coords[k])
+                    if possible_way:
+                        connected_to_perimeter = True
+                        direct_way = LineString((excl_coords[i], perimeter_coords[k]))
+                        G.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
+            if connected_to_perimeter == False:
+                logger.info('Backend: One exclusion could not be connected to perimeter')
+                logger.info('Backend: Trying to connect to other exclusions')
+                for l in range(len(excl_coords)-1):
+                    for other_exclusion in self.perimeter_polygon.interiors:
+                        other_exclusion_coords = list(other_exclusion.coords)
+                        for m in range(len(other_exclusion.coords)):
+                            possible_way = self.check_direct_way(excl_coords[l], other_exclusion_coords[m])
+                            if possible_way:
+                                connected_to_perimeter = True
+                                direct_way = LineString((excl_coords[l], other_exclusion_coords[m]))
+                                G.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
+        logger.debug('NetworkX perimeter + exclusion + perimeter/exclusion edges: '+str(len(G.edges)))
+        self.astar_graph = G
+    
+    def check_direct_way(self, start, end) -> bool:
+        way = LineString([start, end])
+        direct_way_possible = way.within(self.perimeter_polygon)
+        return direct_way_possible
     
     def create(self, name: str()) -> None:
         self.name = name
@@ -96,7 +161,9 @@ class Perimeter:
         self.mowpath = pd.DataFrame()
         self.create_perimeter_polygon()
         self.create_perimeter_for_plot()
+        self.create_points_from_polygon()
         self.create_go_to_points()
+        self.create_networkx_graph()
         self.save_map_name()
     
     def calc_route_preview(self, route: list()) -> None:
