@@ -43,7 +43,7 @@ class Mower:
     last_mow_status: bool = False
     cmd_move_lin: float = 0
     cmd_move_ang: float = 0
-    last_cmd: pd.DataFrame = pd.DataFrame()
+    last_cmd: pd.DataFrame = pd.DataFrame([{'msg': 'AT+C,-1,-1,-1,-1,-1,-1,-1,-1'}])
     current_task: pd.DataFrame = pd.DataFrame()
     #frontend
     rover_image: Image = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png'))

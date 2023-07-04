@@ -1,4 +1,4 @@
-#Version:0.37.0 -> New coverage path planner for lines and squares. New A* pathfinder for coverage path planner (see new requirements.txt)
+#Version:0.37.1 -> Fix problem with press go button after restart. 
 
 # create logger
 import logging
