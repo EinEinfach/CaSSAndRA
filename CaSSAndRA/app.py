@@ -1,4 +1,4 @@
-#Version:0.37.1 -> Fix problem with press go button after restart. 
+#Version:0.38.0 -> New pattern for coverage path planner (rings)
 
 # create logger
 import logging
@@ -53,7 +53,7 @@ def main() -> None:
         meta_tags=[
             {   # check if device is a mobile device. This is a must if you do any mobile styling
                 'name': 'viewport',
-                'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.5, minimum-scale=0.5' 
+                'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' 
             },
             {
                 'name':"apple-mobile-web-app-capable",
