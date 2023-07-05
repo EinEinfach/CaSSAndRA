@@ -44,7 +44,7 @@ def update(n_intervals: int,
           #What to do, if home button active
           current_map.gotopoint = pd.DataFrame() 
           current_map.preview = pd.DataFrame()
-          current_map.mowpath = pd.DataFrame()
+          #current_map.mowpath = pd.DataFrame()
           plotgotopoints = False
      elif context == ids.BUTTONMOWALL and buttonmowall:
           current_map.gotopoint = pd.DataFrame() 

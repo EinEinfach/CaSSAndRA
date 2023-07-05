@@ -33,16 +33,20 @@ def check() -> pd.DataFrame():
         msg_pckg = pd.concat([map_msg, goto_msg], ignore_index=True)
         robot.current_task = current_map.gotopoint
         robot.last_cmd = goto_msg
+        robot.last_task_name = 'go to'
         robot.last_mow_status = checkmowmotor(goto_msg, robot.last_mow_status)
         cmdlist.cmd_goto = False
 
     elif cmdlist.cmd_dock:
-         map_msg = cmdtorover.takemap(current_map.perimeter, pd.DataFrame(), dock=True)
-         dock_msg = cmdtorover.dock()
-         msg_pckg = pd.concat([map_msg, dock_msg], ignore_index=True)
-         robot.last_cmd = dock_msg
-         robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
-         cmdlist.cmd_dock = False
+        map_msg = cmdtorover.takemap(current_map.perimeter, pd.DataFrame(), dock=True)
+        dock_msg = cmdtorover.dock()
+        if robot.last_task_name == 'go to':
+            msg_pckg = pd.concat([map_msg, dock_msg], ignore_index=True)
+        else:
+            msg_pckg = dock_msg
+        #robot.last_cmd = dock_msg
+        robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
+        cmdlist.cmd_dock = False
     
     elif cmdlist.cmd_mow:
         map_msg = cmdtorover.takemap(current_map.perimeter, current_map.mowpath, dock=True)
@@ -50,6 +54,7 @@ def check() -> pd.DataFrame():
         msg_pckg = pd.concat([map_msg, mow_msg], ignore_index=True)
         robot.current_task = current_map.mowpath
         robot.last_cmd = mow_msg
+        robot.last_task_name = 'mow'
         robot.last_mow_status = checkmowmotor(mow_msg, robot.last_mow_status)
         cmdlist.cmd_mow = False
     

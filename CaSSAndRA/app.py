@@ -1,4 +1,4 @@
-#Version:0.38.0 -> New pattern for coverage path planner (rings)
+#Version:0.39.0 -> Dock command doesn't remove current task anymore
 
 # create logger
 import logging
