@@ -1,4 +1,4 @@
-#Version:0.39.0 -> Dock command doesn't remove current task anymore
+#Version:0.40.0 -> Changed Solution, State and SoC Cards. Added more informations. In case of error State dbc.Card has more informations about error. 20cm Dockpath adjustment
 
 # create logger
 import logging

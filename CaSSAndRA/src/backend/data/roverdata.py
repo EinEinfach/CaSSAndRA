@@ -36,6 +36,7 @@ class Mower:
     mowspeed_setpoint: float = rovercfg.mowspeed_setpoint
     gotospeed_setpoint: float = rovercfg.gotospeed_setpoint
     status: str = 'offline'
+    sensor_status: str = 'unknown'
     direction: float = 0
     backwards: bool = False
     timestamp = datetime.now()
@@ -74,6 +75,7 @@ class Mower:
         self.solution = self.calc_solution()
         self.timestamp = datetime.now()
         self.status = self.calc_status()
+        self.sensor_status = self.calc_sensor_status()
     
     def calc_speed(self, position_x: float, position_y: float, timestamp) -> float:
         if self.job == 1 or self.job == 4:
@@ -142,6 +144,58 @@ class Mower:
         else:
             return 'unknown'
     
+    def calc_sensor_status(self) -> str():
+        if self.job == 3:
+            if self.sensor == 17:
+                return 'emergency/stop'
+            elif self.sensor == 16:
+                return 'rain sensor'
+            elif self.sensor == 15:
+                return 'lifted'
+            elif self.sensor == 14:
+                return 'sonar error'
+            elif self.sensor == 13:
+                return 'bumper error'
+            elif self.sensor == 12:
+                return 'memory error'
+            elif self.sensor == 11:
+                return 'no route'
+            elif self.sensor == 10:
+                return 'odo error'
+            elif self.sensor == 9:
+                return 'gps invalid'
+            elif self.sensor == 8:
+                return 'motor error'
+            elif self.sensor == 7:
+                return 'overload'
+            elif self.sensor == 6:
+                return 'kidnapped'
+            elif self.sensor == 5:
+                return 'imu tilt'
+            elif self.sensor == 4:
+                return 'imu timeout'
+            elif self.sensor == 3:
+                return 'gps timeout'
+            elif self.sensor == 2:
+                return 'obstacle'
+            elif self.sensor == 1:
+                return 'undervoltage'
+            elif self.sensor == 0:
+                return 'no error'
+            else:
+                return 'unknown'
+        else:
+            if len(self.sensor_status) >= 5:
+                return '.'
+            elif len(self.sensor_status) == 4:
+                return '.....'
+            elif len(self.sensor_status) == 3:
+                return '....'
+            elif len(self.sensor_status) == 2:
+                return '...'
+            elif len(self.sensor_status) == 1:
+                return '..'
+
     def calc_soc(self) -> float:
         soc = 0+(self.battery_voltage-appcfg.voltage_0)*((100-0)/(appcfg.voltage_100-appcfg.voltage_0))
         if soc < 0:

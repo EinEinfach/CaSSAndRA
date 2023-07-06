@@ -1,4 +1,4 @@
-from dash import html, Input, Output, callback
+from dash import html, Input, Output, State, callback
 import dash_bootstrap_components as dbc
 
 from src.backend.data.roverdata import robot
@@ -48,10 +48,11 @@ def update(n_intervals: int) -> html.Div():
                     dbc.Card([
                         dbc.CardHeader('Solution'),
                         dbc.CardBody([
-                            html.H6(robot.solution),
+                            dbc.Row(html.Small(robot.solution)),
+                            dbc.Row(html.Small(['{}'.format(robot.position_visible_satellites_dgps)+'/{}'.format(robot.position_visible_satellites)], style={'font-size': '9px'}))
                             ]),
                     ],
-                    className="text-center m-1 w-33", 
+                    className="text-center m-1 w-33 h-95", 
                     color=colorsolution, inverse=inversesolution
                     ),
                 
@@ -60,10 +61,11 @@ def update(n_intervals: int) -> html.Div():
                     dbc.Card([
                         dbc.CardHeader('State'),
                         dbc.CardBody([
-                            html.H6(robot.status),
+                                dbc.Row(html.Small(robot.status)),
+                                dbc.Row(html.Small(['{}'.format(robot.sensor_status)], style={'font-size': '9px'}))
                             ]),
                     ],
-                    className="text-center m-1 w-33",
+                    className="text-center m-1 w-33 h-95",
                     color=colorstate, inverse=inversestate
                     ),
                 ]),
@@ -71,10 +73,11 @@ def update(n_intervals: int) -> html.Div():
                     dbc.Card([
                         dbc.CardHeader('SoC'),
                         dbc.CardBody([
-                            html.H6('{}%'.format(robot.soc)),
+                            dbc.Row(html.Small('{}%'.format(robot.soc))),
+                            dbc.Row(html.Small(['{}V'.format(robot.battery_voltage)+' '+'{}A'.format(robot.amps)], style={'font-size': '9px'}))
                             ]),
                     ],
-                    className="text-center m-1 w-33",
+                    className="text-center m-1 w-33 h-95",
                     color=colorsoc, inverse=inversesoc
                     ),
 

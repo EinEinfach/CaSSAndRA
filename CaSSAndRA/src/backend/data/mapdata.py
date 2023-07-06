@@ -451,7 +451,7 @@ class Perimeters:
                         before_last_coord = [coord['X'], coord['Y']]
                         last_vector = [last_coord[0]-before_last_coord[0], last_coord[1]-before_last_coord[1]]
                         last_vector_angle = math.atan2(last_vector[1], last_vector[0])
-                        new_vector = [math.cos(last_vector_angle)*0.1, math.sin(last_vector_angle)*0.1]
+                        new_vector = [math.cos(last_vector_angle)*0.2, math.sin(last_vector_angle)*0.2]
                         new_last_coord = [last_coord[0]+new_vector[0], last_coord[1]+new_vector[1]]
                         self.build.iloc[-1, self.build.columns.get_loc('X')] = new_last_coord[0]
                         self.build.iloc[-1, self.build.columns.get_loc('Y')] = new_last_coord[1]
