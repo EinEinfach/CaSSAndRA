@@ -21,7 +21,7 @@ def update_layout() -> html.Div:
                              children=[
                                  dbc.Spinner(delay_show=1000, 
                                              children=html.Div([
-                                                        dcc.Graph(id=ids.MAPPINGMAP, config= {'displaylogo': False})
+                                                        dcc.Graph(id=ids.MAPPINGMAP, config= {'displaylogo': False, 'scrollZoom': True})
                                                         ], className='map-graph'
                                                     )
                                 )
