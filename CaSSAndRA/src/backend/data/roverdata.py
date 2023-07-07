@@ -31,12 +31,9 @@ class Mower:
     position_visible_satellites_dgps: int = 0
     map_crc: int = 0
     soc: float = 0
-    solution: str = 'invalid'
     speed: float = 0
     mowspeed_setpoint: float = rovercfg.mowspeed_setpoint
     gotospeed_setpoint: float = rovercfg.gotospeed_setpoint
-    status: str = 'offline'
-    sensor_status: str = 'unknown'
     direction: float = 0
     backwards: bool = False
     timestamp = datetime.now()
@@ -49,6 +46,10 @@ class Mower:
     current_task: pd.DataFrame = pd.DataFrame()
     #frontend
     rover_image: Image = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png'))
+    solution: str = 'invalid'
+    status: str = 'offline'
+    sensor_status: str = 'unknown'
+    position_age_hr = '99+d'
 
     def set_state(self, state: pd.DataFrame()) -> None:
         state = state.iloc[-1]
@@ -76,6 +77,7 @@ class Mower:
         self.timestamp = datetime.now()
         self.status = self.calc_status()
         self.sensor_status = self.calc_sensor_status()
+        self.position_age_hr = self.calc_position_age_hr()
     
     def calc_speed(self, position_x: float, position_y: float, timestamp) -> float:
         if self.job == 1 or self.job == 4:
@@ -195,6 +197,18 @@ class Mower:
                 return '...'
             elif len(self.sensor_status) == 1:
                 return '..'
+    
+    def calc_position_age_hr(self) -> str:
+        if self.position_age >= 356400:
+            return '99+d'
+        if self.position_age >= 86400:
+            return str(self.position_age//86400)+'d'
+        elif self.position_age >=3600:
+            return str(self.position_age//3600)+'h'
+        elif self.position_age >=60:
+            return str(self.position_age//60)+'m'
+        else:
+            return str(self.position_age)+'s'
 
     def calc_soc(self) -> float:
         soc = 0+(self.battery_voltage-appcfg.voltage_0)*((100-0)/(appcfg.voltage_100-appcfg.voltage_0))

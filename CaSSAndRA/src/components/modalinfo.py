@@ -33,7 +33,7 @@ def update_modal_body(n_intervals: int) -> html.Div:
                         dbc.CardBody([
                             html.P(['Acc:', html.Br(), '{}m'.format(robot.position_accuracy)]),
                             html.P(['Sat:', html.Br(), '{}'.format(robot.position_visible_satellites_dgps)+'/{}'.format(robot.position_visible_satellites)]),
-                            html.P(['Age:', html.Br(), '{}s'.format(robot.position_age)]),
+                            html.P(['Age:', html.Br(), robot.position_age_hr]),
                             ]),
                     ],
                     className="text-center", 

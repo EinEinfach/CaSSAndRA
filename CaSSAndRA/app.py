@@ -1,4 +1,4 @@
-#Version:0.40.0 -> Changed Solution, State and SoC Cards. Added more informations. In case of error State dbc.Card has more informations about error. 20cm Dockpath adjustment
+#Version:0.41.0 -> Changed solution box, added position age as additional information
 
 # create logger
 import logging
