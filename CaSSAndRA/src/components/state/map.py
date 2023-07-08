@@ -90,7 +90,6 @@ def update(n_intervals: int,
           coords = current_map.perimeter_for_plot
           #Plot perimeter and exlusions
           coords_filtered = coords.loc[coords['type'] != 'dockpoints']
-          range_x = [coords_filtered['X'].min()-1, coords_filtered['X'].max()+1]
           range_y = [coords_filtered['Y'].min()-1, coords_filtered['Y'].max()+1]
           for trace in coords_filtered['type'].unique():
                filtered = coords_filtered.loc[coords['type']==trace]
@@ -175,7 +174,6 @@ def update(n_intervals: int,
 
      fig = {'data': traces, 
            'layout': go.Layout(yaxis=dict(range=range_y, scaleratio=1, scaleanchor='x'),
-                               xaxis=dict(range=range_x),
                                margin=dict(
                                         b=20, #bottom margin 40px
                                         l=20, #left margin 40px
