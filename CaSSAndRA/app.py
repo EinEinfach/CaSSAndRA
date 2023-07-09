@@ -1,4 +1,4 @@
-#Version:0.42.0 -> Added zoom on wheel, pull-request https://github.com/EinEinfach/CaSSAndRA/pull/8
+#Version:0.42.1 -> Added fix scaleanchor and position reset of x axis, pull-request https://github.com/EinEinfach/CaSSAndRA/pull/9
 
 # create logger
 import logging
