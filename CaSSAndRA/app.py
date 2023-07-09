@@ -1,4 +1,4 @@
-#Version:0.41.0 -> Changed solution box, added position age as additional information
+#Version:0.42.0 -> Added zoom on wheel, pull-request https://github.com/EinEinfach/CaSSAndRA/pull/8
 
 # create logger
 import logging
