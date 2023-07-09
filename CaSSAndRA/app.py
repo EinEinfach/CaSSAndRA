@@ -1,4 +1,4 @@
-#Version:0.42.2 -> Fix problem with undefined range_y variable in map.py in case of unloaded map
+#Version:0.43.0 -> Small changes in modal mow settings
 
 # create logger
 import logging
