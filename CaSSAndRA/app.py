@@ -1,4 +1,4 @@
-#Version:0.43.0 -> Small changes in modal mow settings
+#Version:0.43.1 -> Fixed problem with crashing server in case of invalid perimeter selection
 
 # create logger
 import logging

@@ -9,6 +9,8 @@ from ..data import mapdata
 from ..data.mapdata import current_map
 
 def calc(parameters, start_pos: list()):
+    if mapdata.selected_perimeter.is_empty:
+        return
     logger.info('Backend: Planning route:')
     logger.info(parameters)
     logger.info('Rover start position: '+str(start_pos))
