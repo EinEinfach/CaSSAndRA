@@ -37,7 +37,7 @@ def update(n_intervals: int,
           plotgotopoints = True
      else:
           plotgotopoints = False
-
+     range_y = [-10, 10]
      mowdata = []
      #Check control buttons state
      if context == ids.BUTTONHOME and buttonhome:

@@ -1,4 +1,4 @@
-#Version:0.42.1 -> Added fix scaleanchor and position reset of x axis, pull-request https://github.com/EinEinfach/CaSSAndRA/pull/9
+#Version:0.42.2 -> Fix problem with undefined range_y variable in map.py in case of unloaded map
 
 # create logger
 import logging
