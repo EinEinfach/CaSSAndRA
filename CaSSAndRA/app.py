@@ -1,4 +1,4 @@
-#Version:0.43.1 -> Fixed problem with crashing server in case of invalid perimeter selection
+#Version:0.43.2 -> A lot of improvements in line coverage path planner. Solve issue where pathfinder crossing border in case of wrong decision for nearest point
 
 # create logger
 import logging

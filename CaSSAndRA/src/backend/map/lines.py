@@ -9,22 +9,109 @@ import networkx as nx
 
 from ..data.mapdata import current_map
 
-def check_prio_lines(ways_to_go: pd.DataFrame, border: Polygon, current_level: int, call: int, route: list) -> None:
-    #If line_level == None, then it is first call or no prio lines accessable
-    if current_level == None or call == 2:
+def turn_coords(coords: list, angle: int) -> list:
+    if len(coords) < 2:
+        figure = Point((coords))
+    else:
+        figure = LineString((coords))
+    turned_figure = affinity.rotate(figure, angle, origin=(0, 0))
+    turned_coords = list(turned_figure.coords)
+    return turned_coords
+
+def check_astar_distance(border: Polygon, possible_start: list, angle: int, route: list, perimeter_points) -> list:
+    route_tmp = []
+    reverse_line = None
+    #Create start point  
+    astar_start_tmp = Point((route[-1]))
+    astar_start_tmp = affinity.rotate(astar_start_tmp, angle, origin=(0, 0))
+    astar_start_tmp = nearest_points(astar_start_tmp, perimeter_points)
+    astar_start = list(astar_start_tmp[1].coords)
+    #Create end points
+    #Create first end point
+    coords_tmp1 = possible_start[0]
+    coords_tmp1 = Point((coords_tmp1))
+    coords_tmp1 = affinity.rotate(coords_tmp1, angle, origin=(0, 0))
+    astar_end_tmp1 = nearest_points(perimeter_points, coords_tmp1)
+    astar_end1 = list(astar_end_tmp1[0].coords)
+    #Create second end point
+    coords_tmp2 = possible_start[1]
+    coords_tmp2 = Point((coords_tmp2))
+    coords_tmp2 = affinity.rotate(coords_tmp2, angle, origin=(0, 0))
+    astar_end_tmp2 = nearest_points(perimeter_points, coords_tmp2)
+    astar_end2 = list(astar_end_tmp2[0].coords)
+    try:
+        astar_path1 = nx.astar_path(current_map.astar_graph, astar_start[0], astar_end1[0], heuristic=None, weight='weight')
+        astar_path1 = turn_coords(astar_path1, -angle)
+        way1 = [route[-1]]
+        way1.extend(astar_path1)
+        way1.extend([possible_start[0]])
+        way1 = LineString((way1))
+        way1_length = way1.length
+        if not way1.within(border):
+            way1 = None
+
+        astar_path2 = nx.astar_path(current_map.astar_graph, astar_start[0], astar_end2[0], heuristic=None, weight='weight')
+        astar_path2 = turn_coords(astar_path2, -angle)
+        way2 = [route[-1]]
+        way2.extend(astar_path2)
+        way2.extend([possible_start[1]])
+        way2 = LineString((way2))
+        way2_length = way2.length
+        if not way2.within(border):
+            way2 = None
+    except Exception as e:
+        logger.warning('A* pathfinder delivered unexpexted result')
+        logger.debug(str(e))
+        return None, None, None
+    if (way1 != None and way2 != None and way1_length <= way2_length) or (way1 != None and way2 == None):
+        current_shortest_way_length = way1_length
+        route_tmp = astar_path1
+        reverse_line = False
+    elif (way1 != None and way2 != None and way1_length > way2_length) or (way2 != None and way1 == None):
+        current_shortest_way_length = way2_length
+        route_tmp = astar_path2
+        reverse_line = True
+    else:
+        return None, None, None
+    return route_tmp, current_shortest_way_length, reverse_line
+
+def check_prio_lines(ways_to_go: pd.DataFrame, border: Polygon, current_level: int, route: list, angle: int) -> list:
+    possible_start = []
+    gone_way = None
+    #Standard call, look for lines: same level, level under, level over
+    if current_level != None:
+        #Check for prio lines 
+        ways_area = ways_to_go[(ways_to_go['type'] == 'area') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True) & (ways_to_go['level_min'] <= current_level+1) & (ways_to_go['level_min']>=current_level-1)]
+        if not ways_area.empty:
+            #possible_start = list(ways_area['coords'])
+            possible_start1 = min(ways_area['coords'], key=lambda coord: (coord[0][0]-route[-1][0])**2 + (coord[0][1]-route[-1][1])**2)
+            possible_start2 = min(ways_area['coords'], key=lambda coord: (coord[1][0]-route[-1][0])**2 + (coord[1][1]-route[-1][1])**2)
+            possible_start = [possible_start1, possible_start2]
+            route_line_way, gone_way, length_to_line = shortest_path(border, possible_start, route, angle)
+            return route_line_way, gone_way, length_to_line, possible_start
+        else:
+            #Check for all lines and pick the nearest two 
+            ways_area = ways_to_go[(ways_to_go['type'] == 'area') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)]
+            if not ways_area.empty:
+                possible_start1 = min(ways_area['coords'], key=lambda coord: (coord[0][0]-route[-1][0])**2 + (coord[0][1]-route[-1][1])**2)
+                possible_start2 = min(ways_area['coords'], key=lambda coord: (coord[1][0]-route[-1][0])**2 + (coord[1][1]-route[-1][1])**2)
+                possible_start = [possible_start1, possible_start2]
+                route_line_way, gone_way, length_to_line = shortest_path(border, possible_start, route, angle)
+                return route_line_way, gone_way, length_to_line, possible_start
+            else:
+                None, None, None, None
+    #If curren_level == None, then it is first call or no prio lines accessable
+    if current_level == None or gone_way == None:
         ways_area = ways_to_go[(ways_to_go['type'] == 'area') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)]
-    #Check prio lines 1. 1 level under; 2. same level; 3. 1 level over
-    else:
-        ways_area = ways_to_go[(ways_to_go['type'] == 'area') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True) & (ways_to_go['level_min'] == current_level+call)]
-    #Check for direct way
-    if not ways_area.empty:
-        possible_start1 = min(ways_area['coords'], key=lambda coord: (coord[0][0]-route[-1][0])**2 + (coord[0][1]-route[-1][1])**2)
-        possible_start2 = min(ways_area['coords'], key=lambda coord: (coord[1][0]-route[-1][0])**2 + (coord[1][1]-route[-1][1])**2)
-        possible_start = [possible_start1, possible_start2]
-        route_line_way, gone_way, length_to_line = shortest_path(border, possible_start, route)
-        return route_line_way, gone_way, length_to_line, possible_start
-    else:
-        return None, None, None, None
+        if not ways_area.empty:
+            possible_start1 = min(ways_area['coords'], key=lambda coord: (coord[0][0]-route[-1][0])**2 + (coord[0][1]-route[-1][1])**2)
+            possible_start2 = min(ways_area['coords'], key=lambda coord: (coord[1][0]-route[-1][0])**2 + (coord[1][1]-route[-1][1])**2)
+            possible_start = [possible_start1, possible_start2]
+            route_line_way, gone_way, length_to_line = shortest_path(border, possible_start, route, angle)
+            return route_line_way, gone_way, length_to_line, possible_start
+        else:
+            return None, None, None, None
+    
 
 def shortest_path_to_exclusion(border: Polygon, edges_to_check: list, route: list) -> list:
     end_of_route = route[-1]
@@ -63,13 +150,15 @@ def shortest_path_to_exclusion(border: Polygon, edges_to_check: list, route: lis
             way_nr = i
     return route_tmp, way_nr, current_shortest_way_length
 
-def shortest_path(border: Polygon, ways_to_check: list, route: list) -> list:
+def shortest_path(border: Polygon, ways_to_check: list, route: list, angle: int) -> list:
     possible_line = ways_to_check[0]
     end_of_route = route[-1]
     current_shortest_way = LineString((end_of_route, possible_line[0])).length
     way_nr = None
     route_tmp = None
     for i, way in enumerate(ways_to_check):
+        if way_nr != None and current_shortest_way < 2*0.18:
+            break
         line_coord = way
         way_rev = way.copy()
         way_rev.reverse()
@@ -94,6 +183,18 @@ def shortest_path(border: Polygon, ways_to_check: list, route: list) -> list:
             current_shortest_way = length_of_rev_way
             possible_line = line_coord_rev
             way_nr = i
+        #No direct way for standar or reverse line, check A* distance
+        if (not way_to_line.within(border) or not way_to_line_rev.within(border)):
+            way_coord, length_of_astar_way, reverse_line = check_astar_distance(border, way, angle, route, current_map.perimeter_points)
+            if (length_of_astar_way != None and length_of_astar_way < current_shortest_way) or (length_of_astar_way != None and way_nr == None):
+                current_shortest_way = length_of_astar_way
+                if reverse_line:
+                    way_coord.extend(line_coord_rev)
+                    possible_line = way_coord
+                else:
+                    way_coord.extend(line_coord)
+                    possible_line = way_coord
+                way_nr = i
     if way_nr != None:
         route_tmp = possible_line
     return route_tmp, way_nr, current_shortest_way
@@ -111,6 +212,7 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
             logger.info('Coverage path planner (lines): New start point: '+str(route))
 
     ways_to_go = pd.DataFrame()
+    perimeter_points = current_map.perimeter_points
 
     tosimplify = False
     if parameters.distancetoborder == 0:
@@ -199,30 +301,26 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
 
         #Check for ways to lines
         logger.debug('Check for prio lines')
-        ways_area = ways_to_go[(ways_to_go['type'] == 'area') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)]
-        for i in range(-1, 3):
-            route_line_way, gone_way, length_to_line, possible_start = check_prio_lines(ways_to_go, border, current_level, i, route)
-            if gone_way != None:
-                logger.debug('Found prio '+str(i+2)+' line')
-                index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==possible_start[gone_way])].index.array[0]
-                current_level = ways_to_go.at[index, 'level_min']
-                break
-            else:
-                logger.debug('Did not find prio '+str(i+2)+' line')
+        route_line_way, gone_way, length_to_line, possible_start = check_prio_lines(ways_to_go, border, current_level, route, angle)
+        if gone_way != None:
+            logger.debug('Found way to line, distance: '+str(length_to_line))
 
         #Check for possible ways to edges
-        ways_edge = ways_to_go[(ways_to_go['type'] == 'edge') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)]
+        logger.debug('Check for edges to cut in range')
+        #First call, current_level = None
+        if current_level == None:
+            ways_edge = ways_to_go[(ways_to_go['type'] == 'edge') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)]
+        else:
+            ways_edge = ways_to_go[(ways_to_go['type'] == 'edge') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True) & (ways_to_go['level_min'] <= current_level) & (ways_to_go['level_max'] >= current_level)]
         if not ways_edge.empty:
-            logger.debug('Check for edges to cut in range')
-            possible_edges = ways_edge[(ways_edge['type'] == 'edge') & (ways_edge['gone'] == False) & (ways_edge['take into account'] == True)]
-            possible_edges = possible_edges.reset_index(drop=True)
-            if not possible_edges.empty:
-                logger.debug('Found edge(s) to cut in range')
-                route_edge_way, gone_way_edge, length_to_edge = shortest_path_to_exclusion(border, possible_edges['shapely'].to_list(), route)  
+            possible_edges = ways_edge.reset_index(drop=True)
+            route_edge_way, gone_way_edge, length_to_edge = shortest_path_to_exclusion(border, possible_edges['shapely'].to_list(), route)
+            if gone_way_edge != None:
+                logger.debug('Found edge(s) to cut in range, distance: '+str(length_to_edge))
             else:
                 logger.debug('No direct way to a edge found')
         else:
-            logger.debug('No edges found')
+            logger.debug('No edges in range found')
         
         #Decide for a shortest way
         if gone_way != None and gone_way_edge != None:
@@ -230,84 +328,113 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
                 index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==possible_start[gone_way])].index.array[0]
                 ways_to_go.at[index, 'gone'] = True
                 current_level = ways_to_go.at[index, 'level_min']
-                logger.debug('Found way to a line, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
+                logger.debug('Take way to a line, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
                 astar_last_way = []
                 route.extend(route_line_way)   
             else:
                 index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==list(possible_edges.loc[gone_way_edge, 'shapely'].exterior.coords))].index.array[0] 
                 ways_to_go.at[index, 'gone'] = True
-                current_level = ways_to_go.at[index, 'level_min']
-                logger.debug('Found way to a edge, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
+                logger.debug('Take way to a edge, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
                 astar_last_way = []
                 route.extend(route_edge_way)
         elif gone_way != None:
             index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==possible_start[gone_way])].index.array[0]
             ways_to_go.at[index, 'gone'] = True
             current_level = ways_to_go.at[index, 'level_min']
-            logger.debug('Found way to a line, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
+            logger.debug('Take way to a line, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
             astar_last_way = []
             route.extend(route_line_way) 
         elif gone_way_edge != None:
             index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==list(possible_edges.loc[gone_way_edge, 'shapely'].exterior.coords))].index.array[0] 
             ways_to_go.at[index, 'gone'] = True
-            current_level = ways_to_go.at[index, 'level_min']
-            logger.debug('Found way to a edge, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
+            logger.debug('Take way to a edge, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
             astar_last_way = []
             route.extend(route_edge_way)
         else:
-            logger.debug('No point for start over direct way found. Starting A* pathfinder') 
+            logger.debug('No point for start over direct way found. Starting A* pathfinder')
+            #Check for ways to the lines
+            if current_level != None:
+                logger.debug('Check for lines')
+                ways_area = ways_to_go[(ways_to_go['type'] == 'area') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)]
+                possible_start = list(ways_area['coords']) 
+                if ways_area.empty:
+                    logger.debug('No more lines to go')
+                else:
+                    for possible_way in possible_start:
+                        route_line_way, length_of_astar_way, reverse_line = check_astar_distance(border, possible_way, angle, route, perimeter_points)
+                        if route_line_way != None:
+                            index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==possible_way)].index.array[0]
+                            ways_to_go.at[index, 'gone'] = True
+                            current_level = ways_to_go.at[index, 'level_min']
+                            logger.debug('Take way to a line, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
+                            astar_last_way = route_line_way
+                            route.extend(route_line_way)
+                            if reverse_line:
+                                possible_way.reverse()
+                            route.extend(possible_way)
+                            break
+            #Check for ways to edges
             #Create start point  
-            astar_start_tmp = Point((route[-1]))
-            astar_start_tmp = affinity.rotate(astar_start_tmp, angle, origin=(0, 0))
-            astar_start_tmp = nearest_points(astar_start_tmp, current_map.perimeter_points)
-            astar_start = list(astar_start_tmp[1].coords)
-            #Create end point (if target line)
-            if not ways_area.empty:
-                logger.debug('Go for line')
-                index1 = ways_to_go[ways_to_go['coords'].apply(lambda x: x==possible_start[0])].index.array[0]
-                index2 = ways_to_go[ways_to_go['coords'].apply(lambda x: x==possible_start[1])].index.array[0]
-                coords_tmp = ways_to_go.at[index1, 'coords']
-                coords_tmp = MultiPoint((coords_tmp))
-                coords_tmp = affinity.rotate(coords_tmp, angle, origin=(0, 0))
-                astar_end_tmp = nearest_points(current_map.perimeter_points, coords_tmp)
-                astar_end = list(astar_end_tmp[0].coords)
-                current_level = ways_to_go.at[index1, 'level_min']
-            #Create end point (if target edge)
-            elif not ways_edge.empty:
+            ways_edge = ways_to_go[(ways_to_go['type'] == 'edge') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)] 
+            if not ways_edge.empty and route_line_way == None:
+                astar_start_tmp = Point((route[-1]))
+                astar_start_tmp = affinity.rotate(astar_start_tmp, angle, origin=(0, 0))
+                astar_start_tmp = nearest_points(astar_start_tmp, perimeter_points)
+                astar_start = list(astar_start_tmp[1].coords)
                 logger.debug('Go for edge')
-                possible_edges = ways_edge[(ways_edge['type'] == 'edge') & (ways_edge['gone'] == False) & (ways_edge['take into account'] == True)]
+                possible_edges = ways_edge
                 possible_edges = possible_edges.reset_index(drop=True)
-                coords_tmp = MultiPoint((list(possible_edges.at[0, 'shapely'].exterior.coords)))
-                coords_tmp = affinity.rotate(coords_tmp, angle, origin=(0, 0))
-                astar_end_tmp = nearest_points(current_map.perimeter_points, coords_tmp)
-                astar_end = list(astar_end_tmp[0].coords)
-                current_level = possible_edges.at[0, 'level_min']
-            else:
-                logger.error('Backend: Unespected call of A* pathfinder')
-                break   
+                for i in range(len(possible_edges)):
+                    coords_tmp = MultiPoint((list(possible_edges.at[i, 'shapely'].exterior.coords)))
+                    coords_tmp = affinity.rotate(coords_tmp, angle, origin=(0, 0))
+                    astar_end_tmp = nearest_points(perimeter_points, coords_tmp)
+                    astar_end = list(astar_end_tmp[0].coords)
+                    #Start A* pathfinder for edge route
+                    try:
+                        astar_path = nx.astar_path(current_map.astar_graph, astar_start[0], astar_end[0], heuristic=None, weight='weight')
+                        if len(astar_path) < 2:
+                            astar_path = Point((astar_path))
+                        else:
+                            astar_path = LineString((astar_path))
+                        astar_path = affinity.rotate(astar_path, -angle, origin=(0, 0))  
+                        astar_path = list(astar_path.coords)
+                        #Check is the astar path within perimeter
+                        astar_tmp = [route[-1]]
+                        astar_tmp.extend(astar_path)
+                        astar_end = affinity.rotate(astar_end_tmp[1], -angle, origin=(0,0))
+                        astar_tmp.extend(list(astar_end.coords))
+                        if not LineString((astar_tmp)).within(border):
+                            logger.debug('A* pathfinder delivered invalid route, try another one')
+                        else:
+                            current_level = None
+                            astar_last_way = astar_path
+                            route.extend(astar_path)
+                            logger.debug('A* pathfinder delivered route: '+str(astar_path))
+                            break
+                    except Exception as e:
+                        logger.error('Coverage path planner (calc lines): A* pathfinder could not find a way')
+                        logger.debug(str(e))
+                        break
+                
+                if not LineString((astar_tmp)).within(border):
+                    logger.debug('A* pathfinder delivered invalid route, reduce perimeter_points')
+                    old_points = [list(point.coords) for point in perimeter_points.geoms]
+                    if astar_start_tmp[1].equals(astar_end_tmp[0]):
+                        old_points.remove(list(astar_start_tmp[1].coords))
+                        logger.debug('Removed points: '+str(list(astar_start_tmp[1].coords)))
+                    else:
+                        old_points.remove(list(astar_start_tmp[1].coords))
+                        old_points.remove(list(astar_end_tmp[0].coords))
+                        logger.debug('Removed points: '+str(list(astar_start_tmp[1].coords))+' '+str(list(astar_end_tmp[0].coords)))
+                    perimeter_points = MultiPoint((old_points))
 
-            #Start A* pathfinder 
-            try:
-                astar_path = nx.astar_path(current_map.astar_graph, astar_start[0], astar_end[0], heuristic=None, weight='weight')
-                if len(astar_path) < 2:
-                    astar_path = Point((astar_path))
-                else:
-                    astar_path = LineString((astar_path))
-                astar_path = affinity.rotate(astar_path, -angle, origin=(0, 0))  
-                astar_path = list(astar_path.coords)
-                if astar_path == astar_last_way:
-                    logger.error('Coverage path planner (calc lines): A* caused in infintiy loop, path planning aborted')
-                    break
-                else:
-                    astar_last_way = astar_path
-                route.extend(astar_path)
-                logger.debug('A* pathfinder delivered route: '+str(astar_path))
-                astar_end_tmp = affinity.rotate(astar_end_tmp[1], -angle, origin=(0, 0))
-                route.extend(list(astar_end_tmp.coords))
-            except Exception as e:
-                logger.error('Coverage path planner (calc lines): A* pathfinder could not find a way')
-                logger.debug(str(e))
+            if astar_path == astar_last_way:
+                logger.error('Coverage path planner (calc lines): A* caused an infintiy loop, path planning aborted')
                 break
+
+            if ways_edge.empty and route_line_way == None:
+                logger.error('Backend: Unespected call in loop for pathfinder')
+                break   
         
     route_shapely = LineString(route)
     return route_shapely
