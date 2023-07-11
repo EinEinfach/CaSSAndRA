@@ -353,6 +353,7 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
         else:
             logger.debug('No point for start over direct way found. Starting A* pathfinder')
             #Check for ways to the lines
+            astar_path = []
             if current_level != None:
                 logger.debug('Check for lines')
                 ways_area = ways_to_go[(ways_to_go['type'] == 'area') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)]

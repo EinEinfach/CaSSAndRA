@@ -1,4 +1,4 @@
-#Version:0.43.2 -> A lot of improvements in line coverage path planner. Solve issue where pathfinder crossing border in case of wrong decision for nearest point
+#Version:0.43.4 -> Bugfix in pathplanner, aborting calculation in case of undefined astar_path
 
 # create logger
 import logging
