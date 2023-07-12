@@ -29,6 +29,8 @@ def add_state_to_df_from_mqtt(data: dict()) -> None:
                     'position_visible_satellites_dgps':data['position']['visible_satellites_dgps'],
                     'map_crc':data['map_crc'],
                     'lateral_error': 0,
+                    'timetable_autostartstop_dayofweek': 0,
+                    'timetabel_autostartstop_hour' : 0,
                     'timestamp': str(datetime.now())}
         state_to_df = pd.DataFrame(data=state_to_df, index=[0])
         robot.set_state(state_to_df)
@@ -110,6 +112,11 @@ def add_state_to_df(data: str()) -> None:
         if len(data_list) < 17:
             logger.debug('AT+S string to short, add dummy lateral error')
             data_list.append('0')
+        #handle old AT+S strings (older than 1.0.3XX)
+        if len(data_list) < 19:
+            logger.debug('AT+S string to short, add dummy timetable day of week and timetable hour')
+            data_list.append('0')
+            data_list.append('0')
         data_list = [float(x) if '.' in x else int(x) for x in data_list]
         data_list.append(str(datetime.now()))
         state_to_df = pd.DataFrame([data_list])
@@ -130,6 +137,8 @@ def add_state_to_df(data: str()) -> None:
                             'position_visible_satellites_dgps',
                             'map_crc',
                             'lateral_error',
+                            'timetable_autostartstop_dayofweek',
+                            'timetabel_autostartstop_hour',
                             'timestamp']
         robot.set_state(state_to_df)
         roverdata.state = pd.concat([roverdata.state, state_to_df], ignore_index=True)

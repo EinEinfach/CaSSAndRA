@@ -21,6 +21,9 @@ def read(absolute_path) -> None:
         roverdata.state = pd.read_pickle(absolute_path.replace('/src/backend', path_to_state_data))
         if not 'lateral_error' in roverdata.state.columns:
             roverdata.state['lateral_error'] = 0
+        if not 'timetable_autostartstop_dayofweek' in roverdata.state.columns:
+            roverdata.state['timetable_autostartstop_dayofweek'] = 0
+            roverdata.state['timetabel_autostartstop_hour'] = 0
         logger.info('Backend: State data are loaded successfully')
     except:
         logger.warning('Backend: Failed to load state data, create a default data frame')
@@ -41,6 +44,8 @@ def read(absolute_path) -> None:
                  "position_visible_satellites_dgps":{"0":0},
                  "map_crc":{"0":0},
                  "lateral_error": {"0":0},
+                 "timetable_autostartstop_dayofweek":{"0":0},
+                 "timetabel_autostartstop_hour":{"0":0}, 
                  "timestamp":{"0":str(datetime.now())}}
         roverdata.state = pd.DataFrame(data=state)
         #calceddata.calcdata_from_state()

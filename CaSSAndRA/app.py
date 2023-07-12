@@ -1,4 +1,4 @@
-#Version:0.43.4 -> Bugfix in pathplanner, aborting calculation in case of undefined astar_path
+#Version:0.43.5 -> Bugfix datatodf in case if Sunray FW newer than 1.0.3XX
 
 # create logger
 import logging
