@@ -1,4 +1,4 @@
-#Version:0.44.0 -> Taskplanner first release. Create, Save, Extend, Remove Task possible. Coming: Duplicate, Task Table. 
+#Version:0.44.1 -> Fix problem with no points if started from taskplanner
 
 # create logger
 import logging

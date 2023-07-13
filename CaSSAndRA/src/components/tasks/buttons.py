@@ -22,5 +22,7 @@ def start_selected_task(bsst_nclicks: int) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONSTARTSELECTEDTASK:
         path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
+        current_map.mowpath = current_map.preview
+        current_map.mowpath['type'] = 'way'
         cmdlist.cmd_mow = True
     return False
