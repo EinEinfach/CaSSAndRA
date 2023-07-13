@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 from .. import ids
 from . import buttons
 from src.backend.data import saveddata
-from src.backend.data.mapdata import current_map, mapping_maps
+from src.backend.data.mapdata import current_map, mapping_maps, current_task
 from src.backend.data.roverdata import robot
 
 sunrayimportstatus = dbc.Modal(
@@ -141,6 +141,7 @@ def selected_perimeter(bsp_n_clicks: int, bok_n_clicks: int,
     if context == ids.OKBUTTONSELECTEDPERIMETER:
         current_map.perimeter = selected
         current_map.create(selected_perimeter)
+        current_task.create()
     if bsp_n_clicks or bok_n_clicks:
         return not is_open
     return is_open

@@ -1,4 +1,4 @@
-#Version:0.43.5 -> Bugfix datatodf in case if Sunray FW newer than 1.0.3XX
+#Version:0.44.0 -> Taskplanner first release. Create, Save, Extend, Remove Task possible. Coming: Duplicate, Task Table. 
 
 # create logger
 import logging

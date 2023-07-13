@@ -6,6 +6,7 @@ import os
 import json
 from dataclasses import dataclass
 import base64
+import pandas as pd
 
 ABSOLUTE_PATH = os.path.dirname(__file__)
 
@@ -222,6 +223,16 @@ class PathPlannerCfg:
             logger.error('Backend: Could not save pathplannercfg.json. Unexpected behaivor')
             logger.debug(str(e))
             return -1
+    
+    def df_to_obj(self, parameters: pd.DataFrame) -> None:
+        self.pattern = parameters.iloc[0]['pattern']
+        self.width = parameters.iloc[0]['width']
+        self.angle = parameters.iloc[0]['angle']
+        self.distancetoborder = parameters.iloc[0]['distancetoborder']
+        self.mowarea = parameters.iloc[0]['mowarea']
+        self.mowborder = parameters.iloc[0]['mowborder']
+        self.mowexclusion = parameters.iloc[0]['mowexclusion']
+        self.mowborderccw = parameters.iloc[0]['mowborderccw']
 
 rovercfg = RoverCfg()
 rovercfg.read_rovercfg()
@@ -229,6 +240,10 @@ pathplannercfg = PathPlannerCfg()
 pathplannercfg.read_pathplannercfg()
 pathplannercfgstate = PathPlannerCfg()
 pathplannercfgstate.read_pathplannercfg()
+pathplannercfgtask = PathPlannerCfg()
+pathplannercfgtask.read_pathplannercfg()
+pathplannercfgtasktmp = PathPlannerCfg()
+pathplannercfgtasktmp.read_pathplannercfg()
 appcfg = AppCfg()
 appcfg.read_appcfg()
 

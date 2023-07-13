@@ -147,11 +147,8 @@ def start() -> None:
     saveddata.read(absolute_path)
     logger.info('Backend: Read map data file')
     saveddata.read_perimeter()
-
-    # logger.info('Backend: Starting thread for saving data')
-    # save_data_thread = threading.Thread(target=save_data)
-    # save_data_thread.setDaemon(True)
-    # save_data_thread.start()
+    logger.info('Backend: Read tasks data file')
+    saveddata.read_tasks()
 
     if connect_data['USE'] == 'MQTT':
         logger.info('Backend: Establishing MQTT connection to the MQTT-Server')

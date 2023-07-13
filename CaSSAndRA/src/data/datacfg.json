@@ -20,7 +20,9 @@
         },
         {"map":
             [
-                {"perimeter": "/src/data/map/perimeter.json"}
+                {"perimeter": "/src/data/map/perimeter.json"},
+                {"tasks": "/src/data/map/tasks.json"},
+                {"tasks_parameters": "/src/data/map/tasks_parameters.json"}
             ]
         }
     ]

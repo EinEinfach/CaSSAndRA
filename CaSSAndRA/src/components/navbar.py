@@ -18,9 +18,9 @@ navbar = dbc.Navbar(
             dbc.NavbarToggler(id=ids.NAVBARTOGGLER, n_clicks=0),
             dbc.Collapse(
                 dbc.Nav([
+                    dbc.NavItem(dbc.NavLink('Taskplanner', href='/taskplanner')),
                     dbc.NavItem(dbc.NavLink('Mapping', href='/mapping')),
                     dbc.NavItem(dbc.NavLink('Settings', href='/settings')),
-                    #dbc.NavItem(dbc.NavLink('Taskplanner', href='/taskplanner')),
                     #dbc.NavItem(dbc.NavLink('Statistik', href='/stats')),
                 ]),
                 id=ids.NAVBARCOLLAPSE,

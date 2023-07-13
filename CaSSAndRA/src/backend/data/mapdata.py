@@ -8,10 +8,11 @@ import json
 import pandas as pd
 import math
 import networkx as nx
-from dataclasses import dataclass
+from dataclasses import dataclass, field, asdict
 from shapely.geometry import *
 
 from .roverdata import robot
+from .cfgdata import PathPlannerCfg, pathplannercfg
 from .. map import map
 
 @dataclass
@@ -19,6 +20,7 @@ class Perimeter:
     name: str() = ''
     perimeter: pd.DataFrame = pd.DataFrame()
     perimeter_polygon: Polygon = Polygon()
+    selected_perimeter: Polygon = Polygon()
     perimeter_for_plot: pd.DataFrame = pd.DataFrame()
     perimeter_points: MultiPoint = MultiPoint()
     gotopoints: pd.DataFrame = pd.DataFrame()
@@ -199,14 +201,12 @@ class Perimeter:
         self.perimeter = pd.DataFrame()
         self.preview = pd.DataFrame()
         self.mowpath = pd.DataFrame()
-        perimeter_polygon = Polygon()
-        perimeter_for_plot = pd.DataFrame()
-        gotopoints = pd.DataFrame()
-        gotopoint = pd.DataFrame()
-        mowpath = pd.DataFrame()
-        preview = pd.DataFrame()
-        areatomow = 0
-        distancetogo = 0
+        self.perimeter_polygon = Polygon()
+        self.perimeter_for_plot = pd.DataFrame()
+        self.gotopoints = pd.DataFrame()
+        self.gotopoint = pd.DataFrame()
+        self.areatomow = 0
+        self.distancetogo = 0
         self.save_map_name()
 
 @dataclass
@@ -460,12 +460,74 @@ class Perimeters:
                 logger.debug('Mapping new map is an empty dataframe, dockpoints are not changed, adjustment not neccessary')
         except Exception as e:
             logger.error('Backend: Dockpoints adjustment not possible')
-            logger.debug(str(e))          
+            logger.debug(str(e)) 
 
+@dataclass
+class Task:
+    name: str() = ''
+    map_name: str() = ''
+    selected_perimeter: Polygon = Polygon()
+    selection_type: str() = ''
+    selection: dict = field(default_factory=dict)
+    preview: pd.DataFrame = pd.DataFrame()
+    parameters: PathPlannerCfg = pathplannercfg
+    subtasks: pd.DataFrame = pd.DataFrame()
+    subtasks_parameters: pd.DataFrame = pd.DataFrame()
 
+    def calc_route_preview(self, route: list()) -> None:
+        self.preview = pd.DataFrame(route)
+        self.preview.columns = ['X', 'Y']
+        self.preview['type'] = 'preview route'
+
+    def create_subtask(self) -> None:
+        if not self.subtasks.empty:
+            task_nr = len(self.subtasks['task nr'].unique())
+            filtered_df = self.subtasks[(self.subtasks['type'] == 'preview route') & (self.subtasks['task nr'] == task_nr-1)]
+            start_position = {'X': [filtered_df.iloc[-1]['X']], 'Y': [filtered_df.iloc[-1]['Y']], 'type': ['start position']}
+            position_df = pd.DataFrame(start_position)
+        else:
+            task_nr = 0
+            start_position = {'X': [robot.position_x], 'Y': [robot.position_y], 'type': ['start position']}
+            position_df = pd.DataFrame(start_position)
+        subtask = self.preview
+        selection = pd.DataFrame(self.selection)
+        selection.columns = ['X', 'Y']
+        selection['type'] = self.selection_type
+        subtask = pd.concat([subtask, selection], ignore_index=True)
+        subtask = pd.concat([subtask, position_df], ignore_index=True)
+        subtask['map name'] = self.map_name
+        subtask['task nr'] = task_nr
+        self.subtasks = pd.concat([self.subtasks, subtask], ignore_index=True) 
+        parameters = self.pathplanenrcfg_to_dict(task_nr)
+        self.subtasks_parameters = pd.concat([self.subtasks_parameters, pd.DataFrame(parameters)], ignore_index= True)
+        self.preview = pd.DataFrame()
+    
+    def pathplanenrcfg_to_dict(self, task_nr: int) -> dict:
+        parameters = {'map name': self.map_name, 'task nr': task_nr, 'pattern': [self.parameters.pattern], 'width': [self.parameters.width], 'angle': [self.parameters.angle], 
+                      'distancetoborder': [self.parameters.distancetoborder], 'mowarea': [self.parameters.mowarea], 'mowborder': [self.parameters.mowborder], 
+                      'mowexclusion': [self.parameters.mowexclusion], 'mowborderccw': [self.parameters.mowborderccw]}
+        return parameters
+    
+    def create(self) -> None:
+        self.name = ''
+        self.map_name = current_map.name
+        self.selected_perimeter = Polygon()
+        self.selection_type = ''
+        self.selection = dict()
+        self.preview = pd.DataFrame()
+        self.parameters = dict() 
+        self.subtasks = pd.DataFrame()
+
+@dataclass
+class Tasks:
+    selected: str() = ''
+    saved: pd.DataFrame = pd.DataFrame()
+    saved_parameters: pd.DataFrame = pd.DataFrame()
 
 current_map = Perimeter()
 mapping_maps = Perimeters()
+current_task = Task()
+tasks = Tasks()
 
 perimeter_mapping = pd.DataFrame()
 perimeter_selected = pd.DataFrame()
@@ -473,35 +535,3 @@ perimeter_saved = pd.DataFrame()
 perimeter = pd.DataFrame()
 preview = pd.DataFrame()
 imported = pd.DataFrame()
-
-
-#areatomow = float()
-#distancetogo = float()
-#perimeter_for_plot contains the same data as perimeter and aditionaly the first coordiante for perimeter and every exclusion for creating a closed polygon in plot
-#perimeter_for_plot = pd.DataFrame()
-
-#map interaction data
-selected_zone = pd.DataFrame()
-zone = pd.DataFrame()
-
-#mow settings from mapcfg.json
-#mowoffset = float()
-#mowangle = int()
-#mowedge = bool()
-#distancetoborder = int()
-#pattern = str()
-
-#positionmode from mapcfg.json
-#positionmode = str()
-#lon = float()
-#lat = float()
-
-#mow settings from state page
-#mowoffsetstatepage = float()
-#mowanglestatepage = int()
-#mowedgestatepage = bool()
-#distancetoborderstatepage = int()
-#patternstatepage = str()
-
-#temp mapdata
-selected_perimeter = Polygon()

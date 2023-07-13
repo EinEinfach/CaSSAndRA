@@ -50,8 +50,10 @@ def update(n_intervals: int,
           current_map.gotopoint = pd.DataFrame() 
           current_map.preview = pd.DataFrame()
           current_map.mowpath = pd.DataFrame()
-          mapdata.selected_perimeter = current_map.perimeter_polygon
-          path.calc(pathplannercfgstate, rover_position)
+          current_map.selected_perimeter = current_map.perimeter_polygon
+          route = path.calc(current_map.selected_perimeter, pathplannercfgstate, rover_position)
+          current_map.areatomow = round(current_map.selected_perimeter.area)
+          current_map.calc_route_preview(route) 
           plotgotopoints = False
      elif context == ids.BUTTONZONESELECT and buttonzoneselect:
           current_map.gotopoint = pd.DataFrame()
@@ -69,8 +71,6 @@ def update(n_intervals: int,
           current_map.mowpath = pd.DataFrame()
           plotgotopoints = False
 
-
-
      #Check interactions with graph
      if selecteddata == {'points':[]}: #Workaround for selected data, beacause after select selected data changing to {'poonts':[]} and triggering context_id
          selecteddata = None
@@ -80,8 +80,11 @@ def update(n_intervals: int,
      elif context_triggered[0]['prop_id'] == ids.STATEMAP+'.selectedData' and buttonzonenselectstate and selecteddata:
           current_map.mowpath = pd.DataFrame()
           perimeter_preview = current_map.perimeter_polygon
-          mapdata.selected_perimeter = map.selection(perimeter_preview, selecteddata)
-          path.calc(pathplannercfgstate, rover_position)
+          current_map.selected_perimeter = map.selection(perimeter_preview, selecteddata)
+          if not current_map.selected_perimeter.is_empty:
+               route = path.calc(current_map.selected_perimeter, pathplannercfgstate, rover_position)
+               current_map.areatomow = round(current_map.selected_perimeter.area)
+               current_map.calc_route_preview(route)
      
      #Plots
      traces = []
