@@ -1,4 +1,4 @@
-#Version:0.45.1 -> Bugfix taskparameters wrong initialization at new task
+#Version:0.45.2 -> Bugfix if A* pathfinde didn't find a way from one task to other
 
 # create logger
 import logging
