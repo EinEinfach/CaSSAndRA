@@ -120,6 +120,10 @@ def turn(figure: Polygon, mowangle: int) -> Polygon:
         return figure
 
 def linemask(perimeter: Polygon, mowoffset: float) -> MultiLineString:
+    if perimeter.is_empty:
+        logger.info('Backend: Selection to small create empty linemask')
+        linemask = MultiLineString()
+        return linemask
     logger.info('Backend: Create line mask')
     bounds = perimeter.bounds
     offs = bounds[1]

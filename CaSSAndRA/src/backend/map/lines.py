@@ -279,16 +279,21 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
     lines_to_go = []
     line_level = 0
     current_level = None
-    coord = list(result_lines.geoms[0].coords)
-    coord_y_old = coord[0][1]
-    for i in range(len(result_lines.geoms)):
-        coord = list(result_lines.geoms[i].coords)
-        if coord[0][1] > coord_y_old:
-            line_level += 1
-        line = pd.DataFrame({'name': 'area'+str(i),'shapely': result_lines.geoms[i], 'level_min': line_level, 'level_max': line_level, 'coords': [coord], 'type': 'area', 'gone': False, 'take into account': True})
-        ways_to_go = pd.concat([ways_to_go, line], ignore_index=True)
+    if not result_lines.is_empty:
+        coord = list(result_lines.geoms[0].coords)
         coord_y_old = coord[0][1]
-    
+        for i in range(len(result_lines.geoms)):
+            coord = list(result_lines.geoms[i].coords)
+            if coord[0][1] > coord_y_old:
+                line_level += 1
+            line = pd.DataFrame({'name': 'area'+str(i),'shapely': result_lines.geoms[i], 'level_min': line_level, 'level_max': line_level, 'coords': [coord], 'type': 'area', 'gone': False, 'take into account': True})
+            ways_to_go = pd.concat([ways_to_go, line], ignore_index=True)
+            coord_y_old = coord[0][1]
+    else:
+        logger.debug('No lines to sort found')
+        line = pd.DataFrame({'name': 'area1','shapely': LineString(), 'level_min': None, 'level_max': None, 'coords': [None], 'type': 'area', 'gone': True, 'take into account': True})
+        ways_to_go = pd.concat([ways_to_go, line], ignore_index= True)
+
     #Starting coverage path planner
     logger.info('Coverage path planner (calc lines): Starting loop')
     astar_path = []

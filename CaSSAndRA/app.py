@@ -1,4 +1,4 @@
-#Version:0.45.3 -> Bugfix if A* pathfinde didn't find a way from one task to other, increase perimeter size to ensure that edge points always within perimeter
+#Version:0.46.0 -> Take mowarea = no into account for lines and squares calculation
 
 # create logger
 import logging

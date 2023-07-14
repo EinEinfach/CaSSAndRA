@@ -202,11 +202,11 @@ class Mower:
         if self.position_age >= 356400:
             return '99+d'
         if self.position_age >= 86400:
-            return str(self.position_age//86400)+'d'
+            return str(round(self.position_age//86400))+'d'
         elif self.position_age >=3600:
-            return str(self.position_age//3600)+'h'
+            return str(round(self.position_age//3600))+'h'
         elif self.position_age >=60:
-            return str(self.position_age//60)+'m'
+            return str(round(self.position_age//60))+'min'
         else:
             return str(self.position_age)+'s'
 

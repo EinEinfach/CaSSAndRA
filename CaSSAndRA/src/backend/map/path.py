@@ -70,7 +70,10 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         selected_area_turned = map.turn(selected_perimeter, parameters.angle)
         area_to_mow, border = map.border(selected_area_turned, parameters.distancetoborder, parameters.width)
         route, edge_polygons = cutedge.calcroute(border, parameters, list(start_pos.coords))
-        line_mask = map.linemask(area_to_mow, parameters.width)
+        if parameters.mowarea == 'yes':
+            line_mask = map.linemask(area_to_mow, parameters.width)
+        else:
+            line_mask = MultiLineString()
         route = lines.calcroute(area_to_mow, border, line_mask, edge_polygons, route, parameters, parameters.angle)
         route = map.turn(route, -parameters.angle)
         route = list(route.coords)
@@ -81,7 +84,10 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         last_coord = map.turn(last_coord, parameters.angle+90)
         selected_area_turned = map.turn(selected_perimeter, parameters.angle+90)
         area_to_mow, border = map.border(selected_area_turned, parameters.distancetoborder, parameters.width)
-        line_mask = map.linemask(area_to_mow, parameters.width)
+        if parameters.mowarea == 'yes':
+            line_mask = map.linemask(area_to_mow, parameters.width)
+        else:
+            line_mask = MultiLineString()
         route2 = lines.calcroute(area_to_mow, border, line_mask, [], list(last_coord.coords), parameters, parameters.angle+90)
         route2 = map.turn(route2, -parameters.angle-90)
         route.extend(list(route2.coords))
