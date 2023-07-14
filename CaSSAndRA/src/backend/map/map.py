@@ -8,6 +8,7 @@ from shapely.ops import *
 import networkx as nx
 
 def astar_path(perimeter: Polygon, perimeter_points: MultiPoint, astar_graph: nx.Graph, start: list, end: list) -> list:
+    perimeter = perimeter.buffer(0.02, resolution=16, join_style=2, mitre_limit=1, single_sided=True) #Workarround, have to be checked, if there a better solution
     perimeter_points_tmp = perimeter_points
     #create start point
     while True:

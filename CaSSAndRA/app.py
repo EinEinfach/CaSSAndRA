@@ -1,4 +1,4 @@
-#Version:0.45.2 -> Bugfix if A* pathfinde didn't find a way from one task to other
+#Version:0.45.3 -> Bugfix if A* pathfinde didn't find a way from one task to other, increase perimeter size to ensure that edge points always within perimeter
 
 # create logger
 import logging
