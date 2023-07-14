@@ -1,4 +1,4 @@
-#Version:0.45.0 -> Redesign taskplanner page
+#Version:0.45.1 -> Bugfix taskparameters wrong initialization at new task
 
 # create logger
 import logging

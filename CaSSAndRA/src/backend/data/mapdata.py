@@ -517,6 +517,7 @@ class Task:
         self.preview = pd.DataFrame()
         self.parameters = dict() 
         self.subtasks = pd.DataFrame()
+        self.subtasks_parameters = pd.DataFrame()
 
 @dataclass
 class Tasks:
