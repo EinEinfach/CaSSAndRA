@@ -291,6 +291,8 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
     
     #Starting coverage path planner
     logger.info('Coverage path planner (calc lines): Starting loop')
+    astar_path = []
+    astar_last_way = []
     while True:
         gone_way = None
         gone_way_edge = None

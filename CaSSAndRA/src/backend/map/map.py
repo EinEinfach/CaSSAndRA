@@ -19,6 +19,12 @@ def astar_path(perimeter: Polygon, perimeter_points: MultiPoint, astar_graph: nx
         if astar_start_line.within(perimeter):
             logger.debug('A* pathdfinder found a start line to border: '+str(list(astar_start_line.coords)))
             break
+        else:
+            logger.debug('Start line is not within perimeter, reduce perimeter points')
+            old_points = [list(point.coords) for point in perimeter_points.geoms]
+            old_points.remove(list(astar_start_tmp[1].coords))
+            logger.debug('Removed points: '+str(list(astar_start_tmp[1].coords)))
+            perimeter_points = MultiPoint((old_points))
     #create end point
     while True:
         if perimeter_points.is_empty:
@@ -30,6 +36,12 @@ def astar_path(perimeter: Polygon, perimeter_points: MultiPoint, astar_graph: nx
         if astar_end_line.within(perimeter):
             logger.debug('A* pathdfinder found a end line to border: '+str(list(astar_end_line.coords)))
             break
+        else:
+            logger.debug('End line is not within perimeter, reduce perimeter points')
+            old_points = [list(point.coords) for point in perimeter_points.geoms]
+            old_points.remove(list(astar_end_tmp[1].coords))
+            logger.debug('Removed points: '+str(list(astar_end_tmp[1].coords)))
+            perimeter_points = MultiPoint((old_points)) 
     #starting pathfinder
     try:
         route_tmp = nx.astar_path(astar_graph, list(astar_start_tmp[1].coords)[0], list(astar_end_tmp[1].coords)[0], heuristic=None, weight='weight') 

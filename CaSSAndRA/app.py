@@ -1,4 +1,4 @@
-#Version:0.44.1 -> Fix problem with no points if started from taskplanner
+#Version:0.44.2 -> Fix problem with infinity loop in map.calc_astar for taskplanner
 
 # create logger
 import logging
