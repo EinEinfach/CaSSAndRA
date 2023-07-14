@@ -1,4 +1,4 @@
-#Version:0.44.2 -> Fix problem with infinity loop in map.calc_astar for taskplanner
+#Version:0.45.0 -> Redesign taskplanner page
 
 # create logger
 import logging

@@ -80,14 +80,7 @@ def update(bpnt_nclicks: int, bpma_nclicks: int, bpc_nclicks: int, selecteddata:
                                         line=dict(color='#008080'), 
                                         marker=dict(size=3),
                                         hoverinfo='skip')) 
-          #Plot dockpoints
-          filtered = coords.loc[coords['type'] == 'dockpoints']
-          traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
-                                   name='dockpoints', 
-                                   mode='lines+markers', 
-                                   line=dict(color='#0f2105'), 
-                                   marker=dict(size=3),
-                                   hoverinfo='skip'))
+
     #plot preview if there
     if not current_task.preview.empty:
         filtered = current_task.preview[current_task.preview['type'] == 'preview route']

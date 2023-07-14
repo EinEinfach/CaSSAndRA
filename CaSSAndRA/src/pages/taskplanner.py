@@ -31,7 +31,6 @@ def update_layout() -> html.Div:
                         html.Div([
                             buttongroupcontrol.buttonplanmowall,
                             buttongroupcontrol.buttonmowsettings,
-                            buttongroupcontrol.buttonsavenewtask,
                             buttongroupcontrol.buttoncancel,
                             ], className='text-center'),
                     ], xs=12, sm=6, lg=6),
@@ -40,11 +39,6 @@ def update_layout() -> html.Div:
                             dbc.Col([
                                 html.Div([
                                     choosetask.choosetask,
-                            ], className='text-center'),
-                            ]),
-                            dbc.Col([
-                                html.Div([
-                                    
                                 ], className='text-center'),
                             ]),
                         ], justify='evenly'),
