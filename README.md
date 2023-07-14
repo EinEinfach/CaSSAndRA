@@ -276,6 +276,32 @@ Klickt auf das Zahnradsysmbol. Es können diverse Mäheinstellungen vorgenommen 
 ### Auswahl abbrechen
 Klickt auf das Symbol mit dem X (rechts neben der Zahnradsymbol) so wird die ausgewählte, nicht gestartete Aufgabe abgebrochen
 
+## Taksplanner
+Klickt auf Burgermenü und wählt Taskplanner. 
+
+### Erstellen einer Aufgabe
+Sollte bereits eine Aufgabe geladen sein, dann klickt auf das Blattpapier-Button mit dem Plus Zeichen im "saved tasks" Bereich. Benutzt das Zahnrad um die Mäheinstellungen für die geplannte Aufgabe anzupassen. Klickt anschliessend auf den Button Karte (links neben dem Zahnradsymbol) für die Aufgabe auf der ganzen Karte oder selektiert mit Lasso-Werkzeug oder Boxselect-Werkzeug den gewünschten Bereich auf der Karte. Ein Vorschau der Aufgabe erscheint in rot. Um die Aufgabe zu speichern klickt im Bereich "saved tasks" auf die Wolke mit dem Plus Zeichen. Gibt der Aufgabe einen eindeutigen Namen. Jetzt kann die Aufgabe im Dropdown Menü ausgewählt werden.
+
+![create_task](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/create_task.jpeg) 
+
+### Aufgabe erweitern
+Soll eine bestehende Aufgabe erweitert werden. Wählt im Dropdownmenü die zu ändernde Aufgabe. Diese erscheint grün auf der Karte. Erzeugt zusätzliche Aufgabe wie unter "Erstellen einer Aufgabe" beschrieben eine zusätzliche Aufgabe. Diese erscheint rot auf der Karte. Speichert die Aufgabe unter einem neune Namen in dem Ihr auf die Wolke mit dem Plus Zeichen drückt.
+
+![extend_task](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/extend_task.jpeg) 
+
+### Aufgabe starten
+Wählt im Dropdown Menü die gewünschte Aufgabe. Klickt auf die Wolke mit dem ausgehenden Pfeil im "saved tasks" Bereich
+
+### Aufgabe löschen
+Wählt im Dropdown Menü zu löschende Aufgabe. Klickt auf die Wolke mit Minus Zeichen im "saved tasks" Bereich
+
+### Allgemeine Hinweise zum Taskplanner
+Die Aufgaben sind aktuell geladednen Karte zugeordnet, sollte diese Umgeschaltet werden, stehe die Aufgaben erst dann zur Verfügung wenn die Karte wieder geladen ist.
+
+Wird eine Karte gelöscht, so werden ohne Vorwarnung auch alle Aufgaben gelöscht, die mit dieser Karte erstellt wurden
+
+Der Taskplanner rechnen die Mähwege immer neue nach dem die Aufgabe gestartet wurde. Es werden keine gespeicherten Wege geladen. Je nach Umfang der Aufgabe und die Leistung eures Rechners kann das einige Zeit in Anspruch nehmen
+
 ## Update
 Die App wird von mir in kleinen Schritten verbessert bzw. die gemeldeten Probleme behoben. Um die Änderungen auch bei euch produktiv zu schalten, geht beim Update wie folgt vor. 
 1. Sichert euren /src/data Ordner
