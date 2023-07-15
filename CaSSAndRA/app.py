@@ -1,4 +1,4 @@
-#Version:0.46.0 -> Take mowarea = no into account for lines and squares calculation
+#Version:0.47.0 -> Lasso Select and Box Select have to be confirmed on taskplanner page to trigger pathplanner
 
 # create logger
 import logging

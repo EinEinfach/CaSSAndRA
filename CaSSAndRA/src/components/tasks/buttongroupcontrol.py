@@ -9,5 +9,7 @@ buttonplanmowall = dbc.Button(id=ids.BUTTONPLANMOWALL, size='lg', class_name='me
 
 buttonmowsettings = dbc.Button(id=ids.BUTTONPLANMOWSETTINGS, size='lg', class_name='me-1 mt-1 bi bi-gear-fill', disabled=False, title='temporarly mow settings')
 
+buttonconfirmselection = dbc.Button(id=ids.BUTTONCONFIRMSELECTION, size='lg', class_name='me-1 mt-1 bi bi-check-square-fill', disabled=False, title='confirm selection')
+
 buttoncancel = dbc.Button(id=ids.BUTTONPLANCANCEL, size='lg', class_name='me-1 mt-1 bi bi-x-square-fill', disabled=False, title='cancel')
 

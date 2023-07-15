@@ -12,14 +12,16 @@ from src.backend.data import saveddata
 @callback(Output(ids.TASKMAP, 'figure'),
           [Input(ids.BUTTONPLANNEWTASK, 'n_clicks'),
            Input(ids.BUTTONPLANMOWALL, 'n_clicks'),
+           Input(ids.BUTTONCONFIRMSELECTION, 'n_clicks'),
            Input(ids.BUTTONPLANCANCEL, 'n_clicks'),
-           Input(ids.TASKMAP, 'selectedData'),
            Input(ids.MODALSAVECURRENTTASK, 'is_open'),
            Input(ids.MODALREMOVETASK, 'is_open'),
            Input(ids.DROPDOWNCHOOSETASK, 'value'), 
-           Input(ids.BUTTONREMOVETASK, 'n_clicks')])
-def update(bpnt_nclicks: int, bpma_nclicks: int, bpc_nclicks: int, selecteddata: dict, 
-           save_is_open: bool, remove_is_open: bool, selected_task: str, brt_nclicks: int) -> list:
+           Input(ids.BUTTONREMOVETASK, 'n_clicks'),
+           State(ids.TASKMAP, 'selectedData'),])
+def update(bpnt_nclicks: int, bpma_nclicks: int, bpc_nclicks: int, bcs_nclicks: int, 
+           save_is_open: bool, remove_is_open: bool, selected_task: str, brt_nclicks: 
+           int, selecteddata: dict,) -> list:
 
     traces = []
     annotation = []
@@ -40,7 +42,7 @@ def update(bpnt_nclicks: int, bpma_nclicks: int, bpc_nclicks: int, selecteddata:
     #Check interactions with graph and create a task for selected zone
     if selecteddata == {'points':[]}: #Workaround for selected data, beacause after select selected data changing to {'poonts':[]} and triggering context_id
         selecteddata = None
-    if context_triggered[0]['prop_id'] == ids.TASKMAP+'.selectedData' and selecteddata:
+    if context == ids.BUTTONCONFIRMSELECTION and selecteddata: #context_triggered[0]['prop_id'] == ids.TASKMAP+'.selectedData' and selecteddata:
         current_task.preview = pd.DataFrame()
         perimeter_preview = current_map.perimeter_polygon
         current_task.selected_perimeter = map.selection(perimeter_preview, selecteddata)

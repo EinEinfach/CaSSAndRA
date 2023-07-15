@@ -31,6 +31,7 @@ def update_layout() -> html.Div:
                         html.Div([
                             buttongroupcontrol.buttonplanmowall,
                             buttongroupcontrol.buttonmowsettings,
+                            buttongroupcontrol.buttonconfirmselection,
                             buttongroupcontrol.buttoncancel,
                             ], className='text-center'),
                     ], xs=12, sm=6, lg=6),
