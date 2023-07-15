@@ -1,4 +1,4 @@
-#Version:0.47.0 -> Lasso Select and Box Select have to be confirmed on taskplanner page to trigger pathplanner
+#Version:0.47.1 -> Fix mowarea = no also for squares pattern
 
 # create logger
 import logging

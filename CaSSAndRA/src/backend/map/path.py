@@ -78,16 +78,13 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         route = map.turn(route, -parameters.angle)
         route = list(route.coords)
 
-    if parameters.pattern == 'squares':
+    if parameters.pattern == 'squares' and parameters.mowarea == 'yes':
         last_coord = route[-1]
         last_coord = Point(last_coord)
         last_coord = map.turn(last_coord, parameters.angle+90)
         selected_area_turned = map.turn(selected_perimeter, parameters.angle+90)
         area_to_mow, border = map.border(selected_area_turned, parameters.distancetoborder, parameters.width)
-        if parameters.mowarea == 'yes':
-            line_mask = map.linemask(area_to_mow, parameters.width)
-        else:
-            line_mask = MultiLineString()
+        line_mask = map.linemask(area_to_mow, parameters.width)
         route2 = lines.calcroute(area_to_mow, border, line_mask, [], list(last_coord.coords), parameters, parameters.angle+90)
         route2 = map.turn(route2, -parameters.angle-90)
         route.extend(list(route2.coords))
