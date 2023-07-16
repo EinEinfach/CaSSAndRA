@@ -15,7 +15,7 @@ dash.register_page(
 )
 
 def update_layout() -> html.Div:
-    return html.Div([
+    return dbc.Container([
             dbc.Row([
                 dbc.Col([
                     dbc.Row(id=ids.STATESTRING),
@@ -53,6 +53,6 @@ def update_layout() -> html.Div:
                     ])
                 ], xs=12, sm=6, lg=6)
             ]),
-    ])
+    ], fluid=True)
 
 layout = update_layout()

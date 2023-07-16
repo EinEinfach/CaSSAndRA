@@ -14,7 +14,7 @@ dash.register_page(
 )
 
 def update_layout() -> html.Div:
-    return html.Div([
+    return dbc.Container([
             dbc.Row([
                 dbc.Col([
                     html.Div(className='loader-wrapper', 
@@ -62,6 +62,6 @@ def update_layout() -> html.Div:
                 modal.nofixsolution,
                 html.Div(id=ids.MAPPINGHIDDEN, style={'display': 'none'}),
                 ])
-            ])
+            ], fluid=True)
 
 layout = update_layout()
