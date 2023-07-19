@@ -1,4 +1,4 @@
-#Version:0.47.1 -> Fix mowarea = no also for squares pattern
+#Version:0.47.2 -> Bugfix remove perimeter 
 
 # create logger
 import logging

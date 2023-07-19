@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 from .. import ids
 from . import buttons
 from src.backend.data import saveddata
-from src.backend.data.mapdata import current_map, mapping_maps, current_task
+from src.backend.data.mapdata import current_map, mapping_maps, current_task, tasks
 from src.backend.data.roverdata import robot
 
 sunrayimportstatus = dbc.Modal(
@@ -180,7 +180,7 @@ def remove_perimeter(brp_n_clicks: int, bok_n_clicks,
                      selected_perimeter: str(), is_open: bool) -> bool:
     context = ctx.triggered_id
     if context == ids.OKBUTTONREMOVEPERIMETER:
-        saveddata.remove_perimeter(mapping_maps.saved, selected_perimeter)
+        saveddata.remove_perimeter(mapping_maps.saved, selected_perimeter, tasks.saved, tasks.saved_parameters)
     if brp_n_clicks or bok_n_clicks:
         return not is_open
     return is_open

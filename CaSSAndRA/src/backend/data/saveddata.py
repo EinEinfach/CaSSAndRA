@@ -234,7 +234,7 @@ def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimet
     else:
         logger.info('Backend: Could not save perimeter. Perimeter name is already exsist.')
 
-def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str()) -> None:
+def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), tasks_arr: pd.DataFrame, tasks_parameters_arr) -> None:
     absolute_path = os.path.dirname(__file__)
     try:
         with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
@@ -248,7 +248,7 @@ def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str()) -> None
         perimeter_arr = perimeter_arr[perimeter_arr['name'] != perimeter_name]
         perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), indent=2, date_format='iso')
         #remove also tasks belong to this map
-        remove_task(tasks.saved, '', perimeter_name)
+        remove_task(tasks_arr, tasks_parameters_arr, '', perimeter_name)
         logger.info('Backend: Perimeter is successfully removed from perimeter.json')
         mapping_maps.saved = perimeter_arr
         mapping_maps.select_saved(pd.DataFrame(columns=['X', 'Y', 'type', 'name']))
