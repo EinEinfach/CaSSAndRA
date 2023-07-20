@@ -42,7 +42,7 @@ def update(n_intervals: int) -> html.Div():
         colorsoc = 'danger'
         inversesoc = True
 
-    return html.Div([
+    return dbc.Container([
             dbc.Row([
                 dbc.Col([
                     dbc.Card([
@@ -76,7 +76,7 @@ def update(n_intervals: int) -> html.Div():
                         dbc.CardHeader('SoC'),
                         dbc.CardBody([
                             dbc.Row(html.Small('{}%'.format(robot.soc))),
-                            dbc.Row(html.Small(['{}V'.format(robot.battery_voltage)+' '+'{}A'.format(robot.amps)], style={'font-size': '9px'}))
+                            dbc.Row(html.Small(['{}V'.format(round(robot.battery_voltage, 1))+' '+'{}A'.format(round(robot.amps, 1))], style={'font-size': '9px'}))
                             ]),
                     ],
                     className="text-center m-1 w-33 h-95",
@@ -86,4 +86,4 @@ def update(n_intervals: int) -> html.Div():
                 ])
             ]),
             
-        ])
+        ], fluid=True)

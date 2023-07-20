@@ -1,4 +1,4 @@
-#Version:0.47.2 -> Bugfix remove perimeter 
+#Version:0.48.0 -> Switch in state dbc.Cards to dbc.Container, round values in State dbc.Card
 
 # create logger
 import logging
