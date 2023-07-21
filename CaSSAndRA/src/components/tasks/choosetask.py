@@ -10,12 +10,13 @@ choosetask = dbc.Col([
                         dbc.CardHeader('Saved tasks'),
                         dbc.CardBody([
                             dcc.Dropdown(id=ids.DROPDOWNCHOOSETASK, className='m-1'),
-                            dbc.Row([
-                                dbc.Col(buttons.starttask),
-                                dbc.Col(buttons.plannewtask),
-                                dbc.Col(buttons.savenewtask),
-                                dbc.Col(buttons.removetask)   
-                            ], justify='center'),                      
+                            dbc.Container([
+                                    buttons.starttask,
+                                    buttons.loadtask,
+                                    buttons.plannewtask,
+                                    buttons.savenewtask,
+                                    buttons.removetask    
+                            ], fluid=True),                     
                         ]), 
                     ], className='text-center m-1 w-90')
                 ])

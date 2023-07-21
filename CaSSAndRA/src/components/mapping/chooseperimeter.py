@@ -11,12 +11,12 @@ chooseperimeter = dbc.Col([
                         dbc.CardHeader('Saved perimeters'),
                         dbc.CardBody([
                             dcc.Dropdown(id=ids.DROPDOWNCHOOSEPERIMETER, className='m-1'),
-                            dbc.Row([
-                                dbc.Col(buttons.selectperimeter),
-                                dbc.Col(buttons.addnewperimeter),
-                                dbc.Col(buttons.copyperimeter),
-                                dbc.Col(buttons.removeperimeter)   
-                            ], justify='center'),                      
+                            dbc.Container([
+                                buttons.selectperimeter,
+                                buttons.addnewperimeter,
+                                buttons.copyperimeter,
+                                buttons.removeperimeter   
+                            ], fluid=True),                      
                         ]), 
                     ], className='text-center m-1 w-90')
                 ])

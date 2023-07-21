@@ -6,7 +6,7 @@ import pandas as pd
 
 #local imports
 from src.components import ids, modaltaskmowsettings
-from src.components.tasks import map, buttongroupcontrol, modal, choosetask
+from src.components.tasks import map, buttongroupcontrol, modal, choosetask, tasksorder
 
 dash.register_page(
     __name__,
@@ -35,15 +35,28 @@ def update_layout() -> html.Div:
                             buttongroupcontrol.buttoncancel,
                             ], className='text-center'),
                     ], xs=12, sm=6, lg=6),
-                    dbc.Col([   
+                    dbc.Col([
                         dbc.Row([
-                            dbc.Col([
-                                html.Div([
-                                    choosetask.choosetask,
-                                ], className='text-center'),
-                            ]),
-                        ], justify='evenly'),
-                    ], xs=12, sm=6, lg=6),
+                            dbc.Col([   
+                                dbc.Row([
+                                    dbc.Col([
+                                        html.Div([
+                                            choosetask.choosetask,
+                                        ], className='text-center'),
+                                    ]),
+                                ], justify='evenly'),
+                            ], xs=12, sm=6, lg=6),
+                            dbc.Col([   
+                                dbc.Row([
+                                    dbc.Col([
+                                        html.Div([
+                                            tasksorder.tasksorder,
+                                        ], className='text-center'),
+                                    ]),
+                                ], justify='evenly'),
+                            ], xs=12, sm=6, lg=6),   
+                        ]),
+                    ]),
                 ]),
                 modaltaskmowsettings.mowsettings,     
                 modal.savecurrenttask,  

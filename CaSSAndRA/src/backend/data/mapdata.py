@@ -473,6 +473,8 @@ class Task:
     parameters: PathPlannerCfg = pathplannercfg
     subtasks: pd.DataFrame = pd.DataFrame()
     subtasks_parameters: pd.DataFrame = pd.DataFrame()
+    tasks_order: pd.DataFrame = pd.DataFrame()
+    tasks_order_parameters: pd.DataFrame = pd.DataFrame()
 
     def calc_route_preview(self, route: list()) -> None:
         self.preview = pd.DataFrame(route)
@@ -518,6 +520,8 @@ class Task:
         self.parameters = dict() 
         self.subtasks = pd.DataFrame()
         self.subtasks_parameters = pd.DataFrame()
+        self.tasks_order = pd.DataFrame()
+        self.tasks_order_parameters = pd.DataFrame()
 
 @dataclass
 class Tasks:

@@ -44,14 +44,14 @@ def update_layout() -> html.Div:
                             html.Div([
                                 chooseperimeter.chooseperimeter,
                         ], className='text-center'),
-                        ]),
+                        ], xs=12, sm=6, lg=6),
                         dbc.Col([
                             html.Div([
                                 uploadsunray.uploadsunray,
                             ], className='text-center'),
-                        ]),
+                        ], xs=12, sm=6, lg=6),
                     ], justify='evenly'),
-                ], xs=12, sm=6, lg=6),
+                ]),
                 modal.sunrayimportstatus,
                 modal.overwriteperimter,
                 modal.newperimeter,

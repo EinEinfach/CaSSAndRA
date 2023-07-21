@@ -1,4 +1,4 @@
-#Version:0.48.0 -> Switch in state dbc.Cards to dbc.Container, round values in State dbc.Card
+#Version:0.49.0 -> Tasks order in tasksplanner
 
 # create logger
 import logging
