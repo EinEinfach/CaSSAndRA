@@ -121,7 +121,7 @@ def update(bpnt_nclicks: int, bpma_nclicks: int, bpc_nclicks: int, bcs_nclicks: 
                 elif preview_color['color'] == 'blue':
                     preview_color = dict(color='orange')
                 else:
-                    preview_color = dict(color='7fb249')
+                    preview_color = dict(color='#7fb249')
             for i in range(len(current_task.subtasks[current_task.subtasks['name'] == task_name]['task nr'].unique())):
                 filtered = current_task.subtasks[(current_task.subtasks['name'] == task_name) & (current_task.subtasks['task nr'] == i) & (current_task.subtasks['type'] == 'preview route')]
                 traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='subtask', opacity=0.7, line=preview_color))

@@ -1,4 +1,4 @@
-#Version:0.49.0 -> Tasks order in tasksplanner
+#Version:0.49.1 -> Fix issure with wrong hex value for color in tasks map
 
 # create logger
 import logging
