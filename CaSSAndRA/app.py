@@ -1,4 +1,4 @@
-#Version:0.49.2 -> Fix issure where preload task doesn't trigger map upload
+#Version:0.49.3 -> Fix issure where switch map doesn't trigger map upload
 
 # create logger
 import logging
