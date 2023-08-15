@@ -1,4 +1,4 @@
-#Version:0.49.1 -> Fix issure with wrong hex value for color in tasks map
+#Version:0.49.2 -> Fix issure where preload task doesn't trigger map upload
 
 # create logger
 import logging

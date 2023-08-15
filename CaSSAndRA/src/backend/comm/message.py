@@ -98,7 +98,11 @@ def check() -> pd.DataFrame():
         msg_pckg = cmdtorover.skipnextpoint()
         robot.last_mow_status = checkmowmotor(msg_pckg, robot.last_mow_status)
         cmdlist.cmd_skipnextpoint = False
-
+    
+    elif cmdlist.cmd_take_map:
+        msg_pckg = cmdtorover.takemap(current_map.perimeter, current_map.mowpath, dock=True)
+        cmdlist.cmd_take_map = False
+        
     else:
         msg_pckg = pd.DataFrame()
 

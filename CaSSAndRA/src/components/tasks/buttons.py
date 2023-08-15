@@ -40,6 +40,9 @@ def load_selected_task(blst_nclicks: int) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONLOADSELECTEDTASK:
         path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
+        current_map.mowpath = current_map.preview
+        current_map.mowpath['type'] = 'way'
+        cmdlist.cmd_take_map = True
     return False
 
 @callback(Output(ids.BUTTONSTARTSELECTEDTASK, 'disabled'),
@@ -77,6 +80,9 @@ def load_selected_tasks_order(blsto_nclicks: int) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONLOADSELECTEDTASKSORDER:
         path.calc_task(current_task.tasks_order, current_task.tasks_order_parameters)
+        current_map.mowpath = current_map.preview
+        current_map.mowpath['type'] = 'way'
+        cmdlist.cmd_take_map = True
     return False
 
 @callback(Output(ids.BUTTONSTARTSELECTEDTASKSORDER, 'disabled'),
