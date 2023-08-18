@@ -54,7 +54,7 @@ class Mower:
     def set_state(self, state: pd.DataFrame()) -> None:
         state = state.iloc[-1]
         self.speed = self.calc_speed(state['position_x'], state['position_y'], self.timestamp)
-        self.direction = self.calc_direction(state['position_x'], state['position_y'])
+        self.direction = self.calc_direction()
         self.rover_image = self.set_rover_image()
         self.battery_voltage = round(state['battery_voltage'], 2)
         self.position_x = round(state['position_x'], 2)
@@ -91,39 +91,12 @@ class Mower:
             speed = 0
         return speed
     
-    def calc_direction(self, position_x: float, position_y: float) -> float:
-        timedelta = datetime.now() - self.timestamp
-        timedelta_seconds = timedelta.total_seconds()
-        delta_x = position_x - self.position_x
-        delta_y = position_y - self.position_y
-        distance = (delta_x**2 + delta_y**2)**(1/2)
-        #avoid jumping of angle
-        if distance < 0.05:
-            self.backwards = False
-            return self.direction
-        #if docked no change of angle need
-        if self.job == 2:
-            return self.direction
-        #calc new angle
-        direction_rad = math.atan2(delta_y, delta_x)
+    def calc_direction(self) -> float:
+        if self.position_delta < 0:
+            direction_rad = self.position_delta + 2*math.pi
+        else:
+            direction_rad = self.position_delta
         direction_deg = round(direction_rad*(180/math.pi))
-        if direction_deg < 0:
-            direction_deg = round(360 + direction_deg)
-        #check if time between messages to long, reset backwards movement
-        if timedelta_seconds > 3:
-            self.backwards = False
-            return direction_deg
-        #check for angular speed (if to high, then backwards movement)
-        logger.debug('Calced angle speed: '+str(abs(direction_deg-self.direction)/(timedelta_seconds))+' Timedelta: '+str(timedelta_seconds))
-        logger.debug('Calced angle: '+str(direction_deg))
-        if (abs(direction_deg-self.direction)/(timedelta_seconds)) > 50 and self.backwards == False:
-            self.backwards = True
-            if direction_deg >= 180:
-                direction_deg = direction_deg - 180
-            else:
-                direction_deg = direction_deg + 180
-        elif (abs(direction_deg-self.direction)/(timedelta_seconds)) > 60 and self.backwards == True:
-            self.backwards = False
         return direction_deg
 
     def calc_status(self) -> str():

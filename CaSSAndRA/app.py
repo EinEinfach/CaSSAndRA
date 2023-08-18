@@ -1,4 +1,4 @@
-#Version:0.49.4 -> Fix issue whith incomplete map data transimission. Now cassandra waiting for correct mapCRC before start
+#Version:0.50.0 -> Rover angle comming now from Sunray FW. Added some debug messages
 
 # create logger
 import logging
