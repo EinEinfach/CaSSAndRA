@@ -54,7 +54,7 @@ def cmd_to_rover(connect_data: dict(), connection: list()) -> int():
             logger.debug('Encryption: true')
             data_ascii = [ord(c) for c in data]
             data_encrypt = [x + encryptkey for x in data_ascii]
-            data_encrypt = [x - 126 + 31 if x>=126 else x for x in data_encrypt]
+            data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))  
         try:
             logger.debug('Data to be send: '+data)

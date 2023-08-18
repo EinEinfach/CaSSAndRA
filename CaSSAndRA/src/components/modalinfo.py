@@ -3,10 +3,14 @@ import dash_bootstrap_components as dbc
 
 from . import ids
 from src.backend.data.roverdata import robot
+from src.backend.data import appdata
 
 info = dbc.Modal([
                 dbc.ModalHeader(dbc.ModalTitle('Info')),
                 dbc.ModalBody(id=ids.MODALINFOBODY),
+                dbc.ModalFooter([
+                    html.Div(['CaSSAndRA Version: '+appdata.version], style={'font-size': '10px'})
+                ])
             ],
             id=ids.MODALINFO, 
             is_open=False,

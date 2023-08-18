@@ -1,4 +1,4 @@
-#Version:0.50.0 -> Rover angle comming now from Sunray FW. Added some debug messages
+#Version:0.50.1 -> Bug fix in http encryption connection. Cassandra encrypt ASCII 126 with invalid value
 
 # create logger
 import logging
