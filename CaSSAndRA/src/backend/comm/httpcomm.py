@@ -81,7 +81,7 @@ def connect_http(connect_data: dict()) -> list:
         res = requests.post(url=connect_data['HTTP'][0]['IP'], headers=Headers, data=data+'\n', timeout=2)
         logger.debug('Status code: '+str(res.status_code))
         logger.debug('Content: '+res.text)
-        if res.status_code == 200 and 'V,' in res.text:
+        if res.status_code == 200 and 'V,' in res.text and res.text[0] == 'V':
             reslist = res.text.split(',')
             encrypt = int(reslist[3])
             encryptchallenge = int(reslist[4])

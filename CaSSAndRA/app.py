@@ -1,4 +1,4 @@
-#Version:0.50.1 -> Bug fix in http encryption connection. Cassandra encrypt ASCII 126 with invalid value
+#Version:0.50.2 -> Bug fix http mode, if all responses stacked in one message
 
 # create logger
 import logging
