@@ -24,21 +24,17 @@ buttongo = dbc.Button(id=ids.BUTTONGO, size='lg', class_name='mx-1 mt-1 bi bi-pl
 buttonstop = dbc.Button(id=ids.BUTTONSTOP, size='lg', class_name='mx-1 mt-1 bi bi-stop-fill', color='danger', disabled=False, title='stop')
 
 #Create state of buttons
-@callback(Output(ids.BUTTONHOME, 'active'),
-          Output(ids.BUTTONMOWALL, 'active'),
-           Output(ids.BUTTONZONESELECT, 'active'),
-           Output(ids.BUTTONGOTO, 'active'),
-          [Input(ids.BUTTONHOME, 'n_clicks'),
-           Input(ids.BUTTONMOWALL, 'n_clicks'),
-           Input(ids.BUTTONZONESELECT, 'n_clicks'),
-           Input(ids.BUTTONGOTO, 'n_clicks'),
-           Input(ids.BUTTONCANCEL, 'n_clicks'),
-           Input(ids.BUTTONGO, 'n_clicks'),
-           Input(ids.BUTTONSTOP, 'n_clicks')])
-def update_button_active(n_clicks_bh: int, n_clicks_bma: int,
-                              n_clicks_bzs: int, n_clicks_bgt: int,
-                              n_clicks_bc: int, n_clicks_bgo: int,
-                              n_clicks_bs: int) -> bool:
+@callback(Output(ids.BUTTONHOME, 'active'), Output(ids.BUTTONMOWALL, 'active'),
+          Output(ids.BUTTONZONESELECT, 'active'), Output(ids.BUTTONGOTO, 'active'),
+          [Input(ids.BUTTONHOME, 'n_clicks'), Input(ids.BUTTONMOWALL, 'n_clicks'),
+           Input(ids.BUTTONZONESELECT, 'n_clicks'), Input(ids.BUTTONGOTO, 'n_clicks'),
+           Input(ids.BUTTONCANCEL, 'n_clicks'), Input(ids.BUTTONSTOP, 'n_clicks'),
+           Input(ids.INTERVAL, 'n_intervals'),
+           State(ids.BUTTONHOME, 'active'), State(ids.BUTTONMOWALL, 'active'),
+           State(ids.BUTTONZONESELECT, 'active'), State(ids.BUTTONGOTO, 'active')])
+def update_button_active(n_clicks_bh: int, n_clicks_bma: int, n_clicks_bzs: int, n_clicks_bgt: int,
+                         n_clicks_bc: int, n_clicks_bs: int, n_intervals: int,
+                         bh_state: bool, bma_state: bool, bzs_state: bool, bgt_state: bool) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONHOME:
         if n_clicks_bh > 0 :
@@ -60,8 +56,13 @@ def update_button_active(n_clicks_bh: int, n_clicks_bma: int,
             return False, False, False, True
         else:
             return False, False, False, False
-    else:
+    elif context == ids.BUTTONSTOP:
         return False, False, False, False
+    elif context == ids.INTERVAL and (robot.job == 1 or robot.job == 4):
+        return False, False, False, False
+    else:
+        return bh_state, bma_state, bzs_state, bgt_state
+    
 
 #Perform command
 @callback(Output(ids.BUTTONGO, 'active'),

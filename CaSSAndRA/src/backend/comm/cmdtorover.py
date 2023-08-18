@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 import numpy as np
 import pandas as pd
 
-from .. data import mapdata
+from .. data.mapdata import current_map
 from .. data.roverdata import robot
 from .. data.cfgdata import rovercfg
 from . import cmdlist
@@ -18,8 +18,8 @@ def takemap(perimeter: pd.DataFrame(), way: pd.DataFrame(), dock: bool) -> pd.Da
 
     data = pd.concat([perimeter, way], ignore_index=True)
     
-    #Create AT+W messages
     data = data.round(2)
+    #Create AT+W messages
     amount_of_packages = data.index//30
     data['package_nr'] = amount_of_packages
     data['coords'] = ','+data['X'].astype(str)+','+data['Y'].astype(str) 

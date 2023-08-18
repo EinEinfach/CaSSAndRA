@@ -1,4 +1,4 @@
-#Version:0.49.3 -> Fix issure where switch map doesn't trigger map upload
+#Version:0.49.4 -> Fix issue whith incomplete map data transimission. Now cassandra waiting for correct mapCRC before start
 
 # create logger
 import logging
@@ -22,7 +22,7 @@ from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 # local imports
-from src.components import ids, navbar, offcanvas, modalremotecontrol, modalinfo
+from src.components import ids, navbar, offcanvas, modalremotecontrol, modalinfo, modalerror
 from src.backend import backendserver
 
 def serve_layout() -> html.Div:
@@ -34,6 +34,7 @@ def serve_layout() -> html.Div:
             offcanvas.offcanvas,
             modalremotecontrol.confirm,
             modalinfo.info,
+            modalerror.mapuploadfailed,
             dash.page_container
             #footer
         ]) 

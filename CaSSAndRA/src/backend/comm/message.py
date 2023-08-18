@@ -2,8 +2,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 import pandas as pd
+import time
 
-from src.backend.data import mapdata
+from src.backend.data.mapdata import current_map
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import current_map
 from . import cmdtorover, cmdlist
@@ -28,35 +29,93 @@ def check() -> pd.DataFrame():
         msg_pckg = cmdtorover.move([robot.cmd_move_lin, robot.cmd_move_ang])  
 
     elif cmdlist.cmd_goto:
-        map_msg = cmdtorover.takemap(current_map.perimeter, current_map.gotopoint, dock=False)
-        goto_msg = cmdtorover.goto()
-        msg_pckg = pd.concat([map_msg, goto_msg], ignore_index=True)
-        robot.current_task = current_map.gotopoint
-        robot.last_cmd = goto_msg
-        robot.last_task_name = 'go to'
-        robot.last_mow_status = checkmowmotor(goto_msg, robot.last_mow_status)
-        cmdlist.cmd_goto = False
+        #Calc mapCRC
+        time.sleep(cmdlist.cmd_take_map_attempt*2)
+        perimeter_no_dockpath = current_map.perimeter[current_map.perimeter['type'] != 'dockpoints']
+        data = pd.concat([perimeter_no_dockpath, current_map.gotopoint], ignore_index=True)
+        mapCRCx = data['X']*100 
+        mapCRCy = data['Y']*100
+        current_map.map_crc = int(mapCRCx.sum() + mapCRCy.sum())
+        if (current_map.map_crc == None or abs(current_map.map_crc - robot.map_crc) > 100) or cmdlist.cmd_take_map_attempt == 0:
+            if cmdlist.cmd_take_map_attempt >= 5:
+                logger.warning('Backend: Could not upload map to the rover')
+                cmdlist.cmd_take_map_attempt = 0
+                cmdlist.cmd_failed = True
+                cmdlist.cmd_goto = False
+                return pd.DataFrame()
+            logger.debug('Current map crc does not match rover crc, initiate map upload')
+            cmdlist.cmd_take_map_attempt = cmdlist.cmd_take_map_attempt + 1
+            map_msg = cmdtorover.takemap(current_map.perimeter, current_map.gotopoint, dock=False)
+            msg_pckg = map_msg
+        else:
+            logger.debug('Current map crc matches rover map crc, perform goto command')
+            cmdlist.cmd_take_map_attempt = 0
+            goto_msg = cmdtorover.goto()
+            msg_pckg = goto_msg
+            robot.current_task = current_map.gotopoint
+            robot.last_cmd = goto_msg
+            robot.last_task_name = 'go to'
+            robot.last_mow_status = checkmowmotor(goto_msg, robot.last_mow_status)
+            cmdlist.cmd_goto = False
 
     elif cmdlist.cmd_dock:
-        map_msg = cmdtorover.takemap(current_map.perimeter, pd.DataFrame(), dock=True)
-        dock_msg = cmdtorover.dock()
+        #Calc mapCRC
+        time.sleep(cmdlist.cmd_take_map_attempt*2)
         if robot.last_task_name == 'go to':
-            msg_pckg = pd.concat([map_msg, dock_msg], ignore_index=True)
+            data = current_map.perimeter
+            mapCRCx = data['X']*100 
+            mapCRCy = data['Y']*100
+            current_map.map_crc = int(mapCRCx.sum() + mapCRCy.sum())
+            if current_map.map_crc == None or abs(current_map.map_crc - robot.map_crc) > 100:
+                if cmdlist.cmd_take_map_attempt >= 5:
+                    logger.warning('Backend: Could not upload map to the rover')
+                    cmdlist.cmd_take_map_attempt = 0
+                    cmdlist.cmd_failed = True
+                    cmdlist.cmd_dock = False
+                    return pd.DataFrame()
+                map_msg = cmdtorover.takemap(current_map.perimeter, pd.DataFrame(), dock=True)
+                msg_pckg = map_msg
+            else:
+                logger.debug('Current map crc matches rover map crc, perform dock command')
+                cmdlist.cmd_take_map_attempt = 0
+                dock_msg = cmdtorover.dock()   
+                msg_pckg = dock_msg
+                robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
+                cmdlist.cmd_dock = False
         else:
+            dock_msg = cmdtorover.dock()   
             msg_pckg = dock_msg
-        #robot.last_cmd = dock_msg
-        robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
-        cmdlist.cmd_dock = False
+            robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
+            cmdlist.cmd_dock = False
     
     elif cmdlist.cmd_mow:
-        map_msg = cmdtorover.takemap(current_map.perimeter, current_map.mowpath, dock=True)
-        mow_msg = cmdtorover.mow()
-        msg_pckg = pd.concat([map_msg, mow_msg], ignore_index=True)
-        robot.current_task = current_map.mowpath
-        robot.last_cmd = mow_msg
-        robot.last_task_name = 'mow'
-        robot.last_mow_status = checkmowmotor(mow_msg, robot.last_mow_status)
-        cmdlist.cmd_mow = False
+        #Calc mapCRC
+        time.sleep(cmdlist.cmd_take_map_attempt*2)
+        data = pd.concat([current_map.perimeter, current_map.mowpath], ignore_index=True)
+        mapCRCx = data['X']*100 
+        mapCRCy = data['Y']*100
+        current_map.map_crc = int(mapCRCx.sum() + mapCRCy.sum())
+        if (current_map.map_crc == None or abs(current_map.map_crc - robot.map_crc) > 500) or cmdlist.cmd_take_map_attempt == 0:
+            if cmdlist.cmd_take_map_attempt >= 5:
+                logger.warning('Backend: Could not upload map to the rover')
+                cmdlist.cmd_take_map_attempt = 0
+                cmdlist.cmd_failed = True
+                cmdlist.cmd_mow = False
+                return pd.DataFrame()
+            logger.debug('Current map crc does not match rover crc, initiate map upload')
+            cmdlist.cmd_take_map_attempt = cmdlist.cmd_take_map_attempt + 1
+            map_msg = cmdtorover.takemap(current_map.perimeter, current_map.mowpath, dock=True)
+            msg_pckg = map_msg
+        else:
+            logger.debug('Current map crc matches rover map crc, perform mow command')
+            cmdlist.cmd_take_map_attempt = 0
+            mow_msg = cmdtorover.mow()
+            msg_pckg = mow_msg
+            robot.current_task = current_map.mowpath
+            robot.last_cmd = mow_msg
+            robot.last_task_name = 'mow'
+            robot.last_mow_status = checkmowmotor(mow_msg, robot.last_mow_status)
+            cmdlist.cmd_mow = False
     
     elif cmdlist.cmd_resume:
         msg_pckg = robot.last_cmd

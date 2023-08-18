@@ -18,6 +18,8 @@ cmd_changegotospeed = False
 cmd_skipnextpoint = False
 
 cmd_standby = ''
+cmd_take_map_attempt = 0
+cmd_failed = False
 
 
 

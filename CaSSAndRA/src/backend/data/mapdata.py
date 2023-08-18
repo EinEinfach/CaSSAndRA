@@ -30,6 +30,7 @@ class Perimeter:
     astar_graph: nx.Graph = nx.Graph()
     areatomow: float = 0
     distancetogo: float = 0
+    map_crc: int = None
 
     def set_gotopoint(self, clickdata: dict) -> None:
         goto = {'X':[clickdata['points'][0]['x']], 'Y':[clickdata['points'][0]['y']], 'type': ['way']}
@@ -207,6 +208,7 @@ class Perimeter:
         self.gotopoint = pd.DataFrame()
         self.areatomow = 0
         self.distancetogo = 0
+        self.map_crc = None
         self.save_map_name()
 
 @dataclass
