@@ -1,4 +1,4 @@
-#Version:0.52.0 -> Change buttons size for taskplanning to regular size
+#Version:0.52.1 -> Fix issue with not starting task after preload map
 
 # create logger
 import logging

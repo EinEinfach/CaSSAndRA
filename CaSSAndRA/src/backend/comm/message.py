@@ -163,9 +163,32 @@ def check() -> pd.DataFrame():
         cmdlist.cmd_skipnextpoint = False
     
     elif cmdlist.cmd_take_map:
-        msg_pckg = cmdtorover.takemap(current_map.perimeter, current_map.mowpath, dock=True)
-        cmdlist.cmd_take_map = False
-        
+        #Calc mapCRC
+        time.sleep(cmdlist.cmd_take_map_attempt*4)
+        data = pd.concat([current_map.perimeter, current_map.mowpath], ignore_index=True)
+        mapCRCx = data['X']*100 
+        mapCRCy = data['Y']*100
+        current_map.map_crc = int(mapCRCx.sum() + mapCRCy.sum())
+        map_crc_dev = abs(current_map.map_crc - robot.map_crc)
+        if map_crc_dev > 500 or cmdlist.cmd_take_map_attempt == 0:
+            if cmdlist.cmd_take_map_attempt >= 5:
+                logger.warning('Backend: Could not upload map to the rover')
+                cmdlist.cmd_take_map_attempt = 0
+                cmdlist.cmd_failed = True
+                cmdlist.cmd_take_map = False
+                return pd.DataFrame()
+            logger.debug('Current map crc does not match rover crc, initiate map upload. CRC deviation: '+str(map_crc_dev))
+            cmdlist.cmd_take_map_attempt = cmdlist.cmd_take_map_attempt + 1
+            map_msg = cmdtorover.takemap(current_map.perimeter, current_map.mowpath, dock=True)
+            msg_pckg = map_msg
+        else:
+            logger.debug('Current map crc matches rover map crc, stand by')
+            mow_msg = cmdtorover.mow()
+            robot.current_task = current_map.mowpath
+            robot.last_cmd = mow_msg
+            cmdlist.cmd_take_map_attempt = 0
+            cmdlist.cmd_take_map = False
+            msg_pckg = pd.DataFrame() 
     else:
         msg_pckg = pd.DataFrame()
 

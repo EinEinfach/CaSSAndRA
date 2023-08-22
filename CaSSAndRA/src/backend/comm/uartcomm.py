@@ -30,7 +30,7 @@ def connect_uart(connect_data: dict()) -> list():
         logger.info('Backend: UART Connection successfull')
         return ser, ser.is_open
     except:
-        logger.warning('Backend: UART Connection to the rover not possible.')
+        logger.warning('Backend: UART Connection to the rover is not possible.')
         return -1, False
 
 def on_state(data: str()):

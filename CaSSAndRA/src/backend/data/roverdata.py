@@ -44,6 +44,8 @@ class Mower:
     last_cmd: pd.DataFrame = pd.DataFrame([{'msg': 'AT+C,-1,-1,-1,-1,-1,-1,-1,-1'}])
     last_task_name: str = 'no task'
     current_task: pd.DataFrame = pd.DataFrame()
+    map_old_crc: int = None
+    map_changed: bool = False
     #frontend
     rover_image: Image = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png'))
     solution: str = 'invalid'
@@ -78,6 +80,7 @@ class Mower:
         self.status = self.calc_status()
         self.sensor_status = self.calc_sensor_status()
         self.position_age_hr = self.calc_position_age_hr()
+        self.check_map_changes()
     
     def calc_speed(self, position_x: float, position_y: float, timestamp) -> float:
         if self.job == 1 or self.job == 4:
@@ -263,6 +266,13 @@ class Mower:
             return Image.open(absolute_path+'rover0grad.png') 
         else:
             return Image.open(absolute_path+'rover0grad.png')
+    
+    def check_map_changes(self) -> None:
+        if self.map_crc != self.map_old_crc and self.map_old_crc != None:
+            self.map_old_crc = self.map_crc
+            self.map_changed = True
+        else:
+            self.map_old_crc = self.map_crc
             
 #define robot instance
 robot = Mower()

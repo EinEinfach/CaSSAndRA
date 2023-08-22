@@ -2,8 +2,6 @@ from dash import html, dcc, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
 
 from src.components import ids
-from src.backend.utils import file
-from src.backend.data import mapdata
 from src.backend.data.mapdata import mapping_maps
 from . import buttons
 
