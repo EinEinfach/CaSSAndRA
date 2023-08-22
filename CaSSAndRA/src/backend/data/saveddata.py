@@ -248,7 +248,7 @@ def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), tasks_a
         perimeter_arr = perimeter_arr[perimeter_arr['name'] != perimeter_name]
         perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), indent=2, date_format='iso')
         #remove also tasks belong to this map
-        remove_task(tasks_arr, tasks_parameters_arr, '', perimeter_name)
+        remove_task(tasks_arr, tasks_parameters_arr, [''], perimeter_name)
         logger.info('Backend: Perimeter is successfully removed from perimeter.json')
         mapping_maps.saved = perimeter_arr
         mapping_maps.select_saved(pd.DataFrame(columns=['X', 'Y', 'type', 'name']))
@@ -340,7 +340,7 @@ def read_tasks() -> None:
         logger.debug(str(e))
         return
 
-def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_name: str(), map_name: str()) -> None:
+def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_name: list(), map_name: str()) -> None:
     absolute_path = os.path.dirname(__file__)
     try:
         with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
@@ -351,7 +351,7 @@ def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_n
         logger.debug(str(e))
         return
     try:
-        if task_name == '':
+        if task_name[0] == '':
             task_arr = task_arr[task_arr['map name'] != map_name]
             task_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][1]['tasks']), indent=2, date_format='iso')
             logger.info('Backend: Tasks are successfully removed from tasks.json')
@@ -359,10 +359,10 @@ def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_n
             task_parameter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][2]['tasks_parameters']), indent=2, date_format='iso')
             logger.info('Backend: Tasks parameters are successfully removed from tasks_parameters.json')
         else:
-            task_arr = task_arr[(task_arr['name'] != task_name) & (task_arr['map name'] == map_name) | (task_arr['map name'] != map_name)]
+            task_arr = task_arr[(task_arr['name'] != task_name[0]) & (task_arr['map name'] == map_name) | (task_arr['map name'] != map_name)]
             task_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][1]['tasks']), indent=2, date_format='iso')
             logger.info('Backend: Task is successfully removed from tasks.json')
-            task_parameter_arr = task_parameter_arr[(task_parameter_arr['name'] != task_name) & (task_parameter_arr['map name'] == map_name) | (task_parameter_arr['map name'] != map_name)]
+            task_parameter_arr = task_parameter_arr[(task_parameter_arr['name'] != task_name[0]) & (task_parameter_arr['map name'] == map_name) | (task_parameter_arr['map name'] != map_name)]
             task_parameter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][2]['tasks_parameters']), indent=2, date_format='iso')
             logger.info('Backend: Task parameters are successfully removed from tasks_parameters.json')
         tasks.saved = task_arr
@@ -371,32 +371,6 @@ def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_n
     except Exception as e:
         logger.error('Backend: Could not remove task data from file')
         logger.debug(str(e))
-
-# def copy_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), cpy_perimeter_name: str()) -> None:
-#     if cpy_perimeter_name is None:
-#         logger.info('Backend: Could not copy perimeter. Perimeter name is not valid')
-#     elif not cpy_perimeter_name in perimeter_arr['name'].unique():
-#         absolute_path = os.path.dirname(__file__)
-#         try:
-#             with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-#                 path_to_data = json.load(f)
-#                 f.close()
-#         except Exception as e:
-#             logger.error('Backend: Could not save data to the file. Missing datacfg.json')
-#             logger.debug(str(e))
-#             return
-#         try:
-#             perimeter = perimeter_arr[perimeter_arr['name'] == perimeter_name]
-#             perimeter['name'] = cpy_perimeter_name
-#             perimeter_arr = pd.concat([perimeter_arr, perimeter], ignore_index=True)
-#             perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), indent=2, date_format='iso')
-#             logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
-#             mapping_maps.saved = perimeter_arr
-#         except Exception as e:
-#             logger.warning('Backend: Could not save perimeter data to the file')
-#             logger.debug(str(e))
-#     else:
-#         logger.info('Backend: Could not copy perimeter. Perimeter name is already exsist.')
 
 if __name__ == '__main__':
     read()

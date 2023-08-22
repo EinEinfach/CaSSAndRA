@@ -93,7 +93,7 @@ def check() -> pd.DataFrame():
     
     elif cmdlist.cmd_mow:
         #Calc mapCRC
-        time.sleep(cmdlist.cmd_take_map_attempt*2)
+        time.sleep(cmdlist.cmd_take_map_attempt*4)
         data = pd.concat([current_map.perimeter, current_map.mowpath], ignore_index=True)
         mapCRCx = data['X']*100 
         mapCRCy = data['Y']*100

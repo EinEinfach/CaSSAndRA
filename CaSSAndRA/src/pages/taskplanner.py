@@ -6,7 +6,7 @@ import pandas as pd
 
 #local imports
 from src.components import ids, modaltaskmowsettings
-from src.components.tasks import map, buttongroupcontrol, modal, choosetask, tasksorder
+from src.components.tasks import map, buttongroupcontrol, modal, tasksorder
 
 dash.register_page(
     __name__,
@@ -14,7 +14,7 @@ dash.register_page(
     title='Taskplanner'
 )
 
-def update_layout() -> html.Div:
+def update_layout() -> dbc.Container:
        return dbc.Container([
                 dbc.Row([
                     dbc.Col([
@@ -41,27 +41,20 @@ def update_layout() -> html.Div:
                                 dbc.Row([
                                     dbc.Col([
                                         html.Div([
-                                            choosetask.choosetask,
-                                        ], className='text-center'),
-                                    ]),
-                                ], justify='evenly'),
-                            ], xs=12, sm=6, lg=6),
-                            dbc.Col([   
-                                dbc.Row([
-                                    dbc.Col([
-                                        html.Div([
                                             tasksorder.tasksorder,
                                         ], className='text-center'),
                                     ]),
                                 ], justify='evenly'),
-                            ], xs=12, sm=6, lg=6),   
+                            ],)
                         ]),
-                    ]),
+                    ], xs=12, sm=6, lg=6),
                 ]),
                 modaltaskmowsettings.mowsettings,     
                 modal.savecurrenttask,  
-                modal.removecurrenttask,       
-            ], fluid=True)
+                modal.removecurrenttask,  
+                modal.renametask,    
+                modal.copytask, 
+                ], fluid=True
+            )
             
-
 layout = update_layout()

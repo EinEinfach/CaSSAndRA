@@ -14,6 +14,7 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
     logger.info('Backend: Create route from task')
     route = []
     start_pos = [robot.position_x, robot.position_y]
+    areatomow = Polygon()
     for subtask_nr in substasks['task nr'].unique():
         subtask_df = substasks[substasks['task nr'] == subtask_nr]
         subtask_df = subtask_df.reset_index(drop=True)
@@ -55,6 +56,12 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
                 route.extend(astar_path)
                 route.extend(route_tmp)
         start_pos = route[-1]
+        #Extend areatomow value
+        if areatomow == Polygon():
+            areatomow = selected_perimeter
+        else:
+            areatomow = areatomow.union(selected_perimeter)
+    current_map.areatomow = round(areatomow.area)
     logger.info('Backend: Route calculation from task done')
     current_map.calc_route_preview(route)
 

@@ -1,4 +1,4 @@
-#Version:0.50.2 -> Bug fix http mode, if all responses stacked in one message
+#Version:0.51.0 -> Rebuild taskpage. All function are now in one dropdown menu. Remove small bugs
 
 # create logger
 import logging

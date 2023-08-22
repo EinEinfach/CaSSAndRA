@@ -10,19 +10,17 @@ from src.backend.map import map, path
 from src.backend.data import saveddata
 
 @callback(Output(ids.TASKMAP, 'figure'),
-          [Input(ids.BUTTONPLANNEWTASK, 'n_clicks'),
-           Input(ids.BUTTONPLANMOWALL, 'n_clicks'),
+          [Input(ids.BUTTONPLANMOWALL, 'n_clicks'),
            Input(ids.BUTTONCONFIRMSELECTION, 'n_clicks'),
            Input(ids.BUTTONPLANCANCEL, 'n_clicks'),
            Input(ids.MODALSAVECURRENTTASK, 'is_open'),
-           Input(ids.MODALREMOVETASK, 'is_open'),
-           Input(ids.DROPDOWNCHOOSETASK, 'value'), 
+           Input(ids.MODALREMOVETASK, 'is_open'), 
            Input(ids.DROPDOWNTASKSORDER, 'value'),
            Input(ids.BUTTONREMOVETASK, 'n_clicks'),
            State(ids.TASKMAP, 'selectedData'),])
-def update(bpnt_nclicks: int, bpma_nclicks: int, bpc_nclicks: int, bcs_nclicks: int, 
-           save_is_open: bool, remove_is_open: bool, selected_task: str, tasks_order: list, 
-           brt_nclicks: int, selecteddata: dict,) -> list:
+def update(bpma_nclicks: int, bcs_nclicks: int, bpc_nclicks: int, save_is_open: bool, 
+           remove_is_open: bool, tasks_order: list, brt_nclicks: int, 
+           selecteddata: dict,) -> list:
 
     traces = []
     annotation = []
@@ -63,30 +61,28 @@ def update(bpnt_nclicks: int, bpma_nclicks: int, bpc_nclicks: int, bcs_nclicks: 
     if context == ids.BUTTONPLANCANCEL and not current_task.preview.empty:
         current_task.preview = pd.DataFrame()
         annotation = []
-    
-    #Load task if selected
-    if context == ids.DROPDOWNCHOOSETASK and selected_task is not None:
-        current_task.preview = pd.DataFrame()
-        current_task.subtasks = tasks.saved[(tasks.saved['name'] == selected_task)&(tasks.saved['map name'] == current_map.name)]
-        current_task.subtasks_parameters = tasks.saved_parameters[(tasks.saved_parameters['name'] == selected_task)&(tasks.saved_parameters['map name'] == current_map.name)]
+    elif context == ids.BUTTONPLANCANCEL:
+        current_task.create()
     
     #Load tasks order if selected
-    if context == ids.DROPDOWNTASKSORDER and tasks_order is not None:
-        current_task.preview = pd.DataFrame()
+    if tasks_order is not None:
+        tasks_to_be_done = 0
         current_task.subtasks = pd.DataFrame()
         current_task.subtasks_parameters = pd.DataFrame()
-        current_task.tasks_order = pd.DataFrame()
-        current_task.tasks_order_parameters = pd.DataFrame()
-        for i, task in enumerate(tasks_order):
-            subtask = tasks.saved[(tasks.saved['name'] == task)&(tasks.saved['map name'] == current_map.name)]
-            current_task.subtasks = pd.concat([current_task.subtasks, subtask], ignore_index=True) 
-            subtask.loc[:, 'task nr'] = i
-            current_task.tasks_order = pd.concat([current_task.tasks_order, subtask], ignore_index=True)
-
-            subtask_parameters = tasks.saved_parameters[(tasks.saved_parameters['name'] == task)&(tasks.saved_parameters['map name'] == current_map.name)]
-            current_task.subtasks_parameters = pd.concat([current_task.subtasks_parameters, subtask_parameters], ignore_index=True)
-            subtask_parameters.loc[:, 'task nr'] = i
-            current_task.tasks_order_parameters = pd.concat([current_task.tasks_order_parameters, subtask_parameters], ignore_index=True)
+        for task in tasks_order:
+            subtasks = tasks.saved[(tasks.saved['name'] == task)&(tasks.saved['map name'] == current_map.name)]
+            subtasks_parameters = tasks.saved_parameters[(tasks.saved_parameters['name'] == task)&(tasks.saved_parameters['map name'] == current_map.name)]
+            for subtask_nr in subtasks['task nr'].unique():
+                subtask = subtasks[subtasks['task nr'] == subtask_nr]
+                subtask_parameters = subtasks_parameters[subtasks_parameters['task nr'] == subtask_nr]
+                subtask.loc[:, 'task nr'] = tasks_to_be_done
+                subtask_parameters.loc[:, 'task nr'] = tasks_to_be_done
+                current_task.subtasks = pd.concat([current_task.subtasks, subtask], ignore_index=True)
+                current_task.subtasks_parameters = pd.concat([current_task.subtasks_parameters, subtask_parameters], ignore_index=True)
+                tasks_to_be_done += 1
+    else:
+        current_task.subtasks = pd.DataFrame()
+        current_task.subtasks_parameters = pd.DataFrame()
 
     #plot current map
     if not current_map.perimeter.empty:
@@ -111,7 +107,7 @@ def update(bpnt_nclicks: int, bpma_nclicks: int, bpc_nclicks: int, bcs_nclicks: 
         
     #plot subtasks if there
     preview_color = None
-    if not current_task.subtasks.empty:
+    if not current_task.subtasks.empty and tasks_order != None:
         for task_name in current_task.subtasks['name'].unique():
             if len(current_task.subtasks['name'].unique()) == 1 or preview_color == None:
                 preview_color = dict(color='#7fb249')
@@ -122,8 +118,8 @@ def update(bpnt_nclicks: int, bpma_nclicks: int, bpc_nclicks: int, bcs_nclicks: 
                     preview_color = dict(color='orange')
                 else:
                     preview_color = dict(color='#7fb249')
-            for i in range(len(current_task.subtasks[current_task.subtasks['name'] == task_name]['task nr'].unique())):
-                filtered = current_task.subtasks[(current_task.subtasks['name'] == task_name) & (current_task.subtasks['task nr'] == i) & (current_task.subtasks['type'] == 'preview route')]
+            for subtask_nr in current_task.subtasks[current_task.subtasks['name'] == task_name]['task nr'].unique():
+                filtered = current_task.subtasks[(current_task.subtasks['name'] == task_name) & (current_task.subtasks['task nr'] == subtask_nr) & (current_task.subtasks['type'] == 'preview route')]
                 traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='subtask', opacity=0.7, line=preview_color))
 
     fig = {'data': traces, 
