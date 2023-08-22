@@ -14,12 +14,12 @@ okbuttonrenametask = dbc.Button('OK', id=ids.OKBUTTONSRRENAMETASK, class_name='m
 okbuttoncopytask = dbc.Button('OK', id=ids.OKBUTTONCOPYTASK, class_name='ms-auto', n_clicks=0)
 
 #selection buttons (saved tasks)
-starttasksorder = dbc.Button(id=ids.BUTTONSTARTSELECTEDTASKSORDER, size='lg', class_name='mt-1 me-1 bi bi-play-fill', n_clicks=0, title='start selected tasks order')
-loadtasksorder = dbc.Button(id=ids.BUTTONLOADSELECTEDTASKSORDER, size='lg', class_name='mt-1 me-1 bi bi-cloud-download', n_clicks=0, title='load selected tasks order')
-savenewtask = dbc.Button(id=ids.BUTTONSAVECURRENTTASK, size='lg', class_name='mt-1 me-1 bi bi-cloud-plus', disabled=False, title='save task')
-removetask = dbc.Button(id=ids.BUTTONREMOVETASK, size='lg', class_name='mt-1 me-1 bi bi-cloud-minus', n_clicks=0, title='remove selected task')
-renametask = dbc.Button(id=ids.BUTTONRENAMETASK, size='lg', class_name='mt-1 me-1 bi bi-pencil-square', n_clicks=0, title='rename selected task')
-copytask = dbc.Button(id=ids.BUTTONCOPYTASK, size='lg', class_name='mt-1 me-1 bi bi-clouds', n_clicks=0, title='copy selected task')
+starttasksorder = dbc.Button(id=ids.BUTTONSTARTSELECTEDTASKSORDER, class_name='mt-1 me-1 bi bi-play-fill', n_clicks=0, title='start selected tasks order')
+loadtasksorder = dbc.Button(id=ids.BUTTONLOADSELECTEDTASKSORDER, class_name='mt-1 me-1 bi bi-cloud-download', n_clicks=0, title='load selected tasks order')
+savenewtask = dbc.Button(id=ids.BUTTONSAVECURRENTTASK, class_name='mt-1 me-1 bi bi-cloud-plus', disabled=False, title='save task')
+removetask = dbc.Button(id=ids.BUTTONREMOVETASK, class_name='mt-1 me-1 bi bi-cloud-minus', n_clicks=0, title='remove selected task')
+renametask = dbc.Button(id=ids.BUTTONRENAMETASK, class_name='mt-1 me-1 bi bi-pencil-square', n_clicks=0, title='rename selected task')
+copytask = dbc.Button(id=ids.BUTTONCOPYTASK, class_name='mt-1 me-1 bi bi-clouds', n_clicks=0, title='copy selected task')
     
 @callback(Output(ids.BUTTONSAVECURRENTTASK, 'disabled'),
           [Input(ids.TASKMAP, 'figure'),

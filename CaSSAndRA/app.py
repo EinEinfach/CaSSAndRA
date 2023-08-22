@@ -1,4 +1,4 @@
-#Version:0.51.0 -> Rebuild taskpage. All function are now in one dropdown menu. Remove small bugs
+#Version:0.52.0 -> Change buttons size for taskplanning to regular size
 
 # create logger
 import logging
