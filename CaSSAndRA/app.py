@@ -1,4 +1,4 @@
-#Version:0.52.1 -> Fix issue with not starting task after preload map
+#Version:0.52.2 -> Fix issue with 'Error upload map in UART mode'
 
 # create logger
 import logging

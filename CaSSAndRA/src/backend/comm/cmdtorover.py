@@ -59,7 +59,6 @@ def takemap(perimeter: pd.DataFrame(), way: pd.DataFrame(), dock: bool) -> pd.Da
     msg_df = pd.DataFrame([msg])
     buffer = pd.concat([buffer, msg_df], ignore_index=True)
 
-    cmdlist.cmd_take_map = False
     return buffer
 
 def move(movement: list()) -> pd.DataFrame():
