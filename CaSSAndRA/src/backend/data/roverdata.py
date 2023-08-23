@@ -278,17 +278,16 @@ class Mower:
     def check_mapupload(self) -> None:
         if self.map_upload_started and self.map_crc == self.map_old_crc:
             self.map_upload_cnt += 1
-        else:
+        elif self.map_upload_started and self.map_crc != self.map_old_crc:
             self.map_upload_started = False
             self.map_upload_finished = True
             self.map_upload_cnt = 0
-            logger.debug('Mapupload finished. CRC changed method')
-
-        if self.map_upload_cnt >= 3:
+            logger.debug('Map upload finished. CRC changed method')
+        if self.map_upload_started and self.map_upload_cnt >= 3:
             self.map_upload_started = False
             self.map_upload_finished = True
             self.map_upload_cnt = 0
-            logger.debug('Mapupload finished. Time to wait expired method')
+            logger.debug('Map upload finished. Time to wait expired method')
             
     def check_dock_reason(self) -> None:
         if self.job == 4 and self.dock_reason == None:
