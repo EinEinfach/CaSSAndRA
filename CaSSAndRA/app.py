@@ -1,4 +1,4 @@
-#Version:0.52.2 -> Fix issue with 'Error upload map in UART mode'
+#Version:0.53.0 -> Added dock reason 
 
 # create logger
 import logging

@@ -55,6 +55,8 @@ class Mower:
     status: str = 'offline'
     sensor_status: str = 'unknown'
     position_age_hr = '99+d'
+    dock_reason: str = None
+    dock_reason_cnt: int = 0
 
     def set_state(self, state: pd.DataFrame()) -> None:
         state = state.iloc[-1]
@@ -80,6 +82,7 @@ class Mower:
         self.soc = self.calc_soc()
         self.solution = self.calc_solution()
         self.timestamp = datetime.now()
+        self.check_dock_reason()
         self.status = self.calc_status()
         self.sensor_status = self.calc_sensor_status()
         self.position_age_hr = self.calc_position_age_hr()
@@ -165,6 +168,8 @@ class Mower:
                 return 'no error'
             else:
                 return 'unknown'
+        elif self.dock_reason != None:
+            return self.dock_reason
         else:
             if len(self.sensor_status) >= 5:
                 return '.'
@@ -277,11 +282,31 @@ class Mower:
             self.map_upload_started = False
             self.map_upload_finished = True
             self.map_upload_cnt = 0
+            logger.debug('Mapupload finished. CRC changed method')
 
         if self.map_upload_cnt >= 3:
             self.map_upload_started = False
             self.map_upload_finished = True
             self.map_upload_cnt = 0
+            logger.debug('Mapupload finished. Time to wait expired method')
+            
+    def check_dock_reason(self) -> None:
+        if self.job == 4 and self.dock_reason == None:
+            if self.sensor == 16:
+                self.dock_reason = 'rain'
+            elif robot.position_mow_point_index == 0:
+                self.dock_reason = 'finished'
+            else:
+                self.dock_reason = 'low battery'
+            self.dock_reason_cnt = 0
+        elif self.job != 4 and self.job != 2:
+            self.dock_reason = None
+            self.dock_reason_cnt = 0
+        elif self.dock_reason_cnt <= 600 and self.dock_reason != None:
+            self.dock_reason_cnt += 1
+        else:
+            self.dock_reason = None
+            self.dock_reason_cnt = 0
 
 #define robot instance
 robot = Mower()

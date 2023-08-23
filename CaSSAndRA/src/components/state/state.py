@@ -50,7 +50,7 @@ def update(n_intervals: int) -> html.Div():
                         dbc.CardBody([
                             dbc.Row(html.Small(robot.solution)),
                             dbc.Row(html.Small([
-                                        '{}'.format(robot.position_visible_satellites_dgps)+'/{}'.format(robot.position_visible_satellites)+' ('+robot.position_age_hr+')'
+                                        '{}'.format(robot.position_visible_satellites_dgps)+'/{}'.format(robot.position_visible_satellites)+'('+robot.position_age_hr+')'
                                     ], style={'font-size': '9px'}))
                             ]),
                     ],

@@ -51,6 +51,7 @@ def check() -> pd.DataFrame():
                 robot.map_upload_finished = False
                 robot.map_upload_failed = False
                 return pd.DataFrame()
+            logger.debug('Map crc deivation: '+str(abs(current_map.map_crc - robot.map_crc)))    
             logger.debug('Initiate map upload.')
             cmdlist.cmd_take_map_attempt = cmdlist.cmd_take_map_attempt + 1
             map_msg = cmdtorover.takemap(current_map.perimeter, current_map.gotopoint, dock=False)
@@ -102,6 +103,7 @@ def check() -> pd.DataFrame():
                     robot.map_upload_finished = False
                     robot.map_upload_failed = False
                     return pd.DataFrame()
+                logger.debug('Map crc deivation: '+str(abs(current_map.map_crc - robot.map_crc)))    
                 logger.debug('Initiate map upload.')
                 cmdlist.cmd_take_map_attempt = cmdlist.cmd_take_map_attempt + 1
                 map_msg = cmdtorover.takemap(current_map.perimeter, pd.DataFrame(), dock=True)
@@ -120,6 +122,7 @@ def check() -> pd.DataFrame():
                     msg_pckg = dock_msg
                     robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
                     cmdlist.cmd_dock = False
+                    robot.dock_reason = 'operator'
                     return msg_pckg 
                 else:
                     robot.map_upload_started = False
@@ -131,6 +134,7 @@ def check() -> pd.DataFrame():
             msg_pckg = dock_msg
             robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
             cmdlist.cmd_dock = False
+            robot.dock_reason = 'operator'
             return msg_pckg
     
     elif cmdlist.cmd_mow:
@@ -153,6 +157,7 @@ def check() -> pd.DataFrame():
                 robot.map_upload_finished = False
                 robot.map_upload_failed = False
                 return pd.DataFrame()
+            logger.debug('Map crc deivation: '+str(abs(current_map.map_crc - robot.map_crc)))    
             logger.debug('Initiate map upload.')
             cmdlist.cmd_take_map_attempt = cmdlist.cmd_take_map_attempt + 1
             map_msg = cmdtorover.takemap(current_map.perimeter, current_map.mowpath, dock=True)
@@ -244,6 +249,7 @@ def check() -> pd.DataFrame():
                 robot.map_upload_finished = False
                 robot.map_upload_failed = False
                 return pd.DataFrame()
+            logger.debug('Map crc deivation: '+str(abs(current_map.map_crc - robot.map_crc)))    
             logger.debug('Initiate map upload.')
             cmdlist.cmd_take_map_attempt = cmdlist.cmd_take_map_attempt + 1
             map_msg = cmdtorover.takemap(current_map.perimeter, current_map.mowpath, dock=True)
