@@ -2,7 +2,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import pandas as pd
-import time
+from datetime import datetime
 
 from src.backend.data.mapdata import current_map
 from src.backend.data.roverdata import robot
@@ -122,7 +122,8 @@ def check() -> pd.DataFrame():
                     msg_pckg = dock_msg
                     robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
                     cmdlist.cmd_dock = False
-                    robot.dock_reason = 'operator'
+                    robot.dock_reason_operator = True
+                    robot.dock_reason_time = datetime.now()
                     return msg_pckg 
                 else:
                     robot.map_upload_started = False
@@ -134,7 +135,8 @@ def check() -> pd.DataFrame():
             msg_pckg = dock_msg
             robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
             cmdlist.cmd_dock = False
-            robot.dock_reason = 'operator'
+            robot.dock_reason_operator = True
+            robot.dock_reason_time = datetime.now()
             return msg_pckg
     
     elif cmdlist.cmd_mow:

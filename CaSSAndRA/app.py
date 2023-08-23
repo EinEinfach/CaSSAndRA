@@ -1,4 +1,4 @@
-#Version:0.53.1 -> Remove uneccassary debug message 
+#Version:0.53.2 -> Changed dock reason behaivor
 
 # create logger
 import logging

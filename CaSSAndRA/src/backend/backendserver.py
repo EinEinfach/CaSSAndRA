@@ -38,7 +38,6 @@ def connect_http(connect_data: dict(), connection: int, restart: Event, absolute
 
             connection_status = httpcomm.cmd_to_rover(connect_data, connection)
             connection[0] = connection_status
-
         if (datetime.now() - start_time_save).seconds >= 600*time_to_wait:
             logger.info('Backend: Writing State-Data to the file')
             saveddata.save('state')
@@ -47,7 +46,6 @@ def connect_http(connect_data: dict(), connection: int, restart: Event, absolute
             # logger.info('Backend: Writing Map-Data to the file')
             # saveddata.save('perimeter', absolute_path)
             start_time_save = datetime.now()
-        
         calceddata.calc_rover_state()
         data_clean_finished = cleandata.check(data_clean_finished)
 
@@ -107,17 +105,21 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
                     if data.find('T, ') == 0:
                         #logger.debug(data)
                         uartcomm.on_stats(data) 
-                    if (datetime.now() - start_time_state).seconds > time_to_wait:
-                        ser.write(b'AT+S\n')
-                        start_time_state = datetime.now()
-                    elif (datetime.now() - start_time_stats).seconds > 60*time_to_wait:
-                        ser.write(b'AT+T\n')
-                        start_time_stats = datetime.now()
                 except Exception as e:
                     logger.warning('Backend: Exception in UART communication occured, trying to reconnect')
                     logger.debug(str(e))
                     connection = False
-
+            try:
+                if (datetime.now() - start_time_state).seconds > time_to_wait:
+                    ser.write(b'AT+S\n')
+                    start_time_state = datetime.now()
+                elif (datetime.now() - start_time_stats).seconds > 60*time_to_wait:
+                    ser.write(b'AT+T\n')
+                    start_time_stats = datetime.now()
+            except Exception as e:
+                logger.warning('Backend: Exception in UART communication occured, trying to reconnect')
+                logger.debug(str(e))
+                connection = False
             connection = uartcomm.cmd_to_rover(ser)
 
         if (datetime.now() - start_time_save).seconds >= 600*time_to_wait:
