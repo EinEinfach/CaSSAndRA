@@ -1,4 +1,4 @@
-#Version:0.53.2 -> Changed dock reason behaivor
+#Version:0.53.3 -> Fix issue with crashing cassandra if task.json doesn't exist
 
 # create logger
 import logging

@@ -13,7 +13,7 @@ tasksorder = dbc.Col([
                                 id=ids.DROPDOWNTASKSORDER, 
                                 className='m-1', 
                                 multi=True, 
-                                options=tasks.saved[tasks.saved['map name'] == current_map.name].name.unique()),
+                            ),
                             dbc.Container([
                                     buttons.starttasksorder,
                                     buttons.loadtasksorder,
@@ -32,9 +32,11 @@ tasksorder = dbc.Col([
            Input(ids.MODALSAVECURRENTTASK, 'is_open'),
            Input(ids.MODALREMOVETASK, 'is_open'),
            Input(ids.MODALCOPYTASK, 'is_open'),
+           Input(ids.URLUPDATE, 'pathname'),
            State(ids.DROPDOWNTASKSORDER, 'options')])
 def update_dropdown_tasksorder(bok_nclicks: int, rename_is_open: bool, save_is_open: bool, 
-                               remove_is_open: bool, copy_is_open: bool, dropdown_opt_state: list()) -> list():
+                               remove_is_open: bool, copy_is_open: bool, pathname: str,
+                               dropdown_opt_state: list()) -> list():
     context = ctx.triggered_id
     try:
         filtered_tasks = tasks.saved[tasks.saved['map name'] == current_map.name]
