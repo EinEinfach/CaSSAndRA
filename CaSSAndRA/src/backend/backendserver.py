@@ -111,7 +111,7 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
                     if data.find('T,') == 0:
                         #logger.debug(data)
                         uartcomm.on_stats(data) 
-                    if data.find(',S2,') == 0:
+                    if data.find('S2,') == 0:
                         uartcomm.on_obstacle(data)
                 except Exception as e:
                     logger.warning('Backend: Exception in UART communication occured, trying to reconnect')

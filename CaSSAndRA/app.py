@@ -1,4 +1,4 @@
-#Version:0.54.0 -> Temporary obstacles 
+#Version:0.54.1 -> Fix temporary obstacles UART mode
 
 # create logger
 import logging
