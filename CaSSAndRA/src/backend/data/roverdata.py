@@ -291,23 +291,21 @@ class Mower:
             logger.debug('Map upload finished. Time to wait expired method')
             
     def check_dock_reason(self) -> None:
-        if (self.job == 4 or self.job == 2) and not self.dock_reason_operator and self.dock_reason == None:
-            if self.sensor == 16:
+        if self.job == 4: 
+            if self.dock_reason_operator:
+                self.dock_reason = 'operator'
+            elif self.sensor == 16:
                 self.dock_reason = 'rain'
             elif robot.position_mow_point_index == 0:
                 self.dock_reason = 'finished'
             else:
                 self.dock_reason = 'low battery'
             self.dock_reason_time = datetime.now()
-        elif (self.job == 4 or self.job == 2) and self.dock_reason_operator and self.dock_reason == None:
+        elif (self.job == 2 and (datetime.now() - self.dock_reason_time).seconds >= 3600) or (self.job != 4 and self.job != 2):
             self.dock_reason_operator = False
-            self.dock_reason = 'operator'
+            self.dock_reason = None
             self.dock_reason_time = datetime.now()
-        elif self.dock_reason != None and (datetime.now() - self.dock_reason_time).seconds >= 600:
-            self.dock_reason = None
-        elif self.job != 2 and self.job != 4:
-            self.dock_reason = None
-
+            
 #define robot instance
 robot = Mower()
 
