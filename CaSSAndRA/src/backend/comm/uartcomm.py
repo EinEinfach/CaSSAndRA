@@ -39,3 +39,5 @@ def on_state(data: str()):
 def on_stats(data: str()):
     datatodf.add_stats_to_df(data)
 
+def on_obstacle(data: str()):
+    datatodf.add_obstacles_to_df(data)

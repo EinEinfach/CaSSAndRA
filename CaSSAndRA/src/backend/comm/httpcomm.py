@@ -166,3 +166,39 @@ def get_stats(connect_data: dict(), connection: list()) -> int:
         logger.warning('Backend: HTTP-Connection to the rover lost or not possible. Trying to reconnect')
         logger.debug(str(e))
         return -1
+    
+def get_obstacles(connect_data: dict(), connection: list()) -> int:
+    logger.info('Backend: Performing get obstacles http-request')
+    data = reqandchecksum('AT+S2')
+    if connection[1] == 1:
+        logger.debug('Encryption: true')
+        try:
+            encryptkey = int(connect_data['HTTP'][1]['PASSWORD'])%int(connection[2])
+        except:
+            logger.warning('Backend: Valid password not found. Check your comm config')
+            encryptkey = 0
+        data_ascii = [ord(c) for c in data]
+        data_encrypt = [x + encryptkey for x in data_ascii]
+        data_encrypt = [x - 126 + 31 if x>=126 else x for x in data_encrypt]
+        data = ''.join(map(chr, data_encrypt))
+
+    try:
+        logger.debug('Data to be send: '+data) 
+        res = requests.post(url=connect_data['HTTP'][0]['IP'], headers=Headers, data=data+'\n', timeout=2)
+        logger.debug('Status code: '+str(res.status_code))
+        logger.debug('Content: '+res.text)
+        if len(res.text) == 0:
+            logger.warning('Backend: HTTP request for obstacles delivered implausible string')
+            return -1
+        elif res.status_code == 200 and checkchecksum(res.text) and len(res.text) > 8:
+            datatodf.add_obstacles_to_df(res.text)
+            return res.status_code
+        else:
+            logger.warning('Backend: HTTP request for obstacles delivered implausible string')
+            return -1
+    except requests.exceptions.RequestException as e: 
+        logger.warning('Backend: HTTP-Connection to the rover lost or not possible. Trying to reconnect')
+        logger.debug(str(e))
+        return -1
+
+

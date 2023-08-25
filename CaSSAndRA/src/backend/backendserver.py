@@ -15,6 +15,7 @@ restart = Event()
 
 def connect_http(connect_data: dict(), connection: int, restart: Event, absolute_path: str()) -> None:
     start_time_state = datetime.now()
+    start_time_obstacles = datetime.now()
     start_time_stats = datetime.now()
     start_time_save = datetime.now()
     time_to_wait = 1
@@ -31,6 +32,10 @@ def connect_http(connect_data: dict(), connection: int, restart: Event, absolute
                 connection_status = httpcomm.get_state(connect_data, connection)
                 connection[0] = connection_status
                 start_time_state = datetime.now()
+            if (datetime.now() - start_time_obstacles).seconds > 10*time_to_wait:
+                connection_status = httpcomm.get_obstacles(connect_data, connection)
+                connection[0] = connection_status
+                start_time_obstacles = datetime.now()
             if (datetime.now() - start_time_stats).seconds > 60*time_to_wait:
                 connection_status = httpcomm.get_stats(connect_data, connection)
                 connection[0] = connection_status
@@ -79,6 +84,7 @@ def connect_mqtt(mqtt_client, connect_data: dict(), restart: Event, absolute_pat
 
 def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, absolute_path: str()) -> None:
     start_time_state = datetime.now()
+    start_time_obstacles = datetime.now()
     start_time_stats = datetime.now()
     start_time_save = datetime.now()
     time_to_wait = 1
@@ -102,9 +108,11 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
                     if data.find('S,') == 0:
                         #logger.debug(data)
                         uartcomm.on_state(data)
-                    if data.find('T, ') == 0:
+                    if data.find('T,') == 0:
                         #logger.debug(data)
                         uartcomm.on_stats(data) 
+                    if data.find(',S2,') == 0:
+                        uartcomm.on_obstacle(data)
                 except Exception as e:
                     logger.warning('Backend: Exception in UART communication occured, trying to reconnect')
                     logger.debug(str(e))
@@ -113,6 +121,9 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
                 if (datetime.now() - start_time_state).seconds > time_to_wait:
                     ser.write(b'AT+S\n')
                     start_time_state = datetime.now()
+                elif (datetime.now() - start_time_obstacles).seconds > 10*time_to_wait:
+                    ser.write(b'AT+S2\n')
+                    start_time_obstacles = datetime.now()
                 elif (datetime.now() - start_time_stats).seconds > 60*time_to_wait:
                     ser.write(b'AT+T\n')
                     start_time_stats = datetime.now()

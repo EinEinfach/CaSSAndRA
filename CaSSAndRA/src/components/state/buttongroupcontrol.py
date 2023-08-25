@@ -140,8 +140,10 @@ def update_button_disabled(n_intervals: int, n_clicks_bgo: int, n_clicks_bs: int
 
     if current_map.perimeter.empty:
         return True, True, True, True, True
-    elif robot.job == 1 or robot.job == 4:
+    elif (robot.job == 1 or robot.job == 4) and current_map.obstacles.empty:
         return True, True, True, True, True
+    elif robot.job == 1 or robot.job == 4:
+        return True, True, True, True, False 
     else:
         return False, False, False, False, False 
 

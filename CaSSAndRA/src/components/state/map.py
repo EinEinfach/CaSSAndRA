@@ -66,10 +66,13 @@ def update(n_intervals: int,
           current_map.mowpath = pd.DataFrame()
           plotgotopoints = True
      elif context == ids.BUTTONCANCEL:
-          current_map.gotopoint = pd.DataFrame()
-          current_map.preview = pd.DataFrame()
-          current_map.mowpath = pd.DataFrame()
-          plotgotopoints = False
+          if not current_map.obstacles.empty:
+               current_map.obstacles = pd.DataFrame()
+          else:
+               current_map.gotopoint = pd.DataFrame()
+               current_map.preview = pd.DataFrame()
+               current_map.mowpath = pd.DataFrame()
+               plotgotopoints = False
 
      #Check interactions with graph
      if selecteddata == {'points':[]}: #Workaround for selected data, beacause after select selected data changing to {'poonts':[]} and triggering context_id
@@ -152,6 +155,36 @@ def update(n_intervals: int,
           filtered = current_map.preview[current_map.preview['type'] == 'preview route']
           traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color='#7fb249')))
 
+     #Plot obstacles if there
+     imgs = []
+     if not current_map.obstacles.empty:
+          obstacles = current_map.obstacles
+          for obstacle in obstacles['CRC'].unique():
+               filtered = obstacles[obstacles['CRC']==obstacle]
+               filtered = filtered[filtered['type'] != 'center']
+               traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
+                                        name='obstacle', 
+                                        mode='lines', 
+                                        line=dict(color='#FF6600'), 
+                                        hoverinfo='skip')) 
+               obstacle_center_coords = obstacles[(obstacles['CRC']==obstacle)&(obstacles['type']=='center')]
+               obstacle_x = obstacle_center_coords.iloc[0]['X']
+               obstacle_y = obstacle_center_coords.iloc[0]['Y']
+               imgs.append(dict(
+                                        source=current_map.obstacle_img,
+                                        xref='x',
+                                        yref='y',
+                                        x=obstacle_x,
+                                        y=obstacle_y,
+                                        sizex=1.1,
+                                        sizey=1.1,
+                                        xanchor='center',
+                                        yanchor='middle',
+                                        sizing='contain',
+                                        opacity=1,
+                                        layer='above'
+                                   )
+                              )
      #Plot rover position
      # traces.append(go.Scatter(x=[robot.position_x], y=[robot.position_y], 
      #                         mode='markers',
@@ -173,6 +206,24 @@ def update(n_intervals: int,
                                              line = dict(width=2, color="DarkSlateGrey")
                                              ),
                                    ))
+     
+     #Create robot image
+     robot_img = dict(
+                    source=robot.rover_image,
+                    xref='x',
+                    yref='y',
+                    x=robot.position_x,
+                    y=robot.position_y,
+                    sizex=0.8,
+                    sizey=0.8,
+                    xanchor='center',
+                    yanchor='middle',
+                    sizing='contain',
+                    opacity=1,
+                    layer='above')
+     
+     #Put all images together
+     imgs.append(robot_img)
 
 
      fig = {'data': traces, 
@@ -183,19 +234,20 @@ def update(n_intervals: int,
                                         r=20, #right margin 20px
                                         t=30, #top margin 20px
                               ),
-                              images=[
-                                   dict(source=robot.rover_image,
-                                        xref='x',
-                                        yref='y',
-                                        x=robot.position_x,
-                                        y=robot.position_y,
-                                        sizex=0.8,
-                                        sizey=0.8,
-                                        xanchor='center',
-                                        yanchor='middle',
-                                        sizing='contain',
-                                        opacity=1,
-                                        layer='above')],
+                              images=imgs,
+                              # [
+                              #      dict(source=robot.rover_image,
+                              #           xref='x',
+                              #           yref='y',
+                              #           x=robot.position_x,
+                              #           y=robot.position_y,
+                              #           sizex=0.8,
+                              #           sizey=0.8,
+                              #           xanchor='center',
+                              #           yanchor='middle',
+                              #           sizing='contain',
+                              #           opacity=1,
+                              #           layer='above')],
                               showlegend=False,
                               uirevision=1,
                               hovermode='closest',

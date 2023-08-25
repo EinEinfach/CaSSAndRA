@@ -10,6 +10,7 @@ import math
 import networkx as nx
 from dataclasses import dataclass, field, asdict
 from shapely.geometry import *
+from PIL import Image
 
 from .roverdata import robot
 from .cfgdata import PathPlannerCfg, pathplannercfg
@@ -27,6 +28,8 @@ class Perimeter:
     gotopoint: pd.DataFrame = pd.DataFrame()
     mowpath: pd.DataFrame = pd.DataFrame()
     preview: pd.DataFrame = pd.DataFrame()
+    obstacles: pd.DataFrame = pd.DataFrame()
+    obstacle_img: Image = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/obstacle.png'))
     astar_graph: nx.Graph = nx.Graph()
     areatomow: float = 0
     distancetogo: float = 0
@@ -162,6 +165,7 @@ class Perimeter:
         self.name = name
         self.preview = pd.DataFrame()
         self.mowpath = pd.DataFrame()
+        self.obstacles = pd.DataFrame()
         self.create_perimeter_polygon()
         self.create_perimeter_for_plot()
         self.create_points_from_polygon()

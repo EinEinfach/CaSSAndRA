@@ -4,10 +4,33 @@ logger = logging.getLogger(__name__)
 #packege imports
 import pandas as pd
 from datetime import datetime
+from shapely import Polygon
 
 #local imports
 from . import roverdata, calceddata
 from . roverdata import robot
+from . mapdata import current_map
+
+def create_obstacle(data: list) -> pd.DataFrame:
+    list_for_df = []
+    number_of_points = data[0]
+    del data[0]
+    for i in range(number_of_points):
+        list_for_df.append([data[2*i], data[2*i+1]])
+    list_for_df.append([data[0], data[1]])
+    center = list(Polygon(list_for_df).centroid.coords)
+    center_df = pd.DataFrame(center)
+    center_df.columns = ['X', 'Y']
+    center_df['type'] = 'center'
+    obstacle_df = pd.DataFrame(list_for_df)
+    obstacle_df.columns = ['X', 'Y']
+    obstacle_df['type'] = 'points'
+    obstacle_df = pd.concat([obstacle_df, center_df], ignore_index=True)
+    obstacleCRCx = obstacle_df['X']*100 
+    obstacleCRCy = obstacle_df['Y']*100 
+    obstacle_CRC = int(obstacleCRCx.sum() + obstacleCRCy.sum())
+    obstacle_df['CRC'] = obstacle_CRC
+    return obstacle_df
 
 #Add data from MQTT conection
 def add_state_to_df_from_mqtt(data: dict()) -> None:
@@ -204,3 +227,22 @@ def add_online_to_df_from_http(data: bool) -> None:
                         'timestamp': str(datetime.now())}
     online_to_df = pd.DataFrame(data=online_to_df, index=[0])
     roverdata.online = pd.concat([roverdata.online, online_to_df], ignore_index=True)
+    
+def add_obstacles_to_df(data: str) -> None:
+    try: 
+        data_list = data.split(',')
+        del data_list[-1]
+        del data_list[0]
+        if len(data_list) == 1:
+            return
+        obstacles_number = int(data_list[0]) 
+        del data_list[0]
+        data_list = [float(x) if '.' in x else int(x) for x in data_list]
+        for i in range(obstacles_number):
+            obstacle = create_obstacle(data_list[3:4+2*data_list[3]])
+            if current_map.obstacles.empty or current_map.obstacles[current_map.obstacles['CRC'] == obstacle['CRC'].unique()[0]].empty:
+                current_map.obstacles = pd.concat([current_map.obstacles, obstacle], ignore_index=True)
+            del data_list[0:4+2*data_list[3]]
+    except Exception as e:
+        logger.error('Backend: Failed to write obstacles data to data frame')
+        logger.debug(str(e))
