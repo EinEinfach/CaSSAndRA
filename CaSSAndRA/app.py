@@ -1,4 +1,4 @@
-#Version:0.54.1 -> Fix temporary obstacles UART mode
+#Version:0.54.2 -> Number of temporary obstacles is limited by current value send from sunray fw. Will be removed after solving performance issues with to many obstacles in the map
 
 # create logger
 import logging
