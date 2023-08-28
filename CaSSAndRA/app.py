@@ -1,4 +1,4 @@
-#Version:0.54.2 -> Number of temporary obstacles is limited by current value send from sunray fw. Will be removed after solving performance issues with to many obstacles in the map
+#Version:0.54.3 -> Increase time until spinner triggered for state map
 
 # create logger
 import logging
