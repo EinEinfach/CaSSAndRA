@@ -1,4 +1,4 @@
-#Version:0.55.0 -> Chnaged behaivor of state map (Experimentel). Switched to go.Figure object 
+#Version:0.55.1 -> Obstacles are synchronous to sunray fw 
 
 # create logger
 import logging

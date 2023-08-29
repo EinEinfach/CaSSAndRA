@@ -234,7 +234,7 @@ def add_obstacles_to_df(data: str) -> None:
         del data_list[-1]
         del data_list[0]
         if len(data_list) == 1:
-            #current_map.obstacles = pd.DataFrame() #Have to be removed, if all goes well with new state-map behaivor
+            current_map.obstacles = pd.DataFrame() #Mirroring obstacles from Sunray FW
             return
         obstacles_number = int(data_list[0]) 
         del data_list[0]
