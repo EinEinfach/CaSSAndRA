@@ -23,7 +23,7 @@ def update_layout() -> html.Div:
                              children=[
                                  dbc.Spinner(delay_show=2000, 
                                              children=html.Div([
-                                                        dcc.Graph(id=ids.STATEMAP, config={'displaylogo': False, 'scrollZoom': True})
+                                                        dcc.Graph(id=ids.STATEMAP, figure=map.statemap ,config={'displaylogo': False, 'scrollZoom': True})
                                                         ], className='map-graph'
                                                     )
                                 )

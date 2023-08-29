@@ -9,6 +9,30 @@ from src.backend.map import map, path
 from src.backend.data.roverdata import robot
 from src.backend.data.cfgdata import pathplannercfgstate
 
+statemap = go.Figure()
+statemap.update_layout(
+               plot_bgcolor='white',
+               yaxis=dict(
+                    scaleratio=1, 
+                    scaleanchor='x',
+                    gridcolor = '#eeeeee', 
+                    zerolinecolor = 'lightgrey'),
+               xaxis=dict(
+                    gridcolor = '#eeeeee', 
+                    zerolinecolor = 'lightgrey'
+               ),
+               margin=dict(
+                    b=20, #bottom margin 40px
+                    l=20, #left margin 40px
+                    r=20, #right margin 20px
+                    t=30, #top margin 20px
+                ),
+               showlegend=False,
+               uirevision=1,
+               hovermode='closest',
+               dragmode='pan',
+               annotations=[],
+     )
 
 @callback(Output(ids.STATEMAP, 'figure'),
           Output(ids.INTERVAL, 'disabled', allow_duplicate=True),
@@ -22,13 +46,14 @@ from src.backend.data.cfgdata import pathplannercfgstate
            Input(ids.STATEMAP, 'selectedData'),
            State(ids.BUTTONZONESELECT, 'active'),
            State(ids.BUTTONGOTO, 'active'),
+           State(ids.STATEMAP, 'figure')
            ], prevent_initial_call=True)
 def update(n_intervals: int,
            buttonhome: int, buttonmowall: int, 
            buttonzoneselect: int, buttongoto: int,
            buttoncancelclick: int, clickdata: dict(), 
            selecteddata: dict(), buttonzonenselectstate: bool,
-           buttongotostate: bool) -> dict():
+           buttongotostate: bool, fig_state: dict()) -> go.Figure():
      rover_position = [robot.position_x, robot.position_y] 
 
      context = ctx.triggered_id
@@ -76,11 +101,11 @@ def update(n_intervals: int,
 
      #Check interactions with graph
      if selecteddata == {'points':[]}: #Workaround for selected data, beacause after select selected data changing to {'poonts':[]} and triggering context_id
-         selecteddata = None
+          selecteddata = None
 
      if context_triggered[0]['prop_id'] == ids.STATEMAP+'.clickData' and buttongoto:
           current_map.set_gotopoint(clickdata)
-     elif context_triggered[0]['prop_id'] == ids.STATEMAP+'.selectedData' and buttonzonenselectstate and selecteddata:
+     elif (context == ids.BUTTONZONESELECT and selecteddata != None) or (context_triggered[0]['prop_id'] == ids.STATEMAP+'.selectedData' and buttonzonenselectstate and selecteddata != None):
           current_map.mowpath = pd.DataFrame()
           perimeter_preview = current_map.perimeter_polygon
           current_map.selected_perimeter = map.selection(perimeter_preview, selecteddata)
@@ -225,58 +250,67 @@ def update(n_intervals: int,
      #Put all images together
      imgs.append(robot_img)
 
+     #Update go.Figure object
+     fig_state['data'] = traces
+     fig = go.Figure(fig_state)
+     fig.update_layout(
+                    yaxis = dict(range=range_y),
+                    images=imgs,
+                    annotations=mowdata,
+                    )
 
-     fig = {'data': traces, 
-           'layout': go.Layout(yaxis=dict(range=range_y, scaleratio=1, scaleanchor='x'),
-                               margin=dict(
-                                        b=20, #bottom margin 40px
-                                        l=20, #left margin 40px
-                                        r=20, #right margin 20px
-                                        t=30, #top margin 20px
-                              ),
-                              images=imgs,
-                              # [
-                              #      dict(source=robot.rover_image,
-                              #           xref='x',
-                              #           yref='y',
-                              #           x=robot.position_x,
-                              #           y=robot.position_y,
-                              #           sizex=0.8,
-                              #           sizey=0.8,
-                              #           xanchor='center',
-                              #           yanchor='middle',
-                              #           sizing='contain',
-                              #           opacity=1,
-                              #           layer='above')],
-                              showlegend=False,
-                              uirevision=1,
-                              hovermode='closest',
-                              annotations=mowdata,
-                              dragmode='pan'
-                              #title='Map', 
-                              #xaxis={'range': [range_min, range_max]},
-                              #yaxis={'range': [range_min, range_max], 'scaleratio': 1, 'scaleanchor': 'x'},
-                              #width=700,
-                              #height=300,
-                              #showlegend=False,
-                              #uirevision=1,
-                              #paper_bgcolor='rgba(0,0,0,0)',
-                              #plot_bgcolor='rgba(0,0,0,0)'
-                            )}       
-     # fig = go.Figure()
-     # fig.add_traces(traces) 
-     # fig.update_layout(
-     #                yaxis={'scaleratio': 1, 'scaleanchor': 'x',},
-     #                margin=dict(
-     #                          b=20, #bottom margin 40px
-     #                          l=20, #left margin 40px
-     #                          r=20, #right margin 20px
-     #                          t=30, #top margin 20px
+
+     # fig = {'data': traces, 
+     #       'layout': go.Layout(yaxis=dict(range=range_y, scaleratio=1, scaleanchor='x'),
+     #                           margin=dict(
+     #                                    b=20, #bottom margin 40px
+     #                                    l=20, #left margin 40px
+     #                                    r=20, #right margin 20px
+     #                                    t=30, #top margin 20px
      #                          ),
-     #                showlegend=False,
-     #                uirevision=1,
-     #                hovermode='closest',
-     #                #paper_bgcolor='rgba(0,0,0,0)',
-     #                #plot_bgcolor='rgba(0,0,0,0)'
-     #                )            
+     #                          images=imgs,
+     #                          # [
+     #                          #      dict(source=robot.rover_image,
+     #                          #           xref='x',
+     #                          #           yref='y',
+     #                          #           x=robot.position_x,
+     #                          #           y=robot.position_y,
+     #                          #           sizex=0.8,
+     #                          #           sizey=0.8,
+     #                          #           xanchor='center',
+     #                          #           yanchor='middle',
+     #                          #           sizing='contain',
+     #                          #           opacity=1,
+     #                          #           layer='above')],
+     #                          showlegend=False,
+     #                          uirevision=1,
+     #                          hovermode='closest',
+     #                          annotations=mowdata,
+     #                          dragmode='pan'
+     #                          #title='Map', 
+     #                          #xaxis={'range': [range_min, range_max]},
+     #                          #yaxis={'range': [range_min, range_max], 'scaleratio': 1, 'scaleanchor': 'x'},
+     #                          #width=700,
+     #                          #height=300,
+     #                          #showlegend=False,
+     #                          #uirevision=1,
+     #                          #paper_bgcolor='rgba(0,0,0,0)',
+     #                          #plot_bgcolor='rgba(0,0,0,0)'
+     #                        )}       
+     # # fig = go.Figure()
+     # # fig.add_traces(traces) 
+     # # fig.update_layout(
+     # #                yaxis={'scaleratio': 1, 'scaleanchor': 'x',},
+     # #                margin=dict(
+     # #                          b=20, #bottom margin 40px
+     # #                          l=20, #left margin 40px
+     # #                          r=20, #right margin 20px
+     # #                          t=30, #top margin 20px
+     # #                          ),
+     # #                showlegend=False,
+     # #                uirevision=1,
+     # #                hovermode='closest',
+     # #                #paper_bgcolor='rgba(0,0,0,0)',
+     # #                #plot_bgcolor='rgba(0,0,0,0)'
+     # #                )            
      return fig, False

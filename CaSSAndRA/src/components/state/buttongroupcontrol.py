@@ -60,6 +60,8 @@ def update_button_active(n_clicks_bh: int, n_clicks_bma: int, n_clicks_bzs: int,
         return False, False, False, False
     elif context == ids.INTERVAL and (robot.job == 1 or robot.job == 4):
         return False, False, False, False
+    elif context == ids.BUTTONCANCEL:
+        return False, False, False, False
     else:
         return bh_state, bma_state, bzs_state, bgt_state
     

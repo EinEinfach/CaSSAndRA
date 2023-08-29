@@ -1,4 +1,4 @@
-#Version:0.54.3 -> Increase time until spinner triggered for state map
+#Version:0.55.0 -> Chnaged behaivor of state map (Experimentel). Switched to go.Figure object 
 
 # create logger
 import logging
