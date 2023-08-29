@@ -22,10 +22,10 @@ statemap.update_layout(
                     zerolinecolor = 'lightgrey'
                ),
                margin=dict(
-                    b=20, #bottom margin 40px
-                    l=20, #left margin 40px
-                    r=20, #right margin 20px
-                    t=30, #top margin 20px
+                    b=0, #bottom margin 40px
+                    l=0, #left margin 40px
+                    r=0, #right margin 20px
+                    t=0, #top margin 20px
                 ),
                showlegend=False,
                uirevision=1,
@@ -254,7 +254,7 @@ def update(n_intervals: int,
      fig_state['data'] = traces
      fig = go.Figure(fig_state)
      fig.update_layout(
-                    yaxis = dict(range=range_y),
+                    #yaxis = dict(range=range_y),
                     images=imgs,
                     annotations=mowdata,
                     )

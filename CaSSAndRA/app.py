@@ -1,4 +1,4 @@
-#Version:0.55.1 -> Obstacles are synchronous to sunray fw 
+#Version:0.55.2 -> Remove y_range in state-map to avoid jumping, problem with to long dockpfad has to be handled in other way 
 
 # create logger
 import logging
