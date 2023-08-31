@@ -191,25 +191,26 @@ def update(n_intervals: int,
                                         name='obstacle', 
                                         mode='lines', 
                                         line=dict(color='#FF6600'), 
+                                        fill='toself',
                                         hoverinfo='skip')) 
                obstacle_center_coords = obstacles[(obstacles['CRC']==obstacle)&(obstacles['type']=='center')]
                obstacle_x = obstacle_center_coords.iloc[0]['X']
                obstacle_y = obstacle_center_coords.iloc[0]['Y']
-               imgs.append(dict(
-                                        source=current_map.obstacle_img,
-                                        xref='x',
-                                        yref='y',
-                                        x=obstacle_x,
-                                        y=obstacle_y,
-                                        sizex=1.1,
-                                        sizey=1.1,
-                                        xanchor='center',
-                                        yanchor='middle',
-                                        sizing='contain',
-                                        opacity=1,
-                                        layer='above'
-                                   )
-                              )
+               # imgs.append(dict(
+               #                          source=current_map.obstacle_img,
+               #                          xref='x',
+               #                          yref='y',
+               #                          x=obstacle_x,
+               #                          y=obstacle_y,
+               #                          sizex=1.1,
+               #                          sizey=1.1,
+               #                          xanchor='center',
+               #                          yanchor='middle',
+               #                          sizing='contain',
+               #                          opacity=1,
+               #                          layer='above'
+               #                     )
+               #                )
      #Plot rover position
      # traces.append(go.Scatter(x=[robot.position_x], y=[robot.position_y], 
      #                         mode='markers',
@@ -254,7 +255,7 @@ def update(n_intervals: int,
      fig_state['data'] = traces
      fig = go.Figure(fig_state)
      fig.update_layout(
-                    #yaxis = dict(range=range_y),
+                    yaxis = dict(range=range_y),
                     images=imgs,
                     annotations=mowdata,
                     )

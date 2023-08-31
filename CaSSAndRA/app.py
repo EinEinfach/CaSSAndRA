@@ -1,4 +1,4 @@
-#Version:0.55.2 -> Remove y_range in state-map to avoid jumping, problem with to long dockpfad has to be handled in other way 
+#Version:0.55.3 -> Remove image from obstacle for tests. y_range added back to state-map
 
 # create logger
 import logging
