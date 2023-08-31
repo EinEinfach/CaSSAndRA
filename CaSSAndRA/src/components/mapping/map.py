@@ -7,19 +7,27 @@ from src.backend.data import mapdata, calceddata
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import mapping_maps
 
+from src.backend.utils import debuglogger
+
 @callback(Output(ids.MAPPINGMAP, 'figure'),
           [Input(ids.INTERVAL, 'n_intervals'), 
            Input(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            Input(ids.DROPDOWNSUNRAYIMPORT, 'value'),
            Input(ids.BUTTONPERIMETERADD, 'disabled'),
            Input(ids.MAPPINGMAP, 'selectedData'),
+           Input(ids.MAPPINGMAP, 'clickData'),
            State(ids.BUTTONHOMEADD, 'active')])
 def update(n_intervals: int, selected_perimeter: str(), selected_import: int, 
-           bpa_disabled: bool, selecteddata: dict(), bha_state: bool) -> dict():
+           bpa_disabled: bool, selecteddata: dict(), clickdata: dict(), bha_state: bool) -> dict():
     
     traces = []
+    selected_trace = None
+    selected_trace_color = dict(color='#fa8b36')
     context = ctx.triggered_id
     context_triggered = ctx.triggered
+
+    if context_triggered[0]['prop_id'] == ids.MAPPINGMAP+'.clickData' and clickdata:
+        selected_trace = clickdata['points'][0]['curveNumber']
 
     if context == ids.DROPDOWNSUNRAYIMPORT and selected_import is not None:
         if not mapping_maps.imported.empty:
@@ -51,22 +59,24 @@ def update(n_intervals: int, selected_perimeter: str(), selected_import: int,
         #Plot perimeter and exlusions
         coords_filtered = coords.loc[coords['type'] != 'dockpoints']
         coords_filtered = coords_filtered.loc[coords_filtered['type'] != 'figure']
-        for trace in coords_filtered['type'].unique():
+        for i, trace in enumerate(coords_filtered['type'].unique()):
+            if selected_trace != None and i == selected_trace:
+                line_color = selected_trace_color
+            else:
+                line_color = line_style
             filtered = coords_filtered.loc[coords['type']==trace]
             traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
-                                        name='perimeter', 
+                                        name=trace, 
                                         mode='lines+markers', 
-                                        line=line_style, 
-                                        marker=dict(size=3),
-                                        hoverinfo='skip')) 
+                                        line=line_color, 
+                                        marker=dict(size=3))) 
         #Plot dockpoints
         filtered = coords.loc[coords['type'] == 'dockpoints']
         traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
-                                name='dockpoints', 
+                                name='dock path', 
                                 mode='lines+markers', 
                                 line=dict(color='#0f2105'), 
-                                marker=dict(size=3),
-                                hoverinfo='skip'))
+                                marker=dict(size=3)))
         
         #Plot unsaved figure
         filtered = coords.loc[coords['type'] == 'figure']
