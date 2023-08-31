@@ -1,4 +1,4 @@
-#Version:0.55.3 -> Remove image from obstacle for tests. y_range added back to state-map
+#Version:0.55.4 -> Fix annotations. New test with infinty obstacles
 
 # create logger
 import logging
