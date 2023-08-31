@@ -1,4 +1,4 @@
-#Version:0.55.4 -> Fix annotations. New test with infinty obstacles
+#Version:0.55.5 -> Fix issue if uart serial connection delivers OS.error
 
 # create logger
 import logging
