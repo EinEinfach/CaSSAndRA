@@ -1,4 +1,4 @@
-#Version:0.55.5 -> Fix issue if uart serial connection delivers OS.error
+#Version:0.55.6 -> Close serial connection if exeption occured 
 
 # create logger
 import logging

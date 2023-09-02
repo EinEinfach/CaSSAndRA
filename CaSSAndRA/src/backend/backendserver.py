@@ -130,6 +130,7 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
             except Exception as e:
                 logger.warning('Backend: Exception in UART communication occured, trying to reconnect')
                 logger.debug(str(e))
+                ser.close()
                 connection = False
             connection = uartcomm.cmd_to_rover(ser)
 
