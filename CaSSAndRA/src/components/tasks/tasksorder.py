@@ -1,5 +1,6 @@
 from dash import html, dcc, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
+import time
 
 from src.components import ids
 from . import buttons
@@ -27,16 +28,15 @@ tasksorder = dbc.Col([
                 ])
 
 @callback(Output(ids.DROPDOWNTASKSORDER, 'options'),
-          [Input(ids.OKBUTTONSAVECURRENTTASK, 'n_clicks'),
-           Input(ids.MODALRENAMETASK, 'is_open'), 
-           Input(ids.MODALSAVECURRENTTASK, 'is_open'),
-           Input(ids.MODALREMOVETASK, 'is_open'),
-           Input(ids.MODALCOPYTASK, 'is_open'),
+          [Input(ids.OKBUTTONSRRENAMETASK, 'n_clicks'),
+           Input(ids.OKBUTTONSAVECURRENTTASK, 'n_clicks'),
+           Input(ids.OKBUTTONSREMOVETASK, 'n_clicks'),
+           Input(ids.OKBUTTONCOPYTASK, 'n_clicks'),
            Input(ids.URLUPDATE, 'pathname'),
            State(ids.DROPDOWNTASKSORDER, 'options')])
-def update_dropdown_tasksorder(bok_nclicks: int, rename_is_open: bool, save_is_open: bool, 
-                               remove_is_open: bool, copy_is_open: bool, pathname: str,
-                               dropdown_opt_state: list()) -> list():
+def update_dropdown_tasksorder(bokrt_nclicks: int, bokst_nclicks: int, bokdt_nclicks: int, 
+                               bokct_nclicks: int, pathname: str, dropdown_opt_state: list()) -> list():
+    time.sleep(0.5)
     context = ctx.triggered_id
     try:
         filtered_tasks = tasks.saved[tasks.saved['map name'] == current_map.name]

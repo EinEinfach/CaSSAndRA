@@ -5,7 +5,6 @@ from .. import ids
 from src.backend.data.mapdata import current_map, current_task
 from src.backend.map import path
 from src.backend.comm import cmdlist
-from src.backend.utils import debuglogger
 
 #modalbuttons
 okbuttonsavecurrenttask = dbc.Button('OK', id=ids.OKBUTTONSAVECURRENTTASK, class_name='ms-auto', n_clicks=0)
@@ -70,10 +69,11 @@ def update_tasks_order_butttons_disabled(tasks_order: list()) -> list:
 
 @callback(Output(ids.DROPDOWNTASKSORDER, 'value'),
           [Input(ids.BUTTONPLANCANCEL, 'n_clicks'),
+           Input(ids.OKBUTTONSREMOVETASK, 'n_clicks'),
            State(ids.DROPDOWNTASKSORDER, 'value')])
-def reset_tasks_order_selection(bc_nclicks: int, tasks_order: list()) -> list:
+def reset_tasks_order_selection(bc_nclicks: int, bok_nclicks: int, tasks_order: list()) -> list:
     context = ctx.triggered_id 
-    if context == ids.BUTTONPLANCANCEL and current_task.preview.empty:
+    if (context == ids.BUTTONPLANCANCEL and current_task.preview.empty) or context == ids.OKBUTTONSREMOVETASK:
         return []
     else:
         return tasks_order

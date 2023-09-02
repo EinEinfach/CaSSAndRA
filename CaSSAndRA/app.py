@@ -1,4 +1,4 @@
-#Version:0.55.6 -> Close serial connection if exeption occured 
+#Version:0.55.7 -> Fix some small issues in task selection
 
 # create logger
 import logging
