@@ -2,6 +2,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import base64
+import re
 import io
 import os
 import json
@@ -222,6 +223,8 @@ class Perimeters:
     selected_import: pd.DataFrame = pd.DataFrame()
     saved: pd.DataFrame = pd.DataFrame()
     selected_save: pd.DataFrame = pd.DataFrame()
+    selected_point: pd.DataFrame = pd.DataFrame()
+    selected_name: str() = ''
     build: pd.DataFrame = pd.DataFrame()
     dockpoints: pd.DataFrame = pd.DataFrame(columns=['X', 'Y'])
     import_status: int = -1   
@@ -326,9 +329,19 @@ class Perimeters:
     def remove_point(self, create: str()) -> None:
         try: 
             logger.debug('Mapping removing last point')
-            df = self.build[self.build['type'] == create]
-            if not df.empty:
-                self.build = self.build[:-1]
+            figure = self.build[self.build['type'] == create]
+            if figure.empty:
+                figure = self.build[self.build['type'] == 'edit']
+                create = 'edit'
+            else:
+                self.build = self.build[self.build['type'] != create]
+            if not figure.empty and create == 'figure':
+                figure = figure[:-1]
+                self.build = pd.concat([self.build, figure], ignore_index=True)
+            elif not figure.empty and create == 'edit' and not self.selected_point.empty:
+                self.build = self.build.drop([self.selected_point.index[0]])
+                self.build = self.build.reset_index(drop=True)
+                self.selected_point = pd.DataFrame()
         except Exception as e:
             logger.error('Backend: Remove point not possible')
             logger.debug(str(e))
@@ -369,7 +382,7 @@ class Perimeters:
         try:
             logger.debug('Mapping finish figure as: '+action)
             df = self.build[self.build['type'] == 'figure']
-            df['type'] = 'perimeter'
+            df.loc[:,'type'] = 'perimeter'
             new_perimeter = map.create(df)
             if new_perimeter.geom_type != 'Polygon' or not new_perimeter.is_valid:
                 logger.info('Backend: New figure is not a polygon or not valid polygon, try again')
@@ -467,6 +480,26 @@ class Perimeters:
         except Exception as e:
             logger.error('Backend: Dockpoints adjustment not possible')
             logger.debug(str(e)) 
+    
+    def csvtocartesian(self, closedpath: str) -> list:
+        path = re.split('[a-zA-Z]', closedpath)
+        path = [point for point in path if point]
+        x = []
+        y = []
+        for point_str in path:
+            point_str_splitted = point_str.split(',')
+            points_float = [float(point) for point in point_str_splitted]
+            x.append(points_float[0])
+            y.append(points_float[1])
+        df = pd.DataFrame({'X':x, 'Y':y})
+        return df
+    
+    def cartesiantocsv(self, coords: list) -> str:
+        path = 'M'
+        for i, coord in enumerate(coords):
+            path = path+str(coord[0])+','+str(coord[1])+'L'
+        closedpath = path[:-1] + 'Z'
+        return closedpath
 
 @dataclass
 class Task:

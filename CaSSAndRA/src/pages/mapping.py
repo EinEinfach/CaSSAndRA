@@ -21,7 +21,7 @@ def update_layout() -> html.Div:
                              children=[
                                  dbc.Spinner(delay_show=1000, 
                                              children=html.Div([
-                                                        dcc.Graph(id=ids.MAPPINGMAP, config= {'displaylogo': False, 'scrollZoom': True})
+                                                        dcc.Graph(id=ids.MAPPINGMAP, figure=map.mappingmap, config= {'displaylogo': False, 'scrollZoom': True})
                                                         ], className='map-graph'
                                                     )
                                 )
@@ -34,24 +34,19 @@ def update_layout() -> html.Div:
                             buttongroupcontrol.buttonhomeadd,
                             buttongroupcontrol.buttonaddnewpoint,
                             buttongroupcontrol.buttondeletelastpoint,
-                            buttongroupcontrol.buttonfinishfigure,
+                            buttongroupcontrol.buttonmovepoints,
                             ], className='text-center'),    
                     ]),
                 ], xs=12, sm=6, lg=6),
                 dbc.Col([
-                    dbc.Row([
-                        dbc.Col([
-                            html.Div([
-                                chooseperimeter.chooseperimeter,
+                    html.Div([
+                        chooseperimeter.chooseperimeter,
+                        ], className='text-center'
+                    ),
+                    html.Div([
+                        uploadsunray.uploadsunray,
                         ], className='text-center'),
-                        ], xs=12, sm=6, lg=6),
-                        dbc.Col([
-                            html.Div([
-                                uploadsunray.uploadsunray,
-                            ], className='text-center'),
-                        ], xs=12, sm=6, lg=6),
-                    ], justify='evenly'),
-                ]),
+                ], xs=12, sm=6, lg=6),
                 modal.sunrayimportstatus,
                 modal.overwriteperimter,
                 modal.newperimeter,

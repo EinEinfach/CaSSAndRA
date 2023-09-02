@@ -17,7 +17,7 @@ buttonaddnewpoint = dbc.Button(id=ids.BUTTONADDNEWPOINT, size='lg', class_name='
 
 buttondeletelastpoint = dbc.Button(id=ids.BUTTONDELETELASTPOINT, size='lg', class_name='me-1 mt-1 mb-1 bi bi-node-minus', disabled=False, title='remove last point')
 
-buttonfinishfigure = dbc.Button(id=ids.BUTTONFINISHFIGURE, size='lg', class_name='me-1 mt-1 mb-1 bi bi-check-square-fill', disabled=False, title='finish and save')
+buttonmovepoints= dbc.Button(id=ids.BUTTONMOVEPOINTS, size='lg', class_name='me-1 mt-1 mb-1 bi bi-arrows-move', disabled=False, title='move points')
 
 @callback(Output(ids.BUTTONPERIMETERADD, 'disabled'),
           Output(ids.BUTTONPERIMETERDIFF, 'disabled'),

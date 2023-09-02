@@ -7,7 +7,7 @@ from . import buttons
 
 uploadsunray = dbc.Col([
                     dbc.Card([
-                        dbc.CardHeader('Upload sunray file'),
+                        dbc.CardHeader('Import map'),
                         dbc.CardBody([
                             dcc.Dropdown(id=ids.DROPDOWNSUNRAYIMPORT, className='m-1'),
                             dbc.Row([

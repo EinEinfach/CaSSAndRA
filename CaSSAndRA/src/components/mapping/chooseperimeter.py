@@ -8,14 +8,15 @@ from src.backend.data.mapdata import mapping_maps
 
 chooseperimeter = dbc.Col([
                     dbc.Card([
-                        dbc.CardHeader('Saved perimeters'),
+                        dbc.CardHeader('Select map'),
                         dbc.CardBody([
                             dcc.Dropdown(id=ids.DROPDOWNCHOOSEPERIMETER, className='m-1'),
                             dbc.Container([
                                 buttons.selectperimeter,
                                 buttons.addnewperimeter,
                                 buttons.copyperimeter,
-                                buttons.removeperimeter   
+                                buttons.removeperimeter,   
+                                buttons.finishfigure
                             ], fluid=True),                      
                         ]), 
                     ], className='text-center m-1 w-90')
@@ -25,10 +26,10 @@ chooseperimeter = dbc.Col([
           Output(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
           [Input(ids.OKBUTTONOVERWRITEPERIMTER, 'n_clicks'),
            Input(ids.OKBUTTONNEWPERIMETER, 'n_clicks'),
-           Input(ids.INTERVAL, 'n_intervals'),
+           Input(ids.URLUPDATE, 'pathname'),
            State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            State(ids.DROPDOWNCHOOSEPERIMETER, 'options')])
-def update_dropdown_chooseperimeter(bok_nclicks: int, n_intervals: int, bok2_nclicks: int, 
+def update_dropdown_chooseperimeter(bok_nclicks: int, pathname: str, bok2_nclicks: int, 
                                     dropdown_val_state: str(), dropdown_opt_state: list()) -> list():
     context = ctx.triggered_id
     try:

@@ -9,26 +9,85 @@ from src.backend.data.mapdata import mapping_maps
 
 from src.backend.utils import debuglogger
 
+mappingmap = go.Figure()
+mappingmap.update_layout(
+               plot_bgcolor='white',
+               yaxis=dict(
+                    scaleratio=1, 
+                    scaleanchor='x',
+                    gridcolor = '#eeeeee', 
+                    zerolinecolor = 'lightgrey'),
+               xaxis=dict(
+                    gridcolor = '#eeeeee', 
+                    zerolinecolor = 'lightgrey'
+               ),
+               margin=dict(
+                    b=0, #bottom margin 40px
+                    l=0, #left margin 40px
+                    r=0, #right margin 20px
+                    t=30, #top margin 20px
+                ),
+               showlegend=False,
+               uirevision=1,
+               hovermode='closest',
+               dragmode='pan',
+               annotations=[],
+     )
+
 @callback(Output(ids.MAPPINGMAP, 'figure'),
-          [Input(ids.INTERVAL, 'n_intervals'), 
+          [#Input(ids.INTERVAL, 'n_intervals'), 
            Input(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            Input(ids.DROPDOWNSUNRAYIMPORT, 'value'),
            Input(ids.BUTTONPERIMETERADD, 'disabled'),
            Input(ids.MAPPINGMAP, 'selectedData'),
            Input(ids.MAPPINGMAP, 'clickData'),
-           State(ids.BUTTONHOMEADD, 'active')])
-def update(n_intervals: int, selected_perimeter: str(), selected_import: int, 
-           bpa_disabled: bool, selecteddata: dict(), clickdata: dict(), bha_state: bool) -> dict():
+           Input(ids.BUTTONMOVEPOINTS, 'n_clicks'),
+           State(ids.BUTTONHOMEADD, 'active'),
+           State(ids.BUTTONMOVEPOINTS, 'active'),
+           State(ids.MAPPINGMAP, 'figure')])
+def update(#n_intervals: int, 
+           selected_perimeter: str, selected_import: int, 
+           bpa_disabled: bool, selecteddata: dict, clickdata: dict, bmp_nclicks: int,
+           bha_state: bool, bmp_state: bool, fig_state: dict) -> dict:
     
     traces = []
     selected_trace = None
-    selected_trace_color = dict(color='#fa8b36')
+    closedpath = None
     context = ctx.triggered_id
     context_triggered = ctx.triggered
+    debuglogger.log(context)
 
+    #Check if a figure was selected
     if context_triggered[0]['prop_id'] == ids.MAPPINGMAP+'.clickData' and clickdata:
+        #remove unfinished figure
+        mapping_maps.build = mapping_maps.build[mapping_maps.build['type'] != 'figure']
+        #select figure
         selected_trace = clickdata['points'][0]['curveNumber']
+        selected_point_idx = clickdata['points'][0]['pointIndex']
+        selected_name = mapping_maps.build['type'].unique()[selected_trace]
+        mapping_maps.selected_name = selected_name
+        mapping_maps.build.loc[:,'type'] = mapping_maps.build['type'].replace([selected_name], 'edit')
+        if selected_point_idx == len(mapping_maps.build[mapping_maps.build['type'] == 'edit']):
+            mapping_maps.selected_point = mapping_maps.build[mapping_maps.build['type'] == 'edit'].iloc[[0]]
+        else:
+            mapping_maps.selected_point = mapping_maps.build[mapping_maps.build['type'] == 'edit'].iloc[[selected_point_idx]]
+    
+    #Check if shape selected
+    if context == ids.BUTTONMOVEPOINTS and bmp_state:
+        data_for_shape = mapping_maps.build[mapping_maps.build['type'] == 'edit']
+        data_for_shape = list(zip(data_for_shape['X'].values.tolist(), data_for_shape['Y'].values.tolist()))
+        closedpath = mapping_maps.cartesiantocsv(data_for_shape)
+        mapping_maps.build = mapping_maps.build[mapping_maps.build['type'] != 'edit']
+        mapping_maps.selected_point = pd.DataFrame()
+    elif context == ids.BUTTONMOVEPOINTS and not bmp_state:
+        data_for_figure = mapping_maps.csvtocartesian(fig_state['layout']['shapes'][0]['path'])
+        data_for_figure['type'] = 'edit'
+        mapping_maps.build = pd.concat([mapping_maps.build, data_for_figure], ignore_index=True)
+        del fig_state['layout']['shapes']
+        closedpath = None
 
+
+    #Check which dropdown was triggered
     if context == ids.DROPDOWNSUNRAYIMPORT and selected_import is not None:
         if not mapping_maps.imported.empty:
             mapping_maps.selected = 'from upload'
@@ -60,16 +119,12 @@ def update(n_intervals: int, selected_perimeter: str(), selected_import: int,
         coords_filtered = coords.loc[coords['type'] != 'dockpoints']
         coords_filtered = coords_filtered.loc[coords_filtered['type'] != 'figure']
         for i, trace in enumerate(coords_filtered['type'].unique()):
-            if selected_trace != None and i == selected_trace:
-                line_color = selected_trace_color
-            else:
-                line_color = line_style
             filtered = coords_filtered.loc[coords['type']==trace]
             traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
-                                        name=trace, 
-                                        mode='lines+markers', 
-                                        line=line_color, 
-                                        marker=dict(size=3))) 
+                                    name=trace, 
+                                    mode='lines+markers', 
+                                    line=line_style, 
+                                    marker=dict(size=3))) 
         #Plot dockpoints
         filtered = coords.loc[coords['type'] == 'dockpoints']
         traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
@@ -86,6 +141,31 @@ def update(n_intervals: int, selected_perimeter: str(), selected_import: int,
                                 line=dict(color='#FF0000'), 
                                 marker=dict(size=6),
                                 hoverinfo='skip'))
+        
+        #Plot figure to edit
+        filtered = coords.loc[coords['type'] == 'edit']
+        traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
+                                name='edit figure', 
+                                mode='lines+markers', 
+                                line=dict(color='#E0A06B'), 
+                                marker=dict(size=6),
+                                hoverinfo='skip'))
+        
+
+        
+        #Plot selected point
+        filtered = mapping_maps.selected_point
+        if not filtered.empty:
+            traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'],
+                                   mode='markers',
+                                   name='selected point',
+                                   marker = dict(
+                                             size=10, 
+                                             color='green', 
+                                             symbol='cross-thin-open',
+                                             line = dict(width=2, color="DarkSlateGrey")
+                                             ),
+                                   ))
 
     #Check interactions with graph
     if selecteddata == {'points':[]}: #Workaround for selected data, beacause after select selected data changing to {'poonts':[]} and triggering context_id
@@ -108,36 +188,63 @@ def update(n_intervals: int, selected_perimeter: str(), selected_import: int,
                             hoverinfo='skip'
                             )
                     )
-
-    fig = {'data': traces, 
-           'layout': go.Layout(
-                        yaxis={'scaleratio': 1, 'scaleanchor': 'x',},
-                        margin=dict(
-                                    b=20, #bottom margin 40px
-                                    l=20, #left margin 40px
-                                    r=20, #right margin 20px
-                                    t=30, #top margin 20px
-                        ),
-                        images=[
-                                   dict(source=robot.rover_image,
-                                        xref='x',
-                                        yref='y',
-                                        x=robot.position_x,
-                                        y=robot.position_y,
-                                        sizex=0.8,
-                                        sizey=0.8,
-                                        xanchor='center',
-                                        yanchor='middle',
-                                        sizing='contain',
-                                        opacity=0.3,
-                                        layer='above')],
-                        showlegend=False,
-                        uirevision=1,
-                        hovermode='closest',
-                        dragmode='pan',
-                        annotations=annotation
+    
+    #Create robot image
+    robot_img = dict(source=robot.rover_image,
+                    xref='x',
+                    yref='y',
+                    x=robot.position_x,
+                    y=robot.position_y,
+                    sizex=0.8,
+                    sizey=0.8,
+                    xanchor='center',
+                    yanchor='middle',
+                    sizing='contain',
+                    opacity=0.3,
+                    layer='above')
+    
+    #Put images together
+    imgs = [robot_img]
+    
+    fig_state['data'] = traces
+    fig = go.Figure(fig_state)
+    if closedpath != None:
+        fig.add_shape(editable=True)
+        fig.layout.shapes[0].type = 'path'
+        fig.layout.shapes[0].path = closedpath
+    fig.update_layout(
+                    images=imgs,
                     )
-    }
+
+    # fig = {'data': traces, 
+    #        'layout': go.Layout(
+    #                     yaxis={'scaleratio': 1, 'scaleanchor': 'x',},
+    #                     margin=dict(
+    #                                 b=20, #bottom margin 40px
+    #                                 l=20, #left margin 40px
+    #                                 r=20, #right margin 20px
+    #                                 t=30, #top margin 20px
+    #                     ),
+    #                     images=[
+    #                                dict(source=robot.rover_image,
+    #                                     xref='x',
+    #                                     yref='y',
+    #                                     x=robot.position_x,
+    #                                     y=robot.position_y,
+    #                                     sizex=0.8,
+    #                                     sizey=0.8,
+    #                                     xanchor='center',
+    #                                     yanchor='middle',
+    #                                     sizing='contain',
+    #                                     opacity=0.3,
+    #                                     layer='above')],
+    #                     showlegend=False,
+    #                     uirevision=1,
+    #                     hovermode='closest',
+    #                     dragmode='pan',
+    #                     annotations=annotation
+    #                 )
+    # }
     
     return fig
             
