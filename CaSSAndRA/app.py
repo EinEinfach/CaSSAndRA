@@ -1,4 +1,6 @@
-#Version:0.55.7 -> Fix some small issues in task selection
+#!/usr/bin/env python3
+
+#Version:0.55.8 -> Trying to fix reconnection issues in UART mode
 
 # create logger
 import logging

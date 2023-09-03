@@ -103,21 +103,16 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
         else: 
             try: 
                 if ser.in_waiting > 0:
-                        data = ser.readline().decode('utf-8').rstrip()
-                        logger.debug(data)
-                        if data.find('S,') == 0:
-                            #logger.debug(data)
-                            uartcomm.on_state(data)
-                        if data.find('T,') == 0:
-                            #logger.debug(data)
-                            uartcomm.on_stats(data) 
-                        if data.find('S2,') == 0:
-                            uartcomm.on_obstacle(data)
-            except Exception as e:
-                logger.warning('Backend: Exception in UART communication occured, trying to reconnect')
-                logger.debug(str(e))
-                connection = False
-            try:
+                    data = ser.readline().decode('utf-8').rstrip()
+                    logger.debug(data)
+                    if data.find('S,') == 0:
+                        #logger.debug(data)
+                        uartcomm.on_state(data)
+                    if data.find('T,') == 0:
+                        #logger.debug(data)
+                        uartcomm.on_stats(data) 
+                    if data.find('S2,') == 0:
+                        uartcomm.on_obstacle(data)
                 if (datetime.now() - start_time_state).seconds > time_to_wait:
                     ser.write(b'AT+S\n')
                     start_time_state = datetime.now()
@@ -127,12 +122,12 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
                 elif (datetime.now() - start_time_stats).seconds > 60*time_to_wait:
                     ser.write(b'AT+T\n')
                     start_time_stats = datetime.now()
+                connection = uartcomm.cmd_to_rover(ser)
             except Exception as e:
                 logger.warning('Backend: Exception in UART communication occured, trying to reconnect')
                 logger.debug(str(e))
                 ser.close()
                 connection = False
-            connection = uartcomm.cmd_to_rover(ser)
 
         if (datetime.now() - start_time_save).seconds >= 600*time_to_wait:
             logger.info('Backend: Writing State-Data to the file')
