@@ -7,9 +7,10 @@ from datetime import datetime
 from shapely.geometry import *
 
 #local imports
-from . import roverdata, appdata, mapdata
+from . import roverdata
 from . roverdata import robot
 from . cfgdata import appcfg
+from . mapdata import mapping_maps
 
 def calcdata_from_state():
     logger.debug('Backend: Calc data from state data frame')
@@ -109,13 +110,16 @@ def calcmapdata_for_plot(mapcoords: pd.DataFrame()) -> pd.DataFrame():
     #Add first value to the end, if perimeter or exclusion
     types = mapcoords['type'].unique()
     for type in types:
-        if type != 'dockpoints':
+        if type == 'dockpoints':
             coords = mapcoords[mapcoords['type'] == type]
-            first_value_cpy = coords.iloc[:1,:]
-            coords = pd.concat([coords, first_value_cpy], ignore_index=True)
+            perimeter_for_plot = pd.concat([perimeter_for_plot, coords], ignore_index=True)
+        elif type == 'edit' and mapping_maps.selected_name == 'dockpoints':
+            coords = mapcoords[mapcoords['type'] == type]
             perimeter_for_plot = pd.concat([perimeter_for_plot, coords], ignore_index=True)
         else:
             coords = mapcoords[mapcoords['type'] == type]
+            first_value_cpy = coords.iloc[:1,:]
+            coords = pd.concat([coords, first_value_cpy], ignore_index=True)
             perimeter_for_plot = pd.concat([perimeter_for_plot, coords], ignore_index=True)
     return perimeter_for_plot
 

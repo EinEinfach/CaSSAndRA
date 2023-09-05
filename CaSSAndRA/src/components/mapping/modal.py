@@ -205,7 +205,7 @@ def finish_mapping(bff_n_clicks: int, bok_n_clicks: int,
 @callback(Output(ids.MODALNOFIXSOLUTION, 'is_open'),
           [Input(ids.BUTTONADDNEWPOINT, 'n_clicks'),
            Input(ids.OKBUTTONNOFIXSOLUTION, 'n_clicks'),
-           State(ids.BUTTONHOMEADD, 'n_clicks'),
+           State(ids.BUTTONHOMEADD, 'active'),
            State(ids.MODALNOFIXSOLUTION, 'is_open')])
 def nofix_solution(banp_n_clicks: int, bok_n_clicks, bha_state: bool,
                    is_open: bool) -> bool:

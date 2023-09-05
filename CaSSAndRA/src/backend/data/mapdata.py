@@ -226,6 +226,7 @@ class Perimeters:
     selected_point: pd.DataFrame = pd.DataFrame()
     selected_name: str() = ''
     build: pd.DataFrame = pd.DataFrame()
+    build_cpy: pd.DataFrame = pd.DataFrame()
     dockpoints: pd.DataFrame = pd.DataFrame(columns=['X', 'Y'])
     import_status: int = -1   
     select_imported_status: int = -1  
@@ -233,8 +234,11 @@ class Perimeters:
     def init(self) -> None:
         self.selected = ''
         self.selected_save = pd.DataFrame()
+        self.selected_point = pd.DataFrame()
+        self.selected_name = ''
         self.build = pd.DataFrame()
-        self.dockpoints = pd.DataFrame()
+        self.build_cpy = pd.DataFrame()
+        self.dockpoints = pd.DataFrame(columns=['X', 'Y'])
 
     def import_sunray(self, content: str()) -> None:
         coords_all = pd.DataFrame()
@@ -311,37 +315,75 @@ class Perimeters:
 
     def add_point(self, create: str()) -> None:
         try:
-            logger.debug('Mapping add point: '+str(robot.position_x)+' '+str(robot.position_y))
-            #remove unfinished figure
-            if create != 'figure' and not self.build.empty:
-                logger.debug('Mapping remove unfinished figure')
-                self.build = self.build[self.build['type'] != 'figure']
-            #create point and add to data frame
-            point = {'X': [robot.position_x], 'Y': [robot.position_y], 'type': [create]}
-            df = pd.DataFrame(point)
-            logger.debug('Mapping moved data to data frame: '+str(point))
-            df.columns = ['X', 'Y', 'type']
-            self.build = pd.concat([self.build, df], ignore_index=True)
+            if not self.build.empty and not self.build[self.build['type'] == 'edit'].empty:
+                logger.debug('Add point to existing figure')
+                line = LineString(self.build[self.build['type'] == 'edit'][['X', 'Y']])
+                point = Point(self.selected_point[['X', 'Y']])
+                line_coords = list(line.coords)
+                point_coords = list(point.coords)
+                ###Remove double values###
+                line_coords = list(dict.fromkeys(line_coords))
+                ###Look for shortest way from selected point###
+                first_coords = [min(line_coords, key=lambda coord: (coord[0]-point_coords[0][0])**2 + (coord[1]-point_coords[0][1])**2)]
+                first_coords_nr = line_coords.index(first_coords[0])
+                if first_coords_nr <= (len(line_coords)-2):
+                    second_coords = line_coords[first_coords_nr + 1]
+                else:
+                    second_coords = line_coords[0]
+                new_line = LineString([first_coords[0], second_coords])
+                new_point = new_line.interpolate(new_line.length/2)
+                logger.debug('New point coordinates: '+str(list(new_point.coords)))
+                new_coords = line_coords[:first_coords_nr+1]
+                new_coords.extend(list(new_point.coords))
+                new_coords = new_coords + line_coords[first_coords_nr+1:]
+                x, y = zip(*new_coords)
+                self.build = self.build[self.build['type'] != 'edit']
+                new_edit = {'X': x, 'Y': y}
+                new_edit = pd.DataFrame(new_edit)
+                new_edit['type'] = 'edit'
+                self.build = pd.concat([self.build, new_edit], ignore_index=True)
+            else:
+                logger.debug('Add point: '+str(robot.position_x)+' '+str(robot.position_y))
+                #remove unfinished figure
+                if create != 'figure' and not self.build.empty:
+                    logger.debug('Mapping remove unfinished figure')
+                    self.build = self.build[self.build['type'] != 'figure']
+                #create point and add to data frame
+                point = {'X': [robot.position_x], 'Y': [robot.position_y], 'type': [create]}
+                df = pd.DataFrame(point)
+                logger.debug('Moved data to data frame: '+str(point))
+                df.columns = ['X', 'Y', 'type']
+                self.build = pd.concat([self.build, df], ignore_index=True)
         except Exception as e:
             logger.error('Backend: Add point not possible')
             logger.debug(str(e))
         
     def remove_point(self, create: str()) -> None:
         try: 
-            logger.debug('Mapping removing last point')
+            logger.debug('Removing point')
             figure = self.build[self.build['type'] == create]
             if figure.empty:
+                logger.debug('Target existing figure')
                 figure = self.build[self.build['type'] == 'edit']
                 create = 'edit'
             else:
+                logger.debug('Target new figure')
                 self.build = self.build[self.build['type'] != create]
-            if not figure.empty and create == 'figure':
+            if not figure.empty and (create == 'figure' or create == 'dockpoints'):
+                logger.debug('Removing last point')
                 figure = figure[:-1]
                 self.build = pd.concat([self.build, figure], ignore_index=True)
             elif not figure.empty and create == 'edit' and not self.selected_point.empty:
+                logger.debug('Removing marked point')
                 self.build = self.build.drop([self.selected_point.index[0]])
                 self.build = self.build.reset_index(drop=True)
+                if len(self.build[self.build['type'] == 'edit']) <= 2 and self.selected_name != 'dockpoints':
+                    logger.debug('Figure has less then 3 points and will be removed')
+                    self.build = self.build[self.build['type'] != 'edit']
+                else:
+                    self.build.loc[:,'type'] = mapping_maps.build['type'].replace(['edit'], self.selected_name)
                 self.selected_point = pd.DataFrame()
+                self.figure_action('recreate')
         except Exception as e:
             logger.error('Backend: Remove point not possible')
             logger.debug(str(e))
@@ -379,6 +421,7 @@ class Perimeters:
             logger.debug(str(e))
 
     def figure_action(self, action: str()) -> None:
+        self.selected_point = pd.DataFrame()
         try:
             logger.debug('Mapping finish figure as: '+action)
             df = self.build[self.build['type'] == 'figure']
@@ -396,16 +439,20 @@ class Perimeters:
                 if new_perimeter.geom_type != 'Polygon':
                     logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
                     new_perimeter = old_perimeter
-            else:
+            elif action == 'diff':
                 new_perimeter = old_perimeter.difference(new_perimeter)
                 if new_perimeter.geom_type != 'Polygon':
                     logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
                     new_perimeter = old_perimeter
+            else:
+                new_perimeter = old_perimeter
+                if new_perimeter.geom_type != 'Polygon':
+                    logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
             logger.debug('Mapping new perimeter is empty: '+str(new_perimeter.is_empty))
             new_perimeter = new_perimeter.simplify(0.02)
-            if new_perimeter.is_empty:
-                logger.debug('Mapping ignore figure create empty data frame')
-                self.build = pd.DataFrame()
+            if new_perimeter.is_empty or not new_perimeter.is_valid:
+                logger.warning('Backend: Action aborted')
+                return
             else:
                 logger.debug('Mapping create a new data frame')
                 dockpoints = self.build[self.build['type'] == 'dockpoints']
@@ -420,7 +467,8 @@ class Perimeters:
                 if not dockpoints.empty:
                     self.build = pd.concat([self.build, dockpoints], ignore_index=True)
         except Exception as e:
-            logger.error('Backend: Action to the figure not possible')
+            self.build = self.build_cpy
+            logger.error('Backend: Create new perimeter is not possible. Exception occured. Action aborted')
             logger.debug(str(e))
 
     def is_changed(self) -> bool:
@@ -498,7 +546,10 @@ class Perimeters:
         path = 'M'
         for i, coord in enumerate(coords):
             path = path+str(coord[0])+','+str(coord[1])+'L'
-        closedpath = path[:-1] + 'Z'
+        if self.selected_name == 'dockpoints':
+            closedpath = path+str(coord[0])+','+str(coord[1])+''
+        else:
+            closedpath = path[:-1] + 'Z'
         return closedpath
 
 @dataclass

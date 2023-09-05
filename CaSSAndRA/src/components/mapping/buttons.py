@@ -1,12 +1,13 @@
 from dash import html, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
 
+from src.backend.data.mapdata import mapping_maps
 from .. import ids
 
 #import map area
-uploadsunrayfile = dbc.Button(class_name='mt-1 bi bi-filetype-txt', title='upload sunray file')
+uploadsunrayfile = dbc.Button(class_name='mt-1 me-1 bi bi-filetype-txt', title='upload sunray file')
 okbuttonsunrayimport = dbc.Button('OK', id=ids.OKBUTTONSUNRAYIMPORT, class_name='ms-auto', n_clicks=0)
-saveimportedperimeter = dbc.Button(id=ids.BUTTONSAVEIMPORTEDPERIMETER, class_name='mt-1 bi bi-cloud-plus', n_clicks=0, title='save imported perimeter')
+saveimportedperimeter = dbc.Button(id=ids.BUTTONSAVEIMPORTEDPERIMETER, class_name='mt-1 me-1 bi bi-cloud-plus', n_clicks=0, title='save imported perimeter')
 okbuttonoverwriteperimter= dbc.Button('OK', id=ids.OKBUTTONOVERWRITEPERIMTER, class_name='ms-auto', n_clicks=0)
 
 #select map area
@@ -32,6 +33,16 @@ def update_perimeter_select_buttons_disabled(dropdown: str()) -> list():
         return True, True, True
     else:
         return False, False, False
+
+@callback(Output(ids.BUTTONMOVEPOINTS, 'disabled'),
+          [Input(ids.MAPPINGMAP, 'figure')])
+def update_button_move_points_disabled(figure: dict):
+    if mapping_maps.build.empty and not 'shapes' in figure['layout']:
+        return True
+    elif mapping_maps.build[mapping_maps.build['type'] == 'edit'].empty and not 'shapes' in figure['layout']:
+        return True
+    else:
+        return False
 
 @callback(Output(ids.BUTTONMOVEPOINTS, 'active'),
           [Input(ids.BUTTONMOVEPOINTS, 'n_clicks'),

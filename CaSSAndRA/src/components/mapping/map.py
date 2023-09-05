@@ -1,13 +1,12 @@
 from dash import html, Input, Output, State, callback, ctx
 import plotly.graph_objects as go
 import pandas as pd
+from shapely.geometry import Polygon
 
 from .. import ids
-from src.backend.data import mapdata, calceddata
+from src.backend.data import calceddata
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import mapping_maps
-
-from src.backend.utils import debuglogger
 
 mappingmap = go.Figure()
 mappingmap.update_layout(
@@ -35,33 +34,53 @@ mappingmap.update_layout(
      )
 
 @callback(Output(ids.MAPPINGMAP, 'figure'),
-          [#Input(ids.INTERVAL, 'n_intervals'), 
+          Output(ids.MAPPINGINTERVAL, 'disabled'),
+          [#Input(ids.MAPPINGINTERVAL, 'n_intervals'), 
            Input(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            Input(ids.DROPDOWNSUNRAYIMPORT, 'value'),
            Input(ids.BUTTONPERIMETERADD, 'disabled'),
            Input(ids.MAPPINGMAP, 'selectedData'),
            Input(ids.MAPPINGMAP, 'clickData'),
            Input(ids.BUTTONMOVEPOINTS, 'n_clicks'),
+           Input(ids.BUTTONCANCELMAPACTION, 'n_clicks'),
            State(ids.BUTTONHOMEADD, 'active'),
            State(ids.BUTTONMOVEPOINTS, 'active'),
            State(ids.MAPPINGMAP, 'figure')])
 def update(#n_intervals: int, 
-           selected_perimeter: str, selected_import: int, 
-           bpa_disabled: bool, selecteddata: dict, clickdata: dict, bmp_nclicks: int,
-           bha_state: bool, bmp_state: bool, fig_state: dict) -> dict:
+           selected_perimeter: str, 
+           selected_import: int, 
+           bpa_disabled: bool, 
+           selecteddata: dict, 
+           clickdata: dict, 
+           bmp_nclicks: int,
+           bcma_nclicks: int,
+           bha_state: bool, 
+           bmp_state: bool, 
+           fig_state: dict) -> dict:
     
     traces = []
+    annotation = []
     selected_trace = None
     closedpath = None
     context = ctx.triggered_id
     context_triggered = ctx.triggered
-    debuglogger.log(context)
+
+    #Check if edit mode, disable interval
+    if bmp_state:
+        interval_disabled = True
+    else:
+        interval_disabled = False
 
     #Check if a figure was selected
-    if context_triggered[0]['prop_id'] == ids.MAPPINGMAP+'.clickData' and clickdata:
+    if context_triggered[0]['prop_id'] == ids.MAPPINGMAP+'.clickData' and clickdata and not bmp_state:
         #remove unfinished figure
         mapping_maps.build = mapping_maps.build[mapping_maps.build['type'] != 'figure']
         #select figure
+        #create a copy of build
+        mapping_maps.build_cpy = mapping_maps.build
+        #check first if already a figure selected
+        if not mapping_maps.build[mapping_maps.build['type'] == 'edit'].empty:
+            mapping_maps.build.loc[:,'type'] = mapping_maps.build['type'].replace(['edit'], mapping_maps.selected_name)
         selected_trace = clickdata['points'][0]['curveNumber']
         selected_point_idx = clickdata['points'][0]['pointIndex']
         selected_name = mapping_maps.build['type'].unique()[selected_trace]
@@ -72,17 +91,30 @@ def update(#n_intervals: int,
         else:
             mapping_maps.selected_point = mapping_maps.build[mapping_maps.build['type'] == 'edit'].iloc[[selected_point_idx]]
     
+    #Cancel figure selection
+    if context == ids.BUTTONCANCELMAPACTION:
+        if not mapping_maps.build[mapping_maps.build['type'] == 'figure'].empty:
+            mapping_maps.build = mapping_maps.build[mapping_maps.build['type'] != 'figure']
+        else:
+            mapping_maps.build.loc[:,'type'] = mapping_maps.build['type'].replace(['edit'], mapping_maps.selected_name)
+            mapping_maps.selected_point = pd.DataFrame()
+    
     #Check if shape selected
     if context == ids.BUTTONMOVEPOINTS and bmp_state:
+        #create a copy of build
+        mapping_maps.build_cpy = mapping_maps.build
+        #go ahead with shapes
         data_for_shape = mapping_maps.build[mapping_maps.build['type'] == 'edit']
         data_for_shape = list(zip(data_for_shape['X'].values.tolist(), data_for_shape['Y'].values.tolist()))
         closedpath = mapping_maps.cartesiantocsv(data_for_shape)
         mapping_maps.build = mapping_maps.build[mapping_maps.build['type'] != 'edit']
         mapping_maps.selected_point = pd.DataFrame()
     elif context == ids.BUTTONMOVEPOINTS and not bmp_state:
-        data_for_figure = mapping_maps.csvtocartesian(fig_state['layout']['shapes'][0]['path'])
-        data_for_figure['type'] = 'edit'
-        mapping_maps.build = pd.concat([mapping_maps.build, data_for_figure], ignore_index=True)
+        if 'shapes' in fig_state['layout']:
+            data_for_figure = mapping_maps.csvtocartesian(fig_state['layout']['shapes'][0]['path'])
+            data_for_figure['type'] = mapping_maps.selected_name
+            mapping_maps.build = pd.concat([mapping_maps.build, data_for_figure], ignore_index=True)
+        mapping_maps.figure_action('recreate')
         del fig_state['layout']['shapes']
         closedpath = None
 
@@ -138,7 +170,7 @@ def update(#n_intervals: int,
         traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
                                 name='unsaved figure', 
                                 mode='lines+markers', 
-                                line=dict(color='#FF0000'), 
+                                line=dict(color='firebrick', dash='dash'), 
                                 marker=dict(size=6),
                                 hoverinfo='skip'))
         
@@ -147,7 +179,7 @@ def update(#n_intervals: int,
         traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
                                 name='edit figure', 
                                 mode='lines+markers', 
-                                line=dict(color='#E0A06B'), 
+                                line=dict(color='#FF0000'), 
                                 marker=dict(size=6),
                                 hoverinfo='skip'))
         
@@ -171,7 +203,8 @@ def update(#n_intervals: int,
     if selecteddata == {'points':[]}: #Workaround for selected data, beacause after select selected data changing to {'poonts':[]} and triggering context_id
         selecteddata = None
 
-    if context_triggered[0]['prop_id'] == ids.MAPPINGMAP+'.selectedData' and selecteddata and not bha_state:
+    if context_triggered[0]['prop_id'] == ids.MAPPINGMAP+'.selectedData' and selecteddata and not bha_state and not bmp_state:
+        mapping_maps.figure_action('recreate')
         mapping_maps.add_figure(selecteddata)
 
     #Plot rover position
@@ -212,39 +245,11 @@ def update(#n_intervals: int,
         fig.add_shape(editable=True)
         fig.layout.shapes[0].type = 'path'
         fig.layout.shapes[0].path = closedpath
+        fig.update_shapes(line=dict(color='#FF0000'))
     fig.update_layout(
                     images=imgs,
+                    annotations = annotation,
                     )
-
-    # fig = {'data': traces, 
-    #        'layout': go.Layout(
-    #                     yaxis={'scaleratio': 1, 'scaleanchor': 'x',},
-    #                     margin=dict(
-    #                                 b=20, #bottom margin 40px
-    #                                 l=20, #left margin 40px
-    #                                 r=20, #right margin 20px
-    #                                 t=30, #top margin 20px
-    #                     ),
-    #                     images=[
-    #                                dict(source=robot.rover_image,
-    #                                     xref='x',
-    #                                     yref='y',
-    #                                     x=robot.position_x,
-    #                                     y=robot.position_y,
-    #                                     sizex=0.8,
-    #                                     sizey=0.8,
-    #                                     xanchor='center',
-    #                                     yanchor='middle',
-    #                                     sizing='contain',
-    #                                     opacity=0.3,
-    #                                     layer='above')],
-    #                     showlegend=False,
-    #                     uirevision=1,
-    #                     hovermode='closest',
-    #                     dragmode='pan',
-    #                     annotations=annotation
-    #                 )
-    # }
     
-    return fig
+    return fig, interval_disabled
             

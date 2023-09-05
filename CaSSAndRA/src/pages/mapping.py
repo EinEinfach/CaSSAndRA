@@ -21,7 +21,10 @@ def update_layout() -> html.Div:
                              children=[
                                  dbc.Spinner(delay_show=1000, 
                                              children=html.Div([
-                                                        dcc.Graph(id=ids.MAPPINGMAP, figure=map.mappingmap, config= {'displaylogo': False, 'scrollZoom': True})
+                                                        dcc.Graph(id=ids.MAPPINGMAP, figure=map.mappingmap, config= {'displaylogo': False, 
+                                                                                                                     'scrollZoom': True, 
+                                                                                                                     #'modeBarButtonsToAdd':['eraseshape']
+                                                                                                                     })
                                                         ], className='map-graph'
                                                     )
                                 )
@@ -29,13 +32,17 @@ def update_layout() -> html.Div:
                     ),
                     dbc.Row([
                         html.Div([
-                            buttongroupcontrol.buttonperimeteradd,
-                            buttongroupcontrol.buttonperimeterdiff,
                             buttongroupcontrol.buttonhomeadd,
                             buttongroupcontrol.buttonaddnewpoint,
                             buttongroupcontrol.buttondeletelastpoint,
                             buttongroupcontrol.buttonmovepoints,
-                            ], className='text-center'),    
+                            buttongroupcontrol.buttoncancelmapaction,
+                            ], className='text-center'),   
+                     
+                    ]),
+                    dbc.Row([
+                        dbc.Col([buttongroupcontrol.buttonperimeteradd], class_name='d-grid col-md4'),
+                        dbc.Col([buttongroupcontrol.buttonperimeterdiff], class_name='d-grid col-md4'),
                     ]),
                 ], xs=12, sm=6, lg=6),
                 dbc.Col([
