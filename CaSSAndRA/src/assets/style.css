@@ -94,3 +94,148 @@
 .loader-wrapper > div {
   visibility: visible !important;
 }
+
+/************************* Start of Responsive App Page *************************/
+/* 
+      These changes are primarily focused on 
+      adjusting the styling of components that
+      are added automatically by dash or to make
+      global changes to make it feel more "app-like" 
+*/
+
+/* Make sure html doesn't overflow our viewport */
+html {
+  height: 100vh;
+  height: 100dvh;   /* better viewport sizing for mobile devices */
+  width: 100vw;
+  width: 100dvw;    /* better viewport sizing for mobile devices */
+  margin: 0;
+  overflow: auto;
+}
+
+/* Dash adds tons of classless divs that we need to expand to the available space */
+body, div:not([class]) {
+  height:100%;
+  overflow: hidden;
+}
+
+/* Make sure we can still scroll when needed for pages like the Settings accordians */
+#_dash-app-content, 
+#_dash-app-content > div:not([class]),
+#_pages_content,
+#_pages_content > div {
+  overflow: auto;
+}
+
+/* Set the root of our app to be contained within the viewport */
+#react-entry-point > div:first-of-type,
+#_dash-app-content > div:first-of-type {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide empty page div */
+#_pages_dummy {
+  display: none;
+}
+
+/* Hide scrollbars */
+html::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Adjust heights of map divs to allow them to be responsive to available space */
+.map-graph, .dash-graph {
+  height: 100%;
+}
+
+.dash-graph > div:not([class]){
+  height: unset;
+}
+
+.dash-graph > div:first-of-type {
+  display: none;
+}
+/************************* End of Responsive App Page *************************/
+
+
+/************************* Start of Card Group Customizations ******************/
+
+/* Styling to use the CardGroup styling in a single row at smaller screen sizes */
+@media (max-width: 584px){
+  .card-group .card:not(:last-of-type){
+    margin-right: 0 !important;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .card-group .card:not(:first-of-type){
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+  }
+}
+
+/* Helper classes to trucate text */
+.truncate-1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.truncate-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+/************************* End of Card Group Customizations ********************/
+
+
+/************************* Start of Map Controls Size Adjustment ****************/
+.modebar {
+  width: 100%;
+  justify-content: center;
+  display: flex;
+  top: -4px;
+}
+
+.js-plotly-plot .plotly .modebar-group {
+  padding-left: 0;
+  max-height: 36px;
+}
+
+.js-plotly-plot .plotly .modebar-btn {
+  font-size: 24px !important;
+  line-height: 24px !important;
+  height: unset !important;
+  padding: 3px 8px !important;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  justify-items: center;
+  text-align: center;
+  vertical-align: middle;
+}
+
+@media (max-width: 374px){
+  .js-plotly-plot .plotly .modebar-btn {
+      font-size: 18px !important;
+      line-height: 18px !important;
+      padding: 3px 4px !important;
+  }
+}
+
+@media (max-width: 310px){
+  .js-plotly-plot .plotly .modebar-btn {
+      font-size: 16px !important;
+      line-height: 16px !important;
+  }
+}
+/************************* End of Map Controls Size Adjustment ******************/
