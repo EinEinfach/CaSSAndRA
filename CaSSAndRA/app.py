@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.56.0 -> Mapping moving points feature
+#Version:0.56.1 -> Fix moving mode in case of switch map 
 
 # create logger
 import logging

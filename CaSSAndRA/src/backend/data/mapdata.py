@@ -311,6 +311,7 @@ class Perimeters:
     def select_saved(self, perimeter: pd.DataFrame) -> None:
         self.selected_save = perimeter
         self.build = perimeter
+        self.build_cpy = perimeter
         self.dockpoints = self.build[self.build['type'] == 'dockpoints']
 
     def add_point(self, create: str()) -> None:
