@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.55.8 -> Trying to fix reconnection issues in UART mode
+#Version:0.56.0 -> Mapping moving points feature
 
 # create logger
 import logging
