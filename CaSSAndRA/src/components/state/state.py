@@ -4,81 +4,94 @@ import dash_bootstrap_components as dbc
 from src.backend.data.roverdata import robot
 from .. import ids
 
-@callback(Output(ids.STATESTRING, 'children'),
-          Input(ids.INTERVAL, 'n_intervals'))
-def update(n_intervals: int) -> html.Div():
+CARD_STYLES = {"width": "33%", "margin-bottom": "0"}
 
-    #create colors
-    if robot.status == 'docking' or robot.status == 'mow' or robot.status == 'transit' or robot.status == 'charging':
-        colorstate = 'success'
+
+@callback(Output(ids.STATESTRING, "children"), Input(ids.INTERVAL, "n_intervals"))
+def update(n_intervals: int) -> dbc.Row:
+    # create colors
+    if (
+        robot.status == "docking"
+        or robot.status == "mow"
+        or robot.status == "transit"
+        or robot.status == "charging"
+    ):
+        colorstate = "success"
         inversestate = True
-    elif robot.status == 'docked':
-        colorstate = 'light'
+    elif robot.status == "docked":
+        colorstate = "light"
         inversestate = False
-    elif robot.status == 'idle':
-        colorstate = 'warning'
+    elif robot.status == "idle":
+        colorstate = "warning"
         inversestate = True
     else:
-        colorstate = 'danger'
+        colorstate = "danger"
         inversestate = True
-    
-    if robot.solution == 'fix':
-        colorsolution = 'light'
+
+    if robot.solution == "fix":
+        colorsolution = "light"
         inversesolution = False
-    elif robot.solution == 'float':
-        colorsolution = 'warning'
+    elif robot.solution == "float":
+        colorsolution = "warning"
         inversesolution = True
     else:
-        colorsolution = 'danger'
+        colorsolution = "danger"
         inversesolution = True
-    
+
     if robot.soc > 30:
-        colorsoc = 'light'
+        colorsoc = "light"
         inversesoc = False
     elif robot.soc > 15:
-        colorsoc = 'warning'
+        colorsoc = "warning"
         inversesoc = True
     else:
-        colorsoc = 'danger'
+        colorsoc = "danger"
         inversesoc = True
 
-    return html.Div([
-            dbc.Row([
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardHeader('Solution'),
-                        dbc.CardBody([
-                            html.H6(robot.solution),
-                            ]),
-                    ],
-                    className="text-center m-1 w-33", 
-                    color=colorsolution, inverse=inversesolution
+    return dbc.CardGroup(
+        [
+            dbc.Card(
+                [
+                    dbc.CardHeader("Solution", className="truncate-1"),
+                    dbc.CardBody(
+                        [
+                            html.H6(robot.solution, className="truncate-1"),
+                        ]
                     ),
-                
-                ]),
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardHeader('State'),
-                        dbc.CardBody([
-                            html.H6(robot.status),
-                            ]),
-                    ],
-                    className="text-center m-1 w-33",
-                    color=colorstate, inverse=inversestate
+                ],
+                className="text-center flex-grow-1",
+                color=colorsolution,
+                inverse=inversesolution,
+                style=CARD_STYLES,
+            ),
+            dbc.Card(
+                [
+                    dbc.CardHeader("State", className="truncate-1"),
+                    dbc.CardBody(
+                        [
+                            html.H6(robot.status, className="truncate-1"),
+                        ]
                     ),
-                ]),
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardHeader('SoC'),
-                        dbc.CardBody([
-                            html.H6('{}%'.format(robot.soc)),
-                            ]),
-                    ],
-                    className="text-center m-1 w-33",
-                    color=colorsoc, inverse=inversesoc
+                ],
+                className="text-center flex-grow-1",
+                color=colorstate,
+                inverse=inversestate,
+                style=CARD_STYLES,
+            ),
+            dbc.Card(
+                [
+                    dbc.CardHeader("SoC", className="truncate-1"),
+                    dbc.CardBody(
+                        [
+                            html.H6("{}%".format(robot.soc), className="truncate-1"),
+                        ]
                     ),
-
-                ])
-            ]),
-            
-        ])
+                ],
+                className="text-center flex-grow-1",
+                color=colorsoc,
+                inverse=inversesoc,
+                style=CARD_STYLES,
+            ),
+        ],
+        class_name="d-flex flex-justify-stretch",  # avoid wrapping on small screens
+    )

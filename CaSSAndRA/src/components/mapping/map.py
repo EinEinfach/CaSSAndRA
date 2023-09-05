@@ -103,10 +103,10 @@ def update(n_intervals: int, selected_perimeter: str(), selected_import: int,
            'layout': go.Layout(
                         yaxis={'scaleratio': 1, 'scaleanchor': 'x',},
                         margin=dict(
-                                    b=20, #bottom margin 40px
-                                    l=20, #left margin 40px
-                                    r=20, #right margin 20px
-                                    t=30, #top margin 20px
+                                    b=20,  #bottom margin
+                                    l=20,  #left margin
+                                    r=5,   #right margin
+                                    t=30,  #top margin
                         ),
                         images=[
                                    dict(source=robot.rover_image,

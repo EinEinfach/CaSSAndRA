@@ -108,6 +108,9 @@ def update(n_intervals: int,
                                    line=dict(color='#0f2105'), 
                                    marker=dict(size=3),
                                    hoverinfo='skip'))
+     else:
+          range_x = [-10, 10]
+          range_y = [-10, 10]
      
      #Plot invisible goto points
      if plotgotopoints:
@@ -177,10 +180,10 @@ def update(n_intervals: int,
            'layout': go.Layout(yaxis=dict(range=range_y, scaleratio=1, scaleanchor='x'),
                                xaxis=dict(range=range_x),
                                margin=dict(
-                                        b=20, #bottom margin 40px
-                                        l=20, #left margin 40px
-                                        r=20, #right margin 20px
-                                        t=30, #top margin 20px
+                                        b=20,  #bottom margin
+                                        l=20,  #left margin
+                                        r=5,   #right margin
+                                        t=30,  #top margin
                               ),
                               images=[
                                    dict(source=robot.rover_image,
@@ -199,7 +202,8 @@ def update(n_intervals: int,
                               uirevision=1,
                               hovermode='closest',
                               annotations=mowdata,
-                              dragmode='pan'
+                              dragmode='pan',
+                              #autosize=True
                               #title='Map', 
                               #xaxis={'range': [range_min, range_max]},
                               #yaxis={'range': [range_min, range_max], 'scaleratio': 1, 'scaleanchor': 'x'},
