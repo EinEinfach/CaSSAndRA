@@ -35,8 +35,8 @@ statemap.update_layout(
      )
 
 @callback(Output(ids.STATEMAP, 'figure'),
-          Output(ids.INTERVAL, 'disabled', allow_duplicate=True),
-          [Input(ids.INTERVAL, 'n_intervals'),
+          Output(ids.STATEMAPINTERVAL, 'disabled', allow_duplicate=True),
+          [Input(ids.STATEMAPINTERVAL, 'n_intervals'),
            Input(ids.BUTTONHOME, 'n_clicks'),
            Input(ids.BUTTONMOWALL, 'n_clicks'),
            Input(ids.BUTTONZONESELECT, 'n_clicks'),

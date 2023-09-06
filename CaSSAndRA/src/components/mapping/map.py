@@ -36,28 +36,24 @@ mappingmap.update_layout(
      )
 
 @callback(Output(ids.MAPPINGMAP, 'figure'),
-          Output(ids.MAPPINGINTERVAL, 'disabled'),
+          #Output(ids.MAPPINGINTERVAL, 'disabled', allow_duplicate=True),
           [Input(ids.MAPPINGINTERVAL, 'n_intervals'), 
            Input(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            Input(ids.DROPDOWNSUNRAYIMPORT, 'value'),
-           Input(ids.BUTTONPERIMETERADD, 'disabled'),
            Input(ids.MAPPINGMAP, 'selectedData'),
            Input(ids.MAPPINGMAP, 'clickData'),
-           Input(ids.BUTTONMOVEPOINTS, 'n_clicks'),
+           Input(ids.BUTTONMOVEPOINTS, 'active'),
            Input(ids.BUTTONCANCELMAPACTION, 'n_clicks'),
            State(ids.BUTTONHOMEADD, 'active'),
-           State(ids.BUTTONMOVEPOINTS, 'active'),
            State(ids.MAPPINGMAP, 'figure')])
 def update(n_intervals: int, 
            selected_perimeter: str, 
-           selected_import: int, 
-           bpa_disabled: bool, 
+           selected_import: int,  
            selecteddata: dict, 
            clickdata: dict, 
-           bmp_nclicks: int,
+           bmp_state: bool,
            bcma_nclicks: int,
            bha_state: bool, 
-           bmp_state: bool, 
            fig_state: dict) -> dict:
     
     traces = []
@@ -114,13 +110,13 @@ def update(n_intervals: int,
     elif context == ids.BUTTONMOVEPOINTS and not bmp_state:
         if 'shapes' in fig_state['layout']:
             data_for_figure = mapping_maps.csvtocartesian(fig_state['layout']['shapes'][0]['path'])
+            del fig_state['layout']['shapes']
             data_for_figure['type'] = mapping_maps.selected_name
             mapping_maps.build = pd.concat([mapping_maps.build, data_for_figure], ignore_index=True)
             #avoiding of adjustment of last dockpoint, if move tool was used on dockpoints
             if mapping_maps.selected_name == 'dockpoints':
                 mapping_maps.dockpoints = data_for_figure
         mapping_maps.figure_action('recreate')
-        del fig_state['layout']['shapes']
         closedpath = None
 
 
@@ -256,5 +252,5 @@ def update(n_intervals: int,
                     annotations = annotation,
                     )
     
-    return fig, interval_disabled
+    return fig#, interval_disabled
             
