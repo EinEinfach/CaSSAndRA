@@ -5,6 +5,7 @@ from src.backend.data.roverdata import robot
 from .. import ids
 
 CARD_STYLES = {"width": "33%", "margin-bottom": "0"}
+CARD_BODY_CLASSES = "d-flex flex-column justify-content-center"
 
 
 @callback(Output(ids.STATESTRING, "children"), Input(ids.INTERVAL, "n_intervals"))
@@ -60,7 +61,8 @@ def update(n_intervals: int) -> dbc.Row:
                             html.Small([
                                         '{}'.format(robot.position_visible_satellites_dgps)+'/{}'.format(robot.position_visible_satellites)+'('+robot.position_age_hr+')'
                                     ], style={'font-size': '9px'}, className="truncate-1")
-                        ]
+                        ],
+                        class_name=CARD_BODY_CLASSES
                     ),
                 ],
                 className="text-center flex-grow-1",
@@ -75,7 +77,8 @@ def update(n_intervals: int) -> dbc.Row:
                         [
                             html.Small(robot.status, className="truncate-1"),
                             html.Small(['{}'.format(robot.sensor_status)], style={'font-size': '9px'}, className="truncate-1")
-                        ]
+                        ],
+                        class_name=CARD_BODY_CLASSES
                     ),
                 ],
                 className="text-center flex-grow-1",
@@ -90,7 +93,8 @@ def update(n_intervals: int) -> dbc.Row:
                         [
                             html.Small("{}%".format(robot.soc), className="truncate-1"),
                             html.Small(['{}V'.format(round(robot.battery_voltage, 1))+' '+'{}A'.format(round(robot.amps, 1))], style={'font-size': '9px'}, className="truncate-1")
-                        ]
+                        ],
+                        class_name=CARD_BODY_CLASSES
                     ),
                 ],
                 className="text-center flex-grow-1",
