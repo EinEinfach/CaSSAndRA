@@ -114,6 +114,9 @@ def update(#n_intervals: int,
             data_for_figure = mapping_maps.csvtocartesian(fig_state['layout']['shapes'][0]['path'])
             data_for_figure['type'] = mapping_maps.selected_name
             mapping_maps.build = pd.concat([mapping_maps.build, data_for_figure], ignore_index=True)
+            #avoiding of adjustment of last dockpoint, if move tool was used on dockpoints
+            if mapping_maps.selected_name == 'dockpoints':
+                mapping_maps.dockpoints = data_for_figure
         mapping_maps.figure_action('recreate')
         del fig_state['layout']['shapes']
         closedpath = None

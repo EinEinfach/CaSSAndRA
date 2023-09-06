@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.56.1 -> Fix moving mode in case of switch map 
+#Version:0.56.2 -> Fix adjustment of dockpoints in case of using moving tools 
 
 # create logger
 import logging

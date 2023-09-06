@@ -341,6 +341,8 @@ class Perimeters:
                 self.build = self.build[self.build['type'] != 'edit']
                 new_edit = {'X': x, 'Y': y}
                 new_edit = pd.DataFrame(new_edit)
+                if self.selected_name == 'dockpoints':
+                    self.dockpoints = new_edit
                 new_edit['type'] = 'edit'
                 self.build = pd.concat([self.build, new_edit], ignore_index=True)
             else:
@@ -385,6 +387,8 @@ class Perimeters:
                     self.build.loc[:,'type'] = mapping_maps.build['type'].replace(['edit'], self.selected_name)
                 self.selected_point = pd.DataFrame()
                 self.figure_action('recreate')
+                if self.selected_name == 'dockpoints':
+                    self.dockpoints = self.build[self.build['type'] == 'dockpoints']
         except Exception as e:
             logger.error('Backend: Remove point not possible')
             logger.debug(str(e))
