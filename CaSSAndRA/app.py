@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.56.2 -> Fix adjustment of dockpoints in case of using moving tools 
+#Version:0.56.3 -> Fix interval update in mapping mode
 
 # create logger
 import logging

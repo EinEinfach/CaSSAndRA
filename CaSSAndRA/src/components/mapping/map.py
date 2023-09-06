@@ -8,6 +8,8 @@ from src.backend.data import calceddata
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import mapping_maps
 
+from src.backend.utils import debuglogger
+
 mappingmap = go.Figure()
 mappingmap.update_layout(
                plot_bgcolor='white',
@@ -35,7 +37,7 @@ mappingmap.update_layout(
 
 @callback(Output(ids.MAPPINGMAP, 'figure'),
           Output(ids.MAPPINGINTERVAL, 'disabled'),
-          [#Input(ids.MAPPINGINTERVAL, 'n_intervals'), 
+          [Input(ids.MAPPINGINTERVAL, 'n_intervals'), 
            Input(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            Input(ids.DROPDOWNSUNRAYIMPORT, 'value'),
            Input(ids.BUTTONPERIMETERADD, 'disabled'),
@@ -46,7 +48,7 @@ mappingmap.update_layout(
            State(ids.BUTTONHOMEADD, 'active'),
            State(ids.BUTTONMOVEPOINTS, 'active'),
            State(ids.MAPPINGMAP, 'figure')])
-def update(#n_intervals: int, 
+def update(n_intervals: int, 
            selected_perimeter: str, 
            selected_import: int, 
            bpa_disabled: bool, 
