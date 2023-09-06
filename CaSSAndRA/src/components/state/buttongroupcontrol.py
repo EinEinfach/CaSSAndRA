@@ -19,7 +19,7 @@ buttoncancel = dbc.Button(id=ids.BUTTONCANCEL, size='lg', class_name='me-1 mt-1 
 
 buttonmowsettings = dbc.Button(id=ids.BUTTONMOWSETTINGS, size='lg', class_name='me-1 mt-1 bi bi-gear-fill', disabled=False, title='temporarly mow settings')
 
-buttongo = dbc.Button(id=ids.BUTTONGO, size='lg', class_name='bi bi-play-fill', disabled=False, title='start selected task', style={"width": "100%"})
+buttongo = dbc.Button(id=ids.BUTTONGO, size='lg', class_name='bi bi-play-fill', color="success", disabled=False, title='start selected task', style={"width": "100%"})
 
 buttonstop = dbc.Button(id=ids.BUTTONSTOP, size='lg', class_name='bi bi-stop-fill', color='danger', disabled=False, title='stop', style={"width": "100%"})
 

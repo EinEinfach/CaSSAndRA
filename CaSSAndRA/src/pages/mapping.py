@@ -61,22 +61,36 @@ def update_layout() -> html.Div:
                         dbc.Row(
                             [
                                 dbc.Col(
-                                    [buttongroupcontrol.buttonperimeteradd],
-                                    class_name="d-grid col-md4",
+                                    [
+                                        buttongroupcontrol.buttonperimeteradd
+                                    ],
+                                    width=6,
+                                    md=4,
+                                    lg=3,
+                                    xxl=2,
                                 ),
                                 dbc.Col(
-                                    [buttongroupcontrol.buttonperimeterdiff],
-                                    class_name="d-grid col-md4",
+                                    [
+                                        buttongroupcontrol.buttonperimeterdiff
+                                    ],
+                                    width=6,
+                                    md=4,
+                                    lg=3,
+                                    xxl=2,
                                 ),
-                            ]
+                            ],
+                            justify="center",
+                            align="center",
+                            class_name="g-1 p-1"
                         ),
                         dbc.Row(
                             [
+                                # column defining the width of the modal button shown on small screens
                                 dbc.Col(
                                     [
                                         dbc.Button(
                                             # "Choose Perimeter",
-                                            color="primary",
+                                            color="info",
                                             size="lg",
                                             id="open-perimeter-modal",
                                             n_clicks=0,
@@ -114,7 +128,7 @@ def update_layout() -> html.Div:
                                         dbc.Button(
                                             # "Upload Sunray",
                                             id="open-sunray-modal",
-                                            color="primary",
+                                            color="info",
                                             size="lg",
                                             class_name="bi bi-cloud-arrow-up-fill",
                                             style={"width": "100%"},
