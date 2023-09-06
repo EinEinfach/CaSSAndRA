@@ -130,7 +130,8 @@ def update(bpma_nclicks: int, bcs_nclicks: int, bpc_nclicks: int, save_is_open: 
                         uirevision=1,
                         hovermode='closest',
                         dragmode='pan',
-                        annotations=annotation
+                        annotations=annotation,
+                        autosize=True
                     )
     }
     return fig
