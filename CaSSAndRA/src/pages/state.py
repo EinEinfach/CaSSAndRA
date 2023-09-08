@@ -1,6 +1,6 @@
 # package imports
 import dash
-from dash import html, dcc
+from dash import html, dcc, Input, Output, State, callback
 import dash_bootstrap_components as dbc
 
 # local imports
@@ -148,3 +148,11 @@ def update_layout() -> html.Div:
 
 
 layout = update_layout()
+
+# @callback(Output(ids.STATEMAPINTERVAL, 'disabled'),
+#           [Input(ids.URLUPDATE, 'pathname')])
+# def interval_enabler(pathname: str) -> bool:
+#     if pathname == '/':
+#         return False
+#     else:
+#         True

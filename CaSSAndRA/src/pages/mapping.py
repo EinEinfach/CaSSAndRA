@@ -225,15 +225,14 @@ def update_layout() -> html.Div:
 
 layout = update_layout()
 
-
 # Callback to open/close perimeter selection in modal
 @callback(
-    Output("choose-perimeter-modal", "is_open"),
+    Output('choose-perimeter-modal', 'is_open'),
     [
-        Input("open-perimeter-modal", "n_clicks"),
-        Input("close-perimeter-modal", "n_clicks"),
+        Input('open-perimeter-modal', 'n_clicks'),
+        Input('close-perimeter-modal', 'n_clicks'),
     ],
-    [State("choose-perimeter-modal", "is_open")],
+    [State('choose-perimeter-modal', 'is_open)],
 )
 def toggle_modal(n1, n2, is_open):
     if n1 or n2:
@@ -243,14 +242,30 @@ def toggle_modal(n1, n2, is_open):
 
 # Callback to open/close sunray path upload in modal
 @callback(
-    Output("upload-sunray-modal", "is_open"),
+    Output('upload-sunray-modal', 'is_open'),
     [
-        Input("open-sunray-modal", "n_clicks"),
-        Input("close-sunray-modal", "n_clicks"),
+        Input('open-sunray-modal', 'n_clicks'),
+        Input("close-sunray-modal", 'n_clicks'),
     ],
-    [State("upload-sunray-modal", "is_open")],
+    [State('upload-sunray-modal', 'is_open')],
 )
 def toggle_modal(n1, n2, is_open):
     if n1 or n2:
         return not is_open
     return is_open
+
+# @callback(Output(ids.MAPPINGINTERVAL, 'disabled'),
+#           [Input(ids.URLUPDATE, 'pathname'),
+#            Input(ids.BUTTONMOVEPOINTS, 'n_clicks'),
+#            State(ids.BUTTONMOVEPOINTS, 'active')])
+# def interval_enabler(pathname: str,
+#                      bmp_nclicks: int,
+#                      bmp_state: bool
+#                      ) -> bool:
+#     if pathname == '/mapping':
+#         return False
+#     elif not bmp_state:
+#         return False
+#     else:
+#         return True
+    
