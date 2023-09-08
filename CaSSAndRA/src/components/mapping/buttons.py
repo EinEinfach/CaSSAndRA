@@ -53,5 +53,3 @@ def update_button_move_points(bmp_nclicks: int, bmp_state: bool):
         return True
     else:
         False
-
-

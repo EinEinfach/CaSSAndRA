@@ -153,9 +153,11 @@ def selected_perimeter(bsp_n_clicks: int, bok_n_clicks: int,
            Input(ids.OKBUTTONNEWPERIMETER, 'n_clicks'),
            State(ids.MODALADDNEWPERIMETER, 'is_open')])
 def new_perimeter(baddp_n_clicks: int, bok_n_clicks, is_open: bool) -> bool:
-    if baddp_n_clicks or bok_n_clicks:
-        return not is_open
-    return is_open
+    context = ctx.triggered_id
+    if context == ids.BUTTONADDNEWPERIMETER and baddp_n_clicks: 
+        return True
+    else:
+        return False
 
 @callback(Output(ids.MODALCOPYPERIMETER, 'is_open'),
           [Input(ids.BUTTONCOPYPERIMETER, 'n_clicks'),

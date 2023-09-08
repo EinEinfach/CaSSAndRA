@@ -102,17 +102,17 @@ def update_layout() -> html.Div:
                                                 dbc.ModalHeader(
                                                     dbc.ModalTitle("Choose Perimeter")
                                                 ),
-                                                dbc.ModalBody(
-                                                    chooseperimeter.chooseperimeter
-                                                ),
-                                                dbc.ModalFooter(
-                                                    dbc.Button(
-                                                        "Close",
-                                                        id="close-perimeter-modal",
-                                                        className="ms-auto",
-                                                        n_clicks=0,
-                                                    )
-                                                ),
+                                                dbc.ModalBody([
+                                                    dbc.Col(id='modal-content-choose-perimter'),
+                                                    dbc.ModalFooter(
+                                                        dbc.Button(
+                                                            "Close",
+                                                            id="close-perimeter-modal",
+                                                            className="ms-auto",
+                                                            n_clicks=0,
+                                                        )
+                                                    ),
+                                                ]),
                                             ],
                                             id="choose-perimeter-modal",
                                             is_open=False,
@@ -226,18 +226,16 @@ def update_layout() -> html.Div:
 layout = update_layout()
 
 # Callback to open/close perimeter selection in modal
-@callback(
-    Output('choose-perimeter-modal', 'is_open'),
-    [
-        Input('open-perimeter-modal', 'n_clicks'),
-        Input('close-perimeter-modal', 'n_clicks'),
-    ],
-    [State('choose-perimeter-modal', 'is_open)],
-)
+@callback(Output("choose-perimeter-modal", "is_open"),
+          Output('modal-content-choose-perimter', 'children'),
+          [Input("open-perimeter-modal", "n_clicks"),
+           Input('close-perimeter-modal', 'n_clicks'),
+           State("choose-perimeter-modal", "is_open")
+           ])
 def toggle_modal(n1, n2, is_open):
     if n1 or n2:
-        return not is_open
-    return is_open
+        return not is_open, chooseperimeter.chooseperimeter
+    return is_open, dbc.Col()
 
 
 # Callback to open/close sunray path upload in modal
