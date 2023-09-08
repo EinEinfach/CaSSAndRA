@@ -37,7 +37,7 @@ mappingmap.update_layout(
 
 @callback(Output(ids.MAPPINGMAP, 'figure'),
           #Output(ids.MAPPINGINTERVAL, 'disabled', allow_duplicate=True),
-          [Input(ids.MAPPINGINTERVAL, 'n_intervals'), 
+          [Input(ids.INTERVAL, 'n_intervals'), 
            Input(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            Input(ids.DROPDOWNSUNRAYIMPORT, 'value'),
            Input(ids.MAPPINGMAP, 'selectedData'),

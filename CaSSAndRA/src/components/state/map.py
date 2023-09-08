@@ -35,8 +35,8 @@ statemap.update_layout(
      )
 
 @callback(Output(ids.STATEMAP, 'figure'),
-          Output(ids.STATEMAPINTERVAL, 'disabled', allow_duplicate=True),
-          [Input(ids.STATEMAPINTERVAL, 'n_intervals'),
+          Output(ids.INTERVAL, 'disabled', allow_duplicate=True),
+          [Input(ids.INTERVAL, 'n_intervals'),
            Input(ids.BUTTONHOME, 'n_clicks'),
            Input(ids.BUTTONMOWALL, 'n_clicks'),
            Input(ids.BUTTONZONESELECT, 'n_clicks'),
@@ -47,13 +47,21 @@ statemap.update_layout(
            State(ids.BUTTONZONESELECT, 'active'),
            State(ids.BUTTONGOTO, 'active'),
            State(ids.STATEMAP, 'figure')
-           ], prevent_initial_call=True)
+           ], 
+           prevent_initial_call=True
+           )
 def update(n_intervals: int,
-           buttonhome: int, buttonmowall: int, 
-           buttonzoneselect: int, buttongoto: int,
-           buttoncancelclick: int, clickdata: dict(), 
-           selecteddata: dict(), buttonzonenselectstate: bool,
-           buttongotostate: bool, fig_state: dict()) -> go.Figure():
+           buttonhome: int, 
+           buttonmowall: int, 
+           buttonzoneselect: int, 
+           buttongoto: int,
+           buttoncancelclick: int, 
+           clickdata: dict(), 
+           selecteddata: dict(), 
+           buttonzonenselectstate: bool,
+           buttongotostate: bool, 
+           fig_state: dict()
+           ) -> go.Figure():
      rover_position = [robot.position_x, robot.position_y] 
 
      context = ctx.triggered_id

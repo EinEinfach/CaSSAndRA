@@ -1,6 +1,6 @@
 # package imports
 import dash
-from dash import html, dcc
+from dash import html, dcc, Input, Output, State, callback
 import dash_bootstrap_components as dbc
 
 #local imports
@@ -67,3 +67,20 @@ def update_layout() -> html.Div:
             ], fluid=True)
 
 layout = update_layout()
+
+# @callback(Output(ids.MAPPINGINTERVAL, 'disabled'),
+#           [Input(ids.URLUPDATE, 'pathname'),
+#            Input(ids.BUTTONMOVEPOINTS, 'n_clicks'),
+#            State(ids.BUTTONMOVEPOINTS, 'active')])
+# def interval_enabler(pathname: str,
+#                      bmp_nclicks: int,
+#                      bmp_state: bool
+#                      ) -> bool:
+#     if pathname == '/mapping':
+#         return False
+#     elif not bmp_state:
+#         return False
+#     else:
+#         return True
+    
+

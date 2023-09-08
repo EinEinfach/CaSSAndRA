@@ -29,7 +29,7 @@ buttonstop = dbc.Button(id=ids.BUTTONSTOP, size='lg', class_name='mx-1 mt-1 bi b
           [Input(ids.BUTTONHOME, 'n_clicks'), Input(ids.BUTTONMOWALL, 'n_clicks'),
            Input(ids.BUTTONZONESELECT, 'n_clicks'), Input(ids.BUTTONGOTO, 'n_clicks'),
            Input(ids.BUTTONCANCEL, 'n_clicks'), Input(ids.BUTTONSTOP, 'n_clicks'),
-           Input(ids.STATEMAPINTERVAL, 'n_intervals'),
+           Input(ids.INTERVAL, 'n_intervals'),
            State(ids.BUTTONHOME, 'active'), State(ids.BUTTONMOWALL, 'active'),
            State(ids.BUTTONZONESELECT, 'active'), State(ids.BUTTONGOTO, 'active')])
 def update_button_active(n_clicks_bh: int, n_clicks_bma: int, n_clicks_bzs: int, n_clicks_bgt: int,
@@ -150,7 +150,7 @@ def update_button_disabled(n_intervals: int, n_clicks_bgo: int, n_clicks_bs: int
         return False, False, False, False, False 
 
 #disable intervall if coverage pahth planner is running
-@callback(Output(ids.STATEMAPINTERVAL, 'disabled', allow_duplicate=True),
+@callback(Output(ids.INTERVAL, 'disabled', allow_duplicate=True),
           [Input(ids.BUTTONMOWALL, 'n_clicks'),
            Input(ids.STATEMAP, 'selectedData'),
            State(ids.BUTTONZONESELECT, 'active')], prevent_initial_call=True)

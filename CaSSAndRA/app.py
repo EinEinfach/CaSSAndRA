@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.56.5 Trying to fix PIL errors
+#Version:0.56.6 Tests trying to fix with no map loading on state and mapping page
 
 # create logger
 import logging
@@ -31,8 +31,8 @@ def serve_layout() -> html.Div:
     return html.Div(
         [
             dcc.Interval(id=ids.INTERVAL, interval=1*3000, n_intervals=0),
-            dcc.Interval(id=ids.STATEMAPINTERVAL, interval=1*3000, n_intervals=0, disabled=True),
-            dcc.Interval(id=ids.MAPPINGINTERVAL, interval=1*3000, n_intervals=0, disabled=True),
+            #dcc.Interval(id=ids.STATEMAPINTERVAL, interval=1*3000, n_intervals=0, disabled=True),
+            #dcc.Interval(id=ids.MAPPINGINTERVAL, interval=1*3000, n_intervals=0, disabled=True),
             dcc.Location(id=ids.URLUPDATE, refresh=True),
             navbar.navbar,
             offcanvas.offcanvas,
