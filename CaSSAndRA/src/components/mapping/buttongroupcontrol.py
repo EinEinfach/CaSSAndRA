@@ -6,8 +6,8 @@ from .. import ids
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import mapping_maps
 
-buttonperimeteradd = dbc.Button(id=ids.BUTTONPERIMETERADD, size='lg', class_name='me-1 mt-1 mb-1 bi bi-plus-circle', disabled=False, title='add surface to perimeter')
-buttonperimeterdiff = dbc.Button(id=ids.BUTTONPERIMETERDIFF, size='lg', class_name='me-1 mt-1 mb-1 bi bi-dash-circle', disabled=False, title='remove surface from perimeter')
+buttonperimeteradd = dbc.Button(id=ids.BUTTONPERIMETERADD, size='lg', color="success", class_name='bi bi-plus-circle', disabled=False, title='add surface to perimeter', style={"width": "100%"})
+buttonperimeterdiff = dbc.Button(id=ids.BUTTONPERIMETERDIFF, size='lg', color="danger", class_name='bi bi-dash-circle', disabled=False, title='remove surface from perimeter', style={"width": "100%"})
 
 buttonhomeadd = dbc.Button(id=ids.BUTTONHOMEADD, size='lg',class_name='me-1 mt-1 mb-1 bi bi-house-add', disabled=False, title='create dockpoints')
 buttonaddnewpoint = dbc.Button(id=ids.BUTTONADDNEWPOINT, size='lg', class_name='me-1 mt-1 mb-1 bi bi-node-plus', disabled=False, title='add new point')

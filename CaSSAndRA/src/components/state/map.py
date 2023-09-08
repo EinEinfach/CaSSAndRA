@@ -146,6 +146,9 @@ def update(n_intervals: int,
                                    line=dict(color='#0f2105'), 
                                    marker=dict(size=3),
                                    hoverinfo='skip'))
+     else:
+          range_x = [-10, 10]
+          range_y = [-10, 10]
      
      #Plot invisible goto points
      if plotgotopoints:
