@@ -14,7 +14,7 @@ from src.components.mapping import (
     chooseperimeter,
 )
 
-dash.register_page(__name__, path="/mapping", title="Mapping")
+dash.register_page(__name__, path='/mapping', title='Mapping')
 
 
 def update_layout() -> html.Div:
@@ -23,7 +23,7 @@ def update_layout() -> html.Div:
     main_col = dbc.Col(
         [
             html.Div(
-                className="loader-wrapper flex-grow-1 p-2",
+                className='loader-wrapper flex-grow-1 p-2',
                 children=[
                     dbc.Spinner(
                         delay_show=1000,
@@ -33,17 +33,17 @@ def update_layout() -> html.Div:
                                     id=ids.MAPPINGMAP,
                                     figure=map.mappingmap,
                                     config={
-                                        "displaylogo": False,
-                                        "scrollZoom": True,
+                                        'displaylogo': False,
+                                        'scrollZoom': True,
                                         #'modeBarButtonsToAdd':['eraseshape']
                                     },
                                 )
                             ],
-                            className="map-graph",
+                            className='map-graph',
                         ),
                     )
                 ],
-                style={"overflow": "hidden"},
+                style={'overflow': 'hidden'},
             ),
             dbc.Row(
                 dbc.Col(
@@ -56,7 +56,7 @@ def update_layout() -> html.Div:
                                 buttongroupcontrol.buttonmovepoints,
                                 buttongroupcontrol.buttoncancelmapaction,
                             ],
-                            className="text-center",
+                            className='text-center',
                         ),
                         dbc.Row(
                             [
@@ -79,9 +79,9 @@ def update_layout() -> html.Div:
                                     xxl=2,
                                 ),
                             ],
-                            justify="center",
-                            align="center",
-                            class_name="g-1 p-1"
+                            justify='center',
+                            align='center',
+                            class_name='g-1 p-1'
                         ),
                         dbc.Row(
                             [
@@ -89,32 +89,32 @@ def update_layout() -> html.Div:
                                 dbc.Col(
                                     [
                                         dbc.Button(
-                                            # "Choose Perimeter",
-                                            color="info",
-                                            size="lg",
-                                            id="open-perimeter-modal",
+                                            # 'Choose Perimeter',
+                                            color='info',
+                                            size='lg',
+                                            id=ids.BUTTONOPENMODALCHOOSEPERIMETER,
                                             n_clicks=0,
-                                            style={"width": "100%"},
-                                            class_name="bi bi-card-checklist",
+                                            style={'width': '100%'},
+                                            class_name='bi bi-card-checklist',
                                         ),
                                         dbc.Modal(
                                             [
                                                 dbc.ModalHeader(
-                                                    dbc.ModalTitle("Choose Perimeter")
+                                                    dbc.ModalTitle('Choose Perimeter')
                                                 ),
                                                 dbc.ModalBody([
-                                                    dbc.Col(id='modal-content-choose-perimter'),
+                                                    dbc.Col(id=ids.CONTENTMODALCHOOSEPERIMETER),
                                                     dbc.ModalFooter(
                                                         dbc.Button(
-                                                            "Close",
-                                                            id="close-perimeter-modal",
-                                                            className="ms-auto",
+                                                            'Close',
+                                                            id=ids.BUTTONCLOSEMODALCHOOSEPERIMETER,
+                                                            className='ms-auto',
                                                             n_clicks=0,
                                                         )
                                                     ),
                                                 ]),
                                             ],
-                                            id="choose-perimeter-modal",
+                                            id=ids.MODALCHOOSEPERIMETER,
                                             is_open=False,
                                         ),
                                     ],
@@ -126,31 +126,31 @@ def update_layout() -> html.Div:
                                 dbc.Col(
                                     [
                                         dbc.Button(
-                                            # "Upload Sunray",
-                                            id="open-sunray-modal",
-                                            color="info",
-                                            size="lg",
-                                            class_name="bi bi-cloud-arrow-up-fill",
-                                            style={"width": "100%"},
+                                            # 'Upload Sunray',
+                                            id=ids.BUTTONOPENMODALUPLOADFILE,
+                                            color='info',
+                                            size='lg',
+                                            class_name='bi bi-cloud-arrow-up-fill',
+                                            style={'width': '100%'},
                                         ),
                                         dbc.Modal(
                                             [
                                                 dbc.ModalHeader(
-                                                    dbc.ModalTitle("Upload Sunray")
+                                                    dbc.ModalTitle('Upload Sunray')
                                                 ),
                                                 dbc.ModalBody(
                                                     uploadsunray.uploadsunray
                                                 ),
                                                 dbc.ModalFooter(
                                                     dbc.Button(
-                                                        "Close",
-                                                        id="close-sunray-modal",
-                                                        className="ms-auto",
+                                                        'Close',
+                                                        id=ids.BUTTONCLOSEMODALUPLOADFILE,
+                                                        className='ms-auto',
                                                         n_clicks=0,
                                                     )
                                                 ),
                                             ],
-                                            id="upload-sunray-modal",
+                                            id=ids.MODALUPLOADFILE,
                                             is_open=False,
                                         ),
                                     ],
@@ -160,17 +160,17 @@ def update_layout() -> html.Div:
                                     xxl=2,
                                 ),
                             ],
-                            justify="center",
-                            align="center",
-                            class_name="g-1 p-1 d-md-none d-lg-none d-xl-none d-xxl-none",
+                            justify='center',
+                            align='center',
+                            class_name='g-1 p-1 d-md-none d-lg-none d-xl-none d-xxl-none',
                         ),
                     ]
                 ),
-                style={"position": "sticky", "bottom": 0},
+                style={'position': 'sticky', 'bottom': 0},
             ),
         ],
-        class_name="flex-grow-1 d-flex flex-column",
-        style={"overflow": "hidden"},
+        class_name='flex-grow-1 d-flex flex-column',
+        style={'overflow': 'hidden'},
     )
 
     # Second column that shows the perimeter and sunray selections on larger screen sizes
@@ -182,20 +182,20 @@ def update_layout() -> html.Div:
                         [
                             chooseperimeter.chooseperimeter,
                         ],
-                        className="text-center",
+                        className='text-center',
                     ),
                     html.Div(
                         [
                             uploadsunray.uploadsunray,
                         ],
-                        className="text-center",
+                        className='text-center',
                     ),
                 ],
-                justify="evenly",
+                justify='evenly',
             ),
         ],
-        className="d-none d-sm-none d-md-block",
-        style={"width": "330px"},
+        className='d-none d-sm-none d-md-block',
+        style={'width': '330px'},
     )
 
     # Build the page using the two columns and remaining styles/components required
@@ -213,24 +213,24 @@ def update_layout() -> html.Div:
                     modal.removeperimeter,
                     modal.finishmapping,
                     modal.nofixsolution,
-                    html.Div(id=ids.MAPPINGHIDDEN, style={"display": "none"}),
+                    html.Div(id=ids.MAPPINGHIDDEN, style={'display': 'none'}),
                 ],
-                className="flex-nowrap g-0",
-                style={"height": "100%"},
+                className='flex-nowrap g-0',
+                style={'height': '100%'},
             )
         ],
-        style={"height": "100%", "width": "100%", "overflow": "hidden"},
+        style={'height': '100%', 'width': '100%', 'overflow': 'hidden'},
     )
 
 
 layout = update_layout()
 
 # Callback to open/close perimeter selection in modal
-@callback(Output("choose-perimeter-modal", "is_open"),
-          Output('modal-content-choose-perimter', 'children'),
-          [Input("open-perimeter-modal", "n_clicks"),
-           Input('close-perimeter-modal', 'n_clicks'),
-           State("choose-perimeter-modal", "is_open")
+@callback(Output(ids.MODALCHOOSEPERIMETER, 'is_open'),
+          Output(ids.CONTENTMODALCHOOSEPERIMETER, 'children'),
+          [Input(ids.BUTTONOPENMODALCHOOSEPERIMETER, 'n_clicks'),
+           Input(ids.BUTTONCLOSEMODALCHOOSEPERIMETER, 'n_clicks'),
+           State(ids.MODALCHOOSEPERIMETER, 'is_open')
            ])
 def toggle_modal(n1, n2, is_open):
     if n1 or n2:
@@ -240,12 +240,12 @@ def toggle_modal(n1, n2, is_open):
 
 # Callback to open/close sunray path upload in modal
 @callback(
-    Output('upload-sunray-modal', 'is_open'),
+    Output(ids.MODALUPLOADFILE, 'is_open'),
     [
-        Input('open-sunray-modal', 'n_clicks'),
-        Input("close-sunray-modal", 'n_clicks'),
+        Input(ids.BUTTONOPENMODALUPLOADFILE, 'n_clicks'),
+        Input(ids.BUTTONCLOSEMODALUPLOADFILE, 'n_clicks'),
     ],
-    [State('upload-sunray-modal', 'is_open')],
+    [State(ids.MODALUPLOADFILE, 'is_open')],
 )
 def toggle_modal(n1, n2, is_open):
     if n1 or n2:

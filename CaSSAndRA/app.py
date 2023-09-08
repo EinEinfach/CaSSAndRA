@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.57.0 A lot of canges on styles, pls don't use if using on mobile device. Many things have to be fixed
+#Version:0.57.1 Switch to ids on mapping page, pls don't use if using on mobile device. Many things have to be fixed
 
 # create logger
 import logging
