@@ -7,10 +7,62 @@ import json
 from dataclasses import dataclass
 import base64
 import pandas as pd
+from PIL import Image
 
 ABSOLUTE_PATH = os.path.dirname(__file__)
 
 #appcfg class
+@dataclass
+class RoverIMG:
+    img0deg: Image = None
+    img15deg: Image = None
+    img30deg: Image = None
+    img45deg: Image = None
+    img60deg: Image = None
+    img75deg: Image = None
+    img90deg: Image = None
+    img105deg: Image = None
+    img120deg: Image = None
+    img135deg: Image = None
+    img150deg: Image = None
+    img165deg: Image = None
+    img180deg: Image = None
+    img195deg: Image = None
+    img210deg: Image = None
+    img225deg: Image = None
+    img240deg: Image = None
+    img255deg: Image = None
+    img270deg: Image = None
+    img285deg: Image = None
+    img300deg: Image = None
+    img315deg: Image = None
+    img330deg: Image = None
+    img345deg: Image = None
+
+    def load_rover_pictures(self, absolute_path: str):
+        self.img0deg = Image.open(absolute_path+'rover0grad.png')
+        self.img15deg = Image.open(absolute_path+'rover15grad.png') 
+        self.img30deg = Image.open(absolute_path+'rover30grad.png') 
+        self.img45deg = Image.open(absolute_path+'rover45grad.png') 
+        self.img60deg = Image.open(absolute_path+'rover60grad.png') 
+        self.img75deg = Image.open(absolute_path+'rover75grad.png')
+        self.img90deg = Image.open(absolute_path+'rover90grad.png')
+        self.img105deg = Image.open(absolute_path+'rover105grad.png')
+        self.img120deg = Image.open(absolute_path+'rover120grad.png')
+        self.img135deg = Image.open(absolute_path+'rover135grad.png')
+        self.img150deg = Image.open(absolute_path+'rover150grad.png')
+        self.img165deg = Image.open(absolute_path+'rover180grad.png')
+        self.img195deg = Image.open(absolute_path+'rover195grad.png')
+        self.img210deg = Image.open(absolute_path+'rover210grad.png')
+        self.img225deg = Image.open(absolute_path+'rover225grad.png')
+        self.img240deg = Image.open(absolute_path+'rover240grad.png')
+        self.img255deg = Image.open(absolute_path+'rover255grad.png')
+        self.img270deg = Image.open(absolute_path+'rover270grad.png')
+        self.img285deg = Image.open(absolute_path+'rover285grad.png')
+        self.img300deg = Image.open(absolute_path+'rover300grad.png')
+        self.img315deg = Image.open(absolute_path+'rover300grad.png')
+        self.img330deg = Image.open(absolute_path+'rover330grad.png')
+        self.img345deg = Image.open(absolute_path+'rover345grad.png')
 @dataclass
 class AppCfg:
     datamaxage: int = 30
@@ -19,6 +71,7 @@ class AppCfg:
     voltage_100: float = 28
     current_thd_charge: float = -0.03
     rover_picture: str = 'default/'
+    rover_pictures: RoverIMG = RoverIMG()
 
     def read_appcfg(self) -> None:
         try:
@@ -47,8 +100,10 @@ class AppCfg:
             self.voltage_100 = appcfg_from_file['voltage_to_soc'][1]['V']
             self.current_thd_charge = appcfg_from_file['current_thd_charge']
             self.rover_picture = appcfg_from_file['rover_picture']
+            self.rover_pictures.load_rover_pictures(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+self.rover_picture))
         except Exception as e:
             logger.error('Backend: Could not read rovercfg.json. Data are invalid. Go with standard values')
+            logger.debug(str(e))
             res = self.save_appcfg()
     
     def save_appcfg(self) -> int:
@@ -223,7 +278,7 @@ class PathPlannerCfg:
             logger.error('Backend: Could not save pathplannercfg.json. Unexpected behaivor')
             logger.debug(str(e))
             return -1
-    
+
     def df_to_obj(self, parameters: pd.DataFrame) -> None:
         self.pattern = parameters.iloc[0]['pattern']
         self.width = parameters.iloc[0]['width']

@@ -313,6 +313,7 @@ def update_app_data(bsr_n_clicks: int, bok_n_clicks: int, is_open: bool,
             appcfg.voltage_100 = voltagemax
         appcfg.rover_picture = roverpicture
         appcfg.save_appcfg()
+        appcfg.read_appcfg()
     if bsr_n_clicks or bok_n_clicks:
         return not is_open
     return is_open

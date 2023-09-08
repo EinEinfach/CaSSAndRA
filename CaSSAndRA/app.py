@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.56.4 Remove circular dependency in mapping map
+#Version:0.56.5 Trying to fix PIL errors
 
 # create logger
 import logging
