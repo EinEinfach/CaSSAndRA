@@ -4,88 +4,27 @@ import dash_bootstrap_components as dbc
 from . import ids
 from src.backend.data.cfgdata import pathplannercfgtask
 
+from . import mowsettingstemplate as mst
+
+template = mst.get_mow_settings_template(ids.INPUTPATTERNTASK, pathplannercfgtask.pattern,
+                                        ids.INPUTMOWOFFSETTASK, pathplannercfgtask.width,
+                                        ids.INPUTMOWOANGLETASK, pathplannercfgtask.angle,
+                                        ids.INPUTDISTANCETOBORDERTASK, pathplannercfgtask.distancetoborder,
+                                        ids.INPUTMOWCUTEDGEBORDERTASK, pathplannercfgtask.mowborder, 
+                                        ids.INPUTMOWAREATASK, pathplannercfgtask.mowarea,
+                                        ids.INPUTMOWCUTEDGEEXCLUSIONTASK, pathplannercfgtask.mowexclusion,
+                                        ids.INPUTMOWCUTEDGEBORDERCCWTASK, pathplannercfgtask.mowborderccw
+                                        )
+
 mowsettings = dbc.Modal([
-                        dbc.ModalHeader(dbc.ModalTitle('Mow settings')),
-                        dbc.ModalBody([
-                            html.P(['pattern'], className='mb-0'),
-                            dbc.Select(
-                                id=ids.INPUTPATTERNTASK, 
-                                options=[
-                                    {'label': 'lines', 'value': 'lines'},
-                                    {'label': 'squares', 'value': 'squares'},
-                                    {'label': 'rings', 'value': 'rings'},
-                                ],
-                                value=pathplannercfgtask.pattern
-                            ),
-                            html.P(['width'], className='mb-0'),
-                            dbc.Input(id=ids.INPUTMOWOFFSETTASK, 
-                                      value=pathplannercfgtask.width, 
-                                      type='number', 
-                                      min=0, 
-                                      max=1, 
-                                      step=0.01, 
-                                      size='sm'
-                            ), 
-                            html.P(['angle'], className='mb-0'),
-                            dbc.Input(id=ids.INPUTMOWOANGLETASK, 
-                                      value=pathplannercfgtask.angle, 
-                                      type='number', 
-                                      min=0, 
-                                      max=359, 
-                                      step=1, 
-                                      size='sm'
-                            ),
-                            html.P(['distance to border'], className='mb-0'),
-                            dbc.Input(id=ids.INPUTDISTANCETOBORDERTASK, 
-                                      value=pathplannercfgtask.distancetoborder, 
-                                      type='number', 
-                                      min=0, 
-                                      max=5, 
-                                      step=1, 
-                                      size='sm'
-                            ),
-                            html.P(['mow area'], className='mb-0'),
-                            dbc.Select(
-                                id=ids.INPUTMOWAREATASK, 
-                                options=[
-                                    {'label': 'yes', 'value': 'yes'},
-                                    {'label': 'no', 'value': 'no'}
-                                ],
-                                value=pathplannercfgtask.mowarea
-                            ),
-                            html.P(['mow cut edge border (rounds)'], className='mb-0'),
-                            dbc.Input(id=ids.INPUTMOWCUTEDGEBORDERTASK, 
-                                      value=pathplannercfgtask.mowborder, 
-                                      type='number', 
-                                      min=0, 
-                                      max=6, 
-                                      step=1, 
-                                      size='sm'
-                            ),
-                            html.P(['mow cut edge exclusion'], className='mb-0'),
-                            dbc.Select(
-                                id=ids.INPUTMOWCUTEDGEEXCLUSIONTASK, 
-                                options=[
-                                    {'label': 'yes', 'value': 'yes'},
-                                    {'label': 'no', 'value': 'no'}
-                                ],
-                                value=pathplannercfgtask.mowexclusion
-                            ),
-                            html.P(['mow cut edge border in ccw'], className='mb-0'),
-                            dbc.Select(
-                                id=ids.INPUTMOWCUTEDGEBORDERCCWTASK, 
-                                options=[
-                                    {'label': 'yes', 'value': 'yes'},
-                                    {'label': 'no', 'value': 'no'}
-                                ],
-                                value=pathplannercfgtask.mowborderccw
-                            ),
-                        ]),
-                        dbc.ModalFooter(
-                            dbc.Button('OK', id=ids.BUTTONOKINPUTMOWTASKSETTINGS, className='ms-auto', n_clicks=0)
-                        ),
-                ],id=ids.MODALMOWTASKSETTINGS, is_open=False,
-                )
+                dbc.ModalHeader(dbc.ModalTitle('Mow settings')),
+                dbc.ModalBody([
+                    template,               
+                ]),
+                dbc.ModalFooter(
+                    dbc.Button('OK', id=ids.BUTTONOKINPUTMOWTASKSETTINGS, className='ms-auto', n_clicks=0)
+                ),
+            ],id=ids.MODALMOWTASKSETTINGS, is_open=False, centered=True)
 
 @callback(Output(ids.MODALMOWTASKSETTINGS, 'is_open'),
           [Input(ids.BUTTONPLANMOWSETTINGS, 'n_clicks'),
@@ -95,16 +34,16 @@ mowsettings = dbc.Modal([
            State(ids.INPUTMOWOFFSETTASK, 'value'),
            State(ids.INPUTMOWOANGLETASK, 'value'),
            State(ids.INPUTDISTANCETOBORDERTASK, 'value'),
-           State(ids.INPUTMOWAREATASK, 'value'),
+           State(ids.INPUTMOWAREATASK, 'on'),
            State(ids.INPUTMOWCUTEDGEBORDERTASK, 'value'),
-           State(ids.INPUTMOWCUTEDGEEXCLUSIONTASK, 'value'),
-           State(ids.INPUTMOWCUTEDGEBORDERCCWTASK, 'value')])
+           State(ids.INPUTMOWCUTEDGEEXCLUSIONTASK, 'on'),
+           State(ids.INPUTMOWCUTEDGEBORDERCCWTASK, 'on')])
 def toggle_modal(n_clicks_bms: int, n_clicks_bok: int,
                  modal_is_open: bool, pattern: str(),
                  mowoffset: float, mowangle: int,
-                 distancetoborder: int, mowarea: str,
-                 mowborder: str, mowexclusion: str,
-                 mowborderccw: str) -> bool:
+                 distancetoborder: int, mowarea: bool,
+                 mowborder: str, mowexclusion: bool,
+                 mowborderccw: bool) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKINPUTMOWTASKSETTINGS:
         if pattern != 'lines' and pattern != 'squares' and pattern != 'rings':
@@ -117,10 +56,10 @@ def toggle_modal(n_clicks_bms: int, n_clicks_bok: int,
             pathplannercfgtask.angle = mowangle
         if distancetoborder != None:
             pathplannercfgtask.distancetoborder = distancetoborder
-        pathplannercfgtask.mowarea = mowarea
+        pathplannercfgtask.mowarea = "yes" if mowarea == True else "no"
+        pathplannercfgtask.mowexclusion = "yes" if mowexclusion == True else "no"
+        pathplannercfgtask.mowborderccw = "yes" if mowborderccw == True else "no"
         pathplannercfgtask.mowborder = mowborder
-        pathplannercfgtask.mowexclusion = mowexclusion
-        pathplannercfgtask.mowborderccw = mowborderccw
             
     if n_clicks_bms or n_clicks_bok:
         return not modal_is_open
