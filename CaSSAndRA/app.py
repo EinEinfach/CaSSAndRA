@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.57.1 Switch to ids on mapping page, pls don't use if using on mobile device. Many things have to be fixed
+#Version:0.58.0 Merged pull request mow settings style
 
 # create logger
 import logging
