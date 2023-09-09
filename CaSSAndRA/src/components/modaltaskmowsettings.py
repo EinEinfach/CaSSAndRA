@@ -53,7 +53,7 @@ mowsettings = dbc.Modal([
                                 ],
                                 value=pathplannercfgtask.mowarea
                             ),
-                            html.P(['mow cut edge border (rounds)'], className='mb-0'),
+                            html.P(['mow cut edge border (laps)'], className='mb-0'),
                             dbc.Input(id=ids.INPUTMOWCUTEDGEBORDERTASK, 
                                       value=pathplannercfgtask.mowborder, 
                                       type='number', 

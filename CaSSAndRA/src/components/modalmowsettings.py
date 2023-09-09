@@ -14,7 +14,7 @@ mowsettings = dbc.Modal([
                             # Line Settings
                             dbc.Row([
                                 dbc.Col([  
-                                    html.P(['Pattern'], className='mb-0'),
+                                    html.P(['pattern'], className='mb-0'),
                                     dbc.Select(
                                         id=ids.INPUTPATTERNSTATE, 
                                         options=[
@@ -26,7 +26,7 @@ mowsettings = dbc.Modal([
                                     ),
                                 ]),
                                 dbc.Col([  
-                                    html.P(['Width'], className='mb-0'),
+                                    html.P(['width'], className='mb-0'),
                                     dbc.Input(id=ids.INPUTMOWOFFSETSTATE, 
                                             value=pathplannercfgstate.width, 
                                             type='number', 
@@ -37,7 +37,7 @@ mowsettings = dbc.Modal([
                                     ), 
                                 ]),
                                 dbc.Col([  
-                                    html.P(['Angle'], className='mb-0'),
+                                    html.P(['angle'], className='mb-0'),
                                     dbc.Input(id=ids.INPUTMOWOANGLESTATE, 
                                             value=pathplannercfgstate.angle, 
                                             type='number', 
@@ -54,7 +54,7 @@ mowsettings = dbc.Modal([
                             # Perimeter Settings
                             dbc.Row([
                                 dbc.Col([  
-                                    html.P(['Distance to border'], className='mb-0'),
+                                    html.P(['distance to border'], className='mb-0'),
                                     dbc.Input(id=ids.INPUTDISTANCETOBORDERSTATE, 
                                             value=pathplannercfgstate.distancetoborder, 
                                             type='number', 
@@ -65,7 +65,7 @@ mowsettings = dbc.Modal([
                                     ),
                                 ]),
                                 dbc.Col([  
-                                    html.P(['Border rounds'], className='mb-0'),
+                                    html.P(['border laps'], className='mb-0'),
                                     dbc.Input(id=ids.INPUTMOWCUTEDGEBORDERSTATE, 
                                             value=pathplannercfgstate.mowborder, 
                                             type='number', 
