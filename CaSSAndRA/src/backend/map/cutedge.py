@@ -8,8 +8,8 @@ def check_direct_way(border: Polygon, start: list, end: list) -> bool:
     direct_way_possible = way.within(border)
     return direct_way_possible
 
-def create_route(perimeter: Polygon, mowborder: str, mowexclusion: str, 
-                 mowborderccw: str, last_coord: list, border: Polygon,
+def create_route(perimeter: Polygon, mowborder: str, mowexclusion: bool, 
+                 mowborderccw: bool, last_coord: list, border: Polygon,
                  figure: str) -> list():
     route_tmp = []
     edges_pol = []
@@ -19,7 +19,7 @@ def create_route(perimeter: Polygon, mowborder: str, mowexclusion: str,
         route_tmp = list(dict.fromkeys(route_tmp))
         ring = LinearRing(route_tmp)
         ###Check is counter clock wise###
-        if not ring.is_ccw and mowborderccw == 'yes':
+        if not ring.is_ccw and mowborderccw == True:
             route_tmp.reverse()
         ###Look for shortest way from start point###
         first_coords = [min(route_tmp, key=lambda coord: (coord[0]-last_coord[0])**2 + (coord[1]-last_coord[1])**2)]
@@ -32,7 +32,7 @@ def create_route(perimeter: Polygon, mowborder: str, mowexclusion: str,
                 logger.debug('Coverage path planner (planing route for cut to edge): No direct way for cut to edge possible, figure saved as to do for path planner')
                 edges_pol.append(Polygon(perimeter.exterior.coords))
                 route_tmp = []
-    if mowexclusion == 'yes':
+    if mowexclusion == True:
         for i in range(len(perimeter.interiors)):
             edges_pol.append(Polygon(perimeter.interiors[i].coords))
     return route_tmp, edges_pol

@@ -3,8 +3,8 @@
     "width": 0.18,
     "angle": 0,
     "distancetoborder": 2,
-    "mowarea": "yes",
+    "mowarea": true,
     "mowborder": 0,
-    "mowexclusion": "yes",
-    "mowborderccw": "yes"
+    "mowexclusion": true,
+    "mowborderccw": true
 }

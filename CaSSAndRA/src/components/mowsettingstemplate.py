@@ -88,8 +88,9 @@ def get_mow_settings_template(idInputPattern, cfgPattern,
                     dbc.Col([ 
                         daq.BooleanSwitch(
                             id=idMowArea,
-                            on= True if cfgMowArea == "yes" else False,
+                            on= cfgMowArea,
                             style={"float" : "right"},
+                            color="#afe0d2",
                         ),
                     ], style={"flex-shrink" : "2"}),
                 ], style={"padding-bottom" : "0.75rem"}),
@@ -101,12 +102,12 @@ def get_mow_settings_template(idInputPattern, cfgPattern,
                     dbc.Col([ 
                         daq.BooleanSwitch(
                             id=idMowExclusion,
-                            on= True if cfgMowExclusion == "yes" else False,
+                            on= cfgMowExclusion,
                             style={"float" : "right"},
+                            color="#afe0d2",
                         ),
                     ], style={"flex-shrink" : "2"}),
                 ], style={"padding-bottom" : "0.75rem"}),
-
 
                 dbc.Row([
                     dbc.Col([ 
@@ -115,8 +116,9 @@ def get_mow_settings_template(idInputPattern, cfgPattern,
                     dbc.Col([ 			
                         daq.BooleanSwitch(
                             id=idMowBorderCCW,
-                            on= True if cfgMowBorderCCW == "yes" else False,
+                            on= cfgMowBorderCCW,
                             style={"float" : "right"},
+                            color="#afe0d2",
                         ),															 
                     ], style={"flex-shrink" : "2"}),
                 ], style={"padding-bottom" : "0.75rem"}),

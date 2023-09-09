@@ -56,9 +56,9 @@ def toggle_modal(n_clicks_bms: int, n_clicks_bok: int,
             pathplannercfgtask.angle = mowangle
         if distancetoborder != None:
             pathplannercfgtask.distancetoborder = distancetoborder
-        pathplannercfgtask.mowarea = "yes" if mowarea == True else "no"
-        pathplannercfgtask.mowexclusion = "yes" if mowexclusion == True else "no"
-        pathplannercfgtask.mowborderccw = "yes" if mowborderccw == True else "no"
+        pathplannercfgtask.mowarea = mowarea
+        pathplannercfgtask.mowexclusion = mowexclusion
+        pathplannercfgtask.mowborderccw = mowborderccw
         pathplannercfgtask.mowborder = mowborder
             
     if n_clicks_bms or n_clicks_bok:
@@ -70,9 +70,9 @@ def toggle_modal(n_clicks_bms: int, n_clicks_bok: int,
           Output(ids.INPUTMOWCUTEDGEBORDERTASK, 'value'),
           Output(ids.INPUTDISTANCETOBORDERTASK, 'value'),
           Output(ids.INPUTPATTERNTASK, 'value'),
-          Output(ids.INPUTMOWAREATASK, 'value'),
-          Output(ids.INPUTMOWCUTEDGEEXCLUSIONTASK, 'value'),
-          Output(ids.INPUTMOWCUTEDGEBORDERCCWTASK, 'value'),
+          Output(ids.INPUTMOWAREATASK, 'on'),
+          Output(ids.INPUTMOWCUTEDGEEXCLUSIONTASK, 'on'),
+          Output(ids.INPUTMOWCUTEDGEBORDERCCWTASK, 'on'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_pathplandersettings_on_reload(pathname: str) -> list:
     return pathplannercfgtask.width, pathplannercfgtask.angle, pathplannercfgtask.mowborder, pathplannercfgtask.distancetoborder, pathplannercfgtask.pattern, pathplannercfgtask.mowarea, pathplannercfgtask.mowexclusion, pathplannercfgtask.mowborderccw
