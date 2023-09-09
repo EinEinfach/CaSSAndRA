@@ -5,87 +5,143 @@ from . import ids
 from src.backend.data.cfgdata import pathplannercfgstate
 
 mowsettings = dbc.Modal([
-                        dbc.ModalHeader(dbc.ModalTitle('Mow settings')),
-                        dbc.ModalBody([
-                            html.P(['pattern'], className='mb-0'),
-                            dbc.Select(
-                                id=ids.INPUTPATTERNSTATE, 
-                                options=[
-                                    {'label': 'lines', 'value': 'lines'},
-                                    {'label': 'squares', 'value': 'squares'},
-                                    {'label': 'rings', 'value': 'rings'},
-                                ],
-                                value=pathplannercfgstate.pattern
-                            ),
-                            html.P(['width'], className='mb-0'),
-                            dbc.Input(id=ids.INPUTMOWOFFSETSTATE, 
-                                      value=pathplannercfgstate.width, 
-                                      type='number', 
-                                      min=0, 
-                                      max=1, 
-                                      step=0.01, 
-                                      size='sm'
-                            ), 
-                            html.P(['angle'], className='mb-0'),
-                            dbc.Input(id=ids.INPUTMOWOANGLESTATE, 
-                                      value=pathplannercfgstate.angle, 
-                                      type='number', 
-                                      min=0, 
-                                      max=359, 
-                                      step=1, 
-                                      size='sm'
-                            ),
-                            html.P(['distance to border'], className='mb-0'),
-                            dbc.Input(id=ids.INPUTDISTANCETOBORDERSTATE, 
-                                      value=pathplannercfgstate.distancetoborder, 
-                                      type='number', 
-                                      min=0, 
-                                      max=5, 
-                                      step=1, 
-                                      size='sm'
-                            ),
-                            html.P(['mow area'], className='mb-0'),
-                            dbc.Select(
-                                id=ids.INPUTMOWAREASTATE, 
-                                options=[
-                                    {'label': 'yes', 'value': 'yes'},
-                                    {'label': 'no', 'value': 'no'}
-                                ],
-                                value=pathplannercfgstate.mowarea
-                            ),
-                            html.P(['mow cut edge border (rounds)'], className='mb-0'),
-                            dbc.Input(id=ids.INPUTMOWCUTEDGEBORDERSTATE, 
-                                      value=pathplannercfgstate.mowborder, 
-                                      type='number', 
-                                      min=0, 
-                                      max=6, 
-                                      step=1, 
-                                      size='sm'
-                            ),
-                            html.P(['mow cut edge exclusion'], className='mb-0'),
-                            dbc.Select(
-                                id=ids.INPUTMOWCUTEDGEEXCLUSIONSTATE, 
-                                options=[
-                                    {'label': 'yes', 'value': 'yes'},
-                                    {'label': 'no', 'value': 'no'}
-                                ],
-                                value=pathplannercfgstate.mowexclusion
-                            ),
-                            html.P(['mow cut edge border in ccw'], className='mb-0'),
-                            dbc.Select(
-                                id=ids.INPUTMOWCUTEDGEBORDERCCWSTATE, 
-                                options=[
-                                    {'label': 'yes', 'value': 'yes'},
-                                    {'label': 'no', 'value': 'no'}
-                                ],
-                                value=pathplannercfgstate.mowborderccw
-                            ),
-                        ]),
-                        dbc.ModalFooter(
-                            dbc.Button('OK', id=ids.BUTTONOKINPUTMAPSETTINGS, className='ms-auto', n_clicks=0)
-                        ),
-                ],id=ids.MODALMOWSETTINGS, is_open=False,
-                )
+                dbc.ModalHeader(dbc.ModalTitle('Mow settings')),
+                dbc.ModalBody([
+                    
+                    dbc.ListGroup(
+                    [
+                        dbc.ListGroupItem(
+                            # Line Settings
+                            dbc.Row([
+                                dbc.Col([  
+                                    html.P(['Pattern'], className='mb-0'),
+                                    dbc.Select(
+                                        id=ids.INPUTPATTERNSTATE, 
+                                        options=[
+                                            {'label': 'lines', 'value': 'lines'},
+                                            {'label': 'squares', 'value': 'squares'},
+                                            {'label': 'rings', 'value': 'rings'},
+                                        ],
+                                        value=pathplannercfgstate.pattern, style={"padding-top" : "0.17rem", "padding-bottom" : "0.17rem"}
+                                    ),
+                                ]),
+                                dbc.Col([  
+                                    html.P(['Width'], className='mb-0'),
+                                    dbc.Input(id=ids.INPUTMOWOFFSETSTATE, 
+                                            value=pathplannercfgstate.width, 
+                                            type='number', 
+                                            min=0, 
+                                            max=1, 
+                                            step=0.01, 
+                                            size='sm'
+                                    ), 
+                                ]),
+                                dbc.Col([  
+                                    html.P(['Angle'], className='mb-0'),
+                                    dbc.Input(id=ids.INPUTMOWOANGLESTATE, 
+                                            value=pathplannercfgstate.angle, 
+                                            type='number', 
+                                            min=0, 
+                                            max=359, 
+                                            step=1, 
+                                            size='sm'
+                                    ),
+                                ]),
+                            ], style={"padding-bottom" : "0.75rem"}),
+                        style={"padding-left" : "0.75rem", "padding-right" : "0.75erem", "padding-bottom" : "0.5rem", "padding-top" : "1.0rem"}),
+                        
+                        dbc.ListGroupItem(
+                            # Perimeter Settings
+                            dbc.Row([
+                                dbc.Col([  
+                                    html.P(['Distance to border'], className='mb-0'),
+                                    dbc.Input(id=ids.INPUTDISTANCETOBORDERSTATE, 
+                                            value=pathplannercfgstate.distancetoborder, 
+                                            type='number', 
+                                            min=0, 
+                                            max=5, 
+                                            step=1, 
+                                            size='sm'
+                                    ),
+                                ]),
+                                dbc.Col([  
+                                    html.P(['Border rounds'], className='mb-0'),
+                                    dbc.Input(id=ids.INPUTMOWCUTEDGEBORDERSTATE, 
+                                            value=pathplannercfgstate.mowborder, 
+                                            type='number', 
+                                            min=0, 
+                                            max=6, 
+                                            step=1, 
+                                            size='sm'
+                                    ),
+                                ]),
+                            ], style={"padding-bottom" : "0.75rem"}),
+                        style={"padding-left" : "0.75rem", "padding-right" : "0.75erem", "padding-bottom" : "0.5rem", "padding-top" : "1.0rem"} ),
+                        
+                        dbc.ListGroupItem([
+                            # 
+                            dbc.Row([
+                                dbc.Col([ 
+                                    html.P(['Mow area'], className='mb-0'),
+                                ], style={"flex-grow" : "2"}),
+                                dbc.Col([ 
+                                    dbc.Select(
+                                        id=ids.INPUTMOWAREASTATE, 
+                                        options=[
+                                            {'label': 'yes', 'value': 'yes'},
+                                            {'label': 'no', 'value': 'no'}
+                                        ],
+                                        value=pathplannercfgstate.mowarea 
+                                    ),
+                                ], style={"flex-shrink" : "2"}),
+                            ], style={"padding-bottom" : "0.75rem"}),
+                            
+                            dbc.Row([
+                                dbc.Col([ 
+                                    html.P(['Mow exclusion border'], className='mb-0'),
+                                ], style={"flex-grow" : "2"}),
+                                dbc.Col([ 
+                                    dbc.Select(
+                                        id=ids.INPUTMOWCUTEDGEEXCLUSIONSTATE, 
+                                        options=[
+                                            {'label': 'yes', 'value': 'yes'},
+                                            {'label': 'no', 'value': 'no'}
+                                        ],
+                                        value=pathplannercfgstate.mowexclusion 
+                                    ),
+                                ], style={"flex-shrink" : "2"}),
+                            ], style={"padding-bottom" : "0.75rem"}),
+
+
+                            dbc.Row([
+                                dbc.Col([ 
+                                    html.P(['Mow border CCW'], className='mb-0'),
+                                ], style={"flex-grow" : "2"}),
+                                dbc.Col([ 																		
+                                    dbc.Select(
+                                        id=ids.INPUTMOWCUTEDGEBORDERCCWSTATE, 
+                                        options=[
+                                            {'label': 'yes', 'value': 'yes'},
+                                            {'label': 'no', 'value': 'no'}
+                                        ],
+                                        value=pathplannercfgstate.mowborderccw 
+                                    ),   
+                                ], style={"flex-shrink" : "2"}),
+                            ], style={"padding-bottom" : "0.75rem"}),
+                        
+                        ],
+                        style={"padding-left" : "0.75rem", "padding-right" : "0.75erem", "padding-bottom" : "0.5rem", "padding-top" : "1.0rem"} ),
+                    ],
+                    flush=True,
+                ),
+                    
+
+                ], style={"padding-top" : 0, "padding-bottom" : 0}),
+                dbc.ModalFooter(
+                    dbc.Button('OK', id=ids.BUTTONOKINPUTMAPSETTINGS, className='ms-auto', n_clicks=0)
+                ),
+        ],id=ids.MODALMOWSETTINGS, is_open=False, centered=True,
+        )
 
 @callback(Output(ids.MODALMOWSETTINGS, 'is_open'),
           [Input(ids.BUTTONMOWSETTINGS, 'n_clicks'),
