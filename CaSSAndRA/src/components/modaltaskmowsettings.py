@@ -20,7 +20,7 @@ mowsettings = dbc.Modal([
                 dbc.ModalHeader(dbc.ModalTitle('Mow settings')),
                 dbc.ModalBody([
                     template,               
-                ]),
+                ], style={"padding-top" : 0, "padding-bottom" : 0}),
                 dbc.ModalFooter(
                     dbc.Button('OK', id=ids.BUTTONOKINPUTMOWTASKSETTINGS, className='ms-auto', n_clicks=0)
                 ),
