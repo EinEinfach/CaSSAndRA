@@ -29,12 +29,19 @@ chooseperimeter = dbc.Col([
           Input(ids.OKBUTTONCOPYPERIMETER, 'n_clicks'),
           Input(ids.OKBUTTONREMOVEPERIMETER, 'n_clicks'),
           Input(ids.OKBUTTONFINISHMAPPING, 'n_clicks'),
+          Input(ids.OKBUTTONOVERWRITEPERIMTER, 'n_clicks'),
           Input(ids.URLUPDATE, 'pathname'),
           State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
           State(ids.DROPDOWNCHOOSEPERIMETER, 'options')])
-def update_dropdown_chooseperimeter(boknp_nclicks: int, bokcp_nclicks: int, bokrp_nclicks: int, 
-                                    boksp_nclicks: int, pathname: str,dropdown_val_state: str(), 
-                                    dropdown_opt_state: list()) -> list():
+def update_dropdown_chooseperimeter(boknp_nclicks: int, 
+                                    bokcp_nclicks: int, 
+                                    bokrp_nclicks: int, 
+                                    boksp_nclicks: int, 
+                                    bokop_nclicks: int,
+                                    pathname: str,
+                                    dropdown_val_state: str(), 
+                                    dropdown_opt_state: list(),
+                                    ) -> list():
     time.sleep(0.5)
     context = ctx.triggered_id
     try:

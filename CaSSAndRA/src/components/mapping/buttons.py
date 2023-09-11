@@ -6,7 +6,6 @@ from .. import ids
 
 #import map area
 uploadsunrayfile = dbc.Button(class_name='mt-1 me-1 bi bi-filetype-txt', title='upload sunray file')
-okbuttonsunrayimport = dbc.Button('OK', id=ids.OKBUTTONSUNRAYIMPORT, class_name='ms-auto', n_clicks=0)
 saveimportedperimeter = dbc.Button(id=ids.BUTTONSAVEIMPORTEDPERIMETER, class_name='mt-1 me-1 bi bi-cloud-plus', n_clicks=0, title='save imported perimeter')
 okbuttonoverwriteperimter= dbc.Button('OK', id=ids.OKBUTTONOVERWRITEPERIMTER, class_name='ms-auto', n_clicks=0)
 

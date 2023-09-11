@@ -12,9 +12,7 @@ sunrayimportstatus = dbc.Modal(
                         [
                             dbc.ModalHeader(dbc.ModalTitle(id=ids.MODALSUNRAYIMPORTTITLE)),
                             dbc.ModalBody(id=ids.MODALSUNRAYIMPORTBODY),
-                            dbc.ModalFooter([
-                                buttons.okbuttonsunrayimport,  
-                            ] ),
+                            dbc.ModalFooter([]),
                         ],
                         id=ids.MODALSUNRAYIMPORT,
                         is_open=False,
@@ -124,9 +122,10 @@ def overwrite_perimeter(bsp_n_clicks: int, bok_n_clicks, map_nr: str(),
         mapping_maps.select_imported(map_nr)
         if mapping_maps.select_imported_status == 0:
             saveddata.save_perimeter(mapping_maps.saved, mapping_maps.selected_import, perimeter_name)
-    if bsp_n_clicks or bok_n_clicks:
-        return not is_open
-    return is_open
+            return False
+    if context == ids.BUTTONSAVEIMPORTEDPERIMETER and bsp_n_clicks:
+        return True
+    return False
 
 @callback(Output(ids.MODALSELECTEDPERIMETER, 'is_open'),
           [Input(ids.BUTTONSELECTPERIMETER, 'n_clicks'),
@@ -171,9 +170,10 @@ def copy_perimeter(bcp_n_clicks: int, bok_n_clicks: int,
     context = ctx.triggered_id
     if context == ids.OKBUTTONCOPYPERIMETER:
         saveddata.copy_perimeter(mapping_maps.saved, selected_perimeter, cpy_perimeter_name)
-    if bcp_n_clicks or bok_n_clicks:
-        return not is_open
-    return is_open
+        return False
+    if context == ids.BUTTONCOPYPERIMETER and bcp_n_clicks:
+        return True
+    return False
 
 @callback(Output(ids.MODALREMOVEPERIMETER, 'is_open'),
           [Input(ids.BUTTONREMOVEPERIMETER, 'n_clicks'),
@@ -185,9 +185,10 @@ def remove_perimeter(brp_n_clicks: int, bok_n_clicks,
     context = ctx.triggered_id
     if context == ids.OKBUTTONREMOVEPERIMETER:
         saveddata.remove_perimeter(mapping_maps.saved, selected_perimeter, tasks.saved, tasks.saved_parameters)
-    if brp_n_clicks or bok_n_clicks:
-        return not is_open
-    return is_open
+        return False
+    if context == ids.BUTTONREMOVEPERIMETER and brp_n_clicks:
+        return True
+    return False
 
 @callback(Output(ids.MODALFINISHMAPPING, 'is_open'),
           [Input(ids.BUTTONFINISHFIGURE, 'n_clicks'),

@@ -27,9 +27,12 @@ uploadsunray = dbc.Col([
           Output(ids.BUTTONSAVEIMPORTEDPERIMETER, 'disabled'),
           Output(ids.DROPDOWNSUNRAYIMPORT, 'value'),
           [Input(ids.UPLOADSUNRAYFILE, 'contents'),
-           Input(ids.OKBUTTONSUNRAYIMPORT, 'n_clicks'),
+           #Input(ids.OKBUTTONSUNRAYIMPORT, 'n_clicks'),
            State(ids.MODALSUNRAYIMPORT, 'is_open')])
-def upload_sunray_file(content: str(), bok_n_clicks: int, is_open: bool) -> list():
+def upload_sunray_file(content: str(), 
+                       #bok_n_clicks: int, 
+                       is_open: bool
+                       ) -> list():
     title = ''
     body = ''
     disabled = True
@@ -52,6 +55,6 @@ def upload_sunray_file(content: str(), bok_n_clicks: int, is_open: bool) -> list
         else:
             title = 'Warning'
             body = 'Import failed'
-    if context == ids.UPLOADSUNRAYFILE or bok_n_clicks:
-        return not is_open, title, body, options, disabled, value
-    return is_open, title, body, options, disabled, value
+    if context == ids.UPLOADSUNRAYFILE and title != '':# or bok_n_clicks:
+        return True, title, body, options, disabled, value
+    return False, title, body, options, disabled, value

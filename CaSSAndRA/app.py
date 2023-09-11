@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.60.0 Merged pull request styling modal mow settings
+#Version:0.60.1 Fix modal beahaivor in mapping mode on mobile devices
 
 # create logger
 import logging
