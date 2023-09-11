@@ -35,7 +35,7 @@ mappingmap.update_layout(
                annotations=[],
      )
 mappingmap.update_xaxes(nticks=50, ticklabelstep=5)
-mappingmap.update_yaxes(nticks=50, ticklabelstep=5)
+mappingmap.update_yaxes(nticks=50, ticklabelstep=5, ticklabelposition="inside")
 
 @callback(Output(ids.MAPPINGMAP, 'figure'),
           #Output(ids.MAPPINGINTERVAL, 'disabled', allow_duplicate=True),

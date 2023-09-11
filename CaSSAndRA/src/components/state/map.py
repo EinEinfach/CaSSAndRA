@@ -266,7 +266,8 @@ def update(n_intervals: int,
      fig_state['data'] = traces
      fig = go.Figure(fig_state)
      fig.update_layout(
-                    yaxis = dict(range=range_y),
+                    yaxis = dict(range=range_y, showticklabels=False),
+                    xaxis = dict(showticklabels=False),
                     images=imgs,
                     annotations=mowdata,
                     )

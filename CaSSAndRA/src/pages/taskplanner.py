@@ -17,7 +17,7 @@ def update_layout() -> html.Div:
         [
             # map
             html.Div(
-                className='loader-wrapper flex-grow-1 p-2',
+                className='loader-wrapper flex-grow-1',
                 children=[
                     dbc.Spinner(
                         delay_show=1000,

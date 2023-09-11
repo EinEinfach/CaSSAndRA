@@ -23,7 +23,7 @@ def update_layout() -> html.Div:
     main_col = dbc.Col(
         [
             html.Div(
-                className='loader-wrapper flex-grow-1 p-2',
+                className='loader-wrapper flex-grow-1',
                 children=[
                     dbc.Spinner(
                         delay_show=1000,
