@@ -79,7 +79,7 @@ accordion_settings = dbc.Accordion([
                                 dbc.Input(value=pathplannercfg.angle, id=ids.MOWANGLESETTINGS, type='number', min=0, max=359, step=1),
                                 dbc.FormText('Distance to border'),
                                 dbc.Input(value=pathplannercfg.distancetoborder, id=ids.DISTANCETOBORDERSETTINGS, type='number', min=0, max=5, step=1),
-                                dbc.FormText('Mow cut edge border (rounds)'),
+                                dbc.FormText('Mow cut edge border (laps)'),
                                 dbc.Input(value=pathplannercfg.mowborder, id=ids.MOWEDGESETTINGS, type='number', min=0, max=6, step=1),
                                 dbc.FormText('Mow area'),
                                 html.Div(
