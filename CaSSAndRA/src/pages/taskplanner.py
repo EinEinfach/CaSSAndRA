@@ -8,7 +8,7 @@ import pandas as pd
 from src.components import ids, modaltaskmowsettings
 from src.components.tasks import map, buttongroupcontrol, modal, tasksorder
 
-dash.register_page(__name__, path="/taskplanner", title="Taskplanner")
+dash.register_page(__name__, path='/taskplanner', title='Taskplanner')
 
 
 def update_layout() -> html.Div:
@@ -17,7 +17,7 @@ def update_layout() -> html.Div:
         [
             # map
             html.Div(
-                className="loader-wrapper flex-grow-1 p-2",
+                className='loader-wrapper flex-grow-1 p-2',
                 children=[
                     dbc.Spinner(
                         delay_show=1000,
@@ -25,14 +25,14 @@ def update_layout() -> html.Div:
                             [
                                 dcc.Graph(
                                     id=ids.TASKMAP,
-                                    config={"displaylogo": False, "scrollZoom": True},
+                                    config={'displaylogo': False, 'scrollZoom': True},
                                 )
                             ],
-                            className="map-graph",
+                            className='map-graph',
                         ),
                     )
                 ],
-                style={"overflow": "hidden"},
+                style={'overflow': 'hidden'},
             ),
             #buttons
             dbc.Row(
@@ -46,7 +46,7 @@ def update_layout() -> html.Div:
                                 buttongroupcontrol.buttonconfirmselection,
                                 buttongroupcontrol.buttoncancel,
                             ],
-                            className="text-center p-1",
+                            className='text-center p-1',
                         ),
                         # buttons to open hidden components on mobile devices
                         dbc.Row(
@@ -54,30 +54,23 @@ def update_layout() -> html.Div:
                                 dbc.Col(
                                     [
                                         dbc.Button(
-                                            # "Order Tasks",
-                                            color="info",
-                                            size="lg",
-                                            id="open-order-tasks-modal",
+                                            # 'Order Tasks',
+                                            color='info',
+                                            size='lg',
+                                            id=ids.BUTTONOPENMODALORDERTASKS,
                                             n_clicks=0,
-                                            style={"width": "100%"},
-                                            class_name="bi bi-list-ol",
+                                            style={'width': '100%'},
+                                            class_name='bi bi-list-ol',
                                         ),
                                         dbc.Modal(
                                             [
                                                 dbc.ModalHeader(
-                                                    dbc.ModalTitle("Order Tasks")
+                                                    dbc.ModalTitle('Order Tasks')
                                                 ),
-                                                dbc.ModalBody(tasksorder.tasksorder),
-                                                dbc.ModalFooter(
-                                                    dbc.Button(
-                                                        "Close",
-                                                        id="close-order-tasks-modal",
-                                                        className="ms-auto",
-                                                        n_clicks=0,
-                                                    )
-                                                ),
+                                                dbc.ModalBody(id=ids.CONTENTMODALORDERTASKS),
+                                                dbc.ModalFooter([]),
                                             ],
-                                            id="order-tasks-modal",
+                                            id=ids.MODALORDERTASKS,
                                             is_open=False,
                                         ),
                                     ],
@@ -87,17 +80,17 @@ def update_layout() -> html.Div:
                                     xxl=2,
                                 ),
                             ],
-                            justify="center",
-                            align="center",
-                            class_name="g-1 p-1 d-md-none d-lg-none d-xl-none d-xxl-none",
+                            justify='center',
+                            align='center',
+                            class_name='g-1 p-1 d-md-none d-lg-none d-xl-none d-xxl-none',
                         ),
                     ],
-                    style={"position": "sticky", "bottom": 0},
+                    style={'position': 'sticky', 'bottom': 0},
                 )
             ),
         ],
-        class_name="flex-grow-1 d-flex flex-column",
-        style={"overflow": "hidden"},
+        class_name='flex-grow-1 d-flex flex-column',
+        style={'overflow': 'hidden'},
     )
 
     # secondary column (hidden for small and below devices)
@@ -109,14 +102,14 @@ def update_layout() -> html.Div:
                         [
                             tasksorder.tasksorder,
                         ],
-                        className="text-center",
+                        className='text-center',
                     )
                 ],
-                justify="evenly",
+                justify='evenly',
             ),
         ],
-        className="d-none d-sm-none d-md-block",
-        style={"width": "330px"},
+        className='d-none d-sm-none d-md-block',
+        style={'width': '330px'},
     )
 
     # build and return the page
@@ -132,11 +125,11 @@ def update_layout() -> html.Div:
                     modal.renametask,
                     modal.copytask,
                 ],
-                className="flex-nowrap g-0",
-                style={"height": "100%"},
+                className='flex-nowrap g-0',
+                style={'height': '100%'},
             )
         ],
-        style={"height": "100%", "width": "100%", "overflow": "hidden"},
+        style={'height': '100%', 'width': '100%', 'overflow': 'hidden'},
     )
 
 
@@ -144,15 +137,14 @@ layout = update_layout()
 
 
 # Callback to open/close task order selection modal
-@callback(
-    Output("order-tasks-modal", "is_open"),
-    [
-        Input("open-order-tasks-modal", "n_clicks"),
-        Input("close-order-tasks-modal", "n_clicks"),
-    ],
-    [State("order-tasks-modal", "is_open")],
-)
-def toggle_modal(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
+@callback(Output(ids.MODALORDERTASKS, 'is_open'),
+          Output(ids.CONTENTMODALORDERTASKS, 'children'),
+          [Input(ids.BUTTONOPENMODALORDERTASKS, 'n_clicks'),
+           State(ids.MODALORDERTASKS, 'is_open'),
+           ])
+def toggle_modal(bom_nclicks: int,
+                 is_open: bool,
+                 ) -> list:
+    if bom_nclicks:
+        return True, tasksorder.tasksorder
+    return False, dbc.Col()
