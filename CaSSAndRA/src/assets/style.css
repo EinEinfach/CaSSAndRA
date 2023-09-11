@@ -255,3 +255,7 @@ html {
 
 /* Boolean Switch Fix */
 .daq-booleanswitch--light__background { box-sizing: content-box; }
+
+#_pages_content {
+    padding-bottom: env(safe-area-inset-bottom); 
+}

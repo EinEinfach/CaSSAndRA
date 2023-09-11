@@ -28,7 +28,7 @@ statemap.update_layout(
                     t=30, #top margin 20px
                 ),
                showlegend=False,
-               uirevision=1,
+               uirevision=True,
                hovermode='closest',
                dragmode='pan',
                annotations=[],

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.62.0 Change grid on mapping page, legacy figure can be seen in moving mode
+#Version:0.63.0 Style changes for mobile web app
 
 # create logger
 import logging
@@ -58,7 +58,7 @@ def main() -> None:
         meta_tags=[
             {   # check if device is a mobile device. This is a must if you do any mobile styling
                 'name': 'viewport',
-                'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' 
+                'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover' 
             },
             {
                 'name':"apple-mobile-web-app-capable",
