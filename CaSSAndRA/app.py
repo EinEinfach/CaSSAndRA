@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.59.0 I think the more correct term would be laps instead of rounds. Isn't?
+#Version:0.60.0 Merged pull request styling modal mow settings
 
 # create logger
 import logging

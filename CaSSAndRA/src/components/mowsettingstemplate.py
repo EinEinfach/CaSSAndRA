@@ -23,7 +23,7 @@ def get_mow_settings_template(idInputPattern, cfgPattern,
                                 {'label': 'squares', 'value': 'squares'},
                                 {'label': 'rings', 'value': 'rings'},
                             ],
-                            value=cfgPattern, style={"padding-top" : "0.17rem", "padding-bottom" : "0.17rem"}
+                            value=cfgPattern, style={'padding-top' : '0.17rem', 'padding-bottom' : '0.17rem'}
                         ),
                     ]),
                     dbc.Col([  
@@ -48,8 +48,8 @@ def get_mow_settings_template(idInputPattern, cfgPattern,
                                 size='sm'
                         ),
                     ]),
-                ], style={"padding-bottom" : "0.75rem"}),
-            style={"padding-left" : "0.75rem", "padding-right" : "0.75erem", "padding-bottom" : "0.5rem", "padding-top" : "1.0rem"}),
+                ], style={'padding-bottom' : '0.75rem'}),
+            style={'padding-left' : '0.75rem', 'padding-right' : '0.75erem', 'padding-bottom' : '0.5rem', 'padding-top' : '1.0rem'}),
             
             dbc.ListGroupItem(
                 # Perimeter Settings
@@ -66,7 +66,7 @@ def get_mow_settings_template(idInputPattern, cfgPattern,
                         ),
                     ]),
                     dbc.Col([  
-                        html.P(['Border rounds'], className='mb-0'),
+                        html.P(['Border laps'], className='mb-0'),
                         dbc.Input(id=idMowBorder, 
                                 value=cfgMowBorder, 
                                 type='number', 
@@ -76,55 +76,55 @@ def get_mow_settings_template(idInputPattern, cfgPattern,
                                 size='sm'
                         ),
                     ]),
-                ], style={"padding-bottom" : "0.75rem"}),
-            style={"padding-left" : "0.75rem", "padding-right" : "0.75erem", "padding-bottom" : "0.5rem", "padding-top" : "1.0rem"} ),
+                ], style={'padding-bottom' : '0.75rem'}),
+            style={'padding-left' : '0.75rem', 'padding-right' : '0.75erem', 'padding-bottom' : '0.5rem', 'padding-top' : '1.0rem'} ),
             
             dbc.ListGroupItem([
                 # 
                 dbc.Row([
                     dbc.Col([ 
                         html.P(['Mow area'], className='mb-0'),
-                    ], style={"flex-grow" : "2"}),
+                    ], style={'flex-grow' : '2'}),
                     dbc.Col([ 
                         daq.BooleanSwitch(
                             id=idMowArea,
                             on= cfgMowArea,
-                            style={"float" : "right"},
-                            color="#afe0d2",
+                            style={'float' : 'right'},
+                            color='#afe0d2',
                         ),
-                    ], style={"flex-shrink" : "2"}),
-                ], style={"padding-bottom" : "0.75rem"}),
+                    ], style={'flex-shrink' : '2'}),
+                ], style={'padding-bottom' : '0.75rem'}),
                 
                 dbc.Row([
                     dbc.Col([ 
                         html.P(['Mow exclusion border'], className='mb-0'),
-                    ], style={"flex-grow" : "2"}),
+                    ], style={'flex-grow' : '2'}),
                     dbc.Col([ 
                         daq.BooleanSwitch(
                             id=idMowExclusion,
                             on= cfgMowExclusion,
-                            style={"float" : "right"},
-                            color="#afe0d2",
+                            style={'float' : 'right'},
+                            color='#afe0d2',
                         ),
-                    ], style={"flex-shrink" : "2"}),
-                ], style={"padding-bottom" : "0.75rem"}),
+                    ], style={'flex-shrink' : '2'}),
+                ], style={'padding-bottom' : '0.75rem'}),
 
                 dbc.Row([
                     dbc.Col([ 
                         html.P(['Mow border CCW'], className='mb-0'),
-                    ], style={"flex-grow" : "2"}),
+                    ], style={'flex-grow' : '2'}),
                     dbc.Col([ 			
                         daq.BooleanSwitch(
                             id=idMowBorderCCW,
                             on= cfgMowBorderCCW,
-                            style={"float" : "right"},
-                            color="#afe0d2",
+                            style={'float' : 'right'},
+                            color='#afe0d2',
                         ),															 
-                    ], style={"flex-shrink" : "2"}),
-                ], style={"padding-bottom" : "0.75rem"}),
+                    ], style={'flex-shrink' : '2'}),
+                ], style={'padding-bottom' : '0.75rem'}),
             
             ],
-            style={"padding-left" : "0.75rem", "padding-right" : "0.75erem", "padding-bottom" : "0.5rem", "padding-top" : "1.0rem"} ),
+            style={'padding-left' : '0.75rem', 'padding-right' : '0.75erem', 'padding-bottom' : '0.5rem', 'padding-top' : '1.0rem'} ),
         ],
         flush=True,
     )
