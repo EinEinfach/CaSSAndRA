@@ -77,7 +77,7 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         selected_area_turned = map.turn(selected_perimeter, parameters.angle)
         area_to_mow, border = map.border(selected_area_turned, parameters.distancetoborder, parameters.width)
         route, edge_polygons = cutedge.calcroute(border, parameters, list(start_pos.coords))
-        if parameters.mowarea == 'yes':
+        if parameters.mowarea == True:
             line_mask = map.linemask(area_to_mow, parameters.width)
         else:
             line_mask = MultiLineString()
@@ -85,7 +85,7 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         route = map.turn(route, -parameters.angle)
         route = list(route.coords)
 
-    if parameters.pattern == 'squares' and parameters.mowarea == 'yes':
+    if parameters.pattern == 'squares' and parameters.mowarea == True:
         last_coord = route[-1]
         last_coord = Point(last_coord)
         last_coord = map.turn(last_coord, parameters.angle+90)

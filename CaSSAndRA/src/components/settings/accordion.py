@@ -1,5 +1,6 @@
 from dash import html, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
+import dash_daq as daq
 import time
 
 from .. import ids
@@ -78,34 +79,34 @@ accordion_settings = dbc.Accordion([
                                 dbc.Input(value=pathplannercfg.angle, id=ids.MOWANGLESETTINGS, type='number', min=0, max=359, step=1),
                                 dbc.FormText('Distance to border'),
                                 dbc.Input(value=pathplannercfg.distancetoborder, id=ids.DISTANCETOBORDERSETTINGS, type='number', min=0, max=5, step=1),
-                                dbc.FormText('Mow area'),
-                                dbc.Select(
-                                    id=ids.MOWAREASETTINGS,
-                                    options=[
-                                        {'label': 'yes', 'value': 'yes'},
-                                        {'label': 'no', 'value': 'no'},
-                                    ],
-                                    value=pathplannercfg.mowarea
-                                ),
                                 dbc.FormText('Mow cut edge border (laps)'),
                                 dbc.Input(value=pathplannercfg.mowborder, id=ids.MOWEDGESETTINGS, type='number', min=0, max=6, step=1),
+                                dbc.FormText('Mow area'),
+                                html.Div(
+                                    daq.BooleanSwitch(
+                                        id=ids.MOWAREASETTINGS,
+                                        on= pathplannercfg.mowarea,
+                                        style={"float" : "left"},
+                                        color="#afe0d2",
+                                    ),
+                                ),
                                 dbc.FormText('Mow cut edge exclusion'),
-                                dbc.Select(
-                                    id=ids.MOWEDGEEXCLUSIONSETTINGS,
-                                    options=[
-                                        {'label': 'yes', 'value': 'yes'},
-                                        {'label': 'no', 'value': 'no'},
-                                    ],
-                                    value=pathplannercfg.mowexclusion
+                                html.Div(
+                                    daq.BooleanSwitch(
+                                        id=ids.MOWEDGEEXCLUSIONSETTINGS,
+                                        on= pathplannercfg.mowexclusion,
+                                        style={"float" : "left"},
+                                        color="#afe0d2",
+                                    ),
                                 ),
                                 dbc.FormText('Mow cut edge border in ccw'),
-                                dbc.Select(
-                                    id=ids.MOWBORDERCCWSETTINGS,
-                                    options=[
-                                        {'label': 'yes', 'value': 'yes'},
-                                        {'label': 'no', 'value': 'no'},
-                                    ],
-                                    value=pathplannercfg.mowborderccw
+                                html.Div(
+                                    daq.BooleanSwitch(
+                                        id=ids.MOWBORDERCCWSETTINGS,
+                                        on= pathplannercfg.mowborderccw,
+                                        style={"float" : "left"},
+                                        color="#afe0d2",
+                                    ),
                                 ),
                             ],
                             title='Coverage path planner',
@@ -259,15 +260,15 @@ def update_connectioninput(radio_input: str()) -> list(dict()):
            State(ids.MOWEDGESETTINGS, 'value'),
            State(ids.DISTANCETOBORDERSETTINGS, 'value'),
            State(ids.PATTERNSETTINGS, 'value'),
-           State(ids.MOWAREASETTINGS, 'value'),
-           State(ids.MOWEDGEEXCLUSIONSETTINGS, 'value'),
-           State(ids.MOWBORDERCCWSETTINGS, 'value')])
+           State(ids.MOWAREASETTINGS, 'on'),
+           State(ids.MOWEDGEEXCLUSIONSETTINGS, 'on'),
+           State(ids.MOWBORDERCCWSETTINGS, 'on')])
 def update_pathplanner_settings_data(bsr_n_clicks: int, bok_n_clicks: int, 
                                      is_open: bool, mowoffset: float, 
                                      mowangle: int, mowedge: str, 
                                      distancetoborder: int, pattern: str,
-                                     mowarea: str, mowexclusion: str,
-                                     mowborderccw: str) -> bool:
+                                     mowarea: bool, mowexclusion: bool,
+                                     mowborderccw: bool) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKMAPSETTINGS:
         pathplannercfg.pattern = pattern
@@ -365,9 +366,9 @@ def update_robotsettings_on_reload(pathname: str) -> list:
           Output(ids.MOWEDGESETTINGS, 'value'),
           Output(ids.DISTANCETOBORDERSETTINGS, 'value'),
           Output(ids.PATTERNSETTINGS, 'value'),
-          Output(ids.MOWAREASETTINGS, 'value'),
-          Output(ids.MOWEDGEEXCLUSIONSETTINGS, 'value'),
-          Output(ids.MOWBORDERCCWSETTINGS, 'value'),
+          Output(ids.MOWAREASETTINGS, 'on'),
+          Output(ids.MOWEDGEEXCLUSIONSETTINGS, 'on'),
+          Output(ids.MOWBORDERCCWSETTINGS, 'on'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_pathplandersettings_on_reload(pathname: str) -> list:
     return pathplannercfg.width, pathplannercfg.angle, pathplannercfg.mowborder, pathplannercfg.distancetoborder, pathplannercfg.pattern, pathplannercfg.mowarea, pathplannercfg.mowexclusion, pathplannercfg.mowborderccw

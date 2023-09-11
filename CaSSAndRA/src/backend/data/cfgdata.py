@@ -211,10 +211,10 @@ class PathPlannerCfg:
     width: float = 0.18
     angle: int = 0
     distancetoborder: int = 1
-    mowarea: str() = 'yes'
+    mowarea: bool = True
     mowborder: int = 1
-    mowexclusion: str() = 'yes'
-    mowborderccw: str() = 'yes'
+    mowexclusion: bool = True
+    mowborderccw: bool = True
 
     def read_pathplannercfg(self) -> None:
         try:

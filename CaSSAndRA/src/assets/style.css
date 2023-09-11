@@ -239,3 +239,6 @@ html {
   }
 }
 /************************* End of Map Controls Size Adjustment ******************/
+
+/* Boolean Switch Fix */
+.daq-booleanswitch--light__background { box-sizing: content-box; }
