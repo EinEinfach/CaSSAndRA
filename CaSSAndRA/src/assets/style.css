@@ -194,6 +194,19 @@ html {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+
+.stateCardHeader
+{
+	padding-top: 0.25rem;
+	padding-bottom: 0.25rem;
+}
+
+.stateCardBody
+{
+	padding-top: 0.6rem;
+	padding-bottom: 0.6rem;
+}
+
 /************************* End of Card Group Customizations ********************/
 
 

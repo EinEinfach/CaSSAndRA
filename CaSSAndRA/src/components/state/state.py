@@ -5,7 +5,7 @@ from src.backend.data.roverdata import robot
 from .. import ids
 
 CARD_STYLES = {"width": "33%", "margin-bottom": "0"}
-CARD_BODY_CLASSES = "d-flex flex-column justify-content-center"
+CARD_BODY_CLASSES = "d-flex flex-column justify-content-center stateCardBody"
 
 
 @callback(Output(ids.STATESTRING, "children"), Input(ids.INTERVAL, "n_intervals"))
@@ -54,7 +54,7 @@ def update(n_intervals: int) -> dbc.Row:
         [
             dbc.Card(
                 [
-                    dbc.CardHeader("Solution", className="truncate-1"),
+                    dbc.CardHeader("Solution", className="truncate-1 stateCardHeader"),
                     dbc.CardBody(
                         [
                             html.Small(robot.solution, className="truncate-1"),
@@ -72,7 +72,7 @@ def update(n_intervals: int) -> dbc.Row:
             ),
             dbc.Card(
                 [
-                    dbc.CardHeader("State", className="truncate-1"),
+                    dbc.CardHeader("State", className="truncate-1 stateCardHeader"),
                     dbc.CardBody(
                         [
                             html.Small(robot.status, className="truncate-1"),
@@ -88,7 +88,7 @@ def update(n_intervals: int) -> dbc.Row:
             ),
             dbc.Card(
                 [
-                    dbc.CardHeader("SoC", className="truncate-1"),
+                    dbc.CardHeader("SoC", className="truncate-1 stateCardHeader"),
                     dbc.CardBody(
                         [
                             html.Small("{}%".format(robot.soc), className="truncate-1"),
