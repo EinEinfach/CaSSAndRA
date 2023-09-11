@@ -104,14 +104,7 @@ def update_layout() -> html.Div:
                                                 ),
                                                 dbc.ModalBody([
                                                     dbc.Col(id=ids.CONTENTMODALCHOOSEPERIMETER),
-                                                    dbc.ModalFooter(
-                                                        dbc.Button(
-                                                            'Close',
-                                                            id=ids.BUTTONCLOSEMODALCHOOSEPERIMETER,
-                                                            className='ms-auto',
-                                                            n_clicks=0,
-                                                        )
-                                                    ),
+                                                    dbc.ModalFooter([]),
                                                 ]),
                                             ],
                                             id=ids.MODALCHOOSEPERIMETER,
@@ -139,16 +132,9 @@ def update_layout() -> html.Div:
                                                     dbc.ModalTitle('Upload Sunray')
                                                 ),
                                                 dbc.ModalBody(
-                                                    uploadsunray.uploadsunray
+                                                    dbc.Col(id=ids.CONETNEMODALUPLOADFILE) 
                                                 ),
-                                                dbc.ModalFooter(
-                                                    dbc.Button(
-                                                        'Close',
-                                                        id=ids.BUTTONCLOSEMODALUPLOADFILE,
-                                                        className='ms-auto',
-                                                        n_clicks=0,
-                                                    )
-                                                ),
+                                                dbc.ModalFooter([]),
                                             ],
                                             id=ids.MODALUPLOADFILE,
                                             is_open=False,
@@ -229,28 +215,28 @@ layout = update_layout()
 @callback(Output(ids.MODALCHOOSEPERIMETER, 'is_open'),
           Output(ids.CONTENTMODALCHOOSEPERIMETER, 'children'),
           [Input(ids.BUTTONOPENMODALCHOOSEPERIMETER, 'n_clicks'),
-           Input(ids.BUTTONCLOSEMODALCHOOSEPERIMETER, 'n_clicks'),
            State(ids.MODALCHOOSEPERIMETER, 'is_open')
            ])
-def toggle_modal(n1, n2, is_open):
-    if n1 or n2:
+def toggle_modal_chooseperimeter(bom_ncliks: int,
+                                 is_open: bool
+                                 ) -> list():
+    if bom_ncliks:
         return not is_open, chooseperimeter.chooseperimeter
     return is_open, dbc.Col()
 
 
 # Callback to open/close sunray path upload in modal
-@callback(
-    Output(ids.MODALUPLOADFILE, 'is_open'),
-    [
-        Input(ids.BUTTONOPENMODALUPLOADFILE, 'n_clicks'),
-        Input(ids.BUTTONCLOSEMODALUPLOADFILE, 'n_clicks'),
-    ],
-    [State(ids.MODALUPLOADFILE, 'is_open')],
-)
-def toggle_modal(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
+@callback(Output(ids.MODALUPLOADFILE, 'is_open'),
+          Output(ids.CONETNEMODALUPLOADFILE, 'children'),
+          [Input(ids.BUTTONOPENMODALUPLOADFILE, 'n_clicks'),
+           State(ids.MODALUPLOADFILE, 'is_open')
+           ])
+def toggle_modal_uploadfile(bom_nclicks: int, 
+                            is_open: bool
+                            ) -> list():
+    if bom_nclicks:
+        return not is_open, uploadsunray.uploadsunray
+    return is_open, dbc.Col()
 
 # @callback(Output(ids.MAPPINGINTERVAL, 'disabled'),
 #           [Input(ids.URLUPDATE, 'pathname'),

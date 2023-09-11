@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.60.1 Fix modal beahaivor in mapping mode on mobile devices
+#Version:0.61.0 Merged pull request styling dbc.CardGroup
 
 # create logger
 import logging
