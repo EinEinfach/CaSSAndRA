@@ -227,6 +227,7 @@ class Perimeters:
     selected_name: str() = ''
     build: pd.DataFrame = pd.DataFrame()
     build_cpy: pd.DataFrame = pd.DataFrame()
+    legacy_figure: pd.DataFrame = pd.DataFrame()
     dockpoints: pd.DataFrame = pd.DataFrame(columns=['X', 'Y'])
     import_status: int = -1   
     select_imported_status: int = -1  

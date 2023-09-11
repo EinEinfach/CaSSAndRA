@@ -34,6 +34,8 @@ mappingmap.update_layout(
                dragmode='pan',
                annotations=[],
      )
+mappingmap.update_xaxes(nticks=50, ticklabelstep=5)
+mappingmap.update_yaxes(nticks=50, ticklabelstep=5)
 
 @callback(Output(ids.MAPPINGMAP, 'figure'),
           #Output(ids.MAPPINGINTERVAL, 'disabled', allow_duplicate=True),
@@ -103,6 +105,7 @@ def update(n_intervals: int,
         mapping_maps.build_cpy = mapping_maps.build
         #go ahead with shapes
         data_for_shape = mapping_maps.build[mapping_maps.build['type'] == 'edit']
+        mapping_maps.legacy_figure = data_for_shape
         data_for_shape = list(zip(data_for_shape['X'].values.tolist(), data_for_shape['Y'].values.tolist()))
         closedpath = mapping_maps.cartesiantocsv(data_for_shape)
         mapping_maps.build = mapping_maps.build[mapping_maps.build['type'] != 'edit']
@@ -116,6 +119,7 @@ def update(n_intervals: int,
             #avoiding of adjustment of last dockpoint, if move tool was used on dockpoints
             if mapping_maps.selected_name == 'dockpoints':
                 mapping_maps.dockpoints = data_for_figure
+            mapping_maps.legacy_figure = pd.DataFrame()
         mapping_maps.figure_action('recreate')
         closedpath = None
 
@@ -183,9 +187,7 @@ def update(n_intervals: int,
                                 line=dict(color='#FF0000'), 
                                 marker=dict(size=6),
                                 hoverinfo='skip'))
-        
-
-        
+  
         #Plot selected point
         filtered = mapping_maps.selected_point
         if not filtered.empty:
@@ -199,6 +201,17 @@ def update(n_intervals: int,
                                              line = dict(width=2, color="DarkSlateGrey")
                                              ),
                                    ))
+
+    #Plot legacy figure  
+    if not mapping_maps.legacy_figure.empty:  
+        legacy_figure_for_plot = calceddata.calcmapdata_for_plot(mapping_maps.legacy_figure)  
+        traces.append(go.Scatter(x=legacy_figure_for_plot['X'], y=legacy_figure_for_plot['Y'], 
+                                name='legacy', 
+                                mode='lines+markers', 
+                                line=dict(color='DarkSlateGrey'), 
+                                marker=dict(size=6),
+                                hoverinfo='skip',
+                                opacity=0.5))
 
     #Check interactions with graph
     if selecteddata == {'points':[]}: #Workaround for selected data, beacause after select selected data changing to {'poonts':[]} and triggering context_id

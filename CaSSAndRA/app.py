@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.61.0 Merged pull request styling dbc.CardGroup
+#Version:0.62.0 Change grid on mapping page, legacy figure can be seen in moving mode
 
 # create logger
 import logging
