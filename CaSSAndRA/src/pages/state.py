@@ -38,7 +38,7 @@ def update_layout() -> html.Div:
                                     config={'displaylogo': False, 'scrollZoom': True},
                                 )
                             ],
-                            className="map-graph p-2",
+                            className="map-graph",
                         ),
                     )
                 ],

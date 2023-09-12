@@ -124,8 +124,9 @@ def update(bpma_nclicks: int, bcs_nclicks: int, bpc_nclicks: int, save_is_open: 
 
     fig = {'data': traces, 
            'layout': go.Layout(
-                        yaxis=dict(range=range_y, scaleratio=1, scaleanchor='x'),
-                        margin=dict(b=20, l=20, r=20, t=30),
+                        yaxis=dict(range=range_y, scaleratio=1, scaleanchor='x', showticklabels=False),
+                    	xaxis = dict(showticklabels=False),
+                        margin=dict(b=0, l=0, r=0, t=30),
                         showlegend=False,
                         uirevision=1,
                         hovermode='closest',
