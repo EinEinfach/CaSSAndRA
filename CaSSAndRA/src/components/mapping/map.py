@@ -38,8 +38,8 @@ mappingmap.update_xaxes(nticks=50, ticklabelstep=5)
 mappingmap.update_yaxes(nticks=50, ticklabelstep=5, ticklabelposition="inside")
 
 @callback(Output(ids.MAPPINGMAP, 'figure'),
-          #Output(ids.MAPPINGINTERVAL, 'disabled', allow_duplicate=True),
-          [Input(ids.INTERVAL, 'n_intervals'), 
+          Output(ids.MAPPINGINTERVAL, 'disabled'),
+          [Input(ids.MAPPINGINTERVAL, 'n_intervals'), 
            Input(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            Input(ids.DROPDOWNSUNRAYIMPORT, 'value'),
            Input(ids.MAPPINGMAP, 'selectedData'),
@@ -64,7 +64,7 @@ def update(n_intervals: int,
     closedpath = None
     context = ctx.triggered_id
     context_triggered = ctx.triggered
-
+    #debuglogger.log(context)
     #Check if edit mode, disable interval
     if bmp_state:
         interval_disabled = True
@@ -265,5 +265,5 @@ def update(n_intervals: int,
                     annotations = annotation,
                     )
     
-    return fig#, interval_disabled
+    return fig, interval_disabled
             
