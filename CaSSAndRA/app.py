@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.63.0 Style changes for mobile web app
+#Version:0.64.0 Merged pull request map styling
 
 # create logger
 import logging
