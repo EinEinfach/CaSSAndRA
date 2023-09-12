@@ -552,11 +552,11 @@ class Perimeters:
         path = 'M'
         for i, coord in enumerate(coords):
             path = path+str(coord[0])+','+str(coord[1])+'L'
-        if self.selected_name == 'dockpoints':
-            closedpath = path+str(coord[0])+','+str(coord[1])+''
+        if self.selected_name != 'dockpoints':
+            path = path[:-1] + 'Z'
         else:
-            closedpath = path[:-1] + 'Z'
-        return closedpath
+            path = path[:-1]
+        return path
 
 @dataclass
 class Task:

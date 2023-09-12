@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.65.1 Fix issue if in moving points mode didn't end properly
+#Version:0.65.2 Fix issue with moving points mode generate additional dockpoint if finished
 # create logger
 import logging
 logger = logging.getLogger(__name__)
