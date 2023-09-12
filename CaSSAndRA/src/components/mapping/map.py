@@ -8,6 +8,8 @@ from src.backend.data import calceddata
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import mapping_maps
 
+from src.backend.utils import debuglogger
+
 mappingmap = go.Figure()
 mappingmap.update_layout(
                plot_bgcolor='white',
@@ -38,6 +40,7 @@ mappingmap.update_yaxes(nticks=50, ticklabelstep=5, ticklabelposition="inside")
 @callback(Output(ids.MAPPINGMAP, 'figure'),
           Output(ids.MAPPINGINTERVAL, 'disabled'),
            [Input(ids.MAPPINGINTERVAL, 'n_intervals'), 
+           Input(ids.URLUPDATE, 'pathname'),
            Input(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            Input(ids.DROPDOWNSUNRAYIMPORT, 'value'),
            Input(ids.MAPPINGMAP, 'selectedData'),
@@ -47,6 +50,7 @@ mappingmap.update_yaxes(nticks=50, ticklabelstep=5, ticklabelposition="inside")
            State(ids.BUTTONHOMEADD, 'active'),
            State(ids.MAPPINGMAP, 'figure')], prevent_initial_call=True)
 def update(n_intervals: int, 
+           calledpage: str,
            selected_perimeter: str, 
            selected_import: int,  
            selecteddata: dict, 
@@ -62,7 +66,7 @@ def update(n_intervals: int,
     closedpath = None
     context = ctx.triggered_id
     context_triggered = ctx.triggered
-
+    debuglogger.log('Mapping page called by: '+context)
     #Check if edit mode, disable interval
     if bmp_state:
         interval_disabled = True
@@ -268,6 +272,7 @@ def update(n_intervals: int,
     fig.update_layout(
                     images=imgs,
                     annotations = annotation,
+                    uirevision = True,
                     )
     
     return fig, interval_disabled

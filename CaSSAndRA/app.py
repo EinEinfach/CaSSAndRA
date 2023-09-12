@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.65.2 Fix issue with moving points mode generate additional dockpoint if finished
+#Version:0.65.3 Fix jumping map
 # create logger
 import logging
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def serve_layout() -> html.Div:
     return html.Div(
         [
             dcc.Interval(id=ids.INTERVAL, interval=1*3000, n_intervals=0),
-            #dcc.Interval(id=ids.STATEMAPINTERVAL, interval=1*3000, n_intervals=0, disabled=True),
+            dcc.Interval(id=ids.STATEMAPINTERVAL, interval=1*1000, n_intervals=0, disabled=False),
             dcc.Interval(id=ids.MAPPINGINTERVAL, interval=1*3000, n_intervals=0, disabled=True),
             dcc.Location(id=ids.URLUPDATE, refresh=True),
             navbar.navbar,

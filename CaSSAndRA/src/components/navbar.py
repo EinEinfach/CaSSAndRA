@@ -34,7 +34,7 @@ navbar = dbc.Navbar(
         dbc.Collapse(
             dbc.Nav(
                 [
-                    dbc.NavItem(dbc.NavLink("State", href="/", active="exact")),
+                    #dbc.NavItem(dbc.NavLink("State", href="/", active="exact")),
                     dbc.NavItem(
                         dbc.NavLink(
                             "Taskplanner", href="/taskplanner", active="partial"

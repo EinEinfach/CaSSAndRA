@@ -35,8 +35,8 @@ statemap.update_layout(
      )
 
 @callback(Output(ids.STATEMAP, 'figure'),
-          Output(ids.INTERVAL, 'disabled', allow_duplicate=True),
-          [Input(ids.INTERVAL, 'n_intervals'),
+          [Input(ids.STATEMAPINTERVAL, 'n_intervals'),
+           Input(ids.URLUPDATE, 'pathname'),
            Input(ids.BUTTONHOME, 'n_clicks'),
            Input(ids.BUTTONMOWALL, 'n_clicks'),
            Input(ids.BUTTONZONESELECT, 'n_clicks'),
@@ -51,6 +51,7 @@ statemap.update_layout(
            prevent_initial_call=True
            )
 def update(n_intervals: int,
+           calledpage: str,
            buttonhome: int, 
            buttonmowall: int, 
            buttonzoneselect: int, 
@@ -266,10 +267,11 @@ def update(n_intervals: int,
      fig_state['data'] = traces
      fig = go.Figure(fig_state)
      fig.update_layout(
-                    yaxis = dict(range=range_y, showticklabels=False),
+                    yaxis = dict(showticklabels=False),
                     xaxis = dict(showticklabels=False),
                     images=imgs,
                     annotations=mowdata,
+                    uirevision=True,
                     )
 
 
@@ -326,4 +328,4 @@ def update(n_intervals: int,
      # #                #paper_bgcolor='rgba(0,0,0,0)',
      # #                #plot_bgcolor='rgba(0,0,0,0)'
      # #                )            
-     return fig, False
+     return fig#, disable_interval

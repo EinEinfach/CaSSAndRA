@@ -1,11 +1,12 @@
 # package imports
 import dash
-from dash import html, dcc, Input, Output, State, callback
+from dash import html, dcc, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
 
 # local imports
 from src.components import ids, modalmowsettings
 from src.components.state import map, buttongroupcontrol, state
+from src.backend.data.roverdata import robot
 
 dash.register_page(__name__, path="/", redirect_from=["/state"], title="State")
 
@@ -29,7 +30,7 @@ def update_layout() -> html.Div:
                 className="loader-wrapper flex-grow-1",  # flex grow fills available space
                 children=[
                     dbc.Spinner(
-                        delay_show=2000,
+                        delay_show=1000,
                         children=html.Div(
                             [
                                 dcc.Graph(
@@ -149,10 +150,25 @@ def update_layout() -> html.Div:
 
 layout = update_layout()
 
-# @callback(Output(ids.STATEMAPINTERVAL, 'disabled'),
-#           [Input(ids.URLUPDATE, 'pathname')])
-# def interval_enabler(pathname: str) -> bool:
-#     if pathname == '/':
-#         return False
-#     else:
-#         True
+@callback(Output(ids.STATEMAPINTERVAL, 'disabled'),
+          [Input(ids.URLUPDATE, 'pathname'),
+           Input(ids.INTERVAL, 'n_intervals'),
+           State(ids.URLUPDATE, 'pathname'),
+           State(ids.STATEMAPINTERVAL, 'disabled'),
+           ])
+def interval_enabler(calledpage: str,
+                     n_intervals: int,
+                     currentpage: str,
+                     state_n_intervals_state: bool,
+                     ) -> bool:
+    context = ctx.triggered_id
+    if context == ids.URLUPDATE and currentpage == '/':
+        disable_interval = False
+    elif context == ids.INTERVAL and (robot.job == 2 or robot.job == 3):
+        disable_interval = True
+    elif context == ids.INTERVAL and (robot.job != 2 and robot.job != 3):
+        disable_interval = False
+    else:
+        disable_interval = state_n_intervals_state
+    return disable_interval
+
