@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.65.0 Switch to own interval on mapping page
-
+#Version:0.65.1 Fix issue if in moving points mode didn't end properly
 # create logger
 import logging
 logger = logging.getLogger(__name__)
