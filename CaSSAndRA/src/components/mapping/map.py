@@ -275,5 +275,5 @@ def update(n_intervals: int,
         fig.layout.shapes[0].type = 'path'
         fig.layout.shapes[0].path = closedpath
 
-    return fig, False
+    return fig, interval_disabled
             
