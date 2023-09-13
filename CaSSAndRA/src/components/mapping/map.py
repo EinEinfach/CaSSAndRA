@@ -70,6 +70,9 @@ def update(n_intervals: int,
         interval_disabled = True
     else:
         interval_disabled = False
+
+    if 'shapes' in fig_state['layout'] and len(fig_state['layout']['shapes']) == 0:
+        del fig_state['layout']['shapes']
     
     #Check if initial call of page or mapping interval still active, reset all changes and remove all shapes
     if context == ids.MAPPINGINTERVAL and (not mapping_maps.legacy_figure.empty or 'shapes' in fig_state['layout']):
@@ -264,9 +267,11 @@ def update(n_intervals: int,
     fig.data = traces
     fig.layout.images = imgs
     fig.layout.annotations = annotation
+    if not "shapes" in fig_state["layout"]:
+        fig.layout.shapes.clear()
 
     if closedpath != None:
-        fig.layout.shapes[0] = [{
+        fig.layout.shapes = [{
             'editable': True,
             'line': {
                 'color': '#FF0000',
