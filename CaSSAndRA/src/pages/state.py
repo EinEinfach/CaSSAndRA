@@ -167,9 +167,9 @@ def interval_enabler(calledpage: str,
     context = ctx.triggered_id
     if context == ids.URLUPDATE and currentpage == '/':
         disable_interval = False
-    elif context == ids.STATEMAPINTERVAL and (robot.job == 2 or robot.job == 3):
+    elif context == ids.STATEMAPINTERVAL and robot.job == 2:
         disable_interval = True
-    elif context == ids.INTERVAL and (robot.job != 2 and robot.job != 3):
+    elif context == ids.INTERVAL and robot.job != 2:
         disable_interval = False
     else:
         disable_interval = state_n_intervals_state
