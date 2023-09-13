@@ -1,4 +1,4 @@
-from dash import html, Input, Output, State, callback, ctx
+from dash import html, Input, Output, State, callback, ctx, Patch
 import plotly.graph_objects as go
 import pandas as pd
 from shapely.geometry import Polygon
@@ -70,6 +70,9 @@ def update(n_intervals: int,
         interval_disabled = True
     else:
         interval_disabled = False
+
+    if 'shapes' in fig_state['layout'] and len(fig_state['layout']['shapes']) == 0:
+        del fig_state['layout']['shapes']
     
     #Check if initial call of page or mapping interval still active, reset all changes and remove all shapes
     if context == ids.MAPPINGINTERVAL and (not mapping_maps.legacy_figure.empty or 'shapes' in fig_state['layout']):
@@ -260,18 +263,22 @@ def update(n_intervals: int,
     #Put images together
     imgs = [robot_img]
     
-    fig_state['data'] = traces
-    fig = go.Figure(fig_state)
+    fig = Patch()
+    fig.data = traces
+    fig.layout.images = imgs
+    fig.layout.annotations = annotation
+    if not "shapes" in fig_state["layout"]:
+        fig.layout.shapes.clear()
+
     if closedpath != None:
-        fig.add_shape(editable=True)
+        fig.layout.shapes = [{
+            'editable': True,
+            'line': {
+                'color': '#FF0000',
+            },
+        }]
         fig.layout.shapes[0].type = 'path'
         fig.layout.shapes[0].path = closedpath
-        fig.update_shapes(line=dict(color='#FF0000'))
-    fig.update_layout(
-                    images=imgs,
-                    annotations = annotation,
-                    uirevision = True,
-                    )
-    
+
     return fig, interval_disabled
             
