@@ -1,4 +1,4 @@
-from dash import html, Input, Output, State, callback, ctx
+from dash import html, Input, Output, State, callback, ctx, Patch
 import plotly.graph_objects as go
 import pandas as pd
 
@@ -16,10 +16,12 @@ statemap.update_layout(
                     scaleratio=1, 
                     scaleanchor='x',
                     gridcolor = '#eeeeee', 
-                    zerolinecolor = 'lightgrey'),
+                    zerolinecolor = 'lightgrey',
+                    showticklabels=False),
                xaxis=dict(
                     gridcolor = '#eeeeee', 
-                    zerolinecolor = 'lightgrey'
+                    zerolinecolor = 'lightgrey',
+                    showticklabels=False
                ),
                margin=dict(
                     b=0, #bottom margin 40px
@@ -262,16 +264,10 @@ def update(n_intervals: int,
      #Put all images together
      imgs.append(robot_img)
 
-     #Update go.Figure object
-     fig_state['data'] = traces
-     fig = go.Figure(fig_state)
-     fig.update_layout(
-                    yaxis = dict(showticklabels=False),
-                    xaxis = dict(showticklabels=False),
-                    images=imgs,
-                    annotations=mowdata,
-                    uirevision=True,
-                    )
+     fig = Patch()
+     fig.data = traces
+     fig.layout.images = imgs
+     fig.layout.annotations = mowdata
 
 
      # fig = {'data': traces, 

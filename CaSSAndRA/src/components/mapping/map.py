@@ -1,4 +1,4 @@
-from dash import html, Input, Output, State, callback, ctx
+from dash import html, Input, Output, State, callback, ctx, Patch
 import plotly.graph_objects as go
 import pandas as pd
 from shapely.geometry import Polygon
@@ -260,18 +260,20 @@ def update(n_intervals: int,
     #Put images together
     imgs = [robot_img]
     
-    fig_state['data'] = traces
-    fig = go.Figure(fig_state)
+    fig = Patch()
+    fig.data = traces
+    fig.layout.images = imgs
+    fig.layout.annotations = annotation
+
     if closedpath != None:
-        fig.add_shape(editable=True)
+        fig.layout.shapes[0] = [{
+            'editable': True,
+            'line': {
+                'color': '#FF0000',
+            },
+        }]
         fig.layout.shapes[0].type = 'path'
         fig.layout.shapes[0].path = closedpath
-        fig.update_shapes(line=dict(color='#FF0000'))
-    fig.update_layout(
-                    images=imgs,
-                    annotations = annotation,
-                    uirevision = True,
-                    )
-    
-    return fig, interval_disabled
+
+    return fig, False
             
