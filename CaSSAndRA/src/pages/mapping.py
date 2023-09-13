@@ -23,6 +23,12 @@ def update_layout() -> html.Div:
     # Main column, containing the map and buttons at the bottom
     main_col = dbc.Col(
         [
+            # State module
+            dbc.Row(
+                dbc.Col(id=ids.STATESTRING, style={"max-width": "500px"}),
+                justify="center",
+                class_name="p-1"
+            ),
             html.Div(
                 className='loader-wrapper flex-grow-1',
                 children=[

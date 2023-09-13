@@ -54,7 +54,7 @@ def update(n_intervals: int) -> dbc.Row:
         [
             dbc.Card(
                 [
-                    dbc.CardHeader("Solution", className="truncate-1 stateCardHeader"),
+                    #dbc.CardHeader("Solution", className="truncate-1 stateCardHeader"),
                     dbc.CardBody(
                         [
                             html.Small(robot.solution, className="truncate-1"),
@@ -72,7 +72,7 @@ def update(n_intervals: int) -> dbc.Row:
             ),
             dbc.Card(
                 [
-                    dbc.CardHeader("State", className="truncate-1 stateCardHeader"),
+                    #dbc.CardHeader("State", className="truncate-1 stateCardHeader"),
                     dbc.CardBody(
                         [
                             html.Small(robot.status, className="truncate-1"),
@@ -88,7 +88,7 @@ def update(n_intervals: int) -> dbc.Row:
             ),
             dbc.Card(
                 [
-                    dbc.CardHeader("SoC", className="truncate-1 stateCardHeader"),
+                    #dbc.CardHeader("SoC", className="truncate-1 stateCardHeader"),
                     dbc.CardBody(
                         [
                             html.Small("{}%".format(robot.soc), className="truncate-1"),

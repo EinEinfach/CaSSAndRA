@@ -8,8 +8,6 @@ from src.backend.data import calceddata
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import mapping_maps
 
-from src.backend.utils import debuglogger
-
 mappingmap = go.Figure()
 mappingmap.update_layout(
                plot_bgcolor='white',
@@ -66,7 +64,7 @@ def update(n_intervals: int,
     closedpath = None
     context = ctx.triggered_id
     context_triggered = ctx.triggered
-    debuglogger.log('Mapping page called by: '+context)
+    
     #Check if edit mode, disable interval
     if bmp_state:
         interval_disabled = True

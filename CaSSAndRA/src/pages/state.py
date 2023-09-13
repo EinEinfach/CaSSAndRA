@@ -150,21 +150,24 @@ def update_layout() -> html.Div:
 
 layout = update_layout()
 
+#Workarround to deactivate and activate interval call for map on state page. For some reason ids.URLUPDATE doesn't fire a callback for map.
 @callback(Output(ids.STATEMAPINTERVAL, 'disabled'),
           [Input(ids.URLUPDATE, 'pathname'),
            Input(ids.INTERVAL, 'n_intervals'),
+           Input(ids.STATEMAPINTERVAL, 'n_intervals'),
            State(ids.URLUPDATE, 'pathname'),
            State(ids.STATEMAPINTERVAL, 'disabled'),
            ])
 def interval_enabler(calledpage: str,
                      n_intervals: int,
+                     n_intervals_statemap: int,
                      currentpage: str,
                      state_n_intervals_state: bool,
                      ) -> bool:
     context = ctx.triggered_id
     if context == ids.URLUPDATE and currentpage == '/':
         disable_interval = False
-    elif context == ids.INTERVAL and (robot.job == 2 or robot.job == 3):
+    elif context == ids.STATEMAPINTERVAL and (robot.job == 2 or robot.job == 3):
         disable_interval = True
     elif context == ids.INTERVAL and (robot.job != 2 and robot.job != 3):
         disable_interval = False

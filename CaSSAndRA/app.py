@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.65.3 Fix jumping map
+#Version:0.66.0 Add state overview on every page. Remove header in state overview
 # create logger
 import logging
 logger = logging.getLogger(__name__)

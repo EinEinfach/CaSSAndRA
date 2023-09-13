@@ -15,6 +15,12 @@ def update_layout() -> html.Div:
     
     main_col = dbc.Col(
         [
+            # State module
+            dbc.Row(
+                dbc.Col(id=ids.STATESTRING, style={"max-width": "500px"}),
+                justify="center",
+                class_name="p-1"
+            ),
             # map
             html.Div(
                 className='loader-wrapper flex-grow-1',

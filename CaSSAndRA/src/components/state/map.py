@@ -64,7 +64,6 @@ def update(n_intervals: int,
            fig_state: dict()
            ) -> go.Figure():
      rover_position = [robot.position_x, robot.position_y] 
-
      context = ctx.triggered_id
      context_triggered = ctx.triggered
      if buttongotostate:
