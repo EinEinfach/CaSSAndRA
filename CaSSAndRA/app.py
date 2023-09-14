@@ -62,7 +62,7 @@ def serve_layout() -> html.Div:
 
 def main() -> None:
     backendserver.start()
-    assets_path = os.path.dirname(__file__) +'/src/assets'
+    assets_path = os.path.abspath(os.path.dirname(__file__)) +'/src/assets'
 
     app = dash.Dash(
         __name__,
