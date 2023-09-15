@@ -259,3 +259,14 @@ html {
 #_pages_content {
     padding-bottom: env(safe-area-inset-bottom); 
 }
+
+/* Log Table*/
+.log_table
+{
+	font-size: 0.8rem;
+	text-align: left;
+}
+
+.log_table tbody td:nth-child(2){
+	overflow-wrap: anywhere;
+}

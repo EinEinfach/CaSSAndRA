@@ -23,11 +23,7 @@ def update_layout() -> dbc.Container:
                                              striped=True, 
                                              bordered=True, 
                                              hover=True,
-                                             style = {
-                                                #'fontFamily': 'Arial',
-                                                'fontSize': '0.8rem',
-                                                'textAlign': 'left'
-                                            }),
+                                             class_name="log_table"),
                     # html.Div([
                     #     df.to_string(columns=['content'], header=False, index=False)
                     #     ], style={'whiteSpace': 'pre-wrap'}
@@ -47,9 +43,5 @@ def update_log_table(n_intervals: int,
                                              striped=True, 
                                              bordered=True, 
                                              hover=True,
-                                             style = {
-                                                #'fontFamily': 'Arial',
-                                                'fontSize': '0.8rem',
-                                                'textAlign': 'left'
-                                            }),
+                                             class_name="log_table"),
     return log
