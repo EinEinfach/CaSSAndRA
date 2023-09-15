@@ -6,7 +6,7 @@ from shapely.geometry import Polygon
 from .. import ids
 from src.backend.data import calceddata
 from src.backend.data.roverdata import robot
-from src.backend.data.mapdata import mapping_maps
+from src.backend.data.mapdata import current_map, mapping_maps
 
 mappingmap = go.Figure()
 mappingmap.update_layout(
@@ -262,6 +262,9 @@ def update(n_intervals: int,
     
     #Put images together
     imgs = [robot_img]
+
+    #Put all annotations together
+    annotation.append(dict(text='Map: '+current_map.name, showarrow=False, xref="paper", yref="paper",x=1,y=0))
     
     fig = Patch()
     fig.data = traces

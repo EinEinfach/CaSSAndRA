@@ -264,6 +264,9 @@ def update(n_intervals: int,
      #Put all images together
      imgs.append(robot_img)
 
+     #Put all annotations together
+     mowdata.append(dict(text='Map: '+current_map.name, showarrow=False, xref="paper", yref="paper",x=1,y=0))
+
      fig = Patch()
      fig.data = traces
      fig.layout.images = imgs

@@ -153,9 +153,11 @@ def update(bpma_nclicks: int,
             for subtask_nr in current_task.subtasks[current_task.subtasks['name'] == task_name]['task nr'].unique():
                 filtered = current_task.subtasks[(current_task.subtasks['name'] == task_name) & (current_task.subtasks['task nr'] == subtask_nr) & (current_task.subtasks['type'] == 'preview route')]
                 traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='subtask', opacity=0.7, line=preview_color))
-
+    #Put all annotations together
+    annotation.append(dict(text='Map: '+current_map.name, showarrow=False, xref="paper", yref="paper",x=1,y=0))
+    
     fig = Patch()
     fig.data = traces
     fig.layout.annotations = annotation
-    
+
     return fig

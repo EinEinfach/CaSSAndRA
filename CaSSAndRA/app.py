@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.68.0 Change tasks map object to Patch().
+#Version:0.69.0 Added map name in bottom right corner
 # create logger
 import logging
 logger = logging.getLogger(__name__)
