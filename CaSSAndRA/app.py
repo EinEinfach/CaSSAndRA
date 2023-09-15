@@ -37,6 +37,8 @@ def config_logging(basic_level, log_file_level, web_server_level, pil_level):
     pil_logger.setLevel(pil_level)
 
 
+default_data_path = os.path.join(os.path.expanduser('~'), '.cassandra')
+
 
 @click.group()
 def cli():
@@ -45,6 +47,7 @@ def cli():
 @cli.command()
 @click.option('-h', '--host', default='0.0.0.0', show_default=True)
 @click.option('-p', '--port', default=8050, show_default=True)
+@click.option('--data_path', default=default_data_path, show_default=True)
 @click.option('--proxy', default=None, help='format={{input}}::{{output}} example=http://0.0.0.0:8050::https://my.domain.com')
 @click.option('--debug', default=False, is_flag=True, help="Enables debug mode for dash application")
 @click.option('--app_log_level', default="DEBUG", envvar='APPLOGLEVEL', type=logging_choices, show_default=True)
