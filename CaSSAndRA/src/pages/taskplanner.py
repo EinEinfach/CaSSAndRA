@@ -31,6 +31,7 @@ def update_layout() -> html.Div:
                             [
                                 dcc.Graph(
                                     id=ids.TASKMAP,
+                                    figure=map.tasksmap,
                                     config={'displaylogo': False, 'scrollZoom': True},
                                 )
                             ],

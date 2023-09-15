@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.67.0 Merged pull request switch to Patch()
+#Version:0.68.0 Change tasks map object to Patch().
 # create logger
 import logging
 logger = logging.getLogger(__name__)

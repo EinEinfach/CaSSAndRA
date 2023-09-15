@@ -1,4 +1,4 @@
-from dash import html, Input, Output, State, callback, ctx
+from dash import html, Input, Output, State, callback, ctx, Patch
 import plotly.graph_objects as go
 import pandas as pd
 
@@ -7,7 +7,33 @@ from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import current_map, current_task, tasks
 from src.backend.data.cfgdata import pathplannercfgtask
 from src.backend.map import map, path
-from src.backend.data import saveddata
+
+tasksmap = go.Figure()
+tasksmap.update_layout(
+               plot_bgcolor='white',
+               yaxis=dict(
+                    scaleratio=1, 
+                    scaleanchor='x',
+                    gridcolor = '#eeeeee', 
+                    zerolinecolor = 'lightgrey',
+                    showticklabels=False),
+               xaxis=dict(
+                    gridcolor = '#eeeeee', 
+                    zerolinecolor = 'lightgrey',
+                    showticklabels=False
+               ),
+               margin=dict(
+                    b=0, #bottom margin 40px
+                    l=0, #left margin 40px
+                    r=0, #right margin 20px
+                    t=30, #top margin 20px
+                ),
+               showlegend=False,
+               uirevision=True,
+               hovermode='closest',
+               dragmode='pan',
+               annotations=[],
+     )
 
 @callback(Output(ids.TASKMAP, 'figure'),
           [Input(ids.BUTTONPLANMOWALL, 'n_clicks'),
@@ -18,9 +44,15 @@ from src.backend.data import saveddata
            Input(ids.DROPDOWNTASKSORDER, 'value'),
            Input(ids.BUTTONREMOVETASK, 'n_clicks'),
            State(ids.TASKMAP, 'selectedData'),])
-def update(bpma_nclicks: int, bcs_nclicks: int, bpc_nclicks: int, save_is_open: bool, 
-           remove_is_open: bool, tasks_order: list, brt_nclicks: int, 
-           selecteddata: dict,) -> list:
+def update(bpma_nclicks: int, 
+           bcs_nclicks: int, 
+           bpc_nclicks: int, 
+           save_is_open: bool, 
+           remove_is_open: bool, 
+           tasks_order: list, 
+           brt_nclicks: int, 
+           selecteddata: dict,
+           ) -> list:
 
     traces = []
     annotation = []
@@ -122,17 +154,8 @@ def update(bpma_nclicks: int, bcs_nclicks: int, bpc_nclicks: int, save_is_open: 
                 filtered = current_task.subtasks[(current_task.subtasks['name'] == task_name) & (current_task.subtasks['task nr'] == subtask_nr) & (current_task.subtasks['type'] == 'preview route')]
                 traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='subtask', opacity=0.7, line=preview_color))
 
-    fig = {'data': traces, 
-           'layout': go.Layout(
-                        yaxis=dict(range=range_y, scaleratio=1, scaleanchor='x', showticklabels=False),
-                    	xaxis = dict(showticklabels=False),
-                        margin=dict(b=0, l=0, r=0, t=30),
-                        showlegend=False,
-                        uirevision=1,
-                        hovermode='closest',
-                        dragmode='pan',
-                        annotations=annotation,
-                        autosize=True
-                    )
-    }
+    fig = Patch()
+    fig.data = traces
+    fig.layout.annotations = annotation
+    
     return fig
