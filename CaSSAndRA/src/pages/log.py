@@ -4,12 +4,6 @@ from dash import html, dcc, Input, Output, State, callback
 import dash_bootstrap_components as dbc
 import pandas as pd
 
-df = pd.read_csv('CaSSAndRA/src/data/log/cassandra.log', sep=';')
-df.columns = ['time', 'content']
-df = df[df['time'].str.contains('2023')]
-df = df.tail(100)
-df = df.iloc[::-1]
-
 # local imports
 from .. components import ids
 from src.components.log import cmdinput
