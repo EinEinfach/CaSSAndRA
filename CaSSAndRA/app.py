@@ -47,14 +47,14 @@ def cli():
 @cli.command()
 @click.option('-h', '--host', default='0.0.0.0', show_default=True)
 @click.option('-p', '--port', default=8050, show_default=True)
-@click.option('--data_path', default=default_data_path, show_default=True)
 @click.option('--proxy', default=None, help='format={{input}}::{{output}} example=http://0.0.0.0:8050::https://my.domain.com')
+@click.option('--data_path', default=default_data_path, show_default=True)
 @click.option('--debug', default=False, is_flag=True, help="Enables debug mode for dash application")
 @click.option('--app_log_level', default="DEBUG", envvar='APPLOGLEVEL', type=logging_choices, show_default=True)
 @click.option('--app_log_file_level', default="DEBUG", envvar='APPLOGFILELEVEL', type=logging_choices, show_default=True)
 @click.option('--server_log_level', default="ERROR", envvar='SERVERLOGLEVEL', type=logging_choices, show_default=True)
 @click.option('--pil_log_level', default="WARN", envvar='PILLOGLEVEL', type=logging_choices, show_default=True)
-def start(host, port, proxy, debug, app_log_level, app_log_file_level, server_log_level, pil_log_level) -> None:
+def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level, server_log_level, pil_log_level) -> None:
     """ Start the CaSSAndRA Server
 
         Only some Dash server options are handled as command-line options.
@@ -70,7 +70,7 @@ def start(host, port, proxy, debug, app_log_level, app_log_file_level, server_lo
     from src.layout import serve_layout
     from src.backend import backendserver
     
-    backendserver.start()
+    backendserver.start(data_path)
     assets_path = os.path.abspath(os.path.dirname(__file__)) +'/src/assets'
 
     app = dash.Dash(

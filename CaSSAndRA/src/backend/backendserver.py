@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 import os
 
-from . data import saveddata, calceddata, cleandata
+from . data import saveddata, calceddata, cleandata, utils
 from . comm import mqttcomm, httpcomm, uartcomm, cfg
 
 restart = Event()
@@ -142,10 +142,12 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
         data_clean_finished = cleandata.check(data_clean_finished)
         time.sleep(0.1)
 
-def start() -> None:
+def start(data_path) -> None:
     logger.info('Backend: Starting backend server')
-    absolute_path = os.path.dirname(__file__) 
-    logger.debug('absolute_path: '+absolute_path)
+    logger.debug(f'Backend: Using {data_path} for config and data storage')
+
+    file_paths = utils.init_data(data_path)
+    
     logger.info('Backend: Read communication config file')
     connect_data = cfg.read_commcfg(absolute_path)
     #logger.info('Backend: Read map config file')
