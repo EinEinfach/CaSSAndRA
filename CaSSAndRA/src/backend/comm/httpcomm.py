@@ -57,8 +57,9 @@ def cmd_to_rover(connect_data: dict(), connection: list()) -> int():
             data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))  
         try:
-            logger.debug('Data to be send: '+data)
+            logger.info('Backend: TX '+data)
             res = requests.post(url=connect_data['HTTP'][0]['IP'], headers=Headers, data=data+'\n', timeout=2)
+            logger.info('Backend: RX '+res.text)
             connection_status = res.status_code    
             while connection_status != 200:
                 rep_cnt += 1
@@ -77,10 +78,10 @@ def connect_http(connect_data: dict()) -> list:
     logger.info('Backend: Try initial HTTP request')
     try:
         data = reqandchecksum('AT+V')
-        logger.debug('Data to be send: '+data)
+        logger.info('Backend: TX '+data)
         res = requests.post(url=connect_data['HTTP'][0]['IP'], headers=Headers, data=data+'\n', timeout=2)
         logger.debug('Status code: '+str(res.status_code))
-        logger.debug('Content: '+res.text)
+        logger.info('Backend: RX '+res.text)
         if res.status_code == 200 and 'V,' in res.text and res.text[0] == 'V':
             reslist = res.text.split(',')
             encrypt = int(reslist[3])
@@ -114,10 +115,10 @@ def get_state(connect_data: dict(), connection: list()) -> int:
         data = ''.join(map(chr, data_encrypt))
 
     try:
-        logger.debug('Data to be send: '+data) 
+        logger.info('Backend: TX '+data) 
         res = requests.post(url=connect_data['HTTP'][0]['IP'], headers=Headers, data=data+'\n', timeout=2)
         logger.debug('Status code: '+str(res.status_code))
-        logger.debug('Content: '+res.text)
+        logger.info('Backend: RX '+res.text)
         if len(res.text) == 0:
             logger.warning('Backend: HTTP request for state delivered implausible string')
             return -1
@@ -148,10 +149,10 @@ def get_stats(connect_data: dict(), connection: list()) -> int:
         data = ''.join(map(chr, data_encrypt))
 
     try:
-        logger.debug('Data to be send: '+data)
+        logger.info('Backend: TX '+data)
         res = requests.post(url=connect_data['HTTP'][0]['IP'], headers=Headers, data=data+'\n', timeout=2)
         logger.debug('Status code: '+str(res.status_code))
-        logger.debug('Content: '+res.text)
+        logger.info('Backend : RX '+res.text)
         if len(res.text) == 0:
             logger.warning('Backend: HTTP request for state delivered implausible string')
             return -1
@@ -183,10 +184,10 @@ def get_obstacles(connect_data: dict(), connection: list()) -> int:
         data = ''.join(map(chr, data_encrypt))
 
     try:
-        logger.debug('Data to be send: '+data) 
+        logger.info('Backend: TX '+data) 
         res = requests.post(url=connect_data['HTTP'][0]['IP'], headers=Headers, data=data+'\n', timeout=2)
         logger.debug('Status code: '+str(res.status_code))
-        logger.debug('Content: '+res.text)
+        logger.info('Backend: RX '+res.text)
         if len(res.text) == 0:
             logger.warning('Backend: HTTP request for obstacles delivered implausible string')
             return -1

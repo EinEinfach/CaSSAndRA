@@ -278,6 +278,10 @@ def check() -> pd.DataFrame():
                 robot.map_upload_failed = True
                 return pd.DataFrame() 
         else:
-            return pd.DataFrame()    
+            return pd.DataFrame()  
+          
+    elif cmdlist.cmd_custom:
+        msg_pckg = cmdtorover.custom()
+        cmdlist.cmd_custom = False
 
     return msg_pckg

@@ -65,61 +65,61 @@ def move(movement: list()) -> pd.DataFrame():
     if movement[0] !=0 or movement[1] != 0:
         msg = {'msg': 'AT+M,'+str(movement[0])+','+str(movement[1])}
         buffer = pd.DataFrame([msg])
-        logger.debug(f'Backend: Command "MOVE" is send to rover. X:{movement[0]} Y:{movement[1]}')
+        logger.debug(f'Backend: Command "MOVE" is prepared. X:{movement[0]} Y:{movement[1]}')
         return buffer
     elif movement[0] == 0 and movement[1] == 0:
         msg = {'msg': 'AT+M,0.0,0.0'}
         buffer = pd.DataFrame([msg])
-        logger.debug(f'Backend: Command "MOVE" is send to rover. X:{movement[0]} Y:{movement[1]}')
+        logger.debug(f'Backend: Command "MOVE" is prepared. X:{movement[0]} Y:{movement[1]}')
         cmdlist.cmd_move = False
         return buffer
 
 def goto() -> pd.DataFrame():
     msg = {'msg': 'AT+C,0,1,'+str(rovercfg.gotospeed_setpoint)+',100,0,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
-    logger.debug('Backend: Command goto is send to rover')
+    logger.debug('Backend: Command goto is prepared')
     cmdlist.cmd_goto = False
     return buffer
 
 def stop():
     msg = {'msg': 'AT+C,0,0,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
-    logger.debug('Backend: Command stop is send to rover')
+    logger.debug('Backend: Command stop is prepared')
     cmdlist.cmd_stop = False
     return buffer
 
 def dock() -> pd.DataFrame():
     msg = {'msg': 'AT+C,0,4,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
-    logger.debug('Backend: Command dock is send to rover')
+    logger.debug('Backend: Command dock is prepared')
     cmdlist.cmd_dock = False
     return buffer
 
 def mow() -> pd.DataFrame():
     msg = {'msg': 'AT+C,1,1,'+str(rovercfg.mowspeed_setpoint)+',-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
-    logger.debug('Backend: Command start is send to rover')
+    logger.debug('Backend: Command start is prepared')
     cmdlist.cmd_mow = False
     return buffer
 
 def shutdown() -> pd.DataFrame():
     msg = {'msg': 'AT+Y3'}
     buffer = pd.DataFrame([msg])
-    logger.debug('Backend: Command shutdown is send to rover')
+    logger.debug('Backend: Command shutdown is preapred')
     cmdlist.cmd_shutdown = False
     return buffer
 
 def reboot() -> pd.DataFrame():
     msg = {'msg': 'AT+Y'}
     buffer = pd.DataFrame([msg])
-    logger.debug('Backend: Command reboot is send to rover')
+    logger.debug('Backend: Command reboot is prepared')
     cmdlist.cmd_reboot = False
     return buffer
 
 def gpsreboot() -> pd.DataFrame():
     msg = {'msg': 'AT+Y2'}
     buffer = pd.DataFrame([msg])
-    logger.debug('Backend: Command GPS reboot is send to rover')
+    logger.debug('Backend: Command GPS reboot is prepared')
     cmdlist.cmd_gps_reboot = False
     return buffer
 
@@ -149,7 +149,7 @@ def takepositionmode() -> pd.DataFrame():
 def changespeed(new_speed: float) -> pd.DataFrame():
     msg = {'msg': 'AT+C,-1,-1,'+str(new_speed)+',-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
-    logger.debug('Backend: Command change speed is send to rover, new value is: '+str(new_speed))
+    logger.debug('Backend: Command change speed is prepared, new value is: '+str(new_speed))
     cmdlist.cmd_changemowspeed = False
     cmdlist.cmd_changegotospeed = False
     return buffer
@@ -157,6 +157,14 @@ def changespeed(new_speed: float) -> pd.DataFrame():
 def skipnextpoint() -> pd.DataFrame():
     msg = {'msg': 'AT+C,-1,-1,-1,-1,-1,-1,1,-1'}
     buffer = pd.DataFrame([msg])
-    logger.debug('Backend: Command skip next point is send to rover')
+    logger.debug('Command skip next point is prepared')
     cmdlist.cmd_skipnextpoint = False
+    return buffer
+
+def custom() -> pd.DataFrame():
+    msg = {'msg': cmdlist.cmd_custom_str}
+    buffer = pd.DataFrame([msg])
+    logger.debug('Backend: Custom command is prepared')
+    cmdlist.cmd_custom = False
+    cmdlist.cmd_custom_str = ''
     return buffer

@@ -16,10 +16,12 @@ cmd_toggle_mow_motor = False
 cmd_changemowspeed = False
 cmd_changegotospeed = False
 cmd_skipnextpoint = False
+cmd_custom = False
 
 cmd_standby = ''
 cmd_take_map_attempt = 0
 cmd_failed = False
+cmd_custom_str = ''
 
 
 

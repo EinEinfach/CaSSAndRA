@@ -188,6 +188,11 @@ INPUTPERIMETERNAME = 'input-perimeter-name'
 INPUTCOPYPERIMETER = 'input-copy-perimeter'
 INPUTNEWPERIMETERNAME = 'input-new-perimeter'
 
+#log page
+BUTTONSENDCUSTOMCMD = 'button-send-custom-command'
+INPUTCUSTOMCMD = 'input-custom-cmd'
+LOGTABLE = 'log-table'
+
 #hidden
 MAPPINGHIDDEN = 'mapping-hidden'
 SETTINGSHIDDEN = 'settings-hidden'

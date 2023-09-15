@@ -1,22 +1,11 @@
 #!/usr/bin/env python3
 
-#Version:0.69.0 Added map name in bottom right corner
-# create logger
-import logging
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-            level=logging.DEBUG,
-            format='%(asctime)s %(levelname)s %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S',
-        )
-
-frontend_logger = logging.getLogger('werkzeug')
-frontend_logger.setLevel(logging.ERROR)
-
-pil_logger = logging.getLogger('PIL')
-pil_logger.setLevel(logging.WARNING)
+#Version:0.70.0 Log page
 
 # package imports
+import sys
+import logging
+from logging.handlers import RotatingFileHandler
 import os
 import dash
 from dash import html, dcc
@@ -25,6 +14,35 @@ import dash_bootstrap_components as dbc
 # local imports
 from src.components import ids, navbar, offcanvas, modalremotecontrol, modalinfo, modalerror
 from src.backend import backendserver
+
+# create logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+rfh = RotatingFileHandler(
+            filename='CaSSAndRA/src/data/log/cassandra.log',
+            mode='a',
+            maxBytes=5*1024*1024,
+            backupCount=2,
+            encoding=None,
+            delay=0,
+        )   
+rfh.setLevel(logging.INFO)
+logging.basicConfig(
+            handlers=[logging.StreamHandler(sys.stdout),
+                      #logging.FileHandler('CaSSAndRA/src/data/log/cassandra.log')
+                      rfh
+                      ],
+            level=logging.DEBUG,
+            #filename='CaSSAndRA/src/data/log/cassandra.log',
+            format='%(asctime)s %(levelname)s %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S;',
+        )
+
+frontend_logger = logging.getLogger('werkzeug')
+frontend_logger.setLevel(logging.ERROR)
+
+pil_logger = logging.getLogger('PIL')
+pil_logger.setLevel(logging.WARNING)
 
 def serve_layout() -> html.Div:
     return html.Div(

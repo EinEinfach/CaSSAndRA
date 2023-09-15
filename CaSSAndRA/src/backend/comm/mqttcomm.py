@@ -56,7 +56,7 @@ def subscribe(client: mqtt, connect_data: dict()):
             'TOPIC_ONLINE':'online'
         }
     def on_message(client, userdata, msg):
-        logger.debug('MQTT: topic:'+msg.topic+' message:'+str(msg.payload))
+        logger.info('Backend: RX topic:'+msg.topic+' message:'+str(msg.payload))
         if msg.topic == mower_name+'/'+topics['TOPIC_STATE']:
             decoded_message = str(msg.payload.decode('utf-8'))
             data = json.loads(decoded_message)
@@ -84,7 +84,7 @@ def publish(client: mqtt, topic: str(), msg: str()):
     result = client.publish(topic, msg)
     status = result[0]
     if status == 0:
-        logger.debug('MQTT: publish: '+topic+' with message: '+msg)
+        logger.info('Backend: TX publish: '+topic+' with message: '+msg)
     else:
         logger.warning('Backend: MQTT failed to publish: '+topic+' with message: '+msg)
     

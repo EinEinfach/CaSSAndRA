@@ -12,8 +12,8 @@ def cmd_to_rover(ser: serial) -> bool:
     try:
         for i, msg in msg_pckg.iterrows(): 
             uart_msg = msg_pckg['msg'][i] + ',\n'
+            logger.info('Backend: TX '+msg_pckg['msg'][i])
             ser.write(bytes(uart_msg,'UTF-8'))  
-            logger.debug('UART send message: '+msg_pckg['msg'][i])
             logger.debug(str(bytes(uart_msg,'UTF-8')))
             time.sleep(0.1)
         return True

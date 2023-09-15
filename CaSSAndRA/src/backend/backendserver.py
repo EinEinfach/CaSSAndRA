@@ -104,7 +104,7 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
             try: 
                 if ser.in_waiting > 0:
                     data = ser.readline().decode('utf-8').rstrip()
-                    logger.debug(data)
+                    logger.info('Backend: RX '+data)
                     if data.find('S,') == 0:
                         #logger.debug(data)
                         uartcomm.on_state(data)
