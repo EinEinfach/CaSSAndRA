@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.70.0 Log page
+#Version:0.70.1 Issue no log file
 
 # package imports
 import sys
@@ -19,7 +19,7 @@ from src.backend import backendserver
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 rfh = RotatingFileHandler(
-            filename='CaSSAndRA/src/data/log/cassandra.log',
+            filename=os.path.dirname(__file__) +'/src/data/log/cassandra.log',
             mode='a',
             maxBytes=5*1024*1024,
             backupCount=2,
