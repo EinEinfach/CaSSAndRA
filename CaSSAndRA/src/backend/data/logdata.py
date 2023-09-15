@@ -8,12 +8,6 @@ import os
 
 ABSOLUTE_PATH = os.path.dirname(__file__)
 
-df = pd.read_csv('CaSSAndRA/src/data/log/cassandra.log', sep=';')
-df.columns = ['time', 'content']
-df = df[df['time'].str.contains('2023')]
-df = df.tail(100)
-df = df.iloc[::-1]
-
 @dataclass
 class Log():
     lastdata: pd.DataFrame = pd.DataFrame()

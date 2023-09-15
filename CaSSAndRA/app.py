@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.70.1 Issue no log file
+#Version:0.70.2 Issue no log file
 
 # package imports
 import sys
