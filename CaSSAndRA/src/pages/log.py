@@ -15,9 +15,9 @@ dash.register_page(__name__, path='/log', title='Log')
 def update_layout() -> dbc.Container:
     return dbc.Container([
                 dbc.Row([
-                    dbc.Col(cmdinput.cmdinput),
-                    dbc.Col(cmdinput.cmdsend),
-                ]),
+                    dbc.Col(cmdinput.cmdinput, style={"flex" : "1 0 0%"}),
+                    dbc.Col(cmdinput.cmdsend, style={"flex" : "0 0 0%"}),
+                ], style={"padding" : "0.5rem 10%"}),
                 dbc.Row([
                     dbc.Table.from_dataframe(commlog.lastdata, 
                                              striped=True, 
@@ -25,16 +25,16 @@ def update_layout() -> dbc.Container:
                                              hover=True,
                                              style = {
                                                 #'fontFamily': 'Arial',
-                                                'fontSize': '10px',
+                                                'fontSize': '0.8rem',
                                                 'textAlign': 'left'
                                             }),
                     # html.Div([
                     #     df.to_string(columns=['content'], header=False, index=False)
                     #     ], style={'whiteSpace': 'pre-wrap'}
                     # )
-                ], justify='center', 
+                ], justify='center', style={'flex': '1 0 0%', 'overflow-y': 'scroll'}, 
                 id=ids.LOGTABLE ),
-            ])
+            ], style={"height" : "100%", "overflow" : "hidden", "display" : "flex", "flex-direction" : "column"})
 
 layout = update_layout()
 
@@ -49,7 +49,7 @@ def update_log_table(n_intervals: int,
                                              hover=True,
                                              style = {
                                                 #'fontFamily': 'Arial',
-                                                'fontSize': '10px',
+                                                'fontSize': '0.8rem',
                                                 'textAlign': 'left'
                                             }),
     return log
