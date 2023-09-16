@@ -9,16 +9,12 @@ import os
 from . import roverdata
 from .mapdata import current_map, mapping_maps, current_task, tasks
 
-def read(absolute_path) -> None:
-    #cwd = Path.cwd()
-    
+file_paths = None
+
+def read(measure_file_paths) -> None:
     #Try to read State Date from file
     try:
-        with open(absolute_path.replace('/src/backend', '/src/data/datacfg.json')) as f: 
-            path_to_data = json.load(f)
-            f.close()
-        path_to_state_data = path_to_data['path'][1]['measure'][0]['state']
-        roverdata.state = pd.read_pickle(absolute_path.replace('/src/backend', path_to_state_data))
+        roverdata.state = pd.read_pickle(measure_file_paths.state)
         if not 'lateral_error' in roverdata.state.columns:
             roverdata.state['lateral_error'] = 0
         if not 'timetable_autostartstop_dayofweek' in roverdata.state.columns:
@@ -52,8 +48,7 @@ def read(absolute_path) -> None:
 
     #Try to read Stats Data from file
     try:
-        path_to_stats_data = path_to_data['path'][1]['measure'][1]['stats']
-        roverdata.stats = pd.read_pickle(absolute_path.replace('/src/backend', path_to_stats_data))
+        roverdata.stats = pd.read_pickle(measure_file_paths.stats)
         if not 'duration_mow_motor_recovery' in roverdata.stats:
             roverdata.stats['duration_mow_motor_recovery'] = 0
         logger.info('Backend: Statistics data are loaded successfully')
@@ -89,8 +84,8 @@ def read(absolute_path) -> None:
 
     #Try to read Calced from State Data from file
     try:
-        path_to_calced_from_state_data = path_to_data['path'][1]['measure'][3]['calcedstate']
-        roverdata.calced_from_state = pd.read_pickle(absolute_path.replace('/src/backend', path_to_calced_from_state_data))
+        path_to_calced_from_state_data = measure_file_paths.calcedstate
+        roverdata.calced_from_state = pd.read_pickle(measure_file_paths.calcedstate)
         logger.info('Backend: Calced data from state are loaded successfully')
     except:
         logger.warning('Backend: Failed to load calced data from state, create a default data frame')
@@ -103,8 +98,7 @@ def read(absolute_path) -> None:
     
     #Try to read Calced from Stats Data from file
     try:
-        path_to_calced_from_stats_data = path_to_data['path'][1]['measure'][4]['calcedstats']
-        roverdata.calced_from_stats = pd.read_pickle(absolute_path.replace('/src/backend', path_to_calced_from_stats_data))
+        roverdata.calced_from_stats = pd.read_pickle(measure_file_paths.calcedstats)
         logger.info('Backend: Calced data from stats are loaded successfully')
     except:
         logger.warning('Backend: Failed to load calced data from stats, create a default data frame')
@@ -135,25 +129,20 @@ def read(absolute_path) -> None:
                             "timestamp":{"0":str(datetime.now())}}
         roverdata.calced_from_stats = pd.DataFrame(data=calced_from_stats)
 
-def read_perimeter() -> None:
-    absolute_path = os.path.dirname(__file__)
+def read_perimeter(map_file_paths) -> None:
     try:
+        # todo: refactor this class so we initialize with correct values before using it
+        #       currently this class is being created before backend has fully initialized
+        #       so we are having to set the tmp.json file path here
+        current_map.current_perimeter_file = map_file_paths.tmp
         current_map.name = current_map.read_map_name()
     except Exception as e:
         logger.warning('Backend: Could not read perimeter name from tmp.json')
         logger.debug(str(e))
         current_map.name = ''
+
     try:
-        with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-            path_to_data = json.load(f)
-            f.close()
-    except Exception as e:
-        logger.error('Backend: Could not read perimeter from file. Missing datacfg.json')
-        logger.debug(str(e))
-        return
-    try:
-        path_to_map_data = path_to_data['path'][2]['map'][0]['perimeter']
-        mapping_maps.saved = pd.read_json(absolute_path.replace('/src/backend/data', path_to_map_data))
+        mapping_maps.saved = pd.read_json(map_file_paths.perimeter)
         logger.info('Backend: Saved perimeters are loaded successfully')
     except Exception as e:
         logger.warning('Backend: Failed to load saved perimeters from file')
@@ -175,35 +164,23 @@ def read_perimeter() -> None:
         logger.error('Backend: Loading saved perimeter failed')
         logger.debug(str(e))
 
-def save(name: str()) -> None:
-    absolute_path = os.path.dirname(__file__)
-    #cwd = Path.cwd()
-    try:
-        with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-            path_to_data = json.load(f)
-            f.close()
-    except Exception as e:
-        logger.error('Backend: Could not save data to the file. Missing datacfg.json')
-        logger.debug(str(e))
-        return
+def save(name: str(), file_paths) -> None:
     if name == 'state':
         try:
-            path_to_state_data = path_to_data['path'][1]['measure'][0]['state']
-            roverdata.state.to_pickle(absolute_path.replace('/src/backend/data', path_to_state_data))
+            roverdata.state.to_pickle(file_paths.measure.state)
             logger.info('Backend: State data are saved successfully in state.pickle')
-            path_to_calcstate_data = path_to_data['path'][1]['measure'][3]['calcedstate']
-            roverdata.calced_from_state.to_pickle(absolute_path.replace('/src/backend/data', path_to_calcstate_data))
+
+            roverdata.calced_from_state.to_pickle(file_paths.measure.calcedstate)
             logger.info('Backend: Calced state data are saved successfully in calcstate.pickle')
         except Exception as e:
             logger.error('Backend: Could not save state data to the file')
             logger.debug(str(e))
     elif name == 'stats':
         try:
-            path_to_stats_data = path_to_data['path'][1]['measure'][1]['stats']
-            roverdata.stats.to_pickle(absolute_path.replace('/src/backend/data', path_to_stats_data))
+            roverdata.stats.to_pickle(file_paths.measure.stats)
             logger.info('Backend: Statistics data are saved successfully in stats.pickle')
-            path_to_calcstats_data = path_to_data['path'][1]['measure'][4]['calcedstats']
-            roverdata.calced_from_stats.to_pickle(absolute_path.replace('/src/backend/data', path_to_calcstats_data))
+
+            roverdata.calced_from_stats.to_pickle(file_paths.measure.calcedstats)
             logger.info('Backend: Calced statistics data are saved successfully in calcstats.pickle')
         except Exception as e:
             logger.error('Backend: Could not save statistics data to the file')
@@ -213,19 +190,10 @@ def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimet
     if perimeter_name is None:
         logger.info('Backend: Could not save perimeter. Perimeter name is not valid')
     elif perimeter_arr.empty or not (perimeter_name in perimeter_arr['name'].unique()):
-        absolute_path = os.path.dirname(__file__)
-        try:
-            with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-                path_to_data = json.load(f)
-                f.close()
-        except Exception as e:
-            logger.error('Backend: Could not save data to the file. Missing datacfg.json')
-            logger.debug(str(e))
-            return
         try:
             perimeter['name'] = perimeter_name
             perimeter_arr = pd.concat([perimeter_arr, perimeter], ignore_index=True)
-            perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), indent=2, date_format='iso')
+            perimeter_arr.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
             logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
             mapping_maps.saved = perimeter_arr
         except Exception as e:
@@ -235,18 +203,9 @@ def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimet
         logger.info('Backend: Could not save perimeter. Perimeter name is already exsist.')
 
 def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), tasks_arr: pd.DataFrame, tasks_parameters_arr) -> None:
-    absolute_path = os.path.dirname(__file__)
-    try:
-        with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-            path_to_data = json.load(f)
-            f.close()
-    except Exception as e:
-        logger.error('Backend: Could not remove perimeter data from file. Missing datacfg.json')
-        logger.debug(str(e))
-        return
     try:
         perimeter_arr = perimeter_arr[perimeter_arr['name'] != perimeter_name]
-        perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), indent=2, date_format='iso')
+        perimeter_arr.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
         #remove also tasks belong to this map
         remove_task(tasks_arr, tasks_parameters_arr, [''], perimeter_name)
         logger.info('Backend: Perimeter is successfully removed from perimeter.json')
@@ -263,20 +222,11 @@ def copy_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), cpy_perim
     if cpy_perimeter_name is None:
         logger.info('Backend: Could not copy perimeter. Perimeter name is not valid')
     elif not cpy_perimeter_name in perimeter_arr['name'].unique():
-        absolute_path = os.path.dirname(__file__)
-        try:
-            with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-                path_to_data = json.load(f)
-                f.close()
-        except Exception as e:
-            logger.error('Backend: Could not save data to the file. Missing datacfg.json')
-            logger.debug(str(e))
-            return
         try:
             perimeter = perimeter_arr[perimeter_arr['name'] == perimeter_name]
             perimeter['name'] = cpy_perimeter_name
             perimeter_arr = pd.concat([perimeter_arr, perimeter], ignore_index=True)
-            perimeter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][0]['perimeter']), indent=2, date_format='iso')
+            perimeter_arr.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
             logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
             mapping_maps.saved = perimeter_arr
         except Exception as e:
@@ -292,24 +242,15 @@ def save_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task: pd
     if not task_arr.empty:
         task_names_to_check = task_arr[task_arr['map name'] == current_map.name]
     if task_arr.empty or not (task_name in task_names_to_check['name'].unique()):
-        absolute_path = os.path.dirname(__file__)
-        try:
-            with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-                path_to_data = json.load(f)
-                f.close()
-        except Exception as e:
-            logger.error('Backend: Could not save data to the file. Missing datacfg.json')
-            logger.debug(str(e))
-            return
         try:
             task['name'] = task_name
             task_arr = pd.concat([task_arr, task], ignore_index=True)
-            task_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][1]['tasks']), indent=2, date_format='iso')
+            task_arr.to_json(file_paths.map.tasks, indent=2, date_format='iso')
             logger.info('Backend: Task data are successfully saved in tasks.json')
             tasks.saved = task_arr
             task_parameters['name'] = task_name
             task_parameter_arr = pd.concat([task_parameter_arr, task_parameters], ignore_index=True)
-            task_parameter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][2]['tasks_parameters']), indent=2, date_format='iso')
+            task_parameter_arr.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
             logger.info('Backend: Tasks parameters data are successfully saved in tasks_parameters.json')
             tasks.saved_parameters = task_parameter_arr
         except Exception as e:
@@ -318,22 +259,11 @@ def save_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task: pd
     else:
         logger.info('Backend: Could not save task. Task name is already exsist.')    
 
-def read_tasks() -> None:
-    absolute_path = os.path.dirname(__file__)
+def read_tasks(map_file_paths) -> None:
     try:
-        with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-            path_to_data = json.load(f)
-            f.close()
-    except Exception as e:
-        logger.error('Backend: Could not read tasks from file. Missing datacfg.json')
-        logger.debug(str(e))
-        return
-    try:
-        path_to_task_data = path_to_data['path'][2]['map'][1]['tasks']
-        tasks.saved = pd.read_json(absolute_path.replace('/src/backend/data', path_to_task_data))
+        tasks.saved = pd.read_json(map_file_paths.tasks)
         logger.info('Backend: Saved tasks are loaded successfully')
-        path_to_task_parameter_data = path_to_data['path'][2]['map'][2]['tasks_parameters']
-        tasks.saved_parameters = pd.read_json(absolute_path.replace('/src/backend/data', path_to_task_parameter_data))
+        tasks.saved_parameters = pd.read_json(map_file_paths.tasks_parameters)
         logger.info('Backend: Saved tasks parameters are loaded successfully')
     except Exception as e:
         logger.info('Backend: Failed to load saved tasks from file')
@@ -341,29 +271,20 @@ def read_tasks() -> None:
         return
 
 def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_name: list(), map_name: str()) -> None:
-    absolute_path = os.path.dirname(__file__)
-    try:
-        with open(absolute_path.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-            path_to_data = json.load(f)
-            f.close()
-    except Exception as e:
-        logger.error('Backend: Could not remove task data from file. Missing datacfg.json')
-        logger.debug(str(e))
-        return
     try:
         if task_name[0] == '':
             task_arr = task_arr[task_arr['map name'] != map_name]
-            task_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][1]['tasks']), indent=2, date_format='iso')
+            task_arr.to_json(file_paths.map.tasks, indent=2, date_format='iso')
             logger.info('Backend: Tasks are successfully removed from tasks.json')
             task_parameter_arr = task_parameter_arr[task_parameter_arr['map name'] != map_name]
-            task_parameter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][2]['tasks_parameters']), indent=2, date_format='iso')
+            task_parameter_arr.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
             logger.info('Backend: Tasks parameters are successfully removed from tasks_parameters.json')
         else:
             task_arr = task_arr[(task_arr['name'] != task_name[0]) & (task_arr['map name'] == map_name) | (task_arr['map name'] != map_name)]
-            task_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][1]['tasks']), indent=2, date_format='iso')
+            task_arr.to_json(file_paths.map.tasks, indent=2, date_format='iso')
             logger.info('Backend: Task is successfully removed from tasks.json')
             task_parameter_arr = task_parameter_arr[(task_parameter_arr['name'] != task_name[0]) & (task_parameter_arr['map name'] == map_name) | (task_parameter_arr['map name'] != map_name)]
-            task_parameter_arr.to_json(absolute_path.replace('/src/backend/data', path_to_data['path'][2]['map'][2]['tasks_parameters']), indent=2, date_format='iso')
+            task_parameter_arr.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
             logger.info('Backend: Task parameters are successfully removed from tasks_parameters.json')
         tasks.saved = task_arr
         tasks.saved_parameters = task_parameter_arr

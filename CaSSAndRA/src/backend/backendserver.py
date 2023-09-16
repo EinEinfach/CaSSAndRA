@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 import os
 
-from . data import saveddata, calceddata, cleandata, utils
+from . data import saveddata, calceddata, cleandata, utils, cfgdata
 from . comm import mqttcomm, httpcomm, uartcomm, cfg
 
 restart = Event()
@@ -13,7 +13,7 @@ restart = Event()
 #from data import saveddata
 #from comm import mqttcomm, cmdlist, cmdtorover, comcfg
 
-def connect_http(connect_data: dict(), connection: int, restart: Event, absolute_path: str()) -> None:
+def connect_http(connect_data: dict(), connection: int, restart: Event, file_paths: tuple) -> None:
     start_time_state = datetime.now()
     start_time_obstacles = datetime.now()
     start_time_stats = datetime.now()
@@ -45,9 +45,9 @@ def connect_http(connect_data: dict(), connection: int, restart: Event, absolute
             connection[0] = connection_status
         if (datetime.now() - start_time_save).seconds >= 600*time_to_wait:
             logger.info('Backend: Writing State-Data to the file')
-            saveddata.save('state')
+            saveddata.save('state', file_paths)
             logger.info('Backend: Writing Statistics-Data to the file')
-            saveddata.save('stats')
+            saveddata.save('stats', file_paths)
             # logger.info('Backend: Writing Map-Data to the file')
             # saveddata.save('perimeter', absolute_path)
             start_time_save = datetime.now()
@@ -56,7 +56,7 @@ def connect_http(connect_data: dict(), connection: int, restart: Event, absolute
 
         time.sleep(0.4)
 
-def connect_mqtt(mqtt_client, connect_data: dict(), restart: Event, absolute_path: str()) -> None:
+def connect_mqtt(mqtt_client, connect_data: dict(), restart: Event, file_paths: tuple) -> None:
     start_time_save = datetime.now()
     time_to_wait = 1
     data_clean_finished = False
@@ -71,9 +71,9 @@ def connect_mqtt(mqtt_client, connect_data: dict(), restart: Event, absolute_pat
         mqttcomm.cmd_to_rover(mqtt_client, connect_data)
         if (datetime.now() - start_time_save).seconds >= 600*time_to_wait:
             logger.info('Backend: Writing State-Data to the file')
-            saveddata.save('state')
+            saveddata.save('state', file_paths)
             logger.info('Backend: Writing Statistics-Data to the file')
-            saveddata.save('stats')
+            saveddata.save('stats', file_paths)
             # logger.info('Backend: Writing Map-Data to the file')
             # saveddata.save('perimeter', absolute_path)
             start_time_save = datetime.now()
@@ -82,7 +82,7 @@ def connect_mqtt(mqtt_client, connect_data: dict(), restart: Event, absolute_pat
         data_clean_finished = cleandata.check(data_clean_finished)
         time.sleep(0.1)
 
-def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, absolute_path: str()) -> None:
+def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, file_paths: tuple) -> None:
     start_time_state = datetime.now()
     start_time_obstacles = datetime.now()
     start_time_stats = datetime.now()
@@ -131,9 +131,9 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, abs
 
         if (datetime.now() - start_time_save).seconds >= 600*time_to_wait:
             logger.info('Backend: Writing State-Data to the file')
-            saveddata.save('state')
+            saveddata.save('state', file_paths)
             logger.info('Backend: Writing Statistics-Data to the file')
-            saveddata.save('stats')
+            saveddata.save('stats', file_paths)
             # logger.info('Backend: Writing Map-Data to the file')
             # saveddata.save('perimeter', absolute_path)
             start_time_save = datetime.now()
@@ -147,19 +147,30 @@ def start(data_path) -> None:
     logger.debug(f'Backend: Using {data_path} for config and data storage')
 
     file_paths = utils.init_data(data_path)
-    
+
     logger.info('Backend: Read communication config file')
-    connect_data = cfg.read_commcfg(absolute_path)
-    #logger.info('Backend: Read map config file')
-    #cfg.read_mapcfg(absolute_path)
-    #logger.info('Backend: Read app config file')
-    #cfg.read_appcfg(absolute_path)
+    # todo: this should be a class or refactored in some way to avoid having to initilize this way
+    cfg.file_paths = file_paths
+    connect_data = cfg.read_commcfg(file_paths.user.comm)
+    
+    # initialize config data
+    # todo: this should be a class or refactored in some way to avoid circular dependencies
+    cfgdata.file_paths = file_paths
+    cfgdata.rovercfg.read_rovercfg()
+    cfgdata.pathplannercfg.read_pathplannercfg()
+    cfgdata.pathplannercfgstate.read_pathplannercfg()
+    cfgdata.pathplannercfgtask.read_pathplannercfg()
+    cfgdata.pathplannercfgtasktmp.read_pathplannercfg()
+    cfgdata.appcfg.read_appcfg()
+
+    # todo: saveddata should probably be a class instead
+    saveddata.file_paths = file_paths
     logger.info('Backend: Read saved data')
-    saveddata.read(absolute_path)
+    saveddata.read(file_paths.measure)
     logger.info('Backend: Read map data file')
-    saveddata.read_perimeter()
+    saveddata.read_perimeter(file_paths.map)
     logger.info('Backend: Read tasks data file')
-    saveddata.read_tasks()
+    saveddata.read_tasks(file_paths.map)
 
     if connect_data['USE'] == 'MQTT':
         logger.info('Backend: Establishing MQTT connection to the MQTT-Server')
@@ -167,7 +178,7 @@ def start(data_path) -> None:
         mqttcomm.subscribe(mqtt_client, connect_data)
         if mqtt_client.connection_flag:
             logger.info('Backend: Starting server thread')
-            connection_thread = Thread(target=connect_mqtt, args=(mqtt_client, connect_data, restart, absolute_path))
+            connection_thread = Thread(target=connect_mqtt, args=(mqtt_client, connect_data, restart, file_paths))
             connection_thread.setDaemon(True)
             connection_thread.start()
 
@@ -179,7 +190,7 @@ def start(data_path) -> None:
         logger.info('Backend: Establishing HTTP connection to the rover')
         connection = httpcomm.connect_http(connect_data)
         logger.info('Backend: Starting server thread')
-        connection_thread = Thread(target=connect_http, args=(connect_data, connection, restart, absolute_path))
+        connection_thread = Thread(target=connect_http, args=(connect_data, connection, restart, file_paths))
         connection_thread.setDaemon(True)
         connection_thread.start()
         logger.info('Backend: Backend is successfully started')
@@ -188,7 +199,7 @@ def start(data_path) -> None:
         logger.info('Backend: Establishing UART communication to the rover')
         ser, connection = uartcomm.connect_uart(connect_data)
         logger.info('Backend: Starting server thread')
-        connection_thread = Thread(target=connect_uart, args=(ser, connect_data, connection, restart, absolute_path))
+        connection_thread = Thread(target=connect_uart, args=(ser, connect_data, connection, restart, file_paths))
         connection_thread.setDaemon(True)
         connection_thread.start()
         logger.info('Backend: Backend is successfully started')

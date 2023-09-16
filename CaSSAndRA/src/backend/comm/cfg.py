@@ -6,15 +6,13 @@ import os
 from ..data import mapdata, appdata
 from src.backend.data.mapdata import current_map, mapping_maps
 
-def read_commcfg(absolute_path) -> dict():
+file_paths = None
+
+def read_commcfg(path_to_cfg_data) -> dict():
     logger.debug('Opening commcfg.json')
     try:
-        with open(absolute_path.replace('/src/backend', '/src/data/datacfg.json')) as f:
-            path_to_data = json.load(f)
-            f.close()
-        path_to_cfg_data = path_to_data['path'][0]['user'][0]['comm']
         logger.debug('Path to commcfg.json: '+path_to_cfg_data)
-        with open(absolute_path.replace('src/backend', path_to_cfg_data)) as f:
+        with open(path_to_cfg_data) as f:
             connect_data = json.load(f)
             logger.debug('commcfg.json content: '+str(connect_data))
             appdata.commcfg = connect_data
@@ -64,12 +62,9 @@ def read_commcfg(absolute_path) -> dict():
 def read_mapcfg(absolute_path):
     logger.debug('Opening mapcfg.json')
     try:
-        with open(absolute_path.replace('/src/backend', '/src/data/datacfg.json')) as f: 
-            path_to_data = json.load(f)
-            f.close()
-        path_to_cfg_data = path_to_data['path'][0]['user'][1]['mapcfg']
+        path_to_cfg_data = file_paths.user.mapcfg
         logger.debug('Path to mapcfg.json: '+path_to_cfg_data)
-        with open(absolute_path.replace('/src/backend', path_to_cfg_data)) as f:
+        with open(path_to_cfg_data) as f:
             mapcfg = json.load(f)
             logger.debug('mapcfg.json content: '+str(mapcfg))
             mapdata.mowoffset = mapcfg['MOWOFFSET']
@@ -106,12 +101,9 @@ def read_mapcfg(absolute_path):
 def read_appcfg(absolute_path):
     logger.debug('Opening appcfg.json')
     try:
-        with open(absolute_path.replace('/src/backend', '/src/data/datacfg.json')) as f: 
-            path_to_data = json.load(f)
-            f.close()
-        path_to_cfg_data = path_to_data['path'][0]['user'][2]['appcfg']
+        path_to_cfg_data = file_paths.user.appcfg
         logger.debug('Path to appcfg.json: '+path_to_cfg_data)
-        with open(absolute_path.replace('/src/backend', path_to_cfg_data)) as f:
+        with open(path_to_cfg_data) as f:
             appcfg = json.load(f)
             logger.debug('appcfg.json content: '+str(appcfg))
             appdata.datamaxage = appcfg['datamaxage']
@@ -132,14 +124,10 @@ def read_appcfg(absolute_path):
 
 def save_commcfg(changed_data: dict()) -> None:
     logger.info('Backend: Writing new connection data to the file')
-    absolute_path = os.path.dirname(__file__) 
     try:
-        with open(absolute_path.replace('/src/backend/comm', '/src/data/datacfg.json')) as f:
-            path_to_data = json.load(f)
-            f.close()
-        path_to_cfg_data = path_to_data['path'][0]['user'][0]['comm']
+        path_to_cfg_data = file_paths.user.comm
         logger.debug('Path to commcfg.json: '+ path_to_cfg_data)
-        with open(absolute_path.replace('src/backend/comm', path_to_cfg_data)) as f:
+        with open(path_to_cfg_data) as f:
             connect_data = json.load(f)
     except Exception as e:
         logger.error('Backend: Failed to load communication config file.')
@@ -163,7 +151,7 @@ def save_commcfg(changed_data: dict()) -> None:
             connect_data['USE'] = 'UART'
             connect_data['UART'][0]['SERPORT'] = changed_data['SERPORT']
             connect_data['UART'][1]['BAUDRATE']= changed_data['BAUDRATE']
-        with open(absolute_path.replace('/src/backend/comm', path_to_cfg_data), 'w') as f:
+        with open(path_to_cfg_data, 'w') as f:
             logger.debug('New connect data: '+str(connect_data))
             json.dump(connect_data, f, indent=4)
         logger.info('Backend: Connection data are successfully stored in commcfg.json')
@@ -173,14 +161,10 @@ def save_commcfg(changed_data: dict()) -> None:
 
 def save_mapcfg(changed_data: dict()):
     logger.info('Backend: Writing new map and position data to the file')
-    absolute_path = os.path.dirname(__file__)
     try:
-        with open(absolute_path.replace('/src/backend/comm', '/src/data/datacfg.json')) as f:
-            path_to_data = json.load(f)
-            f.close()
-        path_to_cfg_data = path_to_data['path'][0]['user'][1]['mapcfg']
+        path_to_cfg_data = file_paths.user.mapcfg
         logger.debug('Path to mapcfg.json: '+ path_to_cfg_data)
-        with open(absolute_path.replace('src/backend/comm', path_to_cfg_data)) as f:
+        with open(path_to_cfg_data) as f:
             map_data = json.load(f)
     except Exception as e:
         logger.error('Backend: Failed to load map config file.')
@@ -196,7 +180,7 @@ def save_mapcfg(changed_data: dict()):
         map_data['POSITIONMODE'] = changed_data['POSITIONMODE']
         map_data['LON'] = changed_data['LON']
         map_data['LAT'] = changed_data['LAT']
-        with open(absolute_path.replace('/src/backend/comm', path_to_cfg_data), 'w') as f:
+        with open(path_to_cfg_data, 'w') as f:
             logger.debug('New map data: '+str(map_data))
             json.dump(map_data, f, indent=4)
         logger.info('Backend: Map data are successfully stored in mapcfg.json')
@@ -206,14 +190,10 @@ def save_mapcfg(changed_data: dict()):
     
 def save_appcfg(changed_data: dict()):
     logger.info('Backend: Writing new app data to the file')
-    absolute_path = os.path.dirname(__file__)
     try:
-        with open(absolute_path.replace('/src/backend/comm', '/src/data/datacfg.json')) as f:
-            path_to_data = json.load(f)
-            f.close()
-        path_to_cfg_data = path_to_data['path'][0]['user'][2]['appcfg']
+        path_to_cfg_data = file_paths.user.appcfg
         logger.debug('Path to appcfg.json: '+str(path_to_cfg_data))
-        with open(absolute_path.replace('src/backend/comm', path_to_cfg_data)) as f:
+        with open(path_to_cfg_data) as f:
             app_data = json.load(f)
     except Exception as e:
         logger.error('Backend: Failed to load app config file.')
@@ -226,7 +206,7 @@ def save_appcfg(changed_data: dict()):
         app_data['current_thd_charge'] = changed_data['current_thd_charge']
         app_data['voltage_to_soc'][0]['V'] = changed_data['voltage_to_soc'][0]['V']
         app_data['voltage_to_soc'][1]['V'] = changed_data['voltage_to_soc'][1]['V']
-        with open(absolute_path.replace('/src/backend/comm', path_to_cfg_data), 'w') as f:
+        with open(path_to_cfg_data, 'w') as f:
             logger.debug('New app data: '+str(app_data))
             json.dump(app_data, f, indent=4)
         logger.info('Backend: App data are successfully stored in appcfg.json')

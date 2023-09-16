@@ -35,6 +35,7 @@ class Perimeter:
     areatomow: float = 0
     distancetogo: float = 0
     map_crc: int = None
+    current_perimeter_file: str() = ''
 
     def set_gotopoint(self, clickdata: dict) -> None:
         goto = {'X':[clickdata['points'][0]['x']], 'Y':[clickdata['points'][0]['y']], 'type': ['way']}
@@ -180,9 +181,8 @@ class Perimeter:
         self.preview['type'] = 'preview route'
     
     def read_map_name(self) -> str():
-        absolute_path = os.path.dirname(__file__)
         try:
-            with open(absolute_path.replace('/src/backend/data', '/src/data/map/tmp.json')) as f: 
+            with open(self.current_perimeter_file) as f: 
                 tmp_data = json.load(f)
                 f.close()
                 return tmp_data['PERIMETERNAME']
@@ -192,10 +192,9 @@ class Perimeter:
             return ''
     
     def save_map_name(self) -> None:
-        absolute_path = os.path.dirname(__file__)
         tmp_data = {'PERIMETERNAME': self.name}
         try:
-            with open(absolute_path.replace('/src/backend/data', '/src/data/map/tmp.json'), 'w') as f:
+            with open(self.current_perimeter_file, 'w') as f:
                 json.dump(tmp_data, f, indent=4)
             logger.info('Backend: Perimeter name is successfully saved in tmp.json')
         except Exception as e:
