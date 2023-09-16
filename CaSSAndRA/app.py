@@ -51,7 +51,7 @@ def cli():
 @click.option('--data_path', default=default_data_path, show_default=True)
 @click.option('--debug', default=False, is_flag=True, help="Enables debug mode for dash application")
 @click.option('--app_log_level', default="DEBUG", envvar='APPLOGLEVEL', type=logging_choices, show_default=True)
-@click.option('--app_log_file_level', default="DEBUG", envvar='APPLOGFILELEVEL', type=logging_choices, show_default=True)
+@click.option('--app_log_file_level', default="INFO", envvar='APPLOGFILELEVEL', type=logging_choices, show_default=True)
 @click.option('--server_log_level', default="ERROR", envvar='SERVERLOGLEVEL', type=logging_choices, show_default=True)
 @click.option('--pil_log_level', default="WARN", envvar='PILLOGLEVEL', type=logging_choices, show_default=True)
 def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level, server_log_level, pil_log_level) -> None:
