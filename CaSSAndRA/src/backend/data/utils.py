@@ -46,22 +46,28 @@ def init_data(data_path):
     file_paths.src = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     file_paths.data = data_path
 
+    # user config files
     file_paths.user.comm = os.path.join(data_path, 'user', 'commcfg.json')
     file_paths.user.mapcfg = os.path.join(data_path, 'user', 'mapcfg.json')
     file_paths.user.appcfg = os.path.join(data_path, 'user', 'appcfg.json')
     file_paths.user.rovercfg = os.path.join(data_path, 'user', 'rovercfg.json')
     file_paths.user.pathplannercfg = os.path.join(data_path, 'user', 'pathplannercfg.json')
 
+    # measure and state files
     file_paths.measure.state = os.path.join(data_path, 'measure', 'state.pickle')
     file_paths.measure.stats = os.path.join(data_path, 'measure', 'stats.pickle')
     file_paths.measure.props = os.path.join(data_path, 'measure', 'props.pickle')
     file_paths.measure.calcedstate = os.path.join(data_path, 'measure', 'calcstate.pickle')
     file_paths.measure.calcedstats = os.path.join(data_path, 'measure', 'calcstats.pickle')
 
+    # map files
     file_paths.map.perimeter = os.path.join(data_path, 'map', 'perimeter.json')
     file_paths.map.tasks = os.path.join(data_path, 'map', 'tasks.json')
     file_paths.map.tasks_parameters = os.path.join(data_path, 'map', 'tasks_parameters.json')
     file_paths.map.tmp = os.path.join(data_path, 'map', 'tmp.json')
+
+    # log files
+    file_paths.log = os.path.join(data_path, 'log', 'cassandra.log')
 
     # initialize data folder from initial data, copying only what is missing
     create_missing_files(os.path.join(file_paths.src, 'data'), data_path)

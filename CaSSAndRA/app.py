@@ -17,9 +17,9 @@ pil_logger = logging.getLogger("PIL")
 logging_choices = click.Choice(["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"])
 
 
-def config_logging(basic_level, log_file_level, web_server_level, pil_level):
+def config_logging(log_file, basic_level, log_file_level, web_server_level, pil_level):
     rfh = RotatingFileHandler(
-        filename=os.path.dirname(__file__) + "/src/data/log/cassandra.log",
+        filename=log_file,
         mode="a",
         maxBytes=5 * 1024 * 1024,
         backupCount=2,
@@ -62,17 +62,23 @@ def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level
         Find supported environment variables here: https://dash.plotly.com/reference#app.run
         
     """
-    # logging config
-    config_logging(app_log_level, app_log_file_level, server_log_level, pil_log_level)
 
     # server and app imports
     import dash
     from src.layout import serve_layout
     from src.backend import backendserver
+    from src.backend.data.utils import init_data
     
-    backendserver.start(data_path)
-    assets_path = os.path.abspath(os.path.dirname(__file__)) +'/src/assets'
+    # initialize data files
+    file_paths = init_data(data_path)
+    
+    # logging config
+    config_logging(file_paths.log, app_log_level, app_log_file_level, server_log_level, pil_log_level)
 
+    # start backend server
+    backendserver.start(file_paths)
+
+    assets_path = os.path.abspath(os.path.dirname(__file__)) +'/src/assets'
     app = dash.Dash(
         __name__,
         use_pages=True,    # turn on Dash pages

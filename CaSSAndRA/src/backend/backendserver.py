@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 import os
 
-from . data import saveddata, calceddata, cleandata, utils, cfgdata
+from . data import saveddata, calceddata, cleandata, cfgdata, logdata
 from . comm import mqttcomm, httpcomm, uartcomm, cfg
 
 restart = Event()
@@ -142,13 +142,15 @@ def connect_uart(ser, connect_data: dict(), connection: bool,restart: Event, fil
         data_clean_finished = cleandata.check(data_clean_finished)
         time.sleep(0.1)
 
-def start(data_path) -> None:
+def start(file_paths) -> None:
     logger.info('Backend: Starting backend server')
-    logger.debug(f'Backend: Using {data_path} for config and data storage')
-
-    file_paths = utils.init_data(data_path)
+    logger.debug(f'Backend: Using {file_paths.data} for config and data storage')
 
     logger.info('Backend: Read communication config file')
+    
+    # todo: this should be refactored so the class is initialized with correct data immediately
+    logdata.commlog.path = file_paths.log
+    
     # todo: this should be a class or refactored in some way to avoid having to initilize this way
     cfg.file_paths = file_paths
     connect_data = cfg.read_commcfg(file_paths.user.comm)
