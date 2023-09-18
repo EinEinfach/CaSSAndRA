@@ -222,58 +222,7 @@ class Mower:
             self.gotospeed_setpoint = min(1, new_setpoint)
     
     def set_rover_image(self) -> None:
-        if self.direction < 7.5 or self.direction >= 352.5:
-            return appcfg.rover_pictures.img0deg
-        elif self.direction >= 7.5 and self.direction < 22.5:
-            return appcfg.rover_pictures.img15deg
-        elif self.direction >= 22.5 and self.direction < 37.5:
-            return appcfg.rover_pictures.img30deg 
-        elif self.direction >= 37.5 and self.direction < 52.5:
-            return appcfg.rover_pictures.img45deg
-        elif self.direction >= 52.5 and self.direction < 67.5:
-            return appcfg.rover_pictures.img60deg 
-        elif self.direction >= 67.5 and self.direction < 82.5:
-            return appcfg.rover_pictures.img75deg
-        elif self.direction >= 82.5 and self.direction < 97.5:
-            return appcfg.rover_pictures.img90deg 
-        elif self.direction >= 97.5 and self.direction < 112.5:
-            return appcfg.rover_pictures.img105deg
-        elif self.direction >= 112.5 and self.direction < 127.5:
-            return appcfg.rover_pictures.img120deg
-        elif self.direction >= 127.5 and self.direction < 142.5:
-            return appcfg.rover_pictures.img135deg 
-        elif self.direction >= 142.5 and self.direction < 157.5:
-            return appcfg.rover_pictures.img150deg
-        elif self.direction >= 157.5 and self.direction < 172.5:
-            return appcfg.rover_pictures.img165deg 
-        elif self.direction >= 172.5 and self.direction < 187.5:
-            return appcfg.rover_pictures.img180deg 
-        elif self.direction >= 187.5 and self.direction < 202.5:
-            return appcfg.rover_pictures.img195deg 
-        elif self.direction >= 202.5 and self.direction < 217.5:
-            return appcfg.rover_pictures.img210deg
-        elif self.direction >= 217.5 and self.direction < 232.5:
-            return appcfg.rover_pictures.img225deg
-        elif self.direction >= 232.5 and self.direction < 247.5:
-            return appcfg.rover_pictures.img240deg 
-        elif self.direction >= 247.5 and self.direction < 262.5:
-            return appcfg.rover_pictures.img255deg 
-        elif self.direction >= 262.5 and self.direction < 277.5:
-            return appcfg.rover_pictures.img270deg 
-        elif self.direction >= 277.5 and self.direction < 292.5:
-            return appcfg.rover_pictures.img285deg 
-        elif self.direction >= 292.5 and self.direction < 307.5:
-            return appcfg.rover_pictures.img300deg
-        elif self.direction >= 307.5 and self.direction < 322.5:
-            return appcfg.rover_pictures.img315deg 
-        elif self.direction >= 322.5 and self.direction < 337.5:
-            return appcfg.rover_pictures.img330deg
-        elif self.direction >= 337.5 and self.direction < 352.5:
-            return appcfg.rover_pictures.img345deg
-        elif self.direction >= 352.5:
-            return appcfg.rover_pictures.img0deg 
-        else:
-            return appcfg.rover_pictures.img0deg
+        return Image.Image.rotate(appcfg.rover_pictures.img0deg, self.direction)
             
     def check_mapupload(self) -> None:
         if self.map_upload_started and self.map_crc == self.map_old_crc:

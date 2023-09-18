@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.70.3 Issue no log file
+#Version:0.71.0 Change Rover IMG behavior
 
 # package imports
 import sys

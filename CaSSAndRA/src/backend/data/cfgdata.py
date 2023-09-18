@@ -15,54 +15,9 @@ ABSOLUTE_PATH = os.path.dirname(__file__)
 @dataclass
 class RoverIMG:
     img0deg: Image = None
-    img15deg: Image = None
-    img30deg: Image = None
-    img45deg: Image = None
-    img60deg: Image = None
-    img75deg: Image = None
-    img90deg: Image = None
-    img105deg: Image = None
-    img120deg: Image = None
-    img135deg: Image = None
-    img150deg: Image = None
-    img165deg: Image = None
-    img180deg: Image = None
-    img195deg: Image = None
-    img210deg: Image = None
-    img225deg: Image = None
-    img240deg: Image = None
-    img255deg: Image = None
-    img270deg: Image = None
-    img285deg: Image = None
-    img300deg: Image = None
-    img315deg: Image = None
-    img330deg: Image = None
-    img345deg: Image = None
 
     def load_rover_pictures(self, absolute_path: str):
         self.img0deg = Image.open(absolute_path+'rover0grad.png')
-        self.img15deg = Image.open(absolute_path+'rover15grad.png') 
-        self.img30deg = Image.open(absolute_path+'rover30grad.png') 
-        self.img45deg = Image.open(absolute_path+'rover45grad.png') 
-        self.img60deg = Image.open(absolute_path+'rover60grad.png') 
-        self.img75deg = Image.open(absolute_path+'rover75grad.png')
-        self.img90deg = Image.open(absolute_path+'rover90grad.png')
-        self.img105deg = Image.open(absolute_path+'rover105grad.png')
-        self.img120deg = Image.open(absolute_path+'rover120grad.png')
-        self.img135deg = Image.open(absolute_path+'rover135grad.png')
-        self.img150deg = Image.open(absolute_path+'rover150grad.png')
-        self.img165deg = Image.open(absolute_path+'rover180grad.png')
-        self.img195deg = Image.open(absolute_path+'rover195grad.png')
-        self.img210deg = Image.open(absolute_path+'rover210grad.png')
-        self.img225deg = Image.open(absolute_path+'rover225grad.png')
-        self.img240deg = Image.open(absolute_path+'rover240grad.png')
-        self.img255deg = Image.open(absolute_path+'rover255grad.png')
-        self.img270deg = Image.open(absolute_path+'rover270grad.png')
-        self.img285deg = Image.open(absolute_path+'rover285grad.png')
-        self.img300deg = Image.open(absolute_path+'rover300grad.png')
-        self.img315deg = Image.open(absolute_path+'rover300grad.png')
-        self.img330deg = Image.open(absolute_path+'rover330grad.png')
-        self.img345deg = Image.open(absolute_path+'rover345grad.png')
 @dataclass
 class AppCfg:
     datamaxage: int = 30
