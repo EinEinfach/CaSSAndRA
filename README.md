@@ -82,6 +82,57 @@ Die App sollte euch jetzt mit 3 roten Ampeln begrüßen:
 
 Um den Server zu stoppen drück im Terminal Strg+C
 
+
+### CaSSAndRA Start Options
+
+You can see all the options available when starting CaSSAndRA by executing:
+
+```
+python app.py --help
+Usage: app.py [OPTIONS]
+
+  Start the CaSSAndRA Server
+
+  Only some Dash server options are handled as command-line options. All other
+  options should use environment variables. Find supported environment
+  variables here: https://dash.plotly.com/reference#app.run
+
+Options:
+  -h, --host TEXT                 [default: 0.0.0.0]
+  -p, --port INTEGER              [default: 8050]
+  --proxy TEXT                    format={{input}}::{{output}} example=http://
+                                  0.0.0.0:8050::https://my.domain.com
+  --data_path TEXT                [default: /Users/<username>/.cassandra]
+  --debug                         Enables debug mode for dash application
+  --app_log_level [DEBUG|INFO|WARN|ERROR|CRITICAL]
+                                  [default: DEBUG]
+  --app_log_file_level [DEBUG|INFO|WARN|ERROR|CRITICAL]
+                                  [default: INFO]
+  --server_log_level [DEBUG|INFO|WARN|ERROR|CRITICAL]
+                                  [default: ERROR]
+  --pil_log_level [DEBUG|INFO|WARN|ERROR|CRITICAL]
+                                  [default: WARN]
+  --init                          Accepts defaults when initializing app for
+                                  the first time
+  --help                          Show this message and exit.
+
+```
+
+The `data_path` option is important to review. We are now storing your data and configuration in your user folder `~/.cassandra`. This will persist this data separate from the application, so that you can update the app without losing data.
+
+### Advanced CaSSAndRA Start Examples
+
+Custom port
+`python app.py --port=8060`
+
+Using custom data location:
+`python app.py --data_path=/Users/myusername/my_app_data/cassandra`
+
+Run two instances of CaSSAndRA:
+
+- Terminal 1: `python app.py` (data in ~/.cassandra)
+- Terminal 2: `python app.py --data_path=/Users/myusername/.cassandra2` (data in ~/.cassandra2)
+
 ## CaSSAndRA als daemon Service einrichten
 Um CaSSAndRA bei jedem Systemstart automatisch ausführen. Kann die Ausführung der Anwendung über systemd realisiert werden. Checkt, ob auf eurem System systemd vorhanden ist:
 
@@ -130,52 +181,42 @@ Als Ausgabe kommt(wichtig ist das Wort active(running)):
      Active: active (running) since Thu 2023-04-27 07:48:22 CEST; 1 day 5h ago
 
 ## CaSSAndRA im Docker Container einrichten
-1. Dateien aus dem git herunterladen
-2. die Datei requirements.txt in das Unterverzeichnis mit dem File app.py verschieben/kopieren
-3. in das Verzeichnis mit der Datei app.py wechseln
-4. group-id und user-id des aktuell genutzten Users herausfinden (id -u, id -g)
-5. Username, Gruppenname (des aktuellen Users) merken
-6. ein File "dockerfile" mit folgendem Inhalt anlegen (USERNAME, GROUP, GROUP-ID und USER-ID mit den herausgefundenen Daten ersetzen):
-	
-		FROM python:3.10-slim 
-		RUN addgroup --gid <GROUP-ID> <GROUP>
-		RUN adduser --gecos "" --disabled-password --uid <USER-ID> --gid <GROUP-ID> <USERNAME>
-		WORKDIR /usr/src/cassandra
-		COPY requirements.txt .
-		RUN pip install --upgrade pip
-		RUN pip install -r requirements.txt
-		COPY . .
-		RUN chown -R <USERNAME>:<GROUP> /usr/src/cassandra
-		RUN chmod 777 /usr/src/cassandra
-		USER <USERNAME>
-		CMD ["python3","app.py"]
 
-Beispiel:
+Change to the project directory. Example: `cd /Users/<username>/projects/CaSSAndRA`
 
-		FROM python:3.10-slim
-		RUN addgroup --gid 65548 ardumower
-		RUN adduser --gecos "" --disabled-password --uid 1053 --gid 65548 ardumower
-		WORKDIR /usr/src/cassandra
-		COPY requirements.txt .
-		RUN pip install --upgrade pip
-		RUN pip install -r requirements.txt
-		COPY . .
-		RUN chown -R ardumower:ardumower /usr/src/cassandra
-		RUN chmod 777 /usr/src/cassandra
-		USER ardumower
-		CMD ["python3","app.py"]
-7. Image erstellen
+Build the docker image
+```
+docker build . -t cassandra
+```
 
-		docker build -f dockerfile -t <IMAGENAME> .
-Beispiel:
+### Simple docker example
+This example is fine to use with MacOS, where docker automatically handles user permissions.
 
-		sudo docker build -f dockerfile -t cassandra:slim .
-8. Dann den Container starten (NETWORK ist ggf. optional):
+```
+docker run -it \
+	-v /Users/<myusername>/.cassandra:/home/cassandra/.cassandra \
+	cassandra
+```
 
-		docker run -e TZ=Europe/Berlin -p 8050:8050 -v <PFAD-ZUM-data-FOLDER>:/usr/src/cassandra/src/data --name cassandra --network="<NETWORK>" -d <IMAGENAME>
-Beispiel:
+### Advanced docker example. 
+This example shows how you can:
+* use a different port (`8080`) on your host system and map that to the default cassandra port of `8050`.
+* pass in an environment variable `TZ` for the timezone (see [options](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones))
+* pass in Host user and group ids
+  * The dockerfile creates a `cassandra` user for everyone
+  * This means the data_path in the container will be `/home/cassandra/.cassandra`
+  * The entrypoint script will then update the `cassandra` user within the container to use the same user and group ids as the host system
+```
+docker run -it \
+	-p 8080:8050 \
+	-v /path/to/my/data:/home/cassandra/.cassandra \
+	-e TZ=Europe/Berlin \
+	-e HOST_UID=$(id -u) \
+	-e HOST_GID=$(id -g) \
+	cassandra
+```
 
-		docker run -e TZ=Europe/Berlin -p 8050:8050 -v /home/ardumower/cassandra/data:/usr/src/cassandra/src/data --name cassandra --network="netz1" -d cassandra:slim
+
 ## Bedienung
 ### Einrichten der Kommunikation
 In der App klickt auf "Settings". Auf der Seite wählt "Communication". Sucht euch eine der Möglichkeiten aus, trägt die Daten ein (bitte haltet die Syntax, was CaSSAndRA euch vorschlägt,bei) und anschliessend mit "save and reboot" werden die Einstellungen übernommen und der Server neuegestartet:
@@ -303,6 +344,20 @@ Wird eine Karte gelöscht, so werden ohne Vorwarnung auch alle Aufgaben gelösch
 Der Taskplanner rechnen die Mähwege immer neue nach dem die Aufgabe gestartet wurde. Es werden keine gespeicherten Wege geladen. Je nach Umfang der Aufgabe und die Leistung eures Rechners kann das einige Zeit in Anspruch nehmen
 
 ## Update
+
+### New Approach
+After you data has been moved to an external data folder, like `~/.cassandra`, you no longer need to copy your data folder when updating. 
+
+```
+ctrl-c (Stop the server)
+git pull
+python app.py
+```
+
+If your data folder is still in /src/data, then do the following:
+
+### Old Approach
+
 Die App wird von mir in kleinen Schritten verbessert bzw. die gemeldeten Probleme behoben. Um die Änderungen auch bei euch produktiv zu schalten, geht beim Update wie folgt vor. 
 1. Sichert euren /src/data Ordner
 2. Clont erneuet die Repository und ersetzt alle Dateien und Ordner in eurem Produktivverzeichnis durch die neuen heruntergeladenen Dateien.

@@ -40,11 +40,46 @@ def config_logging(log_file, basic_level, log_file_level, web_server_level, pil_
 default_data_path = os.path.join(os.path.expanduser('~'), '.cassandra')
 
 
-@click.group()
-def cli():
-    """CaSSAndRA App Commands"""
+def check_startup(data_path):
+    # check to see if this is a first-time startup
+    if (data_path == default_data_path) and not os.path.exists(data_path):
+        
+        msgs = [
+            f"CaSSAndRA stores your data (settings, maps, tasks, logs, etc) separate from the app directory. This allows us to update the app without losing any data.",
+            "",
+            f"Configured data_path: {click.style(data_path, bold=True)} (missing)",
+            "",
+            f"If you continue, CaSSAndRA will:",
+            f" - Create {click.style(data_path, bold=True)}",
+            f" - Sync missing files from {click.style('/src/data', bold=True)} to {click.style(data_path, bold=True)}",
+            "",
+            f"Each time you run CaSSAndRA, only missing files are copied and existing files aren't overwritten, so no data will be lost.",
+            "",
+            f"If this is the first time you are seeing this message, you can also:",
+            f" - Review the readme at https://github.com/EinEinfach/CaSSAndRA#cassandra-starten",
+            f" - enter {click.style('python app.py --help', bold=True)} on the command line"
+        ]
+        
+        # output the message about data_path
+        click.echo(click.style('\nYou are starting CaSSAndRA without an existing external data directory\n', bold=True))
+        click.echo('-'*80)
+        for msg in msgs:
+            click.echo(click.wrap_text(msg, initial_indent=' '*4, subsequent_indent=' '*4, width=90))
+        click.echo('-'*80)
 
-@cli.command()
+        # ask the user if they want to continue
+        cont = click.confirm(click.style(f'\nContinue with {data_path}?', bold=True), default=True)
+        if not cont:
+            click.echo('Aborting startup...')
+            return False
+        else:
+            return True
+    else:
+        return True
+    
+
+
+@click.command()
 @click.option('-h', '--host', default='0.0.0.0', show_default=True)
 @click.option('-p', '--port', default=8050, show_default=True)
 @click.option('--proxy', default=None, help='format={{input}}::{{output}} example=http://0.0.0.0:8050::https://my.domain.com')
@@ -54,7 +89,8 @@ def cli():
 @click.option('--app_log_file_level', default="INFO", envvar='APPLOGFILELEVEL', type=logging_choices, show_default=True)
 @click.option('--server_log_level', default="ERROR", envvar='SERVERLOGLEVEL', type=logging_choices, show_default=True)
 @click.option('--pil_log_level', default="WARN", envvar='PILLOGLEVEL', type=logging_choices, show_default=True)
-def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level, server_log_level, pil_log_level) -> None:
+@click.option('--init', is_flag=True, help="Accepts defaults when initializing app for the first time")
+def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level, server_log_level, pil_log_level, init) -> None:
     """ Start the CaSSAndRA Server
 
         Only some Dash server options are handled as command-line options.
@@ -62,54 +98,54 @@ def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level
         Find supported environment variables here: https://dash.plotly.com/reference#app.run
         
     """
+    if init or check_startup(data_path):
+        # server and app imports
+        import dash
+        from src.layout import serve_layout
+        from src.backend import backendserver
+        from src.backend.data.utils import init_data
+        
+        # initialize data files
+        file_paths = init_data(data_path)
+        
+        # logging config
+        config_logging(file_paths.log, app_log_level, app_log_file_level, server_log_level, pil_log_level)
 
-    # server and app imports
-    import dash
-    from src.layout import serve_layout
-    from src.backend import backendserver
-    from src.backend.data.utils import init_data
-    
-    # initialize data files
-    file_paths = init_data(data_path)
-    
-    # logging config
-    config_logging(file_paths.log, app_log_level, app_log_file_level, server_log_level, pil_log_level)
+        # start backend server
+        backendserver.start(file_paths)
 
-    # start backend server
-    backendserver.start(file_paths)
+        assets_path = os.path.abspath(os.path.dirname(__file__)) +'/src/assets'
+        app = dash.Dash(
+            __name__,
+            use_pages=True,    # turn on Dash pages
+            pages_folder='src/pages',
+            # external_stylesheets=[
+            #     dbc.themes.MINTY,
+            #     dbc.icons.BOOTSTRAP
+            # ],  # fetch the proper css items we want
+            meta_tags=[
+                {   # check if device is a mobile device. This is a must if you do any mobile styling
+                    'name': 'viewport',
+                    'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover' 
+                },
+                {
+                    'name':"apple-mobile-web-app-capable",
+                    'content':"yes",
+                },
+                {
+                    'name':'theme-color' ,
+                    'content':'#78c2ad'
+                },
+            ],
+            suppress_callback_exceptions=True,
+            title='CASSANDRA',
+            update_title = 'CASSANDRA updating...',
+            assets_folder=assets_path, 
+        )
+        app.layout = serve_layout   # set the layout to the serve_layout function
 
-    assets_path = os.path.abspath(os.path.dirname(__file__)) +'/src/assets'
-    app = dash.Dash(
-        __name__,
-        use_pages=True,    # turn on Dash pages
-        pages_folder='src/pages',
-        # external_stylesheets=[
-        #     dbc.themes.MINTY,
-        #     dbc.icons.BOOTSTRAP
-        # ],  # fetch the proper css items we want
-        meta_tags=[
-            {   # check if device is a mobile device. This is a must if you do any mobile styling
-                'name': 'viewport',
-                'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover' 
-            },
-            {
-                'name':"apple-mobile-web-app-capable",
-                'content':"yes",
-            },
-            {
-                'name':'theme-color' ,
-                'content':'#78c2ad'
-            },
-        ],
-        suppress_callback_exceptions=True,
-        title='CASSANDRA',
-        update_title = 'CASSANDRA updating...',
-        assets_folder=assets_path, 
-    )
-    app.layout = serve_layout   # set the layout to the serve_layout function
-
-    app.run_server(host=host, port=port, proxy=proxy, debug=debug)
+        app.run_server(host=host, port=port, proxy=proxy, debug=debug)
 
 
 if __name__ == "__main__":
-    cli()
+    start()
