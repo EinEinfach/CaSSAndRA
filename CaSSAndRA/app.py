@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.72.0 Lot of changes in start behavior an moving data folder to user directory
+#Version:0.72.1 Lot of changes in start behavior an moving data folder to user directory
 
 # package imports
 import os
@@ -56,7 +56,7 @@ def check_startup(data_path):
             f"Each time you run CaSSAndRA, only missing files are copied and existing files aren't overwritten, so no data will be lost.",
             "",
             f"If this is the first time you are seeing this message, you can also:",
-            f" - Review the readme at https://github.com/EinEinfach/CaSSAndRA#cassandra-starten",
+            f" - Review the readme at https://github.com/EinEinfach/CaSSAndRA#cassandra-start",
             f" - enter {click.style('python app.py --help', bold=True)} on the command line"
         ]
         
