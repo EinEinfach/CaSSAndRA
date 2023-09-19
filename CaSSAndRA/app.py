@@ -3,100 +3,149 @@
 #Version:0.71.0 Change Rover IMG behavior
 
 # package imports
+import os
 import sys
+import click
+
 import logging
 from logging.handlers import RotatingFileHandler
-import os
-import dash
-from dash import html, dcc
-import dash_bootstrap_components as dbc
 
-# local imports
-from src.components import ids, navbar, offcanvas, modalremotecontrol, modalinfo, modalerror
-from src.backend import backendserver
-
-# create logger
+# logging setup
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-rfh = RotatingFileHandler(
-            filename=os.path.dirname(__file__) +'/src/data/log/cassandra.log',
-            mode='a',
-            maxBytes=5*1024*1024,
-            backupCount=2,
-            encoding=None,
-            delay=0,
-        )   
-rfh.setLevel(logging.INFO)
-logging.basicConfig(
-            handlers=[logging.StreamHandler(sys.stdout),
-                      #logging.FileHandler('CaSSAndRA/src/data/log/cassandra.log')
-                      rfh
-                      ],
-            level=logging.DEBUG,
-            #filename='CaSSAndRA/src/data/log/cassandra.log',
-            format='%(asctime)s %(levelname)s %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S;',
-        )
+frontend_logger = logging.getLogger("werkzeug")
+pil_logger = logging.getLogger("PIL")
+logging_choices = click.Choice(["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"])
 
-frontend_logger = logging.getLogger('werkzeug')
-frontend_logger.setLevel(logging.ERROR)
 
-pil_logger = logging.getLogger('PIL')
-pil_logger.setLevel(logging.WARNING)
-
-def serve_layout() -> html.Div:
-    return html.Div(
-        [
-            dcc.Interval(id=ids.INTERVAL, interval=1*3000, n_intervals=0),
-            dcc.Interval(id=ids.STATEMAPINTERVAL, interval=1*1000, n_intervals=0, disabled=False),
-            dcc.Interval(id=ids.MAPPINGINTERVAL, interval=1*3000, n_intervals=0, disabled=True),
-            dcc.Location(id=ids.URLUPDATE, refresh=True),
-            navbar.navbar,
-            offcanvas.offcanvas,
-            modalremotecontrol.confirm,
-            modalinfo.info,
-            modalerror.mapuploadfailed,
-            dash.page_container
-            #footer
-        ]) 
-
-def main() -> None:
-    backendserver.start()
-    assets_path = os.path.dirname(__file__) +'/src/assets'
-
-    app = dash.Dash(
-        __name__,
-        use_pages=True,    # turn on Dash pages
-        pages_folder='src/pages',
-        # external_stylesheets=[
-        #     dbc.themes.MINTY,
-        #     dbc.icons.BOOTSTRAP
-        # ],  # fetch the proper css items we want
-        meta_tags=[
-            {   # check if device is a mobile device. This is a must if you do any mobile styling
-                'name': 'viewport',
-                'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover' 
-            },
-            {
-                'name':"apple-mobile-web-app-capable",
-                'content':"yes",
-            },
-            {
-                'name':'theme-color' ,
-                'content':'#78c2ad'
-            },
-        ],
-        suppress_callback_exceptions=True,
-        title='CASSANDRA',
-        update_title = 'CASSANDRA updating...',
-        assets_folder=assets_path, 
+def config_logging(log_file, basic_level, log_file_level, web_server_level, pil_level):
+    rfh = RotatingFileHandler(
+        filename=log_file,
+        mode="a",
+        maxBytes=5 * 1024 * 1024,
+        backupCount=2,
+        encoding=None,
+        delay=0,
     )
-    app.layout = serve_layout   # set the layout to the serve_layout function
+    rfh.setLevel(log_file_level)
+    logging.basicConfig(
+        handlers=[logging.StreamHandler(sys.stdout), rfh],
+        level=basic_level,
+        format="%(asctime)s %(levelname)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S;",
+    )
+    frontend_logger.setLevel(web_server_level)
+    pil_logger.setLevel(pil_level)
 
-    #app.run_server(host='127.0.0.1', port=8050, debug=True, dev_tools_props_check=True)
-    app.run_server('0.0.0.0', debug=False, port=8050)
+
+default_data_path = os.path.join(os.path.expanduser('~'), '.cassandra')
+
+
+def check_startup(data_path):
+    # check to see if this is a first-time startup
+    if (data_path == default_data_path) and not os.path.exists(data_path):
+        
+        msgs = [
+            f"CaSSAndRA stores your data (settings, maps, tasks, logs, etc) separate from the app directory. This allows us to update the app without losing any data.",
+            "",
+            f"Configured data_path: {click.style(data_path, bold=True)} (missing)",
+            "",
+            f"If you continue, CaSSAndRA will:",
+            f" - Create {click.style(data_path, bold=True)}",
+            f" - Sync missing files from {click.style('/src/data', bold=True)} to {click.style(data_path, bold=True)}",
+            "",
+            f"Each time you run CaSSAndRA, only missing files are copied and existing files aren't overwritten, so no data will be lost.",
+            "",
+            f"If this is the first time you are seeing this message, you can also:",
+            f" - Review the readme at https://github.com/EinEinfach/CaSSAndRA#cassandra-starten",
+            f" - enter {click.style('python app.py --help', bold=True)} on the command line"
+        ]
+        
+        # output the message about data_path
+        click.echo(click.style('\nYou are starting CaSSAndRA without an existing external data directory\n', bold=True))
+        click.echo('-'*80)
+        for msg in msgs:
+            click.echo(click.wrap_text(msg, initial_indent=' '*4, subsequent_indent=' '*4, width=90))
+        click.echo('-'*80)
+
+        # ask the user if they want to continue
+        cont = click.confirm(click.style(f'\nContinue with {data_path}?', bold=True), default=True)
+        if not cont:
+            click.echo('Aborting startup...')
+            return False
+        else:
+            return True
+    else:
+        return True
+    
+
+
+@click.command()
+@click.option('-h', '--host', default='0.0.0.0', show_default=True)
+@click.option('-p', '--port', default=8050, show_default=True)
+@click.option('--proxy', default=None, help='format={{input}}::{{output}} example=http://0.0.0.0:8050::https://my.domain.com')
+@click.option('--data_path', default=default_data_path, show_default=True)
+@click.option('--debug', default=False, is_flag=True, help="Enables debug mode for dash application")
+@click.option('--app_log_level', default="DEBUG", envvar='APPLOGLEVEL', type=logging_choices, show_default=True)
+@click.option('--app_log_file_level', default="INFO", envvar='APPLOGFILELEVEL', type=logging_choices, show_default=True)
+@click.option('--server_log_level', default="ERROR", envvar='SERVERLOGLEVEL', type=logging_choices, show_default=True)
+@click.option('--pil_log_level', default="WARN", envvar='PILLOGLEVEL', type=logging_choices, show_default=True)
+@click.option('--init', is_flag=True, help="Accepts defaults when initializing app for the first time")
+def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level, server_log_level, pil_log_level, init) -> None:
+    """ Start the CaSSAndRA Server
+
+        Only some Dash server options are handled as command-line options.
+        All other options should use environment variables.
+        Find supported environment variables here: https://dash.plotly.com/reference#app.run
+        
+    """
+    if init or check_startup(data_path):
+        # server and app imports
+        import dash
+        from src.layout import serve_layout
+        from src.backend import backendserver
+        from src.backend.data.utils import init_data
+        
+        # initialize data files
+        file_paths = init_data(data_path)
+        
+        # logging config
+        config_logging(file_paths.log, app_log_level, app_log_file_level, server_log_level, pil_log_level)
+
+        # start backend server
+        backendserver.start(file_paths)
+
+        assets_path = os.path.abspath(os.path.dirname(__file__)) +'/src/assets'
+        app = dash.Dash(
+            __name__,
+            use_pages=True,    # turn on Dash pages
+            pages_folder='src/pages',
+            # external_stylesheets=[
+            #     dbc.themes.MINTY,
+            #     dbc.icons.BOOTSTRAP
+            # ],  # fetch the proper css items we want
+            meta_tags=[
+                {   # check if device is a mobile device. This is a must if you do any mobile styling
+                    'name': 'viewport',
+                    'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover' 
+                },
+                {
+                    'name':"apple-mobile-web-app-capable",
+                    'content':"yes",
+                },
+                {
+                    'name':'theme-color' ,
+                    'content':'#78c2ad'
+                },
+            ],
+            suppress_callback_exceptions=True,
+            title='CASSANDRA',
+            update_title = 'CASSANDRA updating...',
+            assets_folder=assets_path, 
+        )
+        app.layout = serve_layout   # set the layout to the serve_layout function
+
+        app.run_server(host=host, port=port, proxy=proxy, debug=debug)
+
 
 if __name__ == "__main__":
-    main()
-
-
+    start()

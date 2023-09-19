@@ -9,7 +9,7 @@ import base64
 import pandas as pd
 from PIL import Image
 
-ABSOLUTE_PATH = os.path.dirname(__file__)
+file_paths = None
 
 #appcfg class
 @dataclass
@@ -27,19 +27,11 @@ class AppCfg:
     current_thd_charge: float = -0.03
     rover_picture: str = 'default/'
     rover_pictures: RoverIMG = RoverIMG()
+    file_path: str = ''
 
     def read_appcfg(self) -> None:
         try:
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-                path_to_data = json.load(f)
-                f.close()
-        except Exception as e:
-            logger.error('Backend: Could not read appcfg.json. Missing datacfg.json')
-            logger.debug(str(e))
-            return
-        try:
-            path_to_appcfg = path_to_data['path'][0]['user'][2]['appcfg']
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', path_to_appcfg)) as f: 
+            with open(file_paths.user.appcfg) as f: 
                 appcfg_from_file = json.load(f)
                 f.close()
         except Exception as e:
@@ -63,15 +55,6 @@ class AppCfg:
     
     def save_appcfg(self) -> int:
         try:
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-                path_to_data = json.load(f)
-                f.close()
-        except Exception as e:
-            logger.error('Backend: Could not save appcfg.json. Missing datacfg.json')
-            logger.debug(str(e))
-            return -1
-        try:
-            path_to_appcfg = path_to_data['path'][0]['user'][2]['appcfg']
             new_data = dict()
             new_data['datamaxage'] = self.datamaxage
             new_data['time_to_offline'] = self.time_to_offline
@@ -79,7 +62,7 @@ class AppCfg:
             new_data['voltage_to_soc'] = soc_look_up_table
             new_data['current_thd_charge'] = self.current_thd_charge
             new_data['rover_picture'] = self.rover_picture
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', path_to_appcfg), 'w') as f:
+            with open(file_paths.user.appcfg, 'w') as f:
                 logger.debug('New appcfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)
             logger.info('Backend: rovercfg data are successfully stored in appcfg.json')
@@ -99,21 +82,12 @@ class RoverCfg:
     mowspeed_setpoint: float = 0.3
     gotospeed_setpoint: float = 0.5
     positionmode: str = 'relative'
-    log: float = 0
+    lon: float = 0
     lat: float = 0
 
     def read_rovercfg(self) -> None:
         try:
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-                path_to_data = json.load(f)
-                f.close()
-        except Exception as e:
-            logger.error('Backend: Could not read rovercfg.json. Missing datacfg.json')
-            logger.debug(str(e))
-            return
-        try:
-            path_to_rovercfg = path_to_data['path'][0]['user'][3]['rovercfg']
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', path_to_rovercfg)) as f: 
+            with open(file_paths.user.rovercfg) as f: 
                 rovercfg_from_file = json.load(f)
                 f.close()
         except Exception as e:
@@ -134,22 +108,13 @@ class RoverCfg:
     
     def save_rovercfg(self) -> int:
         try:
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-                path_to_data = json.load(f)
-                f.close()
-        except Exception as e:
-            logger.error('Backend: Could not save rovercfg.json. Missing datacfg.json')
-            logger.debug(str(e))
-            return -1
-        try:
-            path_to_rovercfg = path_to_data['path'][0]['user'][3]['rovercfg']
             new_data = dict()
             new_data['mowspeed_setpoint'] = self.mowspeed_setpoint
             new_data['gotospeed_setpoint'] = self.gotospeed_setpoint
             new_data['positionmode'] = self.positionmode
             new_data['lon'] = self.lon
             new_data['lat'] = self.lat
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', path_to_rovercfg), 'w') as f:
+            with open(file_paths.user.rovercfg, 'w') as f:
                 logger.debug('New rovercfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)
             logger.info('Backend: rovercfg data are successfully stored in rovercfg.json')
@@ -173,16 +138,7 @@ class PathPlannerCfg:
 
     def read_pathplannercfg(self) -> None:
         try:
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-                path_to_data = json.load(f)
-                f.close()
-        except Exception as e:
-            logger.error('Backend: Could not read pathplannercfg.json. Missing datacfg.json')
-            logger.debug(str(e))
-            return
-        try:
-            path_to_pathplannercfg = path_to_data['path'][0]['user'][4]['pathplannercfg']
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', path_to_pathplannercfg)) as f: 
+            with open(file_paths.user.pathplannercfg) as f: 
                 pathplannercfg_from_file = json.load(f)
                 f.close()
         except Exception as e:
@@ -206,15 +162,6 @@ class PathPlannerCfg:
     
     def save_pathplannercfg(self) -> int:
         try:
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', '/src/data/datacfg.json')) as f: 
-                path_to_data = json.load(f)
-                f.close()
-        except Exception as e:
-            logger.error('Backend: Could not save pathplannercfg.json. Missing datacfg.json')
-            logger.debug(str(e))
-            return -1
-        try:
-            path_to_pathplannercfg = path_to_data['path'][0]['user'][4]['pathplannercfg']
             new_data = dict()
             new_data['pattern'] = self.pattern
             new_data['width'] = self.width
@@ -224,7 +171,7 @@ class PathPlannerCfg:
             new_data['mowborder'] = self.mowborder
             new_data['mowexclusion'] = self.mowexclusion
             new_data['mowborderccw'] = self.mowborderccw
-            with open(ABSOLUTE_PATH.replace('/src/backend/data', path_to_pathplannercfg), 'w') as f:
+            with open(file_paths.user.pathplannercfg, 'w') as f:
                 logger.debug('New pathplannercfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)
             logger.info('Backend: pathplannercfg data are successfully stored in pathplannercfg.json')
@@ -245,17 +192,11 @@ class PathPlannerCfg:
         self.mowborderccw = parameters.iloc[0]['mowborderccw']
 
 rovercfg = RoverCfg()
-rovercfg.read_rovercfg()
 pathplannercfg = PathPlannerCfg()
-pathplannercfg.read_pathplannercfg()
 pathplannercfgstate = PathPlannerCfg()
-pathplannercfgstate.read_pathplannercfg()
 pathplannercfgtask = PathPlannerCfg()
-pathplannercfgtask.read_pathplannercfg()
 pathplannercfgtasktmp = PathPlannerCfg()
-pathplannercfgtasktmp.read_pathplannercfg()
 appcfg = AppCfg()
-appcfg.read_appcfg()
 
 
         

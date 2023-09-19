@@ -5,6 +5,7 @@ import time
 import json
 import paho.mqtt.client as mqtt
 import pandas as pd
+import random
 
 from src.backend.data import datatodf, roverdata, mapdata
 from . import cmdtorover, cmdlist, message
@@ -20,7 +21,7 @@ def cmd_to_rover(client, connect_data) -> None:
         
    
 def connect_mqtt(connect_data: dict()) -> mqtt:
-    client_id = connect_data['MQTT'][0]['CLIENT_ID'] 
+    client_id = connect_data['MQTT'][0]['CLIENT_ID'] + str(random.randint(1, 1000))
     username = connect_data['MQTT'][1]['USERNAME'] 
     password = connect_data['MQTT'][2]['PASSWORD']
     mqtt_server = connect_data['MQTT'][3]['MQTT_SERVER']
