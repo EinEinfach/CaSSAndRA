@@ -3,86 +3,106 @@
 
 (Cascaded Sunray Server And Rover Application)
 
-CaSSAndRA ist eine Python-Server-Anwedung, die es einem erlaubt den Ardumower (oder Alfred) mit der Sunray Firmware zu steuern. Die Serveranwendung läuft auf einem separatem Rechner und kann über einen der drei Wege mit der Sunray Firmware kommunizieren:
+CaSSAndRA is a Python server application that allows you to control the Ardumower (or Alfred) with the Sunray firmware. The server application runs on a separate computer and can communicate with the Sunray firmware in one of three ways:
 - HTTP (Post requests)
 - MQTT
-- UART (serieller Port)
+- UART (serial port)
 
 [![introduction](https://img.youtube.com/vi/ZS4DnEkz1dI/0.jpg)](https://www.youtube.com/watch?v=ZS4DnEkz1dI)
 
-## Wichtig (Bitte vor der Installation lesen):
-Installation und Nutzung der App erfolgt auf eigene Gefahr. Ich übernehme keinerlei Haftung für die entstandenen Schäden durch die Nutzung der App. Es handelt sich hierbei um meinen Hobby-Projekt, der bei euch nicht funktionieren muss. Eurer Roboter muss mit einem Not-Aus Schalter ausgerüstet sein. Bei der Bedienung des Roboters aus der App bitte haltet immer Sichtkontakt zu dem Roboter und im Falle des unerewarteten Verhaltens schaltet diesen sofort über Not-Aus Schalter aus. Wenn Ihr damit einverstanden seid, dann fährt mit der Installation fort.
+## Important (Please read before installing):
+Installation and use of the app is at your own risk. I assume no liability for any damage caused by using the app. This is my hobby project, which doesn't have to work for you. Your robot must be equipped with an emergency stop switch. When operating the robot from the app, please always keep visual contact with the robot and in the event of unexpected behavior switch it off immediately using the emergency stop switch. If you agree, then proceed with the installation.
+
 ## Installation
-Installation für linuxbasierte Betriebssysteme (alle Befehle werden im Terminal ausgeführt):
-Als erstes muss die Repository heruntergeladen werden. Oder für die Profis unter euch einfach clonen (Achtung! In diesem Beispiel ist ardumower der Username unter dem alles installiert wird. Ersetzt ardumower durch euren Username unter dem das System läuft).
+Installation for Linux-based operating systems (all commands are run in the terminal):
+First the repository has to be cloned. (Warning! In this example, ardumower is the username under which everything is installed. Replace ardumower with your username under which the system is running).
 
-Entpackt die Dateien in den Ordner eurer Wahl (z.B.):
+	git clone https://github.com/EinEinfach/CaSSAndRA.git
 
-	/home/ardumower/CaSSAndRA
-Navigiert in den geclonten/entpackten Ordner:
+Navigate to the cloned folder:
 
  	cd /home/ardumower/CaSSAndRA
-Installiert die Abhängigkeiten, dazu im Terminal folgendes eingeben:
+Install the dependencies by entering the following in the terminal:
 
-    pip install -r /home/ardumower/CaSSAndRA/requirements.txt
-danach könnt Ihr erst mal Kaffee holen gehen, denn das kann dauern. Bitte achtet drauf, dass die Installation ohne Fehlern abgeschlossen wird (Warnings können ignoriert werden).
+    pip3 install -r /home/ardumower/CaSSAndRA/requirements.txt
+after that you can go get some coffee first, because that can take a while. Please ensure that the installation completes without errors (warnings can be ignored).
 
-Wenn euch das Betriebssystem mit -bash: pip command not found begrüßt, 	müsst Ihr noch pip nachinstallieren: 
+If the operating system greets you with -bash: pip command not found, you still have to install pip:
 
     sudo apt install python3-pip
-
-Prüft bitte mit folgendem Befehl den Bibliothekenpfad eurer pip-Installation:
+Please check the library path of your pip installation with the following command:
 
 	python3 -m site --user-site
-Wechselt bitte in den Bibliothekenpfad(z.B.). Achtung beim 64bit System kann der Ordner lib64 heißen:
+Please switch to the library path (e.g.). Attention with the 64bit system the folder lib64 can be called:
 
 	cd ./local/lib/python3.9/site-packages
-Sucht den dash_daq Ordner und wechselt dahin:
+Locate the dash_daq folder and go to it:
 
 	cd dash_daq
 
-Kopiert die dash_daq.min.js Datei aus der von euch geclonten Repository in den dash_daq Bibliotheken-Ordner und ersetzt die vorhandene Datei:
+Copy the dash_daq.min.js file from the repository you cloned into the dash_daq libraries folder and replace the existing file:
 
 	cp /home/ardumower/CaSSAndRA/bugfix_dash_daq_min/dash_daq.min.js dash_daq.min.js
 
-## Probleme bei der Installation:
+## Installation issues:
 
-Es hat sich herausgestellt, dass besonders Raspberry Pi OS 32bit (bullseye) bei der Installation der Pandas Bibliothek Probleme bereiten kann. Deutlich reibungsloser funktioniert es mit der 64bit Version. Solltet Ihr Probleme bei der Installation auf der Raspberry Pi OS haben, prüft als erstes welche Version von Raspberry Pi OS auf eurem Einplatinencomputer läuft:  
+It turned out that Raspberry Pi OS 32bit (bullseye) in particular can cause problems when installing the Pandas library. It works much more smoothly with the 64-bit version. If you have problems with the installation on the Raspberry Pi OS, first check which version of Raspberry Pi OS is running on your single-board computer:
 
 	uname -r
 
-Kommt als Antwort armv7l, dann habt Ihr 32bit Version. Kommt als Antwort aarch64, dann habt Ihr 64bit Version und die Ursache für das Problem liegt woanders.
+If the answer is armv7l, then you have the 32-bit version. If the answer is aarch64, then you have a 64-bit version and the cause of the problem lies elsewhere.
 
-Für die 32bit Version von bullseye müssen vorher auf dem Raspberry Pi noch folgendes nachinstalliert werden:
-		
-		sudo apt install libatlas-base-dev libgeos-dev
+For the 32-bit Raspberry OS version of bullseye, the following must be additionaly installed:
+
+	sudo apt install libatlas-base-dev libgeos-dev
     
-## CaSSAndRA starten
-CaSSAndRA das erste mal starten (alle Befehle, bis auf den letzten Aufruf (dieser erfolgt im Browser) werden im Terminal ausgeführt):
+## CaSSAndRA Start
+Start CaSSAndRA for the first time (all commands except the last call (this is done in the browser) are executed in the terminal):
 
-Wechselt in den Ordner, wo eure app.py Datei liegt. Habt Ihr nach der Installation den Ordner nicht verschoben dann ist in den Ordner wie folgt zu wechseln:
+Go to the folder where your app.py file is located. If you haven't moved the folder after installation, then change to the folder as follows:
 
 	cd /home/ardumower/CaSSAndRA/CaSSAndRA
-Startet die App mit:
+Start app with:
 
-	python3 app.py
-Der erfolgreiche Start wird mit ein paar Warnings und INFO Dash is running on xxx:8050 quitiert:
+	./app.py
+At first time you will get follow message:
+
+	You are starting CaSSAndRA without an existing external data directory
+
+--------------------------------------------------------------------------------
+    CaSSAndRA stores your data (settings, maps, tasks, logs, etc) separate from the app
+    directory. This allows us to update the app without losing any data.
+
+    Configured data_path: /home/lex/.cassandra (missing)
+
+    If you continue, CaSSAndRA will:
+     - Create /home/lex/.cassandra
+     - Sync missing files from /src/data to /home/lex/.cassandra
+
+    Each time you run CaSSAndRA, only missing files are copied and existing files aren't
+    overwritten, so no data will be lost.
+
+    If this is the first time you are seeing this message, you can also:
+     - Review the readme at https://github.com/EinEinfach/CaSSAndRA#cassandra-starten
+     - enter python app.py --help on the command line
+--------------------------------------------------------------------------------
+If you agree with creating a data path on suggested location just confirm start by pressing Y
+
+The successful start is acknowledged with a few warnings and INFO Dash is running on xxx:8050:
 
 	2023-04-28 08:38:24 INFO Dash is running on http://0.0.0.0:8050/
  	* Serving Flask app 'app'
  	* Debug mode: off
 	2023-04-28 08:38:24 INFO Backend: Try initial HTTP request	
-Herzlichen Glückwunsch die App ist erfolgreich gestartet und man kann die App im Browser eurer Wahl aufrufen: 
+Congratulations, the app has started successfully and you can access the app in the browser of your choice: 
 
 	http://IP-des-Rechners:8050
     
-Die App sollte euch jetzt mit 3 roten Ampeln begrüßen:
+The app should now greet you with 3 red lights:
 
 ![first start](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/first_start.jpeg)
 
-Um den Server zu stoppen drück im Terminal Strg+C
-
-
+To stop cassandra press Strg+C
 ### CaSSAndRA Start Options
 
 You can see all the options available when starting CaSSAndRA by executing:
@@ -133,54 +153,54 @@ Run two instances of CaSSAndRA:
 - Terminal 1: `python app.py` (data in ~/.cassandra)
 - Terminal 2: `python app.py --data_path=/Users/myusername/.cassandra2` (data in ~/.cassandra2)
 
-## CaSSAndRA als daemon Service einrichten
-Um CaSSAndRA bei jedem Systemstart automatisch ausführen. Kann die Ausführung der Anwendung über systemd realisiert werden. Checkt, ob auf eurem System systemd vorhanden ist:
+## CaSSAndRA as daemon service
+To allow CaSSAndRA start each time on system boot you can create a deamon service. First you have to check is daemon service (systemd) is available on your OS:
 
 	systemd --version
 
-Sollte eine Meldung kommen, dass systemd nicht gefunden wurde, dann muss dieser nachinstalliert werden, oder wird dieser von eurem Betriebssystem nichzt unterstützt. Dann bitte an dieser Stelle abbrechen.
+If you get a message that systemd was not found, then it needs to be installed or it is not supported by your operating system. Then please cancel at this point.
 
-Als nächstes legen wir eine neue service Datei an:
+In next step we create a service file:
 
 	sudo nano /etc/systemd/system/cassandra.service
 
-Die geöfnete Datei füllt Ihr mit folgenden Iformationen:
+Copy and paste the follow content in new file:
 
 	[Unit]
 	Description=CaSSAndRA
 	After=multi-user.target
 
 	[Service]
-	#Euer Benutzername
+	#your username!
 	User=ardumower 
 	Type=simple
 	Restart=always
-	#ExecStart: ggf. Pfad zu eurer app.py anpassen 
+	#ExecStart: your app.py directory!  
 	ExecStart=python3 /home/ardumower/CaSSAndRA/CaSSAndRA/app.py
 	[Install]
 	WantedBy=multi-user.target
 
-Datei speichern und schliessen.
+Save new file: Strg+o confirm with return and exit: Strg+x 
 
-Als nächstes muss daemon neuegeladen werden:
+Reload systemd:
 
 	sudo systemctl daemon-reload
-Aktiviert die Ausführung bei jedem Start:
+Activate cassandra.service:
 
 	sudo systemctl enable cassandra.service
-Und zum Schluss startet den Service:
+Start cassandra.service:
 
 	sudo systemctl start cassandra
-Prüft den Status:
+Check current status:
 
 	sudo systemctl status cassandra
-Als Ausgabe kommt(wichtig ist das Wort active(running)):
+Terminal output(important is state of 'Active' it should be active (running)):
 
 	cassandra.service - CaSSAndRA service
      Loaded: loaded (/etc/systemd/system/cassandra.service; enabled; vendor preset: enabled)
      Active: active (running) since Thu 2023-04-27 07:48:22 CEST; 1 day 5h ago
 
-## CaSSAndRA im Docker Container einrichten
+## Create docker container for CaSSAndRA
 
 Change to the project directory. Example: `cd /Users/<username>/projects/CaSSAndRA`
 

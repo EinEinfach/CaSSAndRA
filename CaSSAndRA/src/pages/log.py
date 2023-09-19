@@ -28,7 +28,7 @@ def update_layout() -> dbc.Container:
                     #     df.to_string(columns=['content'], header=False, index=False)
                     #     ], style={'whiteSpace': 'pre-wrap'}
                     # )
-                ], justify='center', style={'flex': '1 0 0%', 'overflow-y': 'scroll'}, 
+                ], justify='center', style={'flex': 'auto', 'overflow-y': 'scroll'}, 
                 id=ids.LOGTABLE ),
             ], style={"height" : "100%", "overflow" : "hidden", "display" : "flex", "flex-direction" : "column"})
 

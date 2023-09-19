@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.71.0 Change Rover IMG behavior
+#Version:0.72.0 Lot of changes in start behavior an moving data folder to user directory
 
 # package imports
 import os
