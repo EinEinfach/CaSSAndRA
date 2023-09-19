@@ -237,29 +237,47 @@ docker run -it \
 ```
 
 
-## Bedienung
-### Einrichten der Kommunikation
-In der App klickt auf "Settings". Auf der Seite wählt "Communication". Sucht euch eine der Möglichkeiten aus, trägt die Daten ein (bitte haltet die Syntax, was CaSSAndRA euch vorschlägt,bei) und anschliessend mit "save and reboot" werden die Einstellungen übernommen und der Server neuegestartet:
+## Settings
+### Establishing communication to the rover
+Go to the "Settings" page or if you on mobile device click on burger menu and then "Settings". Go to "Connection" and choose one of possiblities. Input your specific data (please keep syntax suggestion alos for your data). At the end click on "save and reboot" and let cassandra restart backendserver:
 
 ![connection](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/connection.jpeg)
 
-Wenn Ihr zurück auf die Startseite wechselt (z.B. durch click in der Navbar auf CaSSAndRA) und die Verbindung hat geklappt, sollten einige Ampeln nicht mehr auf rot sein.
+If you have returned to the homepage (e.g. by clicking on CaSSAndRA in the navbar) and the connection worked, some traffic lights should no longer be red.
 
-### Einrichten Map and position
-Unter Settings "Map and position" wählen. Hier bitte eure Positionsberechnung unbedingt anpassen (absolute oder relative). Die restliche Einstellungen sind selbserklärend. Einige Einstellungen werden akutell bei der Berechnung der Mähwege nicht berücksichtigt. Vor dem schliessen mit "save and reboot" die Änderungen spechern und den Server neuestarten
+### Coverage path planner
+Select "Coverage path planner" on "Settings" page. Here you can set default planner settings which are used after server restart. 
 
-### Einrichten der App
-Unter Settings "App" wählen. Hier gibt es die Möglichkeiten einige Anzeigen in der App eurer Konfiguration anzupassen.
+Pattern: Selection of [lines, squares, rings]
 
-1. Maximale Haltedauer eurer Messdaten ein. Abhängig von euren zur Verfügung stehenden Ressourcen (Der notwendiger Speicherplatz muss noch ermittelt werden, sollte um die 100MB bis 200MB pro Monat betragen)
+Mow width: positive value [0.0 - 1.0]
 
-2. Die Zeit "ab Verbindung verloren bis Status wechselt zu offline". Läuft die Verbindung über MQTT oder HTTP und Ihr habt keine flächendeckende WiFi Abdeckung im Garten, wählt die Zeit entsprechend hoch
+Mow angle: positive value [0 - 359]
 
-3. Mindeststromstärke, ab der die Anzeige vom "docked" zu "charging" wechseln soll (Achtung: es muss ein negativer Wert sein)
+Distance to border: positive value [0 - 5]. Defines distance to border for area to mow calculation (Distance to border * Mow width)
 
-4. SoC Anzeige. Umrechnung Spannung zu Ladezustand (einfache lineare Interpolation). Als Voltage min (0%) wird die Abschaltspannung aus der config.h eurer sunray FW +0,5V empfohlen. Als Voltage max (100%) wird die Ladeschlussspannung aus der config.h eurer sunray FW -0,5V empfohlen. Die SoC Anzeige hat keinerlei steuerende Funktion und dient lediglich einer Übersicht auf der Startseite
+Mow cut edge border (laps): positive value [0 - 5]. Defines which lap should be mowed (first lap: border, second lap: border - mow width, third lap: border - 2*mow width)
 
-### Erstellen einer Karte
+Mow area: [on, off]. Should the area to be mowed 
+
+Mow cut edge exclusion: [on, off]. Should exclusions and border to be mowed
+
+Mow cut edge border in ccw: [on, off]. Should exclusions and border to be mowed counter clockwise
+
+### App
+Select “App” under Settings. Here you have the option to configure some frontend settings.
+
+1. Mower picture: Select one image what should be shown in the App
+
+2. Max age for measured data: Every day on 00:00 CaSSAndRA removes unneccasarry data from storage. Confugure here how long the measured data should be stored
+
+3. Time to wait before offline: Configure here how long should CaSSAndRA wait before state is changed to offline. If you using CaSSAndRA connection over HTTP or MQTT and you WiFi coverage not the best one increase the time to avoiding toggling of state message
+
+4. Min charge current: Configure here from which charge current is rover in charging state (Attention: charge current has to be negative value)
+
+5. Voltage to SoC: Conversion of voltage to state of charge (simple linear interpolation). The recommended voltage min (0%) is the shutdown voltage from the config.h of your sunray FW +0.5V. The recommended voltage max (100%) is the final charging voltage from the config.h of your sunray FW -0.5V. The SoC display has no controlling function and only serves as an overview on the home page
+
+## Mapping
 Eine neue Karte oder bereits vorhandene Karte kann im Bereich Mapping erstellt/geändert werden. 
 
 In der App klickt auf "Mapping". Um eine vorhandene Karte zu ändern, wählt im Bereich "saved perimeters" die gewünschte Karte. Nun kann mit der Bearbeitung gestartet werden. Eine zusätzliche Sicherung der vorhandenen Karte vor der Bearbeitung ist nicht notwendig. Nach dem Fertigstellen der Karte wird man aufgefordert die bearbeitete Karte in einem separaten Slot zu speichern. Um eine neue Karte zu erstellen klickt auf das Dateisymbol mit dem Plus im Berech "saved perimeters". 
