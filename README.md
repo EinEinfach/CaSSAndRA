@@ -278,50 +278,54 @@ Select “App” under Settings. Here you have the option to configure some fron
 5. Voltage to SoC: Conversion of voltage to state of charge (simple linear interpolation). The recommended voltage min (0%) is the shutdown voltage from the config.h of your sunray FW +0.5V. The recommended voltage max (100%) is the final charging voltage from the config.h of your sunray FW -0.5V. The SoC display has no controlling function and only serves as an overview on the home page
 
 ## Mapping
-Eine neue Karte oder bereits vorhandene Karte kann im Bereich Mapping erstellt/geändert werden. 
+A new map or existing map can be created/modified on the "Mapping" page.
 
-In der App klickt auf "Mapping". Um eine vorhandene Karte zu ändern, wählt im Bereich "saved perimeters" die gewünschte Karte. Nun kann mit der Bearbeitung gestartet werden. Eine zusätzliche Sicherung der vorhandenen Karte vor der Bearbeitung ist nicht notwendig. Nach dem Fertigstellen der Karte wird man aufgefordert die bearbeitete Karte in einem separaten Slot zu speichern. Um eine neue Karte zu erstellen klickt auf das Dateisymbol mit dem Plus im Berech "saved perimeters". 
+In the app click on “Mapping”. To change an existing map, select the desired map in the "select map" area. Now you can start editing. An additional backup of the existing map before processing is not necessary. After completing the map, you will be asked to save the edited map in a separate slot. To create a new map, click on the file icon with the plus in the "select map" section.
 
 ![create_new_perimeter](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/create_new_perimeter.jpeg) 
 
-Positioniert den Roboter an der Stelle, wo ein neuer Punkt aufgezeichnet soll und drückt auf "add new point" zum hinzufügen einer neuen Koordinate oder "remove last point" zum Löschen der letztgesetzten Koordinate.
+Position the robot at the location where a new point is to be recorded and press "add new point" to add a new coordinate or "remove last point" to delete the last set coordinate.
 
 ![add_remove_point](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/add_remove_point.jpeg) 
 
-Ist die Figur fertig kann diese der Fläche hinzugefügt werden (Perimeter), oder aus der Fläche entfernt werden (Exclusion). Hierzu klickt auf die entsprechende Buttons.
+Once the figure is finished, it can be added to the area (perimeter) or removed from the area (exclusion). To do this, click on the corresponding buttons.
 
 ![add_remove_figure](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/add_remove_figure.jpeg) 
 
-Um eine Figur zu erstellen können bereits bekannte Werkzeuge Box-Select oder Lasso-Select genutzt werden. So funiktioniert z.B. auch das Löschen einer Exclusion umkreist die Exclusion mit Lasso-Select und wählt zur Fläche hinzufügen. Die neue Figur wird dem Perimeter hinzugefügt und überklebt sozusagen die vorhandene Exclusion. 
+To create a figure, you can use the well-known tools Box-Select or Lasso-Select. For example, deleting an exclusion also works by circling the exclusion with lasso select and selecting add to area. The new figure is added to the perimeter and covers over the existing exclusion. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected
 
-Um einen Dockpfad aufzuzeichnen selektiert hierzu das Symbol mit dem Haus. Danach kann mit den Buttons "add new point" und "remove last point" der neue Dockpfad aufgezeichnet werden. Wenn ein neuer Dockpfad aufgenommen wurde oder ein vohandener überarbeitet wurde merkt das CaSSAndRA und beim Speichern des neuen Perimeters verschiebt CaSSAndRA den letzten Dockpoint automatisch um 10cm in die Dockrichtung um das sichere Andocken zu gewährleisten. 
+To record a dock path, select the symbol with the house. The new dock path can then be recorded using the “add new point” and “remove last point” buttons. When a new dock path has been recorded or an existing one has been revised, CaSSAndRA notices it and when saving the new perimeter, CaSSAndRA automatically moves the last dock point by 10cm in the docking direction to ensure safe docking. This feauture isn't active if you modify dock path in edit or moving mode.
 
-Wenn das neue Perimeter aufgenommen wurde kann das mit entsprechednen Button bestätigt werden und CaSSAndRA fordert euch auf einen neuen Namen für die erstellte Karte zu wählen.
+Edit mode:
+Select a point what you want to modify. Related figure chages his color and selected point is also marked. Now you can remove the point by clicking remove point or you can add a new point to the figure. The new point is added between current point and point before or next point
+
+Moving mode:
+Has to be descipted...
+
+If you are finished. Click on the cloud with plus button in "Select map" section and give an unique name for new/changed map.
 
 ![save_new_perimeter](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/save_new_perimeter.jpeg) 
 
-### Importieren einer Karte
-Es gibt die Möglichkeit eine Karte, die in der Sunray App ersstellt wurde zu importtieren. 
+### Import map
+It is possible to import a map that was created in the Sunray app.
 
-Im Bereich "Upload sunray file" klickt auf den Button mit "txt-Datei-Icon". 
+In the “Import map” area, click on the button with the “txt file icon”.
 
-Wählt eure Sunray-Export Datei. 
+Choose your Sunray export file.
 
-Im Dropdownmenü könnt Ihr jetzt die gewünschte Karte auswählen. 
+You can now select the map you want in the drop-down menu.
 
-Ein Vorschau der Karte wird in Rot angezeigt mit dem Hinweis "From upload (please save first)".
+A preview of the map is displayed in red with the note "From upload (please save first)".
 
 ![upload](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/upload.jpeg) 
 
-Um die gewünschte Karte zu speichern klickt auf die Wolke mit Plus. 
+If you want save selected upload. Click on the cloud with plus button in "Select map" section and give an unique name for imported map.
 
-Im poup-Menü wählt einen eineindeutigen Namen und klickt OK. 
+The map is now available in "Select map" section
 
-Die Karte wird gespeichert und kann im Berech "Saved perimeters" im Dropdownmenü ausgewählt werden. 
+The map can be activated using the cloud with the outgoing arrow.
 
-Mit der Wolke mit dem ausgehenden Pfeil kann die Karte aktiv geschaltet werden. 
-
-Wechselt auf die Startseite. Die neue Karte wird in der Übersicht angezeigt und kann verwendet werden.
+Switches to the home page. The new map is displayed in the overview and can be used.
 
 ## Starten einer Aufgabe
 

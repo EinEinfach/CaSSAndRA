@@ -107,7 +107,7 @@ def update_layout() -> html.Div:
                                         dbc.Modal(
                                             [
                                                 dbc.ModalHeader(
-                                                    dbc.ModalTitle('Choose Perimeter')
+                                                    dbc.ModalTitle('Select map')
                                                 ),
                                                 dbc.ModalBody([
                                                     dbc.Col(id=ids.CONTENTMODALCHOOSEPERIMETER),
@@ -136,7 +136,7 @@ def update_layout() -> html.Div:
                                         dbc.Modal(
                                             [
                                                 dbc.ModalHeader(
-                                                    dbc.ModalTitle('Upload Sunray')
+                                                    dbc.ModalTitle('Import map')
                                                 ),
                                                 dbc.ModalBody(
                                                     dbc.Col(id=ids.CONETNEMODALUPLOADFILE) 
