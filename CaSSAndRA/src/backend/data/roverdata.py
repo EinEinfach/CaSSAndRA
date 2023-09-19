@@ -222,7 +222,7 @@ class Mower:
             self.gotospeed_setpoint = min(1, new_setpoint)
     
     def set_rover_image(self) -> None:
-        return Image.Image.rotate(appcfg.rover_pictures.img0deg, self.direction)
+        return Image.Image.rotate(appcfg.rover_pictures.img0deg, self.direction, expand=True)
             
     def check_mapupload(self) -> None:
         if self.map_upload_started and self.map_crc == self.map_old_crc:

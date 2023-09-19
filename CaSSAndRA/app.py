@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.72.1 Lot of changes in start behavior an moving data folder to user directory
+#Version:0.73.0 Move center of rover img
 
 # package imports
 import os

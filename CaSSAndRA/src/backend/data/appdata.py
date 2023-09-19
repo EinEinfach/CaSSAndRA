@@ -3,7 +3,7 @@ logger = logging.getLogger(__name__)
 
 from datetime import datetime
 
-version = '0.72.1'
+version = '0.73.0'
 
 commcfg = {
             "USE": "HTTP",
