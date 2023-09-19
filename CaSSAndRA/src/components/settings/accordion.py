@@ -6,9 +6,8 @@ import time
 from .. import ids
 from . import buttons
 from src.backend import backendserver
-from src.backend.comm import cfg
-from src.backend.data import appdata, mapdata
-from src.backend.data.cfgdata import rovercfg, pathplannercfg, appcfg
+from src.backend.data import appdata
+from src.backend.data.cfgdata import rovercfg, pathplannercfg, appcfg, commcfg
 from src.backend.comm import cmdlist
 
 accordion_settings = dbc.Accordion([
@@ -31,29 +30,29 @@ accordion_settings = dbc.Accordion([
 
                                     html.Div([
                                         dbc.FormText('Client-ID'),
-                                        dbc.Input(value = appdata.commcfg['MQTT'][0]['CLIENT_ID'], id=ids.MQTTCLIENTID),
+                                        dbc.Input(value = commcfg.mqtt_client_id, id=ids.MQTTCLIENTID),
                                         dbc.FormText('Username'),
                                         dbc.Input(placeholder='your MQTT-Server username, leave empty if not in use', id=ids.MQTTUSERNAME),
                                         dbc.FormText('Password'),
                                         dbc.Input(placeholder='your MQTT-Server password, leave empty if not in use', id=ids.MQTTPASSWORD),
                                         dbc.FormText('MQTT-Server'),
-                                        dbc.Input(value = appdata.commcfg['MQTT'][3]['MQTT_SERVER'], id=ids.MQTTSERVER),
+                                        dbc.Input(value = commcfg.mqtt_server, id=ids.MQTTSERVER),
                                         dbc.FormText('Port'),
-                                        dbc.Input(value = appdata.commcfg['MQTT'][4]['PORT'], id=ids.MQTTPORT, type='number'),
+                                        dbc.Input(value = commcfg.mqtt_port, id=ids.MQTTPORT, type='number'),
                                         dbc.FormText('Mower name with prefix'),
-                                        dbc.Input(value = appdata.commcfg['MQTT'][5]['MOWER_NAME'], id=ids.MQTTROVERNAME)  
+                                        dbc.Input(value = commcfg.mqtt_mower_name, id=ids.MQTTROVERNAME)  
                                     ], id=ids.MQTTCONNECTIONSTYLE),
 
                                     html.Div([dbc.FormText('IP-Adress of your rover'),
-                                        dbc.Input(value = appdata.commcfg['HTTP'][0]['IP'], id=ids.IPADRESSROVER),
+                                        dbc.Input(value = commcfg.http_ip, id=ids.IPADRESSROVER),
                                         dbc.FormText('Connection password (see your config.h)'),
                                         dbc.Input(placeholder='see config.h of sunray FW', id=ids.SUNRAYPASS),
                                     ], id=ids.HTTPCONNECTIONSTYLE),
 
                                     html.Div([dbc.FormText('Serial port'),
-                                        dbc.Input(value = appdata.commcfg['UART'][0]['SERPORT'], id=ids.SERPORT),
+                                        dbc.Input(value = commcfg.uart_port, id=ids.SERPORT),
                                         dbc.FormText('Baudrate'),
-                                        dbc.Input(value = appdata.commcfg['UART'][1]['BAUDRATE'], id=ids.BAUDRATE, type='number'),
+                                        dbc.Input(value = commcfg.uart_baudrate, id=ids.BAUDRATE, type='number'),
                                     ], id=ids.UARTCONNECTIONSTYLE)     
                                 ]),
                             ],
@@ -224,19 +223,25 @@ def update_connection_data(bsr_n_clicks: int, bok_n_clicks: int,
     context = ctx.triggered_id
     if context == ids.BUTTONOK:
         if connectiontype == 'MQTT':
-            mqtt_connect_data = {'USE': connectiontype, 'CLIENT_ID': mqttclientid, 
-                                 'USERNAME': mqttusername, 'PASSWORD': mqttpassword, 
-                                 'MQTT_SERVER': mqttserver, 'PORT': mqttport, 
-                                 'MOWER_NAME': mqttrovername}
-            cfg.save_commcfg(mqtt_connect_data)
+            commcfg.use = connectiontype
+            commcfg.mqtt_client_id = mqttclientid
+            commcfg.mqtt_username = mqttusername
+            commcfg.mqtt_pass = mqttpassword
+            commcfg.mqtt_port = mqttport
+            commcfg.mqtt_mower_name = mqttrovername
+            commcfg.save_commcfg()
             backendserver.stop()
         elif connectiontype == 'HTTP':
-            http_connect_data = {'USE': connectiontype, 'IP': ipadressrover, 'PASSWORD': sunraypass}
-            cfg.save_commcfg(http_connect_data)
+            commcfg.use = connectiontype
+            commcfg.http_ip = ipadressrover
+            commcfg.http_pass = sunraypass
+            commcfg.save_commcfg()
             backendserver.stop()
         elif connectiontype == 'UART':
-            uart_connect_data = {'USE': connectiontype, 'SERPORT': serport, 'BAUDRATE': baudrate}
-            cfg.save_commcfg(uart_connect_data)
+            commcfg.use = connectiontype
+            commcfg.uart_port = serport
+            commcfg.uart_baudrate = baudrate
+            commcfg.save_commcfg()
             backendserver.stop()
 
     if bsr_n_clicks or bok_n_clicks:

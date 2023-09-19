@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.73.0 Move center of rover img
+#Version:0.74.0 Cleaning code, remove unnecassary files
 
 # package imports
 import os

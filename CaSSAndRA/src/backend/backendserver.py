@@ -6,7 +6,7 @@ import time
 import os
 
 from . data import saveddata, calceddata, cleandata, cfgdata, logdata
-from . comm import mqttcomm, httpcomm, uartcomm, cfg
+from . comm import cfg_, mqttcomm, httpcomm, uartcomm
 
 restart = Event()
 
@@ -152,12 +152,14 @@ def start(file_paths) -> None:
     logdata.commlog.path = file_paths.log
     
     # todo: this should be a class or refactored in some way to avoid having to initilize this way
-    cfg.file_paths = file_paths
-    connect_data = cfg.read_commcfg(file_paths.user.comm)
+    #cfg.file_paths = file_paths
+    #connect_data = cfg.read_commcfg(file_paths.user.comm)
+    
     
     # initialize config data
     # todo: this should be a class or refactored in some way to avoid circular dependencies
     cfgdata.file_paths = file_paths
+    connect_data = cfgdata.commcfg.read_commcfg()
     cfgdata.rovercfg.read_rovercfg()
     cfgdata.pathplannercfg.read_pathplannercfg()
     cfgdata.pathplannercfgstate.read_pathplannercfg()
