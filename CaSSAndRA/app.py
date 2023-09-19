@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.74.0 Cleaning code, remove unnecassary files
-
+#Version:0.74.1 Repaired reboot backend
 # package imports
 import os
 import sys

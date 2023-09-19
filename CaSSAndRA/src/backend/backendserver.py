@@ -6,7 +6,7 @@ import time
 import os
 
 from . data import saveddata, calceddata, cleandata, cfgdata, logdata
-from . comm import cfg_, mqttcomm, httpcomm, uartcomm
+from . comm import mqttcomm, httpcomm, uartcomm
 
 restart = Event()
 
@@ -219,7 +219,7 @@ def stop() -> None:
     restart.set()
     time.sleep(5)
     restart.clear()
-    start()
+    start(cfgdata.file_paths)
 
 if __name__ == '__main__':
     start()
