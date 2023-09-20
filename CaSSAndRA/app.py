@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.74.1 Repaired reboot backend
+#Version:0.75.0 Increase mower img, update readme
 # package imports
 import os
 import sys

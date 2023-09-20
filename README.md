@@ -327,71 +327,72 @@ The map can be activated using the cloud with the outgoing arrow.
 
 Switches to the home page. The new map is displayed in the overview and can be used.
 
-## Starten einer Aufgabe
+## Overview
 
-Auf der Übersichtsseite (zu erreichen über Betätigen CaSSAndRA Schriftzug im oberen Bildschirmberech) kann dem Roboter eine Aufgabe zugewiesen werden.
+Overview page can be called by clicking "CaSSAndRA" in the navbar. This is your main page where you can track status of your robot and start some tasks.
 
 ![using_app_overview](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_overview.jpeg) 
 
-### Zur Ladestation zurückkehren
-Klickt auf das Häuschen-Symbol und anschliessend auf Play -> Der Mäher kehrt zur Ladestation zurück
+### Go home
+Click on "go home" button and confirm the action by clicking play button. 
 
-### Mähe die gesamte Fläche
-Klickt auf das Karten-Symbol (rechts neben dem Häuschen-Symbol). CaSSAndRA berechnet die Mähwege nach euren Einstellungen. Je nach Leistung eures Rechners bzw. der Größe der Karte kann die Berechnung etwas dauern. Die berechneten Wege erscheinen grün auf der Karte. Anschliessend klickt auf Play -> der Mäher fängt an die gesamte Fläche zu mähen
+### Mow whole area
+Click on "mow all" button. CaSSAndRA calculates the mowing paths according to your settings. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated route appear green on the map. Click on play button to start mowing
 
 ![using_app_mow](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow.jpeg) 
 
-### Mähe ausgewählte FLäche
-Klickt auf das Karten-Symbol mit einer Pinnadel (rechts neben dem Karten-Symbol). Wählt im oberen Kartenbereich Box Select oder Lasso Select Werkzeug. Markiert anschliessend auf der Karte die gewünschte Fläche. Je nach Leistung eures Rechners bzw. der Größe der Karte kann die Berechnung etwas dauern. Die berechneten Wege erscheinen grün auf der Karte. Anschliessend klickt auf Play -> der Mäher fängt an die ausgewählte Fläche zu mähen
+### Mow selected area
+Click on "select zone to mow" button. Select "Lasso Select" or "Box Select" in the tool bar on top of the map. Then mark the desired area on the map. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated routes appear green on the map. You can repeat the calculation for selected area. Change your mow settings and click "select zone to mow" again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. Click on play button to start mowing
 
 ![using_app_mow_zone](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow_zone.jpeg) 
 
-### Mäher zum beliebigen Punkt auf der Karte fahren lassen
-Klickt auf das Positions-Symbol (rechts neben dem Karten-Symbol mit einer Pinnadel). Klickt auf der Karte auf die gewünschte Position. Anschliessend klickt auf Play -> der Mäher fährt zu der gewünschten Position auf der Karte
+### Go to selected point
+Click on "select go to". Slect a target point on the map and click play button. The rover moves to desired coordinates
 
 ![using_app_goto](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_goto.jpeg) 
 
-Aktuelle Einschränkungen: Befindet sich die Ladestation außerhalb des Perimeters und der Mäher soll aus der Ladestation zum gewünschten Punkt fahren, wird die Aufgabe mit einem Fehler abgebrochen
+Current restrictions: If the charging station is outside the perimeter and the mower is supposed to drive from the charging station to the desired point, the task will be aborted with an error
 
-### Temporäre Mäheinstellungen
-Klickt auf das Zahnradsysmbol. Es können diverse Mäheinstellungen vorgenommen werden. Diese Einstellungen werden nicht gespeichert und wirken sich nur temporär aus. Wird der Server neuegestartet so werden die Werte aus dem Settingsbereich übernommen
+### Mow settings
+Click on the gear symbol. Configure path planner for next calculation. These settings are only applied to the calculation on this page. If the server is restarted, the values ​​will be set to default values ​​from the settings
 
-### Auswahl abbrechen
-Klickt auf das Symbol mit dem X (rechts neben der Zahnradsymbol) so wird die ausgewählte, nicht gestartete Aufgabe abgebrochen
+### Cancel
+Click on cancel button to remove elements from the map. If there are any obstacles in the map the first cancel click will remove obstacles the second click will remove created job.
+
+### Play button
+The play button starts created task (Mow, go to, go home) but also it is possible to resume a previous task. To do that just click play button without creating a new task even deleted lines by pressing cancel button will be restored
 
 ## Taksplanner
-Klickt auf Burgermenü und wählt Taskplanner. 
+Click on "Taskplanner" in navigation bar or if you on mobile device click on burger menu and then select "Taskplanner"
 
-### Erstellen einer Aufgabe
-Sollte bereits eine Aufgabe geladen sein, dann klickt auf das Blattpapier-Button mit dem Plus Zeichen im "saved tasks" Bereich. Benutzt das Zahnrad um die Mäheinstellungen für die geplannte Aufgabe anzupassen. Klickt anschliessend auf den Button Karte (links neben dem Zahnradsymbol) für die Aufgabe auf der ganzen Karte oder selektiert mit Lasso-Werkzeug oder Boxselect-Werkzeug den gewünschten Bereich auf der Karte. Ein Vorschau der Aufgabe erscheint in rot. Um die Aufgabe zu speichern klickt im Bereich "saved tasks" auf die Wolke mit dem Plus Zeichen. Gibt der Aufgabe einen eindeutigen Namen. Jetzt kann die Aufgabe im Dropdown Menü ausgewählt werden.
+### Create a task
+Configure the coverage path planner by pressing "mow settings" button.  Confirm new settings with "ok". Use Lasso-Select or Box-Select from the toolbar on top of the map to select an area and confirm it with "confirm selection" button for calculation or click "plan mow all" button to calculate for the whole map. A preview of the task appears in red. You can adjust mow settings for selected area by changing "mow settings" and trigger calculation again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. By pressing "cancel" button the current preview will be removed. 
 
 ![create_task](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/create_task.jpeg) 
 
-### Aufgabe erweitern
-Soll eine bestehende Aufgabe erweitert werden. Wählt im Dropdownmenü die zu ändernde Aufgabe. Diese erscheint grün auf der Karte. Erzeugt zusätzliche Aufgabe wie unter "Erstellen einer Aufgabe" beschrieben eine zusätzliche Aufgabe. Diese erscheint rot auf der Karte. Speichert die Aufgabe unter einem neune Namen in dem Ihr auf die Wolke mit dem Plus Zeichen drückt.
+### Save a task
+...
+### Remove a task
+To remove a task select a task in dropdown menu in "Tasks" section. Click on "remove selected task" and confirm it.
+### Copy a task
+...
+### Extend a task
+To extend a task select wanted task in dropdown menu in "Tasks" section. Selected task is appear now. Create a new task as it described in "Create a task" section. And save extended task as it described in "Save a task" section.
+### Start selected task
+Select one or more tasks in dropdownmenu in "Tasks" section. Click on "start selected tasks order". The processing order corresponds to the order in the drop-down menu.
+### General information about the task planner
+The tasks are assigned to a currently loaded map. If this is switched, the tasks will only be available when the map is loaded again.
 
-![extend_task](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/extend_task.jpeg) 
+If a map is deleted, all tasks that were created with this map will also be deleted without warning
 
-### Aufgabe starten
-Wählt im Dropdown Menü die gewünschte Aufgabe. Klickt auf die Wolke mit dem ausgehenden Pfeil im "saved tasks" Bereich
-
-### Aufgabe löschen
-Wählt im Dropdown Menü zu löschende Aufgabe. Klickt auf die Wolke mit Minus Zeichen im "saved tasks" Bereich
-
-### Allgemeine Hinweise zum Taskplanner
-Die Aufgaben sind aktuell geladednen Karte zugeordnet, sollte diese Umgeschaltet werden, stehe die Aufgaben erst dann zur Verfügung wenn die Karte wieder geladen ist.
-
-Wird eine Karte gelöscht, so werden ohne Vorwarnung auch alle Aufgaben gelöscht, die mit dieser Karte erstellt wurden
-
-Der Taskplanner rechnen die Mähwege immer neue nach dem die Aufgabe gestartet wurde. Es werden keine gespeicherten Wege geladen. Je nach Umfang der Aufgabe und die Leistung eures Rechners kann das einige Zeit in Anspruch nehmen
-
+The task planner always recalculates the mowing paths after the task has been started. No saved paths are loaded. Depending on the scope of the task and the performance of your computer, this can take some time
 ## Update
 
 ### New Approach
 After you data has been moved to an external data folder, like `~/.cassandra`, you no longer need to copy your data folder when updating. 
 
 ```
-ctrl-c (Stop the server)
+Stop the server (whatever it is in your case (e.g. strg+c, systemctl stop cassandra...))
 git pull
 python app.py
 ```
@@ -399,12 +400,11 @@ python app.py
 If your data folder is still in /src/data, then do the following:
 
 ### Old Approach
-
-Die App wird von mir in kleinen Schritten verbessert bzw. die gemeldeten Probleme behoben. Um die Änderungen auch bei euch produktiv zu schalten, geht beim Update wie folgt vor. 
-1. Sichert euren /src/data Ordner
-2. Clont erneuet die Repository und ersetzt alle Dateien und Ordner in eurem Produktivverzeichnis durch die neuen heruntergeladenen Dateien.
-3. Ersetzt den herunntergeladenen /src/data Ordner durch den im Schritt 1 von euch gesichrten Ordner.
-4. App kann wie gwohnt gestartet werden
+The app will be improved in small steps. Also reported problems will be fixed. In order to make the changes productive for you too, proceed as follows when updating.
+1. Back up your /src/data folder
+2. Clone the repository again and replace all files and folders in your production directory with the new downloaded files.
+3. Replace the downloaded /src/data folder with the folder you backed up in step 1.
+4. App can be started as usual
 ## Authors
 
 - [@EinEinfach](https://www.github.com/EinEinfach)
