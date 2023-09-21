@@ -28,16 +28,24 @@ def connect_mqtt(connect_data: dict()) -> mqtt:
     port = connect_data['MQTT'][4]['PORT']
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
-            logger.info('Backend: Subscriptions to the rover MQTT topics succsessfull')
+            logger.info('Backend: Client connection to mqtt server successful')
+            logger.info('Backend: Setting up subscriptions and message handling.')
+            subscribe(client, connect_data) 
         else:
             client.connection_flag = False
-            logger.warning('Backend: MQTT connection to the rover lost. Code: '+str(rc))
-                    
+            logger.warning('Backend: MQTT connection error. Code: '+str(rc))
+
+    def on_disconnect(client, userdata, rc):
+        logger.info(f"Backend: MQTT disconnecting reason {rc}")
+        logger.debug(f"Backend: MQTT disconnect userdata {userdata}")
+        client.connection_flag = False
+
     # Set Connecting Client ID
     client = mqtt.Client(client_id)
     client.connection_flag = False
     client.username_pw_set(username, password)
     client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
     try:
         client.connect(mqtt_server, port)
         client.connection_flag = True
@@ -56,6 +64,14 @@ def subscribe(client: mqtt, connect_data: dict()):
             'TOPIC_PROPS':'props',
             'TOPIC_ONLINE':'online'
         }
+    sub_ids = {}
+    
+    def on_subscribe(client, userdata, mid, granted_qos):
+        if mid in sub_ids.keys():
+            logger.info(f'Backend: Subscribed to {sub_ids[mid]}')
+        else:
+            logger.warning(f'Backend: Subscription failed')
+
     def on_message(client, userdata, msg):
         logger.info('Backend: RX topic:'+msg.topic+' message:'+str(msg.payload))
         if msg.topic == mower_name+'/'+topics['TOPIC_STATE']:
@@ -74,12 +90,23 @@ def subscribe(client: mqtt, connect_data: dict()):
             data = msg.payload.decode('utf-8')
             datatodf.add_online_to_df_from_mqtt(data)
 
-            
-    client.subscribe(mower_name+'/'+topics['TOPIC_STATE'])
-    client.subscribe(mower_name+'/'+topics['TOPIC_STATS'])
-    client.subscribe(mower_name+'/'+topics['TOPIC_PROPS'])
-    client.subscribe(mower_name+'/'+topics['TOPIC_ONLINE'])
+    client.on_subscribe = on_subscribe
+    
+    topic = mower_name+'/'+topics['TOPIC_STATE']
+    resp, mid = client.subscribe(topic)
+    sub_ids[mid] = topic
+    topic = mower_name+'/'+topics['TOPIC_STATS']
+    resp, mid = client.subscribe(mower_name+'/'+topics['TOPIC_STATS'])
+    sub_ids[mid] = topic
+    topic = mower_name+'/'+topics['TOPIC_PROPS']
+    resp, mid = client.subscribe(mower_name+'/'+topics['TOPIC_PROPS'])
+    sub_ids[mid] = topic
+    topic = mower_name+'/'+topics['TOPIC_ONLINE']
+    resp, mid = client.subscribe(mower_name+'/'+topics['TOPIC_ONLINE'])
+    sub_ids[mid] = topic
+
     client.on_message = on_message
+
 
 def publish(client: mqtt, topic: str(), msg: str()):
     result = client.publish(topic, msg)
