@@ -99,7 +99,7 @@ def check_prio_lines(ways_to_go: pd.DataFrame, border: Polygon, current_level: i
                 route_line_way, gone_way, length_to_line = shortest_path(border, possible_start, route, angle)
                 return route_line_way, gone_way, length_to_line, possible_start
             else:
-                None, None, None, None
+                return None, None, None, None
     #If curren_level == None, then it is first call or no prio lines accessable
     if current_level == None or gone_way == None:
         ways_area = ways_to_go[(ways_to_go['type'] == 'area') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)]

@@ -99,7 +99,7 @@ def calcdata_from_stats():
         #Last df data is smaller than 0 -> rover reset?
         if diff_df.iloc[-1]['duration_idle'] < 0:
             diff_df = roverdata.stats.tail(1)
-        diff_df['timestamp'] = roverdata.stats.iloc[-1]['timestamp']
+        diff_df.loc[:,'timestamp'] = roverdata.stats.iloc[-1]['timestamp']
         calced_from_stats = diff_df
         roverdata.calced_from_stats = pd.concat([roverdata.calced_from_stats, calced_from_stats], ignore_index=True)
     else:

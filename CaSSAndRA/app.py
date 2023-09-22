@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.75.0 Increase mower img, update readme
+#Version:0.76.0 Replace connections with dataclasses
 # package imports
 import os
 import sys
@@ -30,7 +30,7 @@ def config_logging(log_file, basic_level, log_file_level, web_server_level, pil_
         handlers=[logging.StreamHandler(sys.stdout), rfh],
         level=basic_level,
         format="%(asctime)s %(levelname)s %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S;",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     frontend_logger.setLevel(web_server_level)
     pil_logger.setLevel(pil_level)

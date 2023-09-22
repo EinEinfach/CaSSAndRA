@@ -16,7 +16,9 @@ class Log():
     def read(self) -> None:
         try:
             logger.debug('Reading cassandra.log')
-            data = pd.read_csv(self.path, sep=';')
+            data = pd.read_csv(self.path, sep='([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9])', engine='python')
+            data = data.drop(data.columns[0], axis=1)
+            data = data.dropna()
             today = str(datetime.now().date())
             data = data[data[data.columns[0]].str.contains(today)]
             data = data.tail(1000)
