@@ -82,8 +82,7 @@ def connect_uart(restart: Event, file_paths: tuple) -> None:
     time.sleep(2*time_to_wait)
     while True:
         if restart.is_set():
-            if uartcomm.uart_status:
-                uartcomm.client.close()
+            uartcomm.client.close()
             logger.info('Server thread is stopped')
             logger.info('Starting delay time')
             time.sleep(10)

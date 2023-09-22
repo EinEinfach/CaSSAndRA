@@ -315,7 +315,7 @@ class HTTP:
 
 @dataclass
 class UART:
-    client: serial.Serial() = None
+    client: serial.Serial = serial.Serial()
     uart_port: str = None
     uart_baudrate: int = None
     uart_status: bool = None

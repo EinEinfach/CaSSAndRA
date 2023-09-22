@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.76.0 Replace connections with dataclasses
+#Version:0.76.1 Fixed uart connection on reboot
 # package imports
 import os
 import sys
