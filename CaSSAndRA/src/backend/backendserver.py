@@ -179,7 +179,7 @@ def start(file_paths) -> None:
     if connect_data['USE'] == 'MQTT':
         logger.info('Backend: Establishing MQTT connection to the MQTT-Server')
         mqtt_client = mqttcomm.connect_mqtt(connect_data)
-        mqttcomm.subscribe(mqtt_client, connect_data)
+        
         if mqtt_client.connection_flag:
             logger.info('Backend: Starting server thread')
             connection_thread = Thread(target=connect_mqtt, args=(mqtt_client, connect_data, restart, file_paths))
