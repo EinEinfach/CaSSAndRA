@@ -71,7 +71,7 @@ def toggle_modal(n_clicks_bsoff: int, n_clicks_bsr: int,
             cmdlist.cmd_reboot = True
             cmdlist.cmd_standby = ''
             time.sleep(5)
-            backendserver.stop()
+            backendserver.reboot()
         elif cmdlist.cmd_standby == 'gps-reboot':
             cmdlist.cmd_gps_reboot = True
             cmdlist.cmd_standby = ''

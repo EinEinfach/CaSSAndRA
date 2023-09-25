@@ -230,19 +230,19 @@ def update_connection_data(bsr_n_clicks: int, bok_n_clicks: int,
             commcfg.mqtt_port = mqttport
             commcfg.mqtt_mower_name = mqttrovername
             commcfg.save_commcfg()
-            backendserver.stop()
+            backendserver.reboot()
         elif connectiontype == 'HTTP':
             commcfg.use = connectiontype
             commcfg.http_ip = ipadressrover
             commcfg.http_pass = sunraypass
             commcfg.save_commcfg()
-            backendserver.stop()
+            backendserver.reboot()
         elif connectiontype == 'UART':
             commcfg.use = connectiontype
             commcfg.uart_port = serport
             commcfg.uart_baudrate = baudrate
             commcfg.save_commcfg()
-            backendserver.stop()
+            backendserver.reboot()
 
     if bsr_n_clicks or bok_n_clicks:
         return not is_open

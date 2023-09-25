@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 
-#Version:0.76.1 Fixed uart connection on reboot
+#Version:0.77.0 Added separate thread for data storage, added graceful killer for server
 # package imports
 import os
 import sys
 import click
+import signal
+import time
+from threading import Thread
 
 import logging
 from logging.handlers import RotatingFileHandler
+
+# local imports
+from src.backend import backendserver
 
 # logging setup
 logger = logging.getLogger(__name__)
@@ -35,6 +41,15 @@ def config_logging(log_file, basic_level, log_file_level, web_server_level, pil_
     frontend_logger.setLevel(web_server_level)
     pil_logger.setLevel(pil_level)
 
+class GracefulKiller:
+  kill_now = False
+  def __init__(self):
+    signal.signal(signal.SIGINT, self.exit_gracefully)
+    signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+  def exit_gracefully(self, *args):
+    backendserver.stop()
+    self.kill_now = True
 
 default_data_path = os.path.join(os.path.expanduser('~'), '.cassandra')
 
@@ -101,7 +116,6 @@ def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level
         # server and app imports
         import dash
         from src.layout import serve_layout
-        from src.backend import backendserver
         from src.backend.data.utils import init_data
         
         # initialize data files
@@ -147,4 +161,15 @@ def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level
 
 
 if __name__ == "__main__":
-    start()
+    #create an instance for server killer
+    killer = GracefulKiller()
+
+    #create a thread for dash application
+    dash_thread = Thread(target=start, args=())
+    dash_thread.setDaemon(True)
+    dash_thread.start()
+    
+    while not killer.kill_now:
+        time.sleep(1)
+    logger.info('Server was killed gracefully')
+    
