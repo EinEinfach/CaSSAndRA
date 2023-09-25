@@ -8,6 +8,7 @@ import pandas as pd
 import networkx as nx
 
 from ..data.mapdata import current_map
+from . pathfinder import pathfinder
 
 def turn_coords(coords: list, angle: int) -> list:
     if len(coords) < 2:
@@ -203,6 +204,10 @@ def shortest_path(border: Polygon, ways_to_check: list, route: list, angle: int)
 def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle):
     logger.info('Coverage path planner (lines): Start coverage path planner')
     logger.debug(parameters)
+
+    pathfinder.create()
+    pathfinder.angle = angle
+
     if len(route) == 1:
         logger.info('Coverage path planner (lines): Route is just start point, check if the point within perimeter')
         if not Point((route[-1])).within(border) or not Point((route[-1])).touches(border):
@@ -359,90 +364,17 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
             route.extend(route_edge_way)
         else:
             logger.debug('No point for start over direct way found. Starting A* pathfinder')
-            #Check for ways to the lines
-            astar_path = []
-            if current_level != None:
-                logger.debug('Check for lines')
-                ways_area = ways_to_go[(ways_to_go['type'] == 'area') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)]
-                possible_start = list(ways_area['coords']) 
-                if ways_area.empty:
-                    logger.debug('No more lines to go')
-                else:
-                    for possible_way in possible_start:
-                        route_line_way, length_of_astar_way, reverse_line = check_astar_distance(border, possible_way, angle, route, perimeter_points)
-                        if route_line_way != None:
-                            index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==possible_way)].index.array[0]
-                            ways_to_go.at[index, 'gone'] = True
-                            current_level = ways_to_go.at[index, 'level_min']
-                            logger.debug('Take way to a line, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
-                            astar_last_way = route_line_way
-                            route.extend(route_line_way)
-                            if reverse_line:
-                                possible_way.reverse()
-                            route.extend(possible_way)
-                            break
-            #Check for ways to edges
-            #Create start point  
-            ways_edge = ways_to_go[(ways_to_go['type'] == 'edge') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)] 
-            if not ways_edge.empty and route_line_way == None:
-                astar_start_tmp = Point((route[-1]))
-                astar_start_tmp = affinity.rotate(astar_start_tmp, angle, origin=(0, 0))
-                astar_start_tmp = nearest_points(astar_start_tmp, perimeter_points)
-                astar_start = list(astar_start_tmp[1].coords)
-                logger.debug('Go for edge')
-                possible_edges = ways_edge
-                possible_edges = possible_edges.reset_index(drop=True)
-                for i in range(len(possible_edges)):
-                    coords_tmp = MultiPoint((list(possible_edges.at[i, 'shapely'].exterior.coords)))
-                    coords_tmp = affinity.rotate(coords_tmp, angle, origin=(0, 0))
-                    astar_end_tmp = nearest_points(perimeter_points, coords_tmp)
-                    astar_end = list(astar_end_tmp[0].coords)
-                    #Start A* pathfinder for edge route
-                    try:
-                        astar_path = nx.astar_path(current_map.astar_graph, astar_start[0], astar_end[0], heuristic=None, weight='weight')
-                        if len(astar_path) < 2:
-                            astar_path = Point((astar_path))
-                        else:
-                            astar_path = LineString((astar_path))
-                        astar_path = affinity.rotate(astar_path, -angle, origin=(0, 0))  
-                        astar_path = list(astar_path.coords)
-                        #Check is the astar path within perimeter
-                        astar_tmp = [route[-1]]
-                        astar_tmp.extend(astar_path)
-                        astar_end = affinity.rotate(astar_end_tmp[1], -angle, origin=(0,0))
-                        astar_tmp.extend(list(astar_end.coords))
-                        if not LineString((astar_tmp)).within(border):
-                            logger.debug('A* pathfinder delivered invalid route, try another one')
-                        else:
-                            current_level = None
-                            astar_last_way = astar_path
-                            route.extend(astar_path)
-                            logger.debug('A* pathfinder delivered route: '+str(astar_path))
-                            break
-                    except Exception as e:
-                        logger.error('Coverage path planner (calc lines): A* pathfinder could not find a way')
-                        logger.debug(str(e))
-                        break
-                
-                if not LineString((astar_tmp)).within(border):
-                    logger.debug('A* pathfinder delivered invalid route, reduce perimeter_points')
-                    old_points = [list(point.coords) for point in perimeter_points.geoms]
-                    if astar_start_tmp[1].equals(astar_end_tmp[0]):
-                        old_points.remove(list(astar_start_tmp[1].coords))
-                        logger.debug('Removed points: '+str(list(astar_start_tmp[1].coords)))
-                    else:
-                        old_points.remove(list(astar_start_tmp[1].coords))
-                        old_points.remove(list(astar_end_tmp[0].coords))
-                        logger.debug('Removed points: '+str(list(astar_start_tmp[1].coords))+' '+str(list(astar_end_tmp[0].coords)))
-                    perimeter_points = MultiPoint((old_points))
-
-            if astar_path == astar_last_way:
-                logger.error('Coverage path planner (calc lines): A* caused an infintiy loop, path planning aborted')
+            possible_goals = ways_to_go[ways_to_go['gone'] == False]
+            coords = possible_goals.iloc[0]['coords']
+            goal = nearest_points(Point(route[-1]), MultiPoint(coords))
+            goal = list(goal[1].coords)
+            route_astar = pathfinder.find_way(route[-1], goal)
+            if route_astar != []:
+                index = possible_goals.index.values[0]
+                route.extend(route_astar)
+            else:
+                logger.warning('Coverage patha planner (lines): Could not finish calculation')
                 break
-
-            if ways_edge.empty and route_line_way == None:
-                logger.error('Backend: Unespected call in loop for pathfinder')
-                break   
         
     route_shapely = LineString(route)
     return route_shapely

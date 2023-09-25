@@ -5,7 +5,7 @@ import pandas as pd
 from shapely.geometry import *
 
 from . import map, cutedge, lines, rings
-from ..data import mapdata
+from . pathfinder import pathfinder
 from ..data.mapdata import current_map
 from ..data.cfgdata import PathPlannerCfg, pathplannercfgtasktmp
 from ..data.roverdata import robot
@@ -48,12 +48,14 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
                 logger.debug('Direct way possible. Connect tasks')
                 route.extend(route_tmp)
             else:
-                logger.debug('Direct way not possible. Starting A* pathfinder to connect tasks')
-                astar_path = map.astar_path(current_map.perimeter_polygon, current_map.perimeter_points, current_map.astar_graph, route[-1], route_tmp[0])
-                if astar_path == []:
+                logger.debug('Direct way not possible. Starting pathfinder to connect tasks')
+                pathfinder.create()
+                pathfinder.angle = 0
+                route_astar = pathfinder.find_way(route[-1], route_tmp[0])
+                if route_astar == []:
                     logger.error('Backend: Route calculation from task could not be finished')
                     return
-                route.extend(astar_path)
+                route.extend(route_astar)
                 route.extend(route_tmp)
         start_pos = route[-1]
         #Extend areatomow value

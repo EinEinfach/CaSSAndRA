@@ -7,6 +7,7 @@ import pandas as pd
 import networkx as nx
 
 from ..data.mapdata import current_map
+from .pathfinder import pathfinder
 
 def shortest_path_to_point(border: Polygon, points_to_check: list, route: list) -> list:
     end_of_route = route[-1]
@@ -93,6 +94,8 @@ def calcroute(areatomow, border, route, parameters):
     logger.info('Coverage path planner (rings): Start coverage path planner')
     mowccw = parameters.mowborderccw
     logger.debug(parameters)
+    pathfinder.create()
+    pathfinder.angle = 0
     if len(route) == 1:
         logger.info('Coverage path planner (rings): Route is just start point, check if the point within perimeter')
         if not Point((route[-1])).within(border) or not Point((route[-1])).touches(border):
@@ -173,27 +176,22 @@ def calcroute(areatomow, border, route, parameters):
             route.extend(route_pt_way)
         else:
             logger.debug('No point for start over direct way found. Starting A* pathfinder') 
-            #Create start point  
-            astar_start_tmp = Point((route[-1]))
-            astar_start_tmp = nearest_points(astar_start_tmp, current_map.perimeter_points)
-            astar_start = list(astar_start_tmp[1].coords)
-            if not possible_pol.empty:
-                astar_end_tmp = nearest_points(current_map.perimeter_points, MultiPoint((list(possible_pol.at[0, 'shapely'].exterior.coords))))
-            elif not possible_pt.empty:
-                astar_end_tmp = nearest_points(current_map.perimeter_points, Point((list(possible_pt.at[0, 'shapely'].coords))))
+            possible_goals = ways_to_go[ways_to_go['gone'] == False]
+            if not possible_goals.empty:
+                if possible_goals.iloc[0]['type'] == 'polygon':
+                    goal = nearest_points(Point(route[-1]), MultiPoint((list(possible_goals.iloc[0]['shapely'].exterior.coords))))[1]
+                else:
+                    goal = nearest_points(Point(route[-1]), Point((list(possible_goals.iloc[0]['shapely'].coords))))[1]
+                goal = list(goal.coords)
             else:
                 logger.error('Coverage path planner (calc rings): A* pathfinder unexpected behaivor')
                 break
-            astar_end = list(astar_end_tmp[0].coords)
-            #Start A* pathfinder 
-            try:
-                astar_path = nx.astar_path(current_map.astar_graph, astar_start[0], astar_end[0], heuristic=None, weight='weight')
-                route.extend(astar_path)
-                logger.debug('A* pathfinder delivered route: '+str(astar_path))
-                route.extend(list(astar_end_tmp[1].coords))
-            except Exception as e:
-                logger.error('Coverage path planner (calc lines): A* pathfinder could not find a way')
-                logger.debug(str(e))
+            route_astar = pathfinder.find_way(route[-1], goal)
+            if route_astar != []:
+                index = possible_goals.index.values[0]
+                route.extend(route_astar)
+            else:
+                logger.warning('Coverage patha planner (rings): Could not finish calculation')
                 break
-    
+           
     return route

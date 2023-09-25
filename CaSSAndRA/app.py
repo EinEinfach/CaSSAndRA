@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.77.0 Added separate thread for data storage, added graceful killer for server
+#Version:0.77.1 A lot of improvements in pathfinder
 # package imports
 import os
 import sys
