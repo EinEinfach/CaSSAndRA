@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.77.1 A lot of improvements in pathfinder
+#Version:0.77.2 Some fixes on pathfinder
 # package imports
 import os
 import sys

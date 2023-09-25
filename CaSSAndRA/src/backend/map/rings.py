@@ -177,20 +177,19 @@ def calcroute(areatomow, border, route, parameters):
         else:
             logger.debug('No point for start over direct way found. Starting A* pathfinder') 
             possible_goals = ways_to_go[ways_to_go['gone'] == False]
-            if not possible_goals.empty:
-                if possible_goals.iloc[0]['type'] == 'polygon':
-                    goal = nearest_points(Point(route[-1]), MultiPoint((list(possible_goals.iloc[0]['shapely'].exterior.coords))))[1]
-                else:
-                    goal = nearest_points(Point(route[-1]), Point((list(possible_goals.iloc[0]['shapely'].coords))))[1]
-                goal = list(goal.coords)
-            else:
-                logger.error('Coverage path planner (calc rings): A* pathfinder unexpected behaivor')
-                break
-            route_astar = pathfinder.find_way(route[-1], goal)
-            if route_astar != []:
-                index = possible_goals.index.values[0]
-                route.extend(route_astar)
-            else:
+            for i in range(len(possible_goals)):
+                if not possible_goals.empty:
+                    if possible_goals.iloc[i]['type'] == 'polygon':
+                        goal = nearest_points(Point(route[-1]), MultiPoint((list(possible_goals.iloc[i]['shapely'].exterior.coords))))[1]
+                    else:
+                        goal = nearest_points(Point(route[-1]), Point((list(possible_goals.iloc[i]['shapely'].coords))))[1]
+                    goal = list(goal.coords)
+                route_astar = pathfinder.find_way(route[-1], goal)
+                if route_astar != []:
+                    index = possible_goals.index.values[0]
+                    route.extend(route_astar)
+                    break
+            if route_astar == []:
                 logger.warning('Coverage patha planner (rings): Could not finish calculation')
                 break
            

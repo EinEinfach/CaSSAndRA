@@ -365,14 +365,16 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
         else:
             logger.debug('No point for start over direct way found. Starting A* pathfinder')
             possible_goals = ways_to_go[ways_to_go['gone'] == False]
-            coords = possible_goals.iloc[0]['coords']
-            goal = nearest_points(Point(route[-1]), MultiPoint(coords))
-            goal = list(goal[1].coords)
-            route_astar = pathfinder.find_way(route[-1], goal)
-            if route_astar != []:
-                index = possible_goals.index.values[0]
-                route.extend(route_astar)
-            else:
+            for i in range(len(possible_goals)):
+                coords = possible_goals.iloc[i]['coords']
+                goal = nearest_points(Point(route[-1]), MultiPoint(coords))
+                goal = list(goal[1].coords)
+                route_astar = pathfinder.find_way(route[-1], goal)
+                if route_astar != []:
+                    index = possible_goals.index.values[i]
+                    route.extend(route_astar)
+                    break
+            if route_astar == []:
                 logger.warning('Coverage patha planner (lines): Could not finish calculation')
                 break
         
