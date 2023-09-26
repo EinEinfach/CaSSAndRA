@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.77.5 Small fixes on pathplanner
+#Version:0.77.6 Added some debug messages
 # package imports
 import os
 import sys

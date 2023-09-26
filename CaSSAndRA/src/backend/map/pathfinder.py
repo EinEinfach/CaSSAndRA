@@ -49,14 +49,15 @@ class PathFinder:
     def find_way(self, start: list(), goal: list()) -> list:
         start = affinity.rotate(Point(start), self.angle, origin=(0, 0))
         goal = affinity.rotate(Point(goal), self.angle, origin=(0, 0))
+        logger.debug('Pathfinder start: '+list(start.coords) +' goal: '+list(goal.coords))
         self.add_edges(start)
         self.add_edges(goal)
         try:
-            astar_path = nx.astar_path(self.Gnew, list(start.coords)[0], list(goal.coords)[0], heuristic=None, weight='weight')
-            del astar_path[0] #remove first point it is given by legacy route  
+            astar_path = nx.astar_path(self.Gnew, list(start.coords)[0], list(goal.coords)[0], heuristic=None, weight='weight') 
+            logger.debug('Pathfinder found a way: '+str(list(path.coords)))
             path = LineString(astar_path)
             path = affinity.rotate(path, -self.angle, origin=(0, 0))
-            logger.debug('Pathfinder found a way: '+str(list(path.coords)))
+            del astar_path[0] #remove first point it is given by legacy route 
             return list(path.coords)
         except Exception as e:
             logger.warning('Pathfinder could not find a way. Action aborted')
