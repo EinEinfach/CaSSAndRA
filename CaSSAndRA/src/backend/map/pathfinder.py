@@ -49,7 +49,7 @@ class PathFinder:
     def find_way(self, start: list(), goal: list()) -> list:
         start = affinity.rotate(Point(start), self.angle, origin=(0, 0))
         goal = affinity.rotate(Point(goal), self.angle, origin=(0, 0))
-        logger.debug('Pathfinder start: '+list(start.coords) +' goal: '+list(goal.coords))
+        logger.debug('Pathfinder start: '+str(list(start.coords)) +' goal: '+str(list(goal.coords)))
         self.add_edges(start)
         self.add_edges(goal)
         try:
