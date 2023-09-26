@@ -270,3 +270,8 @@ html {
 .log_table tbody td:nth-child(2){
 	overflow-wrap: anywhere;
 }
+
+.hidden
+{
+	display: none;
+}

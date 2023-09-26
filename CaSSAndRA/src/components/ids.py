@@ -52,6 +52,7 @@ INPUTMOWCUTEDGEEXCLUSIONSTATE = 'input-mow-cut-edge-exclusion-state'
 INPUTMOWCUTEDGEBORDERCCWSTATE = 'input-mow-cut-edge-border-ccw-state'
 STATEMAP = 'state-map'
 STATESTRING = 'state-string'
+STATEPROGRESSBAR = 'state-progress-bar'
 
 #tasks page
 BUTTONPLANMOWALL = 'button-plan-mow-all'
