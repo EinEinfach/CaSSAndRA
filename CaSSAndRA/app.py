@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.77.3 Fixed problem with no obstacles in uart mode
+#Version:0.77.4 Small fixes on pathfinder
 # package imports
 import os
 import sys

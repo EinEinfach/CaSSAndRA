@@ -26,7 +26,10 @@ class PathFinder:
 
     def check_direct_way(self, start, end) -> bool:
         way = LineString([start, end])
-        direct_way_possible = way.within(self.perimeter)
+        if way.length <= 0.01:
+            direct_way_possible = True
+        else:
+            direct_way_possible = way.within(self.perimeter)
         return direct_way_possible
 
     def add_edges(self, point: Point) -> None:
