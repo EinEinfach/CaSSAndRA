@@ -54,7 +54,7 @@ class PathFinder:
         self.add_edges(goal)
         try:
             astar_path = nx.astar_path(self.Gnew, list(start.coords)[0], list(goal.coords)[0], heuristic=None, weight='weight') 
-            logger.debug('Pathfinder found a way: '+str(list(path.coords)))
+            logger.debug('Pathfinder found a way: '+str(astar_path))
             path = LineString(astar_path)
             path = affinity.rotate(path, -self.angle, origin=(0, 0))
             del astar_path[0] #remove first point it is given by legacy route 

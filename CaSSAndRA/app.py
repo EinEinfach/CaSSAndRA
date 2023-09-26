@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.77.8 Small fixes on pathfinder
+#Version:0.77.9 Fixed debug message
 # package imports
 import os
 import sys
