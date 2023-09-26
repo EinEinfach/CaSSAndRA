@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.77.9 Fixed debug message
+#Version:0.78.0 Rename map name, copy map copies also tasks belong to the map
 # package imports
 import os
 import sys

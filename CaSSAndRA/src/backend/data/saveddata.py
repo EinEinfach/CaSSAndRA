@@ -220,20 +220,62 @@ def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), tasks_a
 
 def copy_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), cpy_perimeter_name: str()) -> None:
     if cpy_perimeter_name is None:
-        logger.info('Backend: Could not copy perimeter. Perimeter name is not valid')
+        logger.info('Could not copy perimeter. Perimeter name is not valid')
     elif not cpy_perimeter_name in perimeter_arr['name'].unique():
         try:
             perimeter = perimeter_arr[perimeter_arr['name'] == perimeter_name]
             perimeter['name'] = cpy_perimeter_name
             perimeter_arr = pd.concat([perimeter_arr, perimeter], ignore_index=True)
             perimeter_arr.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
-            logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
+            logger.info('Perimeter data are successfully saved in perimeter.json')
             mapping_maps.saved = perimeter_arr
+            map_tasks = tasks.saved[tasks.saved['map name'] == perimeter_name]
+            map_tasks_parameters = tasks.saved_parameters[tasks.saved_parameters['map name'] == perimeter_name]
+            map_tasks.loc[:, 'map name'] = cpy_perimeter_name
+            map_tasks_parameters.loc[:, 'map name'] = cpy_perimeter_name
+            tasks.saved = pd.concat([tasks.saved, map_tasks], ignore_index=True)
+            tasks.saved_parameters = pd.concat([tasks.saved_parameters, map_tasks_parameters], ignore_index=True)
+            tasks.saved.to_json(file_paths.map.tasks, indent=2, date_format='iso')
+            logger.info('Task data are successfully saved in tasks.json')
+            tasks.saved_parameters.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
+            logger.info('Tasks parameters data are successfully saved in tasks_parameters.json')
         except Exception as e:
-            logger.warning('Backend: Could not save perimeter data to the file')
+            logger.warning('Could not save perimeter data to the file')
             logger.debug(str(e))
     else:
-        logger.info('Backend: Could not copy perimeter. Perimeter name is already exsist.')
+        logger.info('Could not copy perimeter. Perimeter name is already exsist.')
+
+def rename_perimeter(perimeter_name: str, new_perimeter_name: str) -> None:
+    if new_perimeter_name is None:
+        logger.info('Could not rename perimeter. Perimeter name is not valid')
+    elif not new_perimeter_name in mapping_maps.saved['name'].unique():
+        try:
+            perimeter = mapping_maps.saved[mapping_maps.saved['name'] == perimeter_name]
+            perimeters = mapping_maps.saved[mapping_maps.saved['name'] != perimeter_name]
+            perimeter.loc[:, 'name'] = new_perimeter_name
+            mapping_maps.saved = pd.concat([perimeters, perimeter], ignore_index=True)
+            mapping_maps.saved.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
+            logger.info('Perimeter data are successfully saved in perimeter.json')
+            map_tasks = tasks.saved[tasks.saved['map name'] == perimeter_name]
+            other_tasks = tasks.saved[tasks.saved['map name'] != perimeter_name]
+            map_tasks_parameters = tasks.saved_parameters[tasks.saved_parameters['map name'] == perimeter_name]
+            other_tasks_parameters = tasks.saved_parameters[tasks.saved_parameters['map name'] != perimeter_name]
+            map_tasks.loc[:, 'map name'] = new_perimeter_name
+            map_tasks_parameters.loc[:, 'map name'] = new_perimeter_name
+            tasks.saved = pd.concat([other_tasks, map_tasks], ignore_index=True)
+            tasks.saved_parameters = pd.concat([other_tasks_parameters, map_tasks_parameters], ignore_index=True)
+            tasks.saved.to_json(file_paths.map.tasks, indent=2, date_format='iso')
+            logger.info('Backend: Task data are successfully saved in tasks.json')
+            tasks.saved_parameters.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
+            logger.info('Backend: Tasks parameters data are successfully saved in tasks_parameters.json')
+            #remove also perimeter in current map, if matched
+            if perimeter_name == current_map.name:
+                current_map.clear_map()
+        except Exception as e:
+            logger.warning('Could not save perimeter data to the file')
+            logger.debug(str(e))
+    else:
+        logger.info('Could not rename perimeter. Perimeter name is already exsist.')
 
 def save_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task: pd.DataFrame, task_parameters: pd.DataFrame, task_name: str()) -> None:
     if task_name is None:

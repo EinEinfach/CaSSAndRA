@@ -188,7 +188,7 @@ def update_layout() -> html.Div:
             ),
         ],
         className='d-none d-sm-none d-md-block',
-        style={'width': '330px'},
+        style={'width': '350px'},
     )
 
     # Build the page using the two columns and remaining styles/components required
@@ -206,6 +206,7 @@ def update_layout() -> html.Div:
                     modal.removeperimeter,
                     modal.finishmapping,
                     modal.nofixsolution,
+                    modal.renameperimeter,
                     html.Div(id=ids.MAPPINGHIDDEN, style={'display': 'none'}),
                 ],
                 className='flex-nowrap g-0',

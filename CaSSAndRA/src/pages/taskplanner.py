@@ -116,7 +116,7 @@ def update_layout() -> html.Div:
             ),
         ],
         className='d-none d-sm-none d-md-block',
-        style={'width': '330px'},
+        style={'width': '350px'},
     )
 
     # build and return the page

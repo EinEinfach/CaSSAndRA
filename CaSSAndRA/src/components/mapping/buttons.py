@@ -15,6 +15,7 @@ removeperimeter = dbc.Button(id=ids.BUTTONREMOVEPERIMETER, class_name='mt-1 me-1
 addnewperimeter = dbc.Button(id=ids.BUTTONADDNEWPERIMETER, class_name='mt-1 me-1 bi-file-earmark-plus', n_clicks=0, title='add new perimeter')
 copyperimeter = dbc.Button(id=ids.BUTTONCOPYPERIMETER, class_name='mt-1 me-1 bi bi-clouds', n_clicks=0, title='copy perimeter')
 finishfigure = dbc.Button(id=ids.BUTTONFINISHFIGURE, class_name='mt-1 me-1 bi bi-cloud-plus', disabled=False, title='finish and save')
+renameperimeter = dbc.Button(id=ids.BUTTONRENAMEPERIMETER, class_name='mt-1 me-1 bi bi-pencil-square', disabled=False, title='rename perimeter')
 okbuttonselectedperimeter = dbc.Button('OK', id=ids.OKBUTTONSELECTEDPERIMETER, class_name='ms-auto', n_clicks=0)
 
 okbuttonnewperimeter = dbc.Button('OK', id=ids.OKBUTTONNEWPERIMETER, class_name='ms-auto', n_clicks=0)
@@ -22,16 +23,19 @@ okbuttoncopyperimeter = dbc.Button('OK', id=ids.OKBUTTONCOPYPERIMETER, class_nam
 okbuttonremoveperimeter = dbc.Button('OK', id=ids.OKBUTTONREMOVEPERIMETER, class_name='ms-auto', n_clicks=0)
 okbuttonfinishmapping = dbc.Button('OK', id=ids.OKBUTTONFINISHMAPPING, class_name='ms-auto', n_clicks=0)
 okbuttonnofixsolution = dbc.Button('OK', id=ids.OKBUTTONNOFIXSOLUTION, class_name='ms-auto', n_clicks=0)
+okbuttonrenameperimeter = dbc.Button('OK', id=ids.OKBUTTONRENAMEPERIMETER, class_name='ms-auto', n_clicks=0)
+
 
 @callback(Output(ids.BUTTONSELECTPERIMETER, 'disabled'),
           Output(ids.BUTTONREMOVEPERIMETER, 'disabled'),
           Output(ids.BUTTONCOPYPERIMETER, 'disabled'),
+          Output(ids.BUTTONRENAMEPERIMETER, 'disabled'),
           [Input(ids.DROPDOWNCHOOSEPERIMETER, 'value')])
 def update_perimeter_select_buttons_disabled(dropdown: str()) -> list():
     if dropdown == None:
-        return True, True, True
+        return True, True, True, True
     else:
-        return False, False, False
+        return False, False, False, False
 
 @callback(Output(ids.BUTTONMOVEPOINTS, 'disabled'),
           [Input(ids.MAPPINGMAP, 'figure')])

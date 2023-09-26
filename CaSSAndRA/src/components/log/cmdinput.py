@@ -6,7 +6,7 @@ import time
 from .. import ids
 from src.backend.comm import cmdlist
 
-cmdinput = dbc.Input(id=ids.INPUTCUSTOMCMD, placeholder='AT+', class_name='mt-2')
+cmdinput = dbc.Input(id=ids.INPUTCUSTOMCMD, placeholder='every AT+ command supported by your comm.cpp', value='AT+', class_name='mt-2')
 cmdsend = dbc.Button(id=ids.BUTTONSENDCUSTOMCMD, size='lg', class_name='me-1 mt-1 mb-1 bi bi-send-fill', disabled=False, title='send command to rover')
 
 @callback(Output(ids.BUTTONSENDCUSTOMCMD, 'active'),

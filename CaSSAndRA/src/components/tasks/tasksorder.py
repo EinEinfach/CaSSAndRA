@@ -28,14 +28,19 @@ tasksorder = dbc.Col([
                 ])
 
 @callback(Output(ids.DROPDOWNTASKSORDER, 'options'),
-          [Input(ids.OKBUTTONSRRENAMETASK, 'n_clicks'),
-           Input(ids.OKBUTTONSAVECURRENTTASK, 'n_clicks'),
-           Input(ids.OKBUTTONSREMOVETASK, 'n_clicks'),
-           Input(ids.OKBUTTONCOPYTASK, 'n_clicks'),
+          [Input(ids.MODALRENAMETASK, 'is_open'),
+           Input(ids.MODALSAVECURRENTTASK, 'is_open'),
+           Input(ids.MODALREMOVETASK, 'is_open'),
+           Input(ids.MODALCOPYTASK, 'is_open'),
            Input(ids.URLUPDATE, 'pathname'),
            State(ids.DROPDOWNTASKSORDER, 'options')])
-def update_dropdown_tasksorder(bokrt_nclicks: int, bokst_nclicks: int, bokdt_nclicks: int, 
-                               bokct_nclicks: int, pathname: str, dropdown_opt_state: list()) -> list():
+def update_dropdown_tasksorder(rt_isopen: bool, 
+                               st_isopnen: bool, 
+                               dt_isopnen: bool, 
+                               ct_isopen: bool, 
+                               pathname: str, 
+                               dropdown_opt_state: list()
+                               ) -> list():
     time.sleep(0.5)
     context = ctx.triggered_id
     try:

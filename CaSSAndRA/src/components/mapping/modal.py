@@ -109,6 +109,20 @@ nofixsolution = dbc.Modal(
                     is_open=False,          
                 )
 
+renameperimeter = dbc.Modal(
+                    [
+                        dbc.ModalHeader(dbc.ModalTitle('Info')),
+                        dbc.ModalBody('Rename perimeter?'),
+                        dbc.ModalBody(dbc.Input(id=ids.INPUTRENAMEPERIMETER, placeholder='Please give an unique name', type='text')),
+                        dbc.ModalFooter([
+                            buttons.okbuttonrenameperimeter,  
+                            ] 
+                        ),
+                    ],
+                    id=ids.MODALRENAMEPERIMETER,
+                    is_open=False,          
+                )
+
 @callback(Output(ids.MODALOVERWRITEPERIMETER, 'is_open'),
           [Input(ids.BUTTONSAVEIMPORTEDPERIMETER, 'n_clicks'),
            Input(ids.OKBUTTONOVERWRITEPERIMTER, 'n_clicks'),
@@ -226,4 +240,21 @@ def nofix_solution(banp_n_clicks: int, bok_n_clicks, bha_state: bool,
         mapping_maps.add_point(create)
     else:
         return is_open
+    
+@callback(Output(ids.MODALRENAMEPERIMETER, 'is_open'),
+          [Input(ids.BUTTONRENAMEPERIMETER, 'n_clicks'),
+           Input(ids.OKBUTTONRENAMEPERIMETER, 'n_clicks'),
+           State(ids.INPUTRENAMEPERIMETER, 'value'),
+           State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
+           State(ids.MODALRENAMEPERIMETER, 'is_open')])
+def copy_perimeter(brp_n_clicks: int, bok_n_clicks: int, 
+                     new_perimeter_name: str(), selected_perimeter: str(),
+                     is_open: bool) -> bool:
+    context = ctx.triggered_id
+    if context == ids.OKBUTTONRENAMEPERIMETER:
+        saveddata.rename_perimeter(selected_perimeter, new_perimeter_name)
+        return False
+    if context == ids.BUTTONRENAMEPERIMETER and brp_n_clicks:
+        return True
+    return False
    
