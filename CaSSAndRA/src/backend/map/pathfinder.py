@@ -19,7 +19,7 @@ class PathFinder:
     Gnew: nx.Graph = nx.Graph()
 
     def create(self) -> None:
-        self.perimeter = current_map.perimeter_polygon
+        self.perimeter = current_map.perimeter_polygon.buffer(0.01, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
         self.perimeter_points = current_map.perimeter_points
         self.G = current_map.astar_graph
         self.Gnew = current_map.astar_graph
