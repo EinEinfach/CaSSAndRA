@@ -98,7 +98,7 @@ def connect_uart(restart: threading.Event) -> None:
                 uartcomm.get_state()
                 start_time_state = datetime.now()
             if (datetime.now() - start_time_obstacles).seconds > 10*time_to_wait:
-                uartcomm.get_stats()
+                uartcomm.get_obstacles()
                 start_time_obstacles = datetime.now()
             if (datetime.now() - start_time_stats).seconds > 60*time_to_wait:
                 uartcomm.get_stats()
