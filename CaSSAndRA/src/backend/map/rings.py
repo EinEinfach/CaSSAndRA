@@ -40,15 +40,17 @@ def shortest_path_to_exclusion(border: Polygon, edges_to_check: list, route: lis
     current_shortest_way = LineString((current_shortest_way_coord))
     current_shortest_way_length = current_shortest_way.length
     #Handle shapely problem in case if linestring has length. Within perimeter delivers False
-    if current_shortest_way_length == 0:
-        current_shortest_way = Point((current_shortest_way_coord[0]))
+    if current_shortest_way_length <= 0.01:
+        current_shortest_way_length = 0
+        current_shortest_way = Point((current_shortest_way_coord[1]))
     for i, edge in enumerate(edges_to_check):
         shortest_way_coord = nearest_points(Point((end_of_route)), MultiPoint(edge.exterior.coords))
         shortest_way = LineString((shortest_way_coord))
         shortest_way_length = shortest_way.length
         #Handle shapely problem in case if linestring has length. Within perimeter delivers False
-        if shortest_way_length == 0:
-            shortest_way = Point((shortest_way_coord[0]))
+        if shortest_way_length <= 0.01:
+            shortest_way_length = 0
+            shortest_way = Point((shortest_way_coord[1]))
         if (shortest_way_length <= current_shortest_way_length and shortest_way.within(border)) or (shortest_way_length == 0 and shortest_way.touches(border)):
             current_shortest_way_length = shortest_way_length
             route_tmp = list(edge.exterior.coords)

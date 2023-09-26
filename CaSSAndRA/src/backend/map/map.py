@@ -7,53 +7,6 @@ from shapely import affinity
 from shapely.ops import *
 import networkx as nx
 
-def astar_path(perimeter: Polygon, perimeter_points: MultiPoint, astar_graph: nx.Graph, start: list, end: list) -> list:
-    perimeter = perimeter.buffer(0.02, resolution=16, join_style=2, mitre_limit=1, single_sided=True) #Workarround, have to be checked, if there a better solution
-    perimeter_points_tmp = perimeter_points
-    #create start point
-    while True:
-        if perimeter_points_tmp.is_empty:
-            logger.error('Backend: A* pathfinder could not find a start line to border')
-            return []
-        astar_start_tmp = Point((start))
-        astar_start_tmp = nearest_points(astar_start_tmp, perimeter_points_tmp)
-        astar_start_line = LineString(astar_start_tmp)
-        if astar_start_line.within(perimeter):
-            logger.debug('A* pathdfinder found a start line to border: '+str(list(astar_start_line.coords)))
-            break
-        else:
-            logger.debug('Start line is not within perimeter, reduce perimeter points')
-            old_points = [list(point.coords) for point in perimeter_points_tmp.geoms]
-            old_points.remove(list(astar_start_tmp[1].coords))
-            logger.debug('Removed points: '+str(list(astar_start_tmp[1].coords)))
-            perimeter_points_tmp = MultiPoint((old_points))
-    perimeter_points_tmp = perimeter_points
-    #create end point
-    while True:
-        if perimeter_points_tmp.is_empty:
-            logger.error('Backend: A* pathfinder could not find a end line to border')
-            return []
-        astar_end_tmp = Point((end))
-        astar_end_tmp = nearest_points(astar_end_tmp, perimeter_points_tmp)
-        astar_end_line = LineString(astar_end_tmp)
-        if astar_end_line.within(perimeter):
-            logger.debug('A* pathdfinder found a end line to border: '+str(list(astar_end_line.coords)))
-            break
-        else:
-            logger.debug('End line is not within perimeter, reduce perimeter points')
-            old_points = [list(point.coords) for point in perimeter_points_tmp.geoms]
-            old_points.remove(list(astar_end_tmp[1].coords))
-            logger.debug('Removed points: '+str(list(astar_end_tmp[1].coords)))
-            perimeter_points_tmp = MultiPoint((old_points)) 
-    #starting pathfinder
-    try:
-        route_tmp = nx.astar_path(astar_graph, list(astar_start_tmp[1].coords)[0], list(astar_end_tmp[1].coords)[0], heuristic=None, weight='weight') 
-    except Exception as e:
-        logger.error('Backend: A* pathfinder delivered unexpected result')
-        logger.debug(str(e))
-        return []
-    return route_tmp
-
 def selection(perimeter: Polygon, selection: dict()) -> Polygon():
     try: 
         logger.info('Backend: Check for selection and create a new perimter if there')

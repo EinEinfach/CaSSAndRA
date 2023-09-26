@@ -55,6 +55,7 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
                 if route_astar == []:
                     logger.error('Backend: Route calculation from task could not be finished')
                     return
+                del route_astar[-1] #remove last point it is given by legacy route (second task start point)
                 route.extend(route_astar)
                 route.extend(route_tmp)
         start_pos = route[-1]
