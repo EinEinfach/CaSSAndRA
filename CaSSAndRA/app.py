@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.78.0 Rename map name, copy map copies also tasks belong to the map
+#Version:0.79.0 Selection on state map is removed if robot on mow job, some preparation for export function
 # package imports
 import os
 import sys

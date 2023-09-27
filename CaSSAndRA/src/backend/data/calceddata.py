@@ -105,24 +105,6 @@ def calcdata_from_stats():
     else:
         logger.warning('Backend: Could not write calc from stats data to data frame. Skipping')
 
-def calcmapdata_for_plot(mapcoords: pd.DataFrame()) -> pd.DataFrame():
-    perimeter_for_plot = pd.DataFrame()
-    #Add first value to the end, if perimeter or exclusion
-    types = mapcoords['type'].unique()
-    for type in types:
-        if type == 'dockpoints':
-            coords = mapcoords[mapcoords['type'] == type]
-            perimeter_for_plot = pd.concat([perimeter_for_plot, coords], ignore_index=True)
-        elif type == 'edit' and mapping_maps.selected_name == 'dockpoints':
-            coords = mapcoords[mapcoords['type'] == type]
-            perimeter_for_plot = pd.concat([perimeter_for_plot, coords], ignore_index=True)
-        else:
-            coords = mapcoords[mapcoords['type'] == type]
-            first_value_cpy = coords.iloc[:1,:]
-            coords = pd.concat([coords, first_value_cpy], ignore_index=True)
-            perimeter_for_plot = pd.concat([perimeter_for_plot, coords], ignore_index=True)
-    return perimeter_for_plot
-
 def calc_rover_state():
     #check if rover online
     last_rover_state = robot.status

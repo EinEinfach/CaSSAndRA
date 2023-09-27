@@ -14,7 +14,7 @@ from shapely.geometry import *
 from PIL import Image
 
 from .roverdata import robot
-from .cfgdata import PathPlannerCfg, pathplannercfg
+from .cfgdata import PathPlannerCfg, pathplannercfg, rovercfg
 from .. map import map
 
 @dataclass
@@ -292,6 +292,51 @@ class Perimeters:
             self.imported = -1
             self.imported = pd.DataFrame()
             return
+    
+    def create_perimeter_for_plot(self, data_to_plot: pd.DataFrame) -> pd.DataFrame:
+        perimeter_df = pd.DataFrame()
+        #Add first value to the end, if perimeter or exclusion
+        types = data_to_plot['type'].unique()
+        for type in types:
+            if type == 'dockpoints':
+                coords = data_to_plot[data_to_plot['type'] == type]
+                perimeter_df = pd.concat([perimeter_df, coords], ignore_index=True)
+            elif type == 'edit' and mapping_maps.selected_name == 'dockpoints':
+                coords = data_to_plot[data_to_plot['type'] == type]
+                perimeter_df = pd.concat([perimeter_df, coords], ignore_index=True)
+            else:
+                coords = data_to_plot[data_to_plot['type'] == type]
+                first_value_cpy = coords.iloc[:1,:]
+                coords = pd.concat([coords, first_value_cpy], ignore_index=True)
+                perimeter_df = pd.concat([perimeter_df, coords], ignore_index=True)
+        return perimeter_df
+    
+    # def export_geojson(self) -> None:
+    #     if not self.perimeter_for_plot.empty:
+    #         geojson = dict(type="FeatureCollection", features=[])
+    #         #perimeter
+    #         abs_coords = self.coords_rel_to_abs(self.perimeter_for_plot[self.perimeter_for_plot['type'] == 'perimeter'])
+    #         value = dict(type="Feature", properties=dict(name="perimeter"), geometry=dict(dict(type="Polygon", coordinates=[abs_coords[['lon', 'lat']].values.tolist()])))
+    #         geojson['features'].append(value)
+    #         #dockpoints
+    #         abs_coords = self.coords_rel_to_abs(self.perimeter_for_plot[self.perimeter_for_plot['type'] == 'dockpoints'])
+    #         value = dict(type="Feature", properties=dict(name="dockpoints"), geometry=dict(dict(type="LineString", coordinates=abs_coords[['lon', 'lat']].values.tolist())))
+    #         geojson['features'].append(value)
+    #         #exclusions
+    #         filtered = self.perimeter_for_plot[(self.perimeter_for_plot['type'] != 'perimeter') & (self.perimeter_for_plot['type'] != 'dockpoints')]
+    #         for i, exclusion in enumerate(filtered['type'].unique()):
+    #             abs_coords = self.coords_rel_to_abs(self.perimeter_for_plot[self.perimeter_for_plot['type'] == exclusion])
+    #             value = dict(type="Feature", properties=dict(name="exclusion"), idx=i, geometry=dict(dict(type="Polygon", coordinates=[abs_coords[['lon', 'lat']].values.tolist()])))
+    #             geojson['features'].append(value)
+    #         res = json.dumps(geojson)
+    
+    def coords_rel_to_abs(self, coords: pd.DataFrame) -> pd.DataFrame:
+        lat = coords[['Y']]/111111+rovercfg.lat
+        lon = coords[['X']]/(111111*math.cos(math.radians(rovercfg.lat)))+rovercfg.lon 
+        abs_coords = pd.DataFrame()
+        abs_coords['lon'] = lon
+        abs_coords['lat'] = lat
+        return abs_coords
         
     def select_imported(self, nr: int()) -> None:
         logger.info('Backend: Changing perimeter to nr: '+str(nr))

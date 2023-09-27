@@ -34,6 +34,7 @@ statemap.update_layout(
                hovermode='closest',
                dragmode='pan',
                annotations=[],
+               selections=[],
      )
 
 @callback(Output(ids.STATEMAP, 'figure'),
@@ -126,7 +127,6 @@ def update(n_intervals: int,
      
      #Plots
      traces = []
-     #calceddata.calcmapdata_for_plot(mapdata.perimeter) 
      if not current_map.perimeter.empty:
           coords = current_map.perimeter_for_plot
           #Plot perimeter and exlusions
@@ -271,6 +271,8 @@ def update(n_intervals: int,
      fig.data = traces
      fig.layout.images = imgs
      fig.layout.annotations = mowdata
+     if robot.job == 1:
+          fig.layout.selections = []
 
 
      # fig = {'data': traces, 
