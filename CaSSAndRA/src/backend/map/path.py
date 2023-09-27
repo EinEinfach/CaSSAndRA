@@ -75,6 +75,7 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
     logger.info(parameters)
     logger.info('Rover start position: '+str(start_pos))
     start_pos = Point(start_pos)
+    
     if parameters.pattern == 'lines' or parameters.pattern == 'squares':
         start_pos = map.turn(start_pos, parameters.angle)
         selected_area_turned = map.turn(selected_perimeter, parameters.angle)
@@ -87,6 +88,9 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         route = lines.calcroute(area_to_mow, border, line_mask, edge_polygons, route, parameters, parameters.angle)
         route = map.turn(route, -parameters.angle)
         route = list(route.coords)
+        # Clear progress bar
+        if parameters.pattern == 'lines' or (parameters.pattern == 'squares' and parameters.mowarea != True):
+            current_map.total_progress = current_map.calculated_progress = 0
 
     if parameters.pattern == 'squares' and parameters.mowarea == True:
         last_coord = route[-1]
@@ -98,10 +102,14 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         route2 = lines.calcroute(area_to_mow, border, line_mask, [], list(last_coord.coords), parameters, parameters.angle+90)
         route2 = map.turn(route2, -parameters.angle-90)
         route.extend(list(route2.coords))
+        # Clear progress bar
+        current_map.total_progress = current_map.calculated_progress = 0
     
     if parameters.pattern == 'rings':
         area_to_mow, border = map.border(selected_perimeter, parameters.distancetoborder, parameters.width)
         route, edge_polygons = cutedge.calcroute(border, parameters, list(start_pos.coords))
         route = rings.calcroute(area_to_mow, border, route, parameters)
+        # Clear progress bar
+        current_map.total_progress = current_map.calculated_progress = 0
 
     return route
