@@ -39,23 +39,25 @@ statemap.update_layout(
 @callback(Output('dummy', 'children'),
           [          
             Input(ids.BUTTONZONESELECT, 'n_clicks'),
-            State(ids.BUTTONZONESELECT, 'active'),
             Input(ids.BUTTONHOME, 'n_clicks'),
             Input(ids.BUTTONMOWALL, 'n_clicks'),
             Input(ids.BUTTONGOTO, 'n_clicks'),
             Input(ids.STATEMAP, 'clickData'),
-            State(ids.BUTTONGOTO, 'active'),
             Input(ids.STATEMAP, 'selectedData'),
+            Input(ids.BUTTONCANCEL, 'n_clicks'),
+            State(ids.BUTTONZONESELECT, 'active'),
+            State(ids.BUTTONGOTO, 'active'),
         ], prevent_initial_call=True)
 def handle_buttons(
             buttonzoneselect: int, 
-            buttonzonenselectstate: bool,
             buttonhome: int, 
             buttonmowall: int, 
             buttongoto: int,
             clickdata: dict(), 
+            selecteddata: dict(),
+            buttoncancelclick: int,
+            buttonzonenselectstate: bool,
             buttongotostate: bool, 
-            selecteddata: dict(), 
         ): 
     
     context = ctx.triggered_id
@@ -64,35 +66,38 @@ def handle_buttons(
     rover_position = [robot.position_x, robot.position_y] 
 
     if buttongotostate:
-        plotgotopoints = True
+        current_map.plotgotopoints = True
     else:
-        plotgotopoints = False
+        current_map.plotgotopoints = False
      
     if context == ids.BUTTONHOME and buttonhome:
         #What to do, if home button active
         current_map.gotopoint = pd.DataFrame() 
         current_map.preview = pd.DataFrame()
         #current_map.mowpath = pd.DataFrame()
-        plotgotopoints = False
+        current_map.plotgotopoints = False
     elif context == ids.BUTTONMOWALL and buttonmowall:
         current_map.gotopoint = pd.DataFrame() 
         current_map.preview = pd.DataFrame()
         current_map.mowpath = pd.DataFrame()
         current_map.selected_perimeter = current_map.perimeter_polygon
+        # Give inmediate progress feedback
+        current_map.total_progress = 250
+        current_map.calculated_progress = 1
         route = path.calc(current_map.selected_perimeter, pathplannercfgstate, rover_position)
         current_map.areatomow = round(current_map.selected_perimeter.area)
         current_map.calc_route_preview(route) 
-        plotgotopoints = False
+        current_map.plotgotopoints = False
     elif context == ids.BUTTONZONESELECT and buttonzoneselect:
         current_map.gotopoint = pd.DataFrame()
         current_map.preview = pd.DataFrame()
         current_map.mowpath = pd.DataFrame()
-        plotgotopoints = False
+        current_map.plotgotopoints = False
     elif context == ids.BUTTONGOTO and buttongoto:
         current_map.gotopoint = pd.DataFrame()
         current_map.preview = pd.DataFrame()
         current_map.mowpath = pd.DataFrame()
-        plotgotopoints = True
+        current_map.plotgotopoints = True
     elif context == ids.BUTTONCANCEL:
         if not current_map.obstacles.empty:
             current_map.obstacles = pd.DataFrame()
@@ -100,9 +105,9 @@ def handle_buttons(
             current_map.gotopoint = pd.DataFrame()
             current_map.preview = pd.DataFrame()
             current_map.mowpath = pd.DataFrame()
-            plotgotopoints = False
+            current_map.plotgotopoints = False
 
-         #Check interactions with graph
+    #Check interactions with graph
     if selecteddata == {'points':[]}: #Workaround for selected data, beacause after select selected data changing to {'poonts':[]} and triggering context_id
         selecteddata = None
 
@@ -113,6 +118,9 @@ def handle_buttons(
         perimeter_preview = current_map.perimeter_polygon
         current_map.selected_perimeter = map.selection(perimeter_preview, selecteddata)
         if not current_map.selected_perimeter.is_empty:
+            # Give inmediate progress feedback
+            current_map.total_progress = 250
+            current_map.calculated_progress = 1
             route = path.calc(current_map.selected_perimeter, pathplannercfgstate, rover_position)
             current_map.areatomow = round(current_map.selected_perimeter.area)
             current_map.calc_route_preview(route)
@@ -125,6 +133,7 @@ def handle_buttons(
             Output(ids.STATEMAP, 'figure'),
             Output(ids.STATEPROGRESSBAR, 'value'),
             Output(ids.STATEPROGRESSBAR, 'class_name'),
+            Output(ids.STATEPROGRESSBARCONTAINER, 'className'),
         ],
         [
             Input(ids.STATEMAPINTERVAL, 'n_intervals'),
@@ -162,8 +171,7 @@ def update(n_intervals: int,
                                 hoverinfo='skip'))
     
     #Plot invisible goto points
-    plotgotopoints = False
-    if plotgotopoints:
+    if current_map.plotgotopoints:
         traces.append(go.Scatter(x=current_map.gotopoints['X'], y=current_map.gotopoints['Y'], 
                                 mode='markers', 
                                 marker=dict(opacity=0),
@@ -265,9 +273,11 @@ def update(n_intervals: int,
     else:
         progress = 0
 
-    if current_map.calculated_progress == current_map.total_progress:
-        progress_class_name = "hidden"
+    if current_map.total_progress == 0:
+        progress_class_name = "progress-bar-hidden"
+        progress_container_class_name = "progress-bar-container-hidden"
     else:
-        progress_class_name = ""
+        progress_class_name = "progress-bar-visible"
+        progress_container_class_name = "progress-bar-container-visible"
        
-    return fig, progress, progress_class_name
+    return fig, progress, progress_class_name, progress_container_class_name
