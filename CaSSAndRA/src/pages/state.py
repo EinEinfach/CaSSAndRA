@@ -27,25 +27,34 @@ def update_layout() -> html.Div:
             ),
             # Map container
             html.Div(
-                className="loader-wrapper flex-grow-1",  # flex grow fills available space
-                children=[
-                    dbc.Spinner(
-                        delay_show=1000,
-                        children=html.Div(
-                            [
-                                dcc.Graph(
-                                    id=ids.STATEMAP,
-                                    figure=map.statemap,
-                                    config={'displaylogo': False, 'scrollZoom': True},
-                                )
-                            ],
-                            className="map-graph",
-                        ),
-                    )
+                [
+					html.Div(
+						[
+							dcc.Graph(
+								id=ids.STATEMAP,
+								figure=map.statemap,
+								config={'displaylogo': False, 'scrollZoom': True},
+							),
+						],
+						className="map-graph",
+					),
+                    html.Div(
+                        [
+							# Progress-bar
+							dbc.Progress(id=ids.STATEPROGRESSBAR,
+                    			value=0, striped=True,
+                                animated=True,
+                                class_name="progress-bar-hidden",
+                                style={"max-width":"500px", "position":"relative", "top":"50%", "margin":"auto", "transform":"translateY(-50%)", "box-shadow":"0 0 1.5rem rgba(0, 0, 0, 0.3)"}
+							),
+						],
+                        id=ids.STATEPROGRESSBARCONTAINER,
+                        style={"position":"relative", "width":"100%", "height":"100%", "bottom":"100%", "pointer-events":"none", "padding-left":"3rem", "padding-right":"3rem"},
+                        className="progress-bar-container-hidden"
+					)
                 ],
-                style={
-                    "overflow": "hidden"
-                },  # forces contained map to stay within the container
+                className="loader-wrapper flex-grow-1",  # flex grow fills available space
+                style={"overflow": "hidden"},  # forces contained map to stay within the container
             ),
             # Sticky positioned row of buttons, forced to always stay at the bottom of the parent container
             dbc.Row(
@@ -142,36 +151,11 @@ def update_layout() -> html.Div:
                 cols,
                 className="flex-nowrap g-0",
                 style={"height": "100%"},
-            )
+            ),
+			html.Div(id="dummy", style={"display":"none"})
         ],
         style={"height": "100%", "width": "100%", "overflow": "hidden"},
     )
 
 
 layout = update_layout()
-
-#Workarround to deactivate and activate interval call for map on state page. For some reason ids.URLUPDATE doesn't fire a callback for map.
-@callback(Output(ids.STATEMAPINTERVAL, 'disabled'),
-          [Input(ids.URLUPDATE, 'pathname'),
-           Input(ids.INTERVAL, 'n_intervals'),
-           Input(ids.STATEMAPINTERVAL, 'n_intervals'),
-           State(ids.URLUPDATE, 'pathname'),
-           State(ids.STATEMAPINTERVAL, 'disabled'),
-           ])
-def interval_enabler(calledpage: str,
-                     n_intervals: int,
-                     n_intervals_statemap: int,
-                     currentpage: str,
-                     state_n_intervals_state: bool,
-                     ) -> bool:
-    context = ctx.triggered_id
-    if context == ids.URLUPDATE and currentpage == '/':
-        disable_interval = False
-    elif context == ids.STATEMAPINTERVAL and robot.job == 2:
-        disable_interval = True
-    elif context == ids.INTERVAL and robot.job != 2:
-        disable_interval = False
-    else:
-        disable_interval = state_n_intervals_state
-    return disable_interval
-

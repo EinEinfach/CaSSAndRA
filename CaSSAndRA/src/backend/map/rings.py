@@ -161,21 +161,33 @@ def calcroute(areatomow, border, route, parameters):
                 ways_to_go.at[index, 'gone'] = True
                 logger.debug('Found way to a polygon: Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
                 route.extend(route_pol_way)  
+                # Progress-bar data
+                current_map.total_progress = len(ways_to_go)
+                current_map.calculated_progress = len(ways_to_go[ways_to_go['gone']==True])
             else:
                 index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==list(possible_pt.loc[gone_way_pt, 'shapely'].coords))].index.array[0]
                 ways_to_go.at[index, 'gone'] = True
                 logger.debug('Found way to a point: Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
                 route.extend(route_pt_way)
+                # Progress-bar data
+                current_map.total_progress = len(ways_to_go)
+                current_map.calculated_progress = len(ways_to_go[ways_to_go['gone']==True])
         elif gone_way_pol != None:
             index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==list(possible_pol.loc[gone_way_pol, 'shapely'].exterior.coords))].index.array[0] 
             ways_to_go.at[index, 'gone'] = True
             logger.debug('Found way to a polygon: Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
             route.extend(route_pol_way)
+            # Progress-bar data
+            current_map.total_progress = len(ways_to_go)
+            current_map.calculated_progress = len(ways_to_go[ways_to_go['gone']==True])
         elif gone_way_pt != None:
             index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==list(possible_pt.loc[gone_way_pt, 'shapely'].coords))].index.array[0]
             ways_to_go.at[index, 'gone'] = True
             logger.debug('Found way to a point: Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
             route.extend(route_pt_way)
+            # Progress-bar data
+            current_map.total_progress = len(ways_to_go)
+            current_map.calculated_progress = len(ways_to_go[ways_to_go['gone']==True])
         else:
             logger.debug('No point for start over direct way found. Starting A* pathfinder') 
             possible_goals = ways_to_go[ways_to_go['gone'] == False]

@@ -36,6 +36,9 @@ class Perimeter:
     distancetogo: float = 0
     map_crc: int = None
     current_perimeter_file: str() = ''
+    calculated_progress: int = 0
+    total_progress: int = 0
+    plotgotopoints: bool = False
 
     def set_gotopoint(self, clickdata: dict) -> None:
         goto = {'X':[clickdata['points'][0]['x']], 'Y':[clickdata['points'][0]['y']], 'type': ['way']}

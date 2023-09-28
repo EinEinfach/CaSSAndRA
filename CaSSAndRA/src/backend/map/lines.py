@@ -345,12 +345,18 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
                 logger.debug('Take way to a line, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
                 astar_last_way = []
                 route.extend(route_line_way)   
+                # Progress-bar data
+                current_map.total_progress = len(ways_to_go)
+                current_map.calculated_progress = len(ways_to_go[ways_to_go['gone']==True])
             else:
                 index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==list(possible_edges.loc[gone_way_edge, 'shapely'].exterior.coords))].index.array[0] 
                 ways_to_go.at[index, 'gone'] = True
                 logger.debug('Take way to a edge, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
                 astar_last_way = []
                 route.extend(route_edge_way)
+                # Progress-bar data
+                current_map.total_progress = len(ways_to_go)
+                current_map.calculated_progress = len(ways_to_go[ways_to_go['gone']==True])
         elif gone_way != None:
             index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==possible_start[gone_way])].index.array[0]
             ways_to_go.at[index, 'gone'] = True
@@ -358,12 +364,18 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
             logger.debug('Take way to a line, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
             astar_last_way = []
             route.extend(route_line_way) 
+            # Progress-bar data
+            current_map.total_progress = len(ways_to_go)
+            current_map.calculated_progress = len(ways_to_go[ways_to_go['gone']==True])
         elif gone_way_edge != None:
             index = ways_to_go[ways_to_go['coords'].apply(lambda x: x==list(possible_edges.loc[gone_way_edge, 'shapely'].exterior.coords))].index.array[0] 
             ways_to_go.at[index, 'gone'] = True
             logger.debug('Take way to a edge, current level: '+str(ways_to_go.at[index, 'level_min'])+' Finished: '+str(len(ways_to_go[ways_to_go['gone']==True]))+'/'+str(len(ways_to_go)))  
             astar_last_way = []
             route.extend(route_edge_way)
+            # Progress-bar data
+            current_map.total_progress = len(ways_to_go)
+            current_map.calculated_progress = len(ways_to_go[ways_to_go['gone']==True])
         else:
             logger.debug('No point for start over direct way found. Starting A* pathfinder')
             possible_goals = ways_to_go[ways_to_go['gone'] == False]
