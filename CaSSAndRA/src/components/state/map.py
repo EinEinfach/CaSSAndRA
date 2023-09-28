@@ -34,6 +34,7 @@ statemap.update_layout(
                hovermode='closest',
                dragmode='pan',
                annotations=[],
+               selections=[],
      )
 
 @callback(Output('dummy', 'children'),
@@ -127,8 +128,6 @@ def handle_buttons(
 
     return {}
     
-
-
 @callback([
             Output(ids.STATEMAP, 'figure'),
             Output(ids.STATEPROGRESSBAR, 'value'),
@@ -266,6 +265,8 @@ def update(n_intervals: int,
     fig.data = traces
     fig.layout.images = imgs
     fig.layout.annotations = mowdata
+    if robot.job == !:
+        fig.layout.selections = []
 
     # Progress bar
     if current_map.total_progress > 0:

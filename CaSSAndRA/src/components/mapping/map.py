@@ -4,7 +4,6 @@ import pandas as pd
 from shapely.geometry import Polygon
 
 from .. import ids
-from src.backend.data import calceddata
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import current_map, mapping_maps
 
@@ -161,7 +160,7 @@ def update(n_intervals: int,
         # filtered = pd.DataFrame()
         # annotation = []
     if not filtered.empty:
-        coords = calceddata.calcmapdata_for_plot(filtered)
+        coords = mapping_maps.create_perimeter_for_plot(filtered)
         #Plot perimeter and exlusions
         coords_filtered = coords.loc[coords['type'] != 'dockpoints']
         coords_filtered = coords_filtered.loc[coords_filtered['type'] != 'figure']
@@ -214,7 +213,7 @@ def update(n_intervals: int,
 
     #Plot legacy figure  
     if not mapping_maps.legacy_figure.empty:  
-        legacy_figure_for_plot = calceddata.calcmapdata_for_plot(mapping_maps.legacy_figure)  
+        legacy_figure_for_plot = mapping_maps.create_perimeter_for_plot(mapping_maps.legacy_figure)  
         traces.append(go.Scatter(x=legacy_figure_for_plot['X'], y=legacy_figure_for_plot['Y'], 
                                 name='legacy', 
                                 mode='lines+markers', 
