@@ -265,7 +265,7 @@ def update(n_intervals: int,
     fig.data = traces
     fig.layout.images = imgs
     fig.layout.annotations = mowdata
-    if robot.job == !:
+    if robot.job == 1:
         fig.layout.selections = []
 
     # Progress bar
