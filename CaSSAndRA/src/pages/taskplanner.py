@@ -21,25 +21,35 @@ def update_layout() -> html.Div:
                 justify="center",
                 class_name="p-1"
             ),
-            # map
             html.Div(
-                className='loader-wrapper flex-grow-1',
-                children=[
-                    dbc.Spinner(
-                        delay_show=1000,
-                        children=html.Div(
-                            [
-                                dcc.Graph(
-                                    id=ids.TASKMAP,
-                                    figure=map.tasksmap,
-                                    config={'displaylogo': False, 'scrollZoom': True},
-                                )
-                            ],
-                            className='map-graph',
-                        ),
-                    )
+                [
+					html.Div(
+						[
+							dcc.Graph(
+								id=ids.TASKMAP,
+								figure=map.tasksmap,
+								config={'displaylogo': False, 'scrollZoom': True},
+							),
+						],
+						className="map-graph",
+					),
+                    html.Div(
+                        [
+							# Progress-bar
+							dbc.Progress(id=ids.STATEPROGRESSBAR,
+                    			value=0, striped=True,
+                                animated=True,
+                                class_name="progress-bar-hidden",
+                                style={"max-width":"500px", "position":"relative", "top":"50%", "margin":"auto", "transform":"translateY(-50%)", "box-shadow":"0 0 1.5rem rgba(0, 0, 0, 0.3)"}
+							),
+						],
+                        id=ids.STATEPROGRESSBARCONTAINER,
+                        style={"position":"relative", "width":"100%", "height":"100%", "bottom":"100%", "pointer-events":"none", "padding-left":"3rem", "padding-right":"3rem"},
+                        className="progress-bar-container-hidden"
+					)
                 ],
-                style={'overflow': 'hidden'},
+                className="loader-wrapper flex-grow-1",  # flex grow fills available space
+                style={"overflow": "hidden"},  # forces contained map to stay within the container
             ),
             #buttons
             dbc.Row(
@@ -141,7 +151,6 @@ def update_layout() -> html.Div:
 
 
 layout = update_layout()
-
 
 # Callback to open/close task order selection modal
 @callback(Output(ids.MODALORDERTASKS, 'is_open'),

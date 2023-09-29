@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.79.0 Selection on state map is removed if robot on mow job, some preparation for export function
+#Version:0.80.0 Shortcuts on overview page. Progress bar is now visible always if pathplanner calculating. Add again interval disabler
 # package imports
 import os
 import sys

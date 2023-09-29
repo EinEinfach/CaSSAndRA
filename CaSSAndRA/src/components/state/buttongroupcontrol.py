@@ -3,38 +3,47 @@ import dash_bootstrap_components as dbc
 
 from .. import ids
 from src.backend.comm import cmdlist
-from src.backend.data import mapdata
 from src.backend.data.roverdata import robot
-from src.backend.data.mapdata import current_map
+from src.backend.data.mapdata import current_map, current_task
+from src.backend.map import path
 
 buttonhome = dbc.Button(id=ids.BUTTONHOME, size='lg',class_name='mx-1 mt-1 bi bi-house', disabled=False, title='go home(dock)')
-                
-buttonmowall = dbc.Button(id=ids.BUTTONMOWALL, size='lg', class_name='me-1 mt-1 bi bi-map-fill', disabled=False, title='mow all')
-
+buttonmowall = dbc.Button(id=ids.BUTTONMOWALL, size='lg', class_name='me-1 mt-1 bi bi-map-fill', disabled=False, title='mow all or selected area')
 buttongoto = dbc.Button(id=ids.BUTTONGOTO, size='lg', class_name='me-1 mt-1 bi bi-geo-alt-fill', disabled=False, title='select go to')
-
-buttonzoneselect = dbc.Button(id=ids.BUTTONZONESELECT, size='lg', class_name='me-1 mt-1 bi bi-pin-map-fill', disabled=False, title='select zone to mow')
-
+buttonshortcutselect= dbc.Button(id=ids.BUTTONSHORTCUTSELECT, size='lg', class_name='me-1 mt-1 bi bi-list-ol', disabled=False, title='select task')
 buttoncancel = dbc.Button(id=ids.BUTTONCANCEL, size='lg', class_name='me-1 mt-1 bi bi-x-square-fill', disabled=False, title='cancel')
-
 buttonmowsettings = dbc.Button(id=ids.BUTTONMOWSETTINGS, size='lg', class_name='me-1 mt-1 bi bi-gear-fill', disabled=False, title='temporarly mow settings')
-
 buttongo = dbc.Button(id=ids.BUTTONGO, size='lg', class_name='bi bi-play-fill', color="success", disabled=False, title='start selected task', style={"width": "100%"})
-
 buttonstop = dbc.Button(id=ids.BUTTONSTOP, size='lg', class_name='bi bi-stop-fill', color='danger', disabled=False, title='stop', style={"width": "100%"})
 
 #Create state of buttons
-@callback(Output(ids.BUTTONHOME, 'active'), Output(ids.BUTTONMOWALL, 'active'),
-          Output(ids.BUTTONZONESELECT, 'active'), Output(ids.BUTTONGOTO, 'active'),
-          [Input(ids.BUTTONHOME, 'n_clicks'), Input(ids.BUTTONMOWALL, 'n_clicks'),
-           Input(ids.BUTTONZONESELECT, 'n_clicks'), Input(ids.BUTTONGOTO, 'n_clicks'),
-           Input(ids.BUTTONCANCEL, 'n_clicks'), Input(ids.BUTTONSTOP, 'n_clicks'),
+@callback(Output(ids.BUTTONHOME, 'active'), 
+          Output(ids.BUTTONMOWALL, 'active'),
+          Output(ids.BUTTONSHORTCUTSELECT, 'active'), 
+          Output(ids.BUTTONGOTO, 'active'),
+          [Input(ids.BUTTONHOME, 'n_clicks'), 
+           Input(ids.BUTTONMOWALL, 'n_clicks'),
+           Input(ids.BUTTONSHORTCUTSELECT, 'n_clicks'), 
+           Input(ids.BUTTONGOTO, 'n_clicks'),
+           Input(ids.BUTTONCANCEL, 'n_clicks'), 
+           Input(ids.BUTTONSTOP, 'n_clicks'),
            Input(ids.INTERVAL, 'n_intervals'),
-           State(ids.BUTTONHOME, 'active'), State(ids.BUTTONMOWALL, 'active'),
-           State(ids.BUTTONZONESELECT, 'active'), State(ids.BUTTONGOTO, 'active')])
-def update_button_active(n_clicks_bh: int, n_clicks_bma: int, n_clicks_bzs: int, n_clicks_bgt: int,
-                         n_clicks_bc: int, n_clicks_bs: int, n_intervals: int,
-                         bh_state: bool, bma_state: bool, bzs_state: bool, bgt_state: bool) -> bool:
+           State(ids.BUTTONHOME, 'active'), 
+           State(ids.BUTTONMOWALL, 'active'),
+           State(ids.BUTTONSHORTCUTSELECT, 'active'), 
+           State(ids.BUTTONGOTO, 'active')])
+def update_button_active(n_clicks_bh: int, 
+                         n_clicks_bma: int, 
+                         n_clicks_bss: int, 
+                         n_clicks_bgt: int,
+                         n_clicks_bc: int, 
+                         n_clicks_bs: int, 
+                         n_intervals: int,
+                         bh_state: bool, 
+                         bma_state: bool, 
+                         bss_state: bool, 
+                         bgt_state: bool,
+                         ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONHOME:
         if n_clicks_bh > 0 :
@@ -46,8 +55,8 @@ def update_button_active(n_clicks_bh: int, n_clicks_bma: int, n_clicks_bzs: int,
             return False, True, False, False
         else:
             return False, False, False, False
-    elif context == ids.BUTTONZONESELECT:
-        if n_clicks_bzs > 0:
+    elif context == ids.BUTTONSHORTCUTSELECT:
+        if n_clicks_bss > 0:
             return False, False, True, False
         else:
             return False, False, False, False
@@ -63,7 +72,7 @@ def update_button_active(n_clicks_bh: int, n_clicks_bma: int, n_clicks_bzs: int,
     elif context == ids.BUTTONCANCEL:
         return False, False, False, False
     else:
-        return bh_state, bma_state, bzs_state, bgt_state
+        return bh_state, bma_state, bss_state, bgt_state
     
 
 #Perform command
@@ -76,12 +85,19 @@ def update_button_active(n_clicks_bh: int, n_clicks_bma: int, n_clicks_bzs: int,
            Input(ids.INTERVAL, 'n_intervals'),
            State(ids.BUTTONHOME, 'active'),
            State(ids.BUTTONMOWALL, 'active'),
-           State(ids.BUTTONZONESELECT, 'active'),
-           State(ids.BUTTONGOTO, 'active')])
-def perfom_cmd(n_clicks_bgo: int, n_clicks_bs: int,
-               buttongostate: bool, buttonstopstate: bool, n_intervals: int,
-               active_bh: bool, active_bma: bool, 
-               active_bzs: bool, active_bgt: bool) -> list():
+           State(ids.BUTTONSHORTCUTSELECT, 'active'),
+           State(ids.BUTTONGOTO, 'active')
+           ])
+def perfom_cmd(n_clicks_bgo: int, 
+               n_clicks_bs: int,
+               buttongostate: bool, 
+               buttonstopstate: bool, 
+               n_intervals: int,
+               active_bh: bool, 
+               active_bma: bool, 
+               active_bss: bool, 
+               active_bgt: bool,
+               ) -> list():
     
     context = ctx.triggered_id
     rover_state = robot.status
@@ -95,7 +111,8 @@ def perfom_cmd(n_clicks_bgo: int, n_clicks_bs: int,
             current_map.mowpath = current_map.preview
             current_map.mowpath['type'] = 'way'
             cmdlist.cmd_mow = True
-        elif active_bzs:
+        elif active_bss:
+            path.calc_task(current_task.subtasks_statemap, current_task.subtasks_parameters_statemap)
             current_map.mowpath = current_map.preview
             current_map.mowpath['type'] = 'way'
             cmdlist.cmd_mow = True
@@ -124,7 +141,7 @@ def perfom_cmd(n_clicks_bgo: int, n_clicks_bs: int,
 #Disable select buttons during task
 @callback(Output(ids.BUTTONHOME, 'disabled'),
           Output(ids.BUTTONMOWALL, 'disabled'),
-          Output(ids.BUTTONZONESELECT, 'disabled'),
+          Output(ids.BUTTONSHORTCUTSELECT, 'disabled'),
           Output(ids.BUTTONGOTO, 'disabled'),
           Output(ids.BUTTONCANCEL, 'disabled'),
           [Input(ids.INTERVAL, 'n_intervals'),
@@ -132,12 +149,19 @@ def perfom_cmd(n_clicks_bgo: int, n_clicks_bs: int,
            Input(ids.BUTTONSTOP, 'n_clicks'),
            State(ids.BUTTONHOME, 'disabled'),
            State(ids.BUTTONMOWALL, 'disabled'),
-           State(ids.BUTTONZONESELECT, 'disabled'),
+           State(ids.BUTTONSHORTCUTSELECT, 'disabled'),
            State(ids.BUTTONGOTO, 'disabled'),
-           State(ids.BUTTONCANCEL, 'disabled')])
-def update_button_disabled(n_intervals: int, n_clicks_bgo: int, n_clicks_bs: int,
-                           bh_disabled: bool, bma_disabled: bool, bzs_disabled: bool,
-                           bgt_disabled: bool, bc_disabled: bool) -> list():
+           State(ids.BUTTONCANCEL, 'disabled'),
+           ])
+def update_button_disabled(n_intervals: int, 
+                           n_clicks_bgo: int, 
+                           n_clicks_bs: int,
+                           bh_disabled: bool, 
+                           bma_disabled: bool, 
+                           bss_disabled: bool,
+                           bgt_disabled: bool, 
+                           bc_disabled: bool,
+                           ) -> list():
     context = ctx.triggered_id
 
     if current_map.perimeter.empty:

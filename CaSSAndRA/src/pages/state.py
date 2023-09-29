@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 
 # local imports
 from src.components import ids, modalmowsettings
-from src.components.state import map, buttongroupcontrol, state
+from src.components.state import map, buttongroupcontrol, state, modal
 from src.backend.data.roverdata import robot
 
 dash.register_page(__name__, path="/", redirect_from=["/state"], title="State")
@@ -67,7 +67,7 @@ def update_layout() -> html.Div:
                                 [
                                     buttongroupcontrol.buttonhome,
                                     buttongroupcontrol.buttonmowall,
-                                    buttongroupcontrol.buttonzoneselect,
+                                    buttongroupcontrol.buttonshortcutselect,
                                     buttongroupcontrol.buttongoto,
                                     buttongroupcontrol.buttonmowsettings,
                                     buttongroupcontrol.buttoncancel,
@@ -100,6 +100,7 @@ def update_layout() -> html.Div:
                         class_name="action-bar",
                     ),
                     modalmowsettings.mowsettings,
+                    modal.shortcuts,
                 ],
                 style={"position": "sticky", "bottom": 0},
             ),
@@ -159,3 +160,20 @@ def update_layout() -> html.Div:
 
 
 layout = update_layout()
+
+#Deactivate intervall update for state map if selection active
+@callback(Output(ids.STATEMAPINTERVAL, 'disabled'),
+          [Input(ids.STATEMAP, 'figure'),
+           Input(ids.INTERVAL, 'n_intervals'),
+           State(ids.STATEMAP, 'figure')
+           ])
+def interval_enabler(fig: dict,
+                     n_intervals: int,
+                     fig_state: dict,
+                     ) -> bool:
+    context = ctx.triggered_id
+    if 'selections' in fig_state['layout'] and fig_state['layout']['selections'] != []:
+        disable_interval = True
+    else:
+        disable_interval = False
+    return disable_interval
