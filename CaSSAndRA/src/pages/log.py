@@ -1,6 +1,6 @@
 # package imports
 import dash
-from dash import html, dcc, Input, Output, State, callback
+from dash import html, dcc, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
 import pandas as pd
 
@@ -17,6 +17,7 @@ def update_layout() -> dbc.Container:
                 dbc.Row([
                     dbc.Col(cmdinput.cmdinput, style={"flex" : "1 0 0%"}),
                     dbc.Col(cmdinput.cmdsend, style={"flex" : "0 0 0%"}),
+                    dbc.Col(cmdinput.logpaused, style={"flex" : "0 0 0%"}),
                 ], style={"padding" : "0.5rem 10%"}),
                 dbc.Row([
                     dbc.Table.from_dataframe(commlog.lastdata, 
@@ -35,7 +36,7 @@ def update_layout() -> dbc.Container:
 layout = update_layout()
 
 @callback(Output(ids.LOGTABLE, 'children'),
-          Input(ids.INTERVAL, 'n_intervals'))
+          Input(ids.LOGINTERVAL, 'n_intervals'))
 def update_log_table(n_intervals: int,
                      ) -> dbc.Table():
     commlog.read()
@@ -45,3 +46,16 @@ def update_log_table(n_intervals: int,
                                              hover=True,
                                              class_name="log_table"),
     return log
+
+@callback(Output(ids.LOGINTERVAL, 'disabled'),
+          [Input(ids.URLUPDATE, 'path'),
+           Input(ids.BUTTONLOGPAUSED, 'active'),
+           ])
+def interval_enabler(calledpage: str,
+                     blp_active: bool,
+                     ) -> bool:
+    context = ctx.triggered_id
+    if blp_active:
+        return True
+    else:
+        return False

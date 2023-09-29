@@ -19,7 +19,8 @@ def serve_layout() -> html.Div:
         [
             dcc.Interval(id=ids.INTERVAL, interval=2*1000, n_intervals=0),
             dcc.Interval(id=ids.STATEMAPINTERVAL, interval=1*1000, n_intervals=0, disabled=False),
-            dcc.Interval(id=ids.MAPPINGINTERVAL, interval=3*3000, n_intervals=0, disabled=True),
+            dcc.Interval(id=ids.MAPPINGINTERVAL, interval=3*1000, n_intervals=0, disabled=True),
+            dcc.Interval(id=ids.LOGINTERVAL, interval=3*1000, n_intervals=0, disabled=True),
             dcc.Location(id=ids.URLUPDATE, refresh=True),
             navbar.navbar,
             offcanvas.offcanvas,

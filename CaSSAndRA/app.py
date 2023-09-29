@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.80.0 Shortcuts on overview page. Progress bar is now visible always if pathplanner calculating. Add again interval disabler
+#Version:0.81.0 Added pause button on log page
 # package imports
 import os
 import sys

@@ -198,8 +198,10 @@ INPUTRENAMEPERIMETER = 'input-rename-perimeter'
 
 #log page
 BUTTONSENDCUSTOMCMD = 'button-send-custom-command'
+BUTTONLOGPAUSED = 'button-log-paused'
 INPUTCUSTOMCMD = 'input-custom-cmd'
 LOGTABLE = 'log-table'
+LOGINTERVAL = 'log-interval'
 
 #hidden
 MAPPINGHIDDEN = 'mapping-hidden'
