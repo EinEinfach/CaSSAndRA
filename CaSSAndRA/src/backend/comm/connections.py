@@ -65,7 +65,7 @@ class MQTT:
             logger.warning('Connection to the MQTT server not possible')
             client.connection_flag = False
     
-    def on_disconnect(self, client, userdata, flags, rc):
+    def on_disconnect(self, client, userdata, rc):
         logger.warning('MQTT connection lost, reconnecting...')
         logger.info(f"Disconnecting reason: {rc}")
         self.client.connection_flag = False
