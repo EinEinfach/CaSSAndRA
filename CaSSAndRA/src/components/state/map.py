@@ -94,12 +94,13 @@ def handle_buttons(
                current_map.selected_perimeter = map.selection(current_map.perimeter_polygon, selecteddata)
           else:
                current_map.selected_perimeter = current_map.perimeter_polygon
-          # Give inmediate progress feedback
-          current_map.total_progress = 250
-          current_map.calculated_progress = 1
+          current_map.calculating = True
+          current_map.task_progress = 0
+          current_map.total_tasks = 1
           route = path.calc(current_map.selected_perimeter, pathplannercfgstate, rover_position)
           current_map.areatomow = round(current_map.selected_perimeter.area)
           current_map.calc_route_preview(route) 
+          current_map.calculating = False
           current_map.plotgotopoints = False
      elif context == ids.DROPDOWNSHORTCUTS and tasks_order != None:
           #Load tasks order if selected

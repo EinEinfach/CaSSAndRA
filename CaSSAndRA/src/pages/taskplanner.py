@@ -36,11 +36,20 @@ def update_layout() -> html.Div:
                     html.Div(
                         [
 							# Progress-bar
-							dbc.Progress(id=ids.STATEPROGRESSBAR,
+							dbc.Progress(
+                                [
+                                    dbc.Progress(value=0, bar=True, striped=True, animated=True),
+                                    dbc.Progress(value=0, bar=True, striped=True, animated=True, color="goldenrod"),
+                                    dbc.Progress(value=0, bar=True, striped=True, animated=True, color="blueviolet"),
+                                    dbc.Progress(value=0, bar=True, striped=True, animated=True, color="cornflowerblue"),
+                                    dbc.Progress(value=0, bar=True, striped=True, animated=True, color="lightcoral"),
+                                    dbc.Progress(value=0, bar=True, striped=True, animated=True, color="lightslategrey"),
+								],
+                                id=ids.STATEPROGRESSBAR,
                     			value=0, striped=True,
                                 animated=True,
                                 class_name="progress-bar-hidden",
-                                style={"max-width":"500px", "position":"relative", "top":"50%", "margin":"auto", "transform":"translateY(-50%)", "box-shadow":"0 0 1.5rem rgba(0, 0, 0, 0.3)"}
+                                style={"max-width":"500px", "position":"relative", "top":"50%", "margin":"auto", "transform":"translateY(-50%)", "box-shadow":"0 0 1.5rem rgba(0, 0, 0, 0.3)"},
 							),
 						],
                         id=ids.STATEPROGRESSBARCONTAINER,

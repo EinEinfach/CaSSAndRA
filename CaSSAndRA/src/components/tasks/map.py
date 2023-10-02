@@ -65,8 +65,12 @@ def update(bpma_nclicks: int,
     if context == ids.BUTTONPLANMOWALL:# and buttonmowall:
         current_task.preview = pd.DataFrame()
         current_task.selected_perimeter = current_map.perimeter_polygon
+        current_map.task_progress = 0
+        current_map.total_tasks = 1
+        current_map.calculating = True
         route = path.calc(current_task.selected_perimeter, pathplannercfgtask, rover_position)
         current_task.calc_route_preview(route) 
+        current_map.calculating = False
         current_task.parameters = pathplannercfgtask
         current_task.selection_type = 'perimeter'
         current_task.selection = {'X': [0], 'Y': [0]}
@@ -79,8 +83,12 @@ def update(bpma_nclicks: int,
         perimeter_preview = current_map.perimeter_polygon
         current_task.selected_perimeter = map.selection(perimeter_preview, selecteddata)
         if not current_task.selected_perimeter.is_empty:
+            current_map.task_progress = 0
+            current_map.total_tasks = 1
+            current_map.calculating = True
             route = path.calc(current_task.selected_perimeter, pathplannercfgtask, rover_position)
             current_task.calc_route_preview(route)
+            current_map.calculating = False
             current_task.parameters = pathplannercfgtask
             if 'lassoPoints' in selecteddata:
                 current_task.selection_type = 'lassoPoints'

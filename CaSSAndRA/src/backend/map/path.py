@@ -15,7 +15,11 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
     route = []
     start_pos = [robot.position_x, robot.position_y]
     areatomow = Polygon()
+
+    current_map.total_tasks = substasks['task nr'].nunique()
+
     for subtask_nr in substasks['task nr'].unique():
+        current_map.task_progress = subtask_nr
         subtask_df = substasks[substasks['task nr'] == subtask_nr]
         subtask_df = subtask_df.reset_index(drop=True)
         parameters_df = parameters[parameters['task nr'] == subtask_nr]
@@ -76,6 +80,7 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
     logger.info('Rover start position: '+str(start_pos))
     start_pos = Point(start_pos)
     
+
     if parameters.pattern == 'lines' or parameters.pattern == 'squares':
         start_pos = map.turn(start_pos, parameters.angle)
         selected_area_turned = map.turn(selected_perimeter, parameters.angle)
