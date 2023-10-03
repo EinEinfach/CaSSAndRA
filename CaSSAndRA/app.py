@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.81.0 Added pause button on log page
+#Version:0.82.0 Decrease log file size to increase performance on slow machines
 # package imports
 import os
 import sys
@@ -26,7 +26,7 @@ def config_logging(log_file, basic_level, log_file_level, web_server_level, pil_
     rfh = RotatingFileHandler(
         filename=log_file,
         mode="a",
-        maxBytes=5 * 1024 * 1024,
+        maxBytes= (1024 * 1024)//2,
         backupCount=2,
         encoding=None,
         delay=0,
