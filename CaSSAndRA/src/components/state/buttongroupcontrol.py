@@ -112,7 +112,10 @@ def perfom_cmd(n_clicks_bgo: int,
             current_map.mowpath['type'] = 'way'
             cmdlist.cmd_mow = True
         elif active_bss:
+            current_map.task_progress = 0
+            current_map.calculating = True
             path.calc_task(current_task.subtasks_statemap, current_task.subtasks_parameters_statemap)
+            current_map.calculating = False
             current_map.mowpath = current_map.preview
             current_map.mowpath['type'] = 'way'
             cmdlist.cmd_mow = True

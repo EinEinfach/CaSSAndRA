@@ -36,7 +36,10 @@ def update_saved_tasks_button_save_disabled(fig: dict, tasks_order: list()):
 def start_selected_tasks_order(bsst_nclicks: int) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONSTARTSELECTEDTASKSORDER:
+        current_map.task_progress = 0
+        current_map.calculating = True
         path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
+        current_map.calculating = False
         current_map.mowpath = current_map.preview
         current_map.mowpath['type'] = 'way'
         cmdlist.cmd_mow = True
@@ -47,7 +50,10 @@ def start_selected_tasks_order(bsst_nclicks: int) -> bool:
 def load_selected_tasks_order(blsto_nclicks: int) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONLOADSELECTEDTASKSORDER:
+        current_map.task_progress = 0
+        current_map.calculating = True
         path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
+        current_map.calculating = False
         current_map.mowpath = current_map.preview
         current_map.mowpath['type'] = 'way'
         cmdlist.cmd_take_map = True
