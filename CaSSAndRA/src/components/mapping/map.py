@@ -44,6 +44,8 @@ mappingmap.update_yaxes(nticks=50, ticklabelstep=5, ticklabelposition="inside")
            Input(ids.MAPPINGMAP, 'clickData'),
            Input(ids.BUTTONMOVEPOINTS, 'active'),
            Input(ids.BUTTONCANCELMAPACTION, 'n_clicks'),
+           Input(ids.BUTTONADDNEWPOINT, 'disabled'), #Trigger for remapping after many actions(see buttongroupcontrol.py)
+           Input(ids.MODALNOFIXSOLUTION, 'is_open'), #Trigger for remapping after adding a new point(see modal.py)
            State(ids.BUTTONHOMEADD, 'active'),
            State(ids.MAPPINGMAP, 'figure')], prevent_initial_call=True)
 def update(n_intervals: int, 
@@ -54,17 +56,17 @@ def update(n_intervals: int,
            clickdata: dict, 
            bmp_state: bool,
            bcma_nclicks: int,
+           banp_state: bool,
+           is_open: bool,
            bha_state: bool, 
            fig_state: dict) -> dict:
-    
     traces = []
     annotation = []
     selected_trace = None
-    closedpath = None
     context = ctx.triggered_id
     context_triggered = ctx.triggered
     
-    #Check if edit mode, disable interval
+    #Check if move points mode -> disable interval
     if bmp_state:
         interval_disabled = True
     else:
@@ -84,17 +86,21 @@ def update(n_intervals: int,
     if context_triggered[0]['prop_id'] == ids.MAPPINGMAP+'.clickData' and clickdata and not bmp_state:
         #remove unfinished figure
         mapping_maps.build = mapping_maps.build[mapping_maps.build['type'] != 'figure']
+        #click data
+        selected_trace = clickdata['points'][0]['curveNumber']
+        selected_point_idx = clickdata['points'][0]['pointIndex']
+        selected_name = fig_state['data'][selected_trace]['name']
         #select figure
         #create a copy of build
         mapping_maps.build_cpy = mapping_maps.build
-        #check first if already a figure selected
-        if not mapping_maps.build[mapping_maps.build['type'] == 'edit'].empty:
-            mapping_maps.build.loc[:,'type'] = mapping_maps.build['type'].replace(['edit'], mapping_maps.selected_name)
-        selected_trace = clickdata['points'][0]['curveNumber']
-        selected_point_idx = clickdata['points'][0]['pointIndex']
-        selected_name = mapping_maps.build['type'].unique()[selected_trace]
-        mapping_maps.selected_name = selected_name
-        mapping_maps.build.loc[:,'type'] = mapping_maps.build['type'].replace([selected_name], 'edit')
+        #check if already a figure select is not edit
+        if selected_name != 'edit':
+            #check if a edit already exists
+            if not mapping_maps.build[mapping_maps.build['type'] == 'edit'].empty:
+                mapping_maps.build.loc[:,'type'] = mapping_maps.build['type'].replace(['edit'], mapping_maps.selected_name)
+            mapping_maps.selected_name = selected_name
+            mapping_maps.build.loc[:,'type'] = mapping_maps.build['type'].replace([selected_name], 'edit')
+        #select point
         if selected_point_idx == len(mapping_maps.build[mapping_maps.build['type'] == 'edit']):
             mapping_maps.selected_point = mapping_maps.build[mapping_maps.build['type'] == 'edit'].iloc[[0]]
         else:
@@ -109,28 +115,36 @@ def update(n_intervals: int,
             mapping_maps.selected_point = pd.DataFrame()
     
     #Check if shape selected
+    shapes = {}
     if context == ids.BUTTONMOVEPOINTS and bmp_state:
+        #remove selection and unfinished figure
+        if not mapping_maps.build[mapping_maps.build['type'] == 'figure'].empty:
+            mapping_maps.build = mapping_maps.build[mapping_maps.build['type'] != 'figure']
+        else:
+            mapping_maps.build.loc[:,'type'] = mapping_maps.build['type'].replace(['edit'], mapping_maps.selected_name)
         #create a copy of build
         mapping_maps.build_cpy = mapping_maps.build
         #go ahead with shapes
-        data_for_shape = mapping_maps.build[mapping_maps.build['type'] == 'edit']
+        data_for_shape = mapping_maps.build
         mapping_maps.legacy_figure = data_for_shape
-        data_for_shape = list(zip(data_for_shape['X'].values.tolist(), data_for_shape['Y'].values.tolist()))
-        closedpath = mapping_maps.cartesiantocsv(data_for_shape)
-        mapping_maps.build = mapping_maps.build[mapping_maps.build['type'] != 'edit']
+        for i, geometry_type in enumerate(data_for_shape['type'].unique()):
+            coords_to_csv = list(zip(data_for_shape[data_for_shape['type'] == geometry_type]['X'].values.tolist(), data_for_shape[data_for_shape['type'] == geometry_type]['Y'].values.tolist()))
+            closedpath = mapping_maps.cartesiantocsv(coords_to_csv, geometry_type)
+            shapes.update({geometry_type: dict(type='path', path=closedpath)})
+        mapping_maps.build = pd.DataFrame()
         mapping_maps.selected_point = pd.DataFrame()
     elif context == ids.BUTTONMOVEPOINTS and not bmp_state:
         if 'shapes' in fig_state['layout']:
-            data_for_figure = mapping_maps.csvtocartesian(fig_state['layout']['shapes'][0]['path'])
-            del fig_state['layout']['shapes']
-            data_for_figure['type'] = mapping_maps.selected_name
-            mapping_maps.build = pd.concat([mapping_maps.build, data_for_figure], ignore_index=True)
+            mapping_maps.build = pd.DataFrame()
+            for i, shape in enumerate(fig_state['layout']['shapes']):
+                data_for_figure = mapping_maps.csvtocartesian(fig_state['layout']['shapes'][i]['path'])
+                data_for_figure['type'] = fig_state['layout']['shapes'][i]['name']
+                mapping_maps.build = pd.concat([mapping_maps.build, data_for_figure], ignore_index=True)
+                mapping_maps.figure_action('recreate')
             #avoiding of adjustment of last dockpoint, if move tool was used on dockpoints
-            if mapping_maps.selected_name == 'dockpoints':
-                mapping_maps.dockpoints = data_for_figure
+            mapping_maps.dockpoints = mapping_maps.build[mapping_maps.build['type'] == 'dockpoints']
             mapping_maps.legacy_figure = pd.DataFrame()
-        mapping_maps.figure_action('recreate')
-        closedpath = None
+        del fig_state['layout']['shapes']
 
 
     #Check which dropdown was triggered
@@ -174,7 +188,7 @@ def update(n_intervals: int,
         #Plot dockpoints
         filtered = coords.loc[coords['type'] == 'dockpoints']
         traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
-                                name='dock path', 
+                                name='dockpoints', 
                                 mode='lines+markers', 
                                 line=dict(color='#0f2105'), 
                                 marker=dict(size=3)))
@@ -214,13 +228,15 @@ def update(n_intervals: int,
     #Plot legacy figure  
     if not mapping_maps.legacy_figure.empty:  
         legacy_figure_for_plot = mapping_maps.create_perimeter_for_plot(mapping_maps.legacy_figure)  
-        traces.append(go.Scatter(x=legacy_figure_for_plot['X'], y=legacy_figure_for_plot['Y'], 
-                                name='legacy', 
-                                mode='lines+markers', 
-                                line=dict(color='DarkSlateGrey'), 
-                                marker=dict(size=6),
-                                hoverinfo='skip',
-                                opacity=0.5))
+        for i, trace in enumerate(legacy_figure_for_plot['type'].unique()):
+            filtered = legacy_figure_for_plot.loc[legacy_figure_for_plot['type']==trace]
+            traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
+                                    name='legacy', 
+                                    mode='lines+markers', 
+                                    line=dict(color='DarkSlateGrey'), 
+                                    marker=dict(size=6),
+                                    hoverinfo='skip',
+                                    opacity=0.5))
 
     #Check interactions with graph
     if selecteddata == {'points':[]}: #Workaround for selected data, beacause after select selected data changing to {'poonts':[]} and triggering context_id
@@ -272,15 +288,19 @@ def update(n_intervals: int,
     if not "shapes" in fig_state["layout"]:
         fig.layout.shapes.clear()
 
-    if closedpath != None:
-        fig.layout.shapes = [{
-            'editable': True,
-            'line': {
-                'color': '#FF0000',
-            },
-        }]
-        fig.layout.shapes[0].type = 'path'
-        fig.layout.shapes[0].path = closedpath
+    if shapes != {}:
+        shapes_list = []
+        for i, shape in enumerate(shapes):
+            shapes_list.append({
+                'editable': True,
+                'line': {
+                    'color': '#FF0000',
+                    },
+                'name': shape,
+                'type': shapes[shape]['type'],
+                'path': shapes[shape]['path']
+            })
+        fig.layout.shapes = shapes_list
 
     return fig, interval_disabled
             

@@ -599,11 +599,11 @@ class Perimeters:
         df = pd.DataFrame({'X':x, 'Y':y})
         return df
     
-    def cartesiantocsv(self, coords: list) -> str:
+    def cartesiantocsv(self, coords: list, geometry_type: str) -> str:
         path = 'M'
         for i, coord in enumerate(coords):
             path = path+str(coord[0])+','+str(coord[1])+'L'
-        if self.selected_name != 'dockpoints':
+        if geometry_type != 'dockpoints':
             path = path[:-1] + 'Z'
         else:
             path = path[:-1]

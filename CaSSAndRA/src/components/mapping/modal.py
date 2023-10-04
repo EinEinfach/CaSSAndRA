@@ -227,11 +227,18 @@ def finish_mapping(bff_n_clicks: int, bok_n_clicks: int,
 def nofix_solution(banp_n_clicks: int, bok_n_clicks, bha_state: bool,
                    is_open: bool) -> bool:
     context = ctx.triggered_id
+
+    #check if recording mode
+    if not mapping_maps.build.empty and mapping_maps.build[mapping_maps.build['type'] == 'edit'].empty:
+        record_mode = True
+    else:
+        record_mode = False
+
     if bha_state:
         create = 'dockpoints'
     else:
         create = 'figure'
-    if context == ids.BUTTONADDNEWPOINT and robot.position_solution == 2:
+    if context == ids.BUTTONADDNEWPOINT and (robot.position_solution == 2 or not record_mode):
         mapping_maps.add_point(create)
         return is_open
     elif context == ids.BUTTONADDNEWPOINT and robot.position_solution != 2:

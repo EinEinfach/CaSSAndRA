@@ -95,3 +95,20 @@ def cancel_map_action_disabled(fig: dict) -> bool:
     else:
         return False
 
+@callback(Output(ids.BUTTONMOVEPOINTS, 'disabled'),
+          [Input(ids.MAPPINGMAP, 'figure')])
+def update_button_move_points_disabled(figure: dict):
+    if mapping_maps.build.empty and not 'shapes' in figure['layout']:
+        return True
+    else:
+        return False
+
+@callback(Output(ids.BUTTONMOVEPOINTS, 'active'),
+          [Input(ids.BUTTONMOVEPOINTS, 'n_clicks'),
+           State(ids.BUTTONMOVEPOINTS, 'active')])
+def update_button_move_points(bmp_nclicks: int, bmp_state: bool):
+    context = ctx.triggered_id
+    if context == ids.BUTTONMOVEPOINTS and not bmp_state:
+        return True
+    else:
+        False

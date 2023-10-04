@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.82.0 Decrease log file size to increase performance on slow machines
+#Version:0.83.0 Change behavior of move points button, bug fixing in add point to existing shape
 # package imports
 import os
 import sys
