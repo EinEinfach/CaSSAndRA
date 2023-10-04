@@ -119,6 +119,14 @@ body, div:not([class]) {
   overflow: hidden;
 }
 
+/* Make sure joystick doesnt cut of */
+.daq-joystick--light > div {
+	overflow: visible !important;
+}
+.offcanvas-body {
+	overflow: hidden;
+}
+
 /* Make sure we can still scroll when needed for pages like the Settings accordians */
 #_dash-app-content, 
 #_dash-app-content > div:not([class]),
