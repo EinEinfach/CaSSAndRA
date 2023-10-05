@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.83.0 Change behavior of move points button, bug fixing in add point to existing shape
+#Version:0.83.1 Bug fix: New perimeter button works again
 # package imports
 import os
 import sys

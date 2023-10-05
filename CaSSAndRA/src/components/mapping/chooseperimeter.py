@@ -26,7 +26,7 @@ chooseperimeter = dbc.Col([
 
 @callback(Output(ids.DROPDOWNCHOOSEPERIMETER, 'options'),
           Output(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
-          [Input(ids.MODALADDNEWPERIMETER, 'is_open'),
+          [Input(ids.OKBUTTONNEWPERIMETER, 'n_clicks'),
           Input(ids.MODALCOPYPERIMETER, 'is_open'),
           Input(ids.MODALREMOVEPERIMETER, 'is_open'),
           Input(ids.MODALFINISHMAPPING, 'is_open'),
@@ -34,7 +34,7 @@ chooseperimeter = dbc.Col([
           Input(ids.URLUPDATE, 'pathname'),
           State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
           State(ids.DROPDOWNCHOOSEPERIMETER, 'options')])
-def update_dropdown_chooseperimeter(anp_isopen: bool, 
+def update_dropdown_chooseperimeter(boknp_nclicks: int, 
                                     cp_isopen: bool, 
                                     dp_isopen: bool, 
                                     sp_isopen: bool, 
