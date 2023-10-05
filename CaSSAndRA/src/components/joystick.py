@@ -23,6 +23,4 @@ def update_output(angle, force):
         robot.cmd_move_ang = force_y
     return f'{force_x}', f'{force_y}'
     
-joystick = html.Div(
-            Joystick(id=ids.JOYSTICK, size=230, angle=0, force=0), style={'align': 'center'}
-            )
+joystick = Joystick(id=ids.JOYSTICK, size=230, angle=0, force=0)
