@@ -28,7 +28,7 @@ def update_layout() -> html.Div:
 							dcc.Graph(
 								id=ids.TASKMAP,
 								figure=map.tasksmap,
-								config={'displaylogo': False, 'scrollZoom': True},
+								config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': True},
 							),
 						],
 						className="map-graph",
@@ -97,7 +97,7 @@ def update_layout() -> html.Div:
                                                 dbc.ModalFooter([]),
                                             ],
                                             id=ids.MODALORDERTASKS,
-                                            is_open=False,
+                                            is_open=False, centered=True,
                                         ),
                                     ],
                                     width=6,

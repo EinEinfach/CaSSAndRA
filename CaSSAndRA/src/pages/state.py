@@ -33,7 +33,7 @@ def update_layout() -> html.Div:
 							dcc.Graph(
 								id=ids.STATEMAP,
 								figure=map.statemap,
-								config={'displaylogo': False, 'scrollZoom': True},
+								config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': True},
 							),
 						],
 						className="map-graph",

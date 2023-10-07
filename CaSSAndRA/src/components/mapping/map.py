@@ -23,7 +23,7 @@ mappingmap.update_layout(
                     b=0, #bottom margin 40px
                     l=0, #left margin 40px
                     r=0, #right margin 20px
-                    t=30, #top margin 20px
+                    t=0, #top margin 20px
                 ),
                showlegend=False,
                uirevision=True,
@@ -31,7 +31,7 @@ mappingmap.update_layout(
                dragmode='pan',
                annotations=[],
      )
-mappingmap.update_xaxes(nticks=50, ticklabelstep=5)
+mappingmap.update_xaxes(nticks=50, ticklabelstep=5,)
 mappingmap.update_yaxes(nticks=50, ticklabelstep=5, ticklabelposition="inside")
 
 @callback(Output(ids.MAPPINGMAP, 'figure'),
