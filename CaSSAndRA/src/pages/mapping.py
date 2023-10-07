@@ -42,6 +42,7 @@ def update_layout() -> html.Div:
                                     config={
                                         'displaylogo': False,
                                         'scrollZoom': True,
+                                        'displayModeBar': True,
                                         #'modeBarButtonsToAdd':['eraseshape']
                                     },
                                 )
@@ -115,7 +116,7 @@ def update_layout() -> html.Div:
                                                 ]),
                                             ],
                                             id=ids.MODALCHOOSEPERIMETER,
-                                            is_open=False,
+                                            is_open=False, centered=True,
                                         ),
                                     ],
                                     width=6,
@@ -144,7 +145,7 @@ def update_layout() -> html.Div:
                                                 dbc.ModalFooter([]),
                                             ],
                                             id=ids.MODALUPLOADFILE,
-                                            is_open=False,
+                                            is_open=False, centered=True,
                                         ),
                                     ],
                                     width=6,

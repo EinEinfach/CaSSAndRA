@@ -20,7 +20,7 @@ shortcuts = dbc.Modal(
                             ] ),
                         ],
                         id=ids.MODALSHORTCUTS,
-                        is_open=False,
+                        is_open=False, centered=True,
                     )
 
 @callback(Output(ids.MODALSHORTCUTS, 'is_open'),

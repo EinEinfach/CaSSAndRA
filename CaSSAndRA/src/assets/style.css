@@ -297,7 +297,7 @@ html {
 /* Progress bar container */
 .progress-bar-container-visible
 {
-	backdrop-filter: blur(1.5px);
+	backdrop-filter: blur(2px);
 	transition-duration: 0.5s;
 	transition-property: backdrop-filter
 }
@@ -307,4 +307,77 @@ html {
 	backdrop-filter: blur(0px);
 	transition-duration: 1s;
 	transition-property: backdrop-filter
+}
+
+/* Modebar and plot styling */
+.modebar
+{
+	top: 0.3rem !important;
+	right: 0px !important;
+}
+.modebar-group
+{
+	backdrop-filter: blur(2px);
+	top: 0 !important;
+	padding-left: 4px !important;
+	padding-right: 4px !important;
+}
+.modebar-btn svg
+{
+	top: 0px !important;
+}
+.plotly [data-title]::before
+{
+	display: none !important;
+}
+.plotly [data-title]::after
+{
+	display: none !important;
+}
+.plotly-notifier
+{
+	display: none !important;
+}
+.main-svg
+{
+	-webkit-mask-size:100% 100%;
+	-webkit-mask-position:center;
+	-webkit-mask-repeat:no-repeat;
+	-webkit-mask-composite: source-in;
+	-webkit-mask: linear-gradient(to top,  transparent 0%, #ffff 0.3rem calc(100% - 0.3rem), transparent 100%);
+}
+.svg-container:first-child:before
+{
+	display: block;
+	content: "";
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	z-index: 2;
+	backdrop-filter: blur(2px);
+	pointer-events: none;
+
+	-webkit-mask-size:100% 100%;
+	-webkit-mask-position:center;
+	-webkit-mask-repeat:no-repeat;
+	-webkit-mask-composite: source-in;
+	-webkit-mask: linear-gradient(to top,  #ffff 0%, transparent 0.3rem calc(100% - 0.3rem), #ffff 100%);
+}
+.infolayer
+{
+	transform: translateY(2.25rem);
+}
+.annotation:last-child
+{
+	transform: translateY(-2.5rem);
+}
+.navbar-toggler:focus
+{
+	box-shadow: none !important;
+}
+.navbar-toggler:active
+{
+	text-decoration: none !important;
+	outline: 0 !important;
+	box-shadow: 0 0 0 0.1rem !important;
 }
