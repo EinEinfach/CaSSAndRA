@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.83.1 Bug fix: New perimeter button works again
+#Version:0.83.2 Fix jumping mower image size on rotation 
 # package imports
 import os
 import sys
