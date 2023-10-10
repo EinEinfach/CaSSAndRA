@@ -1,0 +1,70 @@
+{
+    "use_schedule": false,
+    "time_range": [
+        {
+            "monday": [
+                12,
+                12
+            ]
+        },
+        {
+            "tuesday": [
+                12,
+                12
+            ]
+        },
+        {
+            "wednesday": [
+                12,
+                12
+            ]
+        },
+        {
+            "thursday": [
+                12,
+                12
+            ]
+        },
+        {
+            "friday": [
+                12,
+                12
+            ]
+        },
+        {
+            "saturday": [
+                12,
+                12
+            ]
+        },
+        {
+            "sunday": [
+                12,
+                12
+            ]
+        }
+    ],
+    "tasks": [
+        {
+            "monday": []
+        },
+        {
+            "tuesday": []
+        },
+        {
+            "wednesday": []
+        },
+        {
+            "thursday": []
+        },
+        {
+            "friday": []
+        },
+        {
+            "saturday": []
+        },
+        {
+            "sunday": []
+        }
+    ]
+}

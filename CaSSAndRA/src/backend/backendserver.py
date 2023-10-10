@@ -128,6 +128,7 @@ def start(file_paths) -> None:
     cfgdata.pathplannercfgtask.read_pathplannercfg()
     cfgdata.pathplannercfgtasktmp.read_pathplannercfg()
     cfgdata.appcfg.read_appcfg()
+    cfgdata.schedulecfg.read_schedulecfg()
 
     # todo: saveddata should probably be a class instead
     saveddata.file_paths = file_paths

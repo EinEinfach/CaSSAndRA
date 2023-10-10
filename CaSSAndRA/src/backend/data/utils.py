@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 file_paths = namedtuple('FilePaths', ['src', 'user', 'measure', 'map'])
-file_paths.user = namedtuple('UserConfigPaths', ['comm', 'mapcfg', 'appcfg', 'rovercfg', 'pathplannercfg'])
+file_paths.user = namedtuple('UserConfigPaths', ['comm', 'mapcfg', 'appcfg', 'rovercfg', 'pathplannercfg', 'schedulecfg'])
 file_paths.measure = namedtuple('MeasureConfigPaths', ['state', 'stats', 'props', 'calcedstate', 'calcedstats'])
 file_paths.map = namedtuple("MapFilePaths", ['perimeter', 'tasks', 'tasks_parameters'])
 
@@ -52,6 +52,7 @@ def init_data(data_path):
     file_paths.user.appcfg = os.path.join(data_path, 'user', 'appcfg.json')
     file_paths.user.rovercfg = os.path.join(data_path, 'user', 'rovercfg.json')
     file_paths.user.pathplannercfg = os.path.join(data_path, 'user', 'pathplannercfg.json')
+    file_paths.user.schedulecfg = os.path.join(data_path, 'user', 'schedulecfg.json')
 
     # measure and state files
     file_paths.measure.state = os.path.join(data_path, 'measure', 'state.pickle')

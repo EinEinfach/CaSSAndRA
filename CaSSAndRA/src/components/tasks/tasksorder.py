@@ -28,6 +28,13 @@ tasksorder = dbc.Col([
                 ])
 
 @callback(Output(ids.DROPDOWNTASKSORDER, 'options'),
+          Output(ids.MONDAYTASK, 'options'),
+          Output(ids.TUESDAYTASK, 'options'),
+          Output(ids.WEDNESDAYTASK, 'options'),
+          Output(ids.THURSDAYTASK, 'options'),
+          Output(ids.FRIDAYTASK, 'options'),
+          Output(ids.SATURDAYTASK, 'options'),
+          Output(ids.SUNDAYTASK, 'options'),
           [Input(ids.MODALRENAMETASK, 'is_open'),
            Input(ids.MODALSAVECURRENTTASK, 'is_open'),
            Input(ids.MODALREMOVETASK, 'is_open'),
@@ -50,4 +57,4 @@ def update_dropdown_tasksorder(rt_isopen: bool,
         options = []
     if options == []:
         current_task.create()
-    return options
+    return [options]*8   

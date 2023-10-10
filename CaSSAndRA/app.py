@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.83.2 Fix jumping mower image size on rotation 
+#Version:0.84.0 Add schedule ui. Attention new requirements.txt
 # package imports
 import os
 import sys

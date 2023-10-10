@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 #package imports
 import os
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import base64
 import pandas as pd
 from PIL import Image
@@ -45,7 +45,7 @@ class CommCfg:
                 self.uart_baudrate = commcfg_from_file['UART'][1]['BAUDRATE']
                 return commcfg_from_file
         except Exception as e:
-            logger.error('Backend: Could not read commcfg.json. Missing commcfg.json. Go with standard values')
+            logger.error('Could not read commcfg.json. Missing commcfg.json. Go with standard values')
             logger.debug(str(e))
             res = self.save_commcfg()
             with open (file_paths.user.comm) as f: 
@@ -73,10 +73,10 @@ class CommCfg:
             with open(file_paths.user.comm, 'w') as f:
                 logger.debug('New commcfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)
-            logger.info('Backend: commcfg data are successfully stored in commcfg.json')
+            logger.info('commcfg data are successfully stored in commcfg.json')
             return 0
         except Exception as e:
-            logger.error('Backend: Could not save commcfg.json. Unexpected behaivor')
+            logger.error('Could not save commcfg.json. Unexpected behaivor')
             logger.debug(str(e))
             return -1
 
@@ -104,12 +104,12 @@ class AppCfg:
                 appcfg_from_file = json.load(f)
                 f.close()
         except Exception as e:
-            logger.error('Backend: Could not read appcfg.json. Missing appcfg.json. Go with standard values')
+            logger.error('Could not read appcfg.json. Missing appcfg.json. Go with standard values')
             logger.debug(str(e))
             res = self.save_appcfg()
             return
         try:
-            logger.debug('Backend: appcfg to read: '+ str(appcfg_from_file))
+            logger.debug('appcfg to read: '+ str(appcfg_from_file))
             self.datamaxage = appcfg_from_file['datamaxage']
             self.time_to_offline = appcfg_from_file['time_to_offline']
             self.voltage_0 = appcfg_from_file['voltage_to_soc'][0]['V']
@@ -118,7 +118,7 @@ class AppCfg:
             self.rover_picture = appcfg_from_file['rover_picture']
             self.rover_pictures.load_rover_pictures(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+self.rover_picture))
         except Exception as e:
-            logger.error('Backend: Could not read rovercfg.json. Data are invalid. Go with standard values')
+            logger.error('Could not read rovercfg.json. Data are invalid. Go with standard values')
             logger.debug(str(e))
             res = self.save_appcfg()
     
@@ -134,10 +134,10 @@ class AppCfg:
             with open(file_paths.user.appcfg, 'w') as f:
                 logger.debug('New appcfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)
-            logger.info('Backend: rovercfg data are successfully stored in appcfg.json')
+            logger.info('rovercfg data are successfully stored in appcfg.json')
             return 0
         except Exception as e:
-            logger.error('Backend: Could not save appcfg.json. Unexpected behaivor')
+            logger.error('Could not save appcfg.json. Unexpected behaivor')
             logger.debug(str(e))
             return -1
     
@@ -160,19 +160,19 @@ class RoverCfg:
                 rovercfg_from_file = json.load(f)
                 f.close()
         except Exception as e:
-            logger.error('Backend: Could not read rovercfg.json. Missing rovercfg.json. Go with standard values')
+            logger.error('Could not read rovercfg.json. Missing rovercfg.json. Go with standard values')
             logger.debug(str(e))
             res = self.save_rovercfg()
             return
         try:
-            logger.debug('Backend: rovercfg to read: '+ str(rovercfg_from_file))
+            logger.debug('overcfg to read: '+ str(rovercfg_from_file))
             self.mowspeed_setpoint = rovercfg_from_file['mowspeed_setpoint']
             self.gotospeed_setpoint = rovercfg_from_file['gotospeed_setpoint']
             self.positionmode = rovercfg_from_file['positionmode']
             self.lon = rovercfg_from_file['lon']
             self.lat = rovercfg_from_file['lat']
         except Exception as e:
-            logger.error('Backend: Could not read rovercfg.json. Data are invalid. Go with standard values')
+            logger.error('Could not read rovercfg.json. Data are invalid. Go with standard values')
             res = self.save_rovercfg()
     
     def save_rovercfg(self) -> int:
@@ -186,10 +186,10 @@ class RoverCfg:
             with open(file_paths.user.rovercfg, 'w') as f:
                 logger.debug('New rovercfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)
-            logger.info('Backend: rovercfg data are successfully stored in rovercfg.json')
+            logger.info('rovercfg data are successfully stored in rovercfg.json')
             return 0
         except Exception as e:
-            logger.error('Backend: Could not save rovercfg.json. Unexpected behaivor')
+            logger.error('Could not save rovercfg.json. Unexpected behaivor')
             logger.debug(str(e))
             return -1
 
@@ -211,12 +211,12 @@ class PathPlannerCfg:
                 pathplannercfg_from_file = json.load(f)
                 f.close()
         except Exception as e:
-            logger.error('Backend: Could not read pathplannercfg.json. Missing pathplannercfg.json. Go with standard values')
+            logger.error('Could not read pathplannercfg.json. Missing pathplannercfg.json. Go with standard values')
             logger.debug(str(e))
             res = self.save_pathplannercfg()
             return
         try:
-            logger.debug('Backend: pahtplannercfg to read: '+ str(pathplannercfg_from_file))
+            logger.debug('pahtplannercfg to read: '+ str(pathplannercfg_from_file))
             self.pattern = pathplannercfg_from_file['pattern']
             self.width = pathplannercfg_from_file['width']
             self.angle = pathplannercfg_from_file['angle']
@@ -226,7 +226,7 @@ class PathPlannerCfg:
             self.mowexclusion = pathplannercfg_from_file['mowexclusion']
             self.mowborderccw = pathplannercfg_from_file['mowborderccw']
         except Exception as e:
-            logger.error('Backend: Could not read pathplannercfg.json. Data are invalid. Go with standard values')
+            logger.error('Could not read pathplannercfg.json. Data are invalid. Go with standard values')
             res = self.save_pathplannercfg()
     
     def save_pathplannercfg(self) -> int:
@@ -243,10 +243,10 @@ class PathPlannerCfg:
             with open(file_paths.user.pathplannercfg, 'w') as f:
                 logger.debug('New pathplannercfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)
-            logger.info('Backend: pathplannercfg data are successfully stored in pathplannercfg.json')
+            logger.info('pathplannercfg data are successfully stored in pathplannercfg.json')
             return 0
         except Exception as e:
-            logger.error('Backend: Could not save pathplannercfg.json. Unexpected behaivor')
+            logger.error('Could not save pathplannercfg.json. Unexpected behaivor')
             logger.debug(str(e))
             return -1
 
@@ -260,6 +260,86 @@ class PathPlannerCfg:
         self.mowexclusion = parameters.iloc[0]['mowexclusion']
         self.mowborderccw = parameters.iloc[0]['mowborderccw']
 
+@dataclass
+class ScheduleCfg:
+    active: bool = False
+    monday_time: list = field(default_factory=lambda: [12, 12])
+    tuesday_time: list = field(default_factory=lambda: [12, 12])
+    wednesday_time: list = field(default_factory=lambda: [12, 12])
+    thursday_time: list = field(default_factory=lambda: [12, 12])
+    friday_time: list = field(default_factory=lambda: [12, 12])
+    saturday_time: list = field(default_factory=lambda: [12, 12])
+    sunday_time: list = field(default_factory=lambda: [12, 12])
+    monday_tasks: list = field(default_factory=list)
+    tuesday_tasks: list = field(default_factory=list)
+    wednesday_tasks: list = field(default_factory=list)
+    thursday_tasks: list = field(default_factory=list)
+    friday_tasks: list = field(default_factory=list)
+    saturday_tasks: list = field(default_factory=list)
+    sunday_tasks: list = field(default_factory=list)
+
+    def read_schedulecfg(self) -> None:
+        try:
+            with open(file_paths.user.schedulecfg) as f: 
+                schedulecfg_from_file = json.load(f)
+                f.close()
+        except Exception as e:
+            logger.error('Could not read schedulecfg.json. Missing schedulecfg.json. Go with standard values')
+            logger.debug(str(e))
+            #res = self.save_schedulecfg()
+            return
+        try:
+            logger.debug('Backend: schedulecfg to read: '+ str(schedulecfg_from_file))
+            self.active = schedulecfg_from_file['use_schedule']
+            self.monday_time = schedulecfg_from_file['time_range'][0]['monday']
+            self.tuesday_time = schedulecfg_from_file['time_range'][1]['tuesday']
+            self.wednesday_time = schedulecfg_from_file['time_range'][2]['wednesday']
+            self.thursday_time = schedulecfg_from_file['time_range'][3]['thursday']
+            self.friday_time = schedulecfg_from_file['time_range'][4]['friday']
+            self.saturday_time= schedulecfg_from_file['time_range'][5]['saturday']
+            self.sunday_time= schedulecfg_from_file['time_range'][6]['sunday']
+            self.monday_tasks = schedulecfg_from_file['tasks'][0]['monday']
+            self.tuesday_tasks = schedulecfg_from_file['tasks'][1]['tuesday']
+            self.wednesday_tasks = schedulecfg_from_file['tasks'][2]['wednesday']
+            self.thursday_tasks = schedulecfg_from_file['tasks'][3]['thursday']
+            self.friday_tasks = schedulecfg_from_file['tasks'][4]['friday']
+            self.saturday_tasks = schedulecfg_from_file['tasks'][5]['saturday']
+            self.sunday_tasks = schedulecfg_from_file['tasks'][6]['sunday']
+        except Exception as e:
+            logger.error('Could not read schedulecfg.json. Data are invalid. Go with standard values')
+            #res = self.save_schedulecfg()
+    
+    def save_schedulecfg(self) -> int:
+        try:
+            new_data = dict()
+            new_data['use_schedule'] = self.active
+            new_data['time_range'] = [{'monday': self.monday_time},
+                                      {'tuesday': self.tuesday_time},
+                                      {'wednesday': self.wednesday_time},
+                                      {'thursday': self.thursday_time},
+                                      {'friday': self.friday_time},
+                                      {'saturday': self.saturday_time},
+                                      {'sunday': self.sunday_time}
+                                    ]
+            new_data['tasks'] = [{'monday': self.monday_tasks},
+                                 {'tuesday': self.tuesday_tasks},
+                                 {'wednesday': self.wednesday_tasks},
+                                 {'thursday': self.thursday_tasks},
+                                 {'friday': self.friday_tasks},
+                                 {'saturday': self.saturday_tasks},
+                                 {'sunday': self.sunday_tasks}
+                                ]
+            with open(file_paths.user.schedulecfg, 'w') as f:
+                logger.debug('New schedulecfg data: '+str(new_data))
+                json.dump(new_data, f, indent=4)
+            logger.info('Schedulecfg data are successfully stored in schedulecfg.json')
+            return 0
+        except Exception as e:
+            logger.error('Could not save schedulecfg.json. Unexpected behaivor')
+            logger.debug(str(e))
+            return -1
+
+
 commcfg = CommCfg()
 rovercfg = RoverCfg()
 pathplannercfg = PathPlannerCfg()
@@ -267,6 +347,7 @@ pathplannercfgstate = PathPlannerCfg()
 pathplannercfgtask = PathPlannerCfg()
 pathplannercfgtasktmp = PathPlannerCfg()
 appcfg = AppCfg()
+schedulecfg = ScheduleCfg()
 
 
         
