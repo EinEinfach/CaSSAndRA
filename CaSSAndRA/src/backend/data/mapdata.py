@@ -689,3 +689,12 @@ perimeter_saved = pd.DataFrame()
 perimeter = pd.DataFrame()
 preview = pd.DataFrame()
 imported = pd.DataFrame()
+
+progress_color_palette = [
+    "#78c2ad",
+    "goldenrod",
+    "blueviolet",
+    "cornflowerblue",
+    "lightcoral",
+    "lightslategrey",
+]

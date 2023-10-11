@@ -4,7 +4,7 @@ import pandas as pd
 
 from .. import ids
 from src.backend.data.roverdata import robot
-from src.backend.data.mapdata import current_map, current_task, tasks
+from src.backend.data.mapdata import current_map, current_task, tasks, progress_color_palette
 from src.backend.data.cfgdata import pathplannercfgtask
 from src.backend.map import map, path
 
@@ -146,21 +146,17 @@ def update(bpma_nclicks: int,
         annotation = [dict(text='Not saved changes', showarrow=False, xref="paper", yref="paper",x=1,y=1)]
         
     #plot subtasks if there
+    index = 0
     preview_color = None
     if not current_task.subtasks.empty and tasks_order != None:
         for task_name in current_task.subtasks['name'].unique():
-            if len(current_task.subtasks['name'].unique()) == 1 or preview_color == None:
-                preview_color = dict(color='#7fb249')
-            else:
-                if preview_color['color'] == '#7fb249':
-                    preview_color = dict(color='blue')
-                elif preview_color['color'] == 'blue':
-                    preview_color = dict(color='orange')
-                else:
-                    preview_color = dict(color='#7fb249')
             for subtask_nr in current_task.subtasks[current_task.subtasks['name'] == task_name]['task nr'].unique():
+                color_index = index % len(progress_color_palette)
+                preview_color = progress_color_palette[color_index]
                 filtered = current_task.subtasks[(current_task.subtasks['name'] == task_name) & (current_task.subtasks['task nr'] == subtask_nr) & (current_task.subtasks['type'] == 'preview route')]
-                traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='subtask', opacity=0.7, line=preview_color))
+                traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='subtask', opacity=0.7, line=dict(color=preview_color)))
+                index += 1
+                
     #Put all annotations together
     annotation.append(dict(text='Map: '+current_map.name, showarrow=False, xref="paper", yref="paper",x=1,y=0))
     
