@@ -6,6 +6,13 @@ import pandas as pd
 
 # local imports
 from src.components import ids, modaltaskmowsettings
+from src.components.tasks import (
+    map, 
+    buttongroupcontrol,
+    modal,
+    tasksorder,
+    schedule,
+)
 from src.components.tasks import map, buttongroupcontrol, modal, tasksorder
 
 dash.register_page(__name__, path='/taskplanner', title='Taskplanner')
@@ -100,6 +107,35 @@ def update_layout() -> html.Div:
                                     lg=3,
                                     xxl=2,
                                 ),
+                                dbc.Col(
+                                    [
+                                        dbc.Button(
+                                            # 'Schedule',
+                                            id=ids.BUTTONOPENMODALSCHEDULE,
+                                            color='info',
+                                            size='lg',
+                                            class_name='bi bi-clock-fill',
+                                            style={'width': '100%'},
+                                        ),
+                                        dbc.Modal(
+                                            [
+                                                dbc.ModalHeader(
+                                                    dbc.ModalTitle('Schedule')
+                                                ),
+                                                dbc.ModalBody(
+                                                    dbc.Col(id=ids.CONTENTMODALSCHEDULE) 
+                                                ),
+                                                dbc.ModalFooter([]),
+                                            ],
+                                            id=ids.MODALUSCHEDULE,
+                                            is_open=False,
+                                        ),
+                                    ],
+                                    width=6,
+                                    md=4,
+                                    lg=3,
+                                    xxl=2,
+                                ),
                             ],
                             justify='center',
                             align='center',
@@ -124,7 +160,28 @@ def update_layout() -> html.Div:
                             tasksorder.tasksorder,
                         ],
                         className='text-center',
-                    )
+                    ),
+                    html.Div(
+                        [
+                            dbc.Card([
+                                dbc.CardHeader([
+                                    dbc.Row([
+                                        dbc.Col([dbc.Label('Schedule'),]),
+                                        dbc.Col([schedule.switch,]),
+                                    ]),
+                                ]),
+                            ], className='text-center m-1 w-90'),
+                        ],
+                        className='text-center'
+                    ),
+
+                    schedule.monday,
+                    schedule.tuesday,
+                    schedule.wednesday,
+                    schedule.thursday,
+                    schedule.friday,
+                    schedule.saturday,
+                    schedule.sunday,
                 ],
                 justify='evenly',
             ),
@@ -168,3 +225,26 @@ def toggle_modal(bom_nclicks: int,
     if bom_nclicks:
         return True, tasksorder.tasksorder
     return False, dbc.Col()
+
+# Callback to open/close schedule modal
+@callback(Output(ids.MODALUSCHEDULE, 'is_open'),
+          Output(ids.CONTENTMODALSCHEDULE, 'children'),
+          [Input(ids.BUTTONOPENMODALSCHEDULE, 'n_clicks'),
+           State(ids.MODALUSCHEDULE, 'is_open'),
+           ])
+def toggle_modal_schedule(bom_nclicks: int,
+                          is_open: bool,
+                          ) -> list:
+    if bom_nclicks:
+        return True, [  dbc.Row([
+                            dbc.Col([schedule.switch,]),
+                        ]),
+                        schedule.monday, 
+                        schedule.tuesday, 
+                        schedule.wednesday,
+                        schedule.thursday,
+                        schedule.friday,
+                        schedule.saturday,
+                        schedule.sunday,
+                      ]
+    return False, html.Div()
