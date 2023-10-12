@@ -44,11 +44,6 @@ def update_layout() -> html.Div:
 							dbc.Progress(
                                 [
                                     dbc.Progress(value=0, bar=True, striped=True, animated=True),
-                                    dbc.Progress(value=0, bar=True, striped=True, animated=True, color="goldenrod"),
-                                    dbc.Progress(value=0, bar=True, striped=True, animated=True, color="blueviolet"),
-                                    dbc.Progress(value=0, bar=True, striped=True, animated=True, color="cornflowerblue"),
-                                    dbc.Progress(value=0, bar=True, striped=True, animated=True, color="lightcoral"),
-                                    dbc.Progress(value=0, bar=True, striped=True, animated=True, color="lightslategrey"),
 								],
                                 id=ids.STATEPROGRESSBAR,
                     			value=0, striped=True,
