@@ -29,29 +29,22 @@ def update_layout() -> html.Div:
                 justify="center",
                 class_name="p-1"
             ),
+                        # Map container
             html.Div(
-                className='loader-wrapper flex-grow-1',
-                children=[
-                    dbc.Spinner(
-                        delay_show=1000,
-                        children=html.Div(
-                            [
-                                dcc.Graph(
-                                    id=ids.MAPPINGMAP,
-                                    figure=map.mappingmap,
-                                    config={
-                                        'displaylogo': False,
-                                        'scrollZoom': True,
-                                        'displayModeBar': True,
-                                        #'modeBarButtonsToAdd':['eraseshape']
-                                    },
-                                )
-                            ],
-                            className='map-graph',
-                        ),
-                    )
+                [
+					html.Div(
+						[
+							dcc.Graph(
+								id=ids.MAPPINGMAP,
+								figure=map.mappingmap,
+								config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': True},
+							),
+						],
+						className="map-graph",
+					),
                 ],
-                style={'overflow': 'hidden'},
+                className="loader-wrapper flex-grow-1",  # flex grow fills available space
+                style={"overflow": "hidden"},  # forces contained map to stay within the container
             ),
             dbc.Row(
                 dbc.Col(

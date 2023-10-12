@@ -80,33 +80,42 @@ accordion_settings = dbc.Accordion([
                                 dbc.Input(value=pathplannercfg.distancetoborder, id=ids.DISTANCETOBORDERSETTINGS, type='number', min=0, max=5, step=1),
                                 dbc.FormText('Mow cut edge border (laps)'),
                                 dbc.Input(value=pathplannercfg.mowborder, id=ids.MOWEDGESETTINGS, type='number', min=0, max=6, step=1),
-                                dbc.FormText('Mow area'),
-                                html.Div(
-                                    daq.BooleanSwitch(
-                                        id=ids.MOWAREASETTINGS,
-                                        on= pathplannercfg.mowarea,
-                                        style={"float" : "left"},
-                                        color="#afe0d2",
-                                    ),
-                                ),
-                                dbc.FormText('Mow cut edge exclusion'),
-                                html.Div(
-                                    daq.BooleanSwitch(
-                                        id=ids.MOWEDGEEXCLUSIONSETTINGS,
-                                        on= pathplannercfg.mowexclusion,
-                                        style={"float" : "left"},
-                                        color="#afe0d2",
-                                    ),
-                                ),
-                                dbc.FormText('Mow cut edge border in ccw'),
-                                html.Div(
-                                    daq.BooleanSwitch(
-                                        id=ids.MOWBORDERCCWSETTINGS,
-                                        on= pathplannercfg.mowborderccw,
-                                        style={"float" : "left"},
-                                        color="#afe0d2",
-                                    ),
-                                ),
+								dbc.Row(
+								[
+									dbc.FormText('Mow area'),
+									html.Div(
+										daq.BooleanSwitch(
+											id=ids.MOWAREASETTINGS,
+											on= pathplannercfg.mowarea,
+											style={"float" : "left"},
+											color="#afe0d2",
+										),
+									),
+								]),
+                                dbc.Row(
+								[
+									dbc.FormText('Mow cut edge exclusion'),
+									html.Div(
+										daq.BooleanSwitch(
+											id=ids.MOWEDGEEXCLUSIONSETTINGS,
+											on= pathplannercfg.mowexclusion,
+											style={"float" : "left"},
+											color="#afe0d2",
+										),
+									),
+								]),
+								dbc.Row(
+								[
+									dbc.FormText('Mow cut edge border in ccw'),
+									html.Div(
+										daq.BooleanSwitch(
+											id=ids.MOWBORDERCCWSETTINGS,
+											on= pathplannercfg.mowborderccw,
+											style={"float" : "left"},
+											color="#afe0d2",
+										),
+									),
+								]),
                             ],
                             title='Coverage path planner',
                         ),
