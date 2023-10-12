@@ -25,7 +25,7 @@ tasksorder = dbc.Col([
                             ], fluid=True),                       
                         ]), 
                     ], className='text-center m-1 w-90')
-                ])
+                ], style={"flex": "0 1 auto"})
 
 @callback(Output(ids.DROPDOWNTASKSORDER, 'options'),
           Output(ids.MONDAYTASK, 'options'),

@@ -114,17 +114,16 @@ html {
 }
 
 /* Dash adds tons of classless divs that we need to expand to the available space */
-body, div:not([class]) {
+body{
   height:100%;
   overflow: hidden;
 }
-
-/* Make sure joystick doesnt cut of */
-.daq-joystick--light > div {
-	overflow: visible !important;
-}
-.offcanvas-body {
+#react-entry-point > div:first-of-type > div:first-of-type{
 	overflow: hidden;
+	flex-grow: 1;
+}
+#_pages_content{
+	height: 100%;
 }
 
 /* Make sure we can still scroll when needed for pages like the Settings accordians */
@@ -380,4 +379,10 @@ html {
 	text-decoration: none !important;
 	outline: 0 !important;
 	box-shadow: 0 0 0 0.1rem !important;
+}
+
+/* Schedule */
+.schedule-day{}
+.schedule-day:nth-child(even){
+	background-color: rgba(0, 0, 0, 0.041);
 }

@@ -153,38 +153,30 @@ def update_layout() -> html.Div:
     # secondary column (hidden for small and below devices)
     sec_col = html.Div(
         [
-            dbc.Row(
-                [
-                    html.Div(
-                        [
-                            tasksorder.tasksorder,
-                        ],
-                        className='text-center',
-                    ),
-                    html.Div(
-                        [
-                            dbc.Card([
-                                dbc.CardHeader([
-                                    dbc.Row([
-                                        dbc.Col([dbc.Label('Schedule'),]),
-                                        dbc.Col([schedule.switch,]),
-                                    ]),
-                                ]),
-                            ], className='text-center m-1 w-90'),
-                        ],
-                        className='text-center'
-                    ),
-
-                    schedule.monday,
-                    schedule.tuesday,
-                    schedule.wednesday,
-                    schedule.thursday,
-                    schedule.friday,
-                    schedule.saturday,
-                    schedule.sunday,
-                ],
-                justify='evenly',
-            ),
+            html.Div([
+				tasksorder.tasksorder,
+				dbc.Card([
+					dbc.CardHeader([
+						dbc.Row([
+							dbc.Col([dbc.Label('Schedule'),]),
+							dbc.Col([schedule.switch,]),
+						]),
+					]),
+					dbc.CardBody([                                
+						schedule.monday,
+						schedule.tuesday,
+						schedule.wednesday,
+						schedule.thursday,
+						schedule.friday,
+						schedule.saturday,
+						schedule.sunday,
+					],
+					style={"overflow-y":"scroll"})
+				],
+				className='text-center m-1 w-90',
+				style={"overflow":"hidden"}),
+			],
+            style={"display":"flex", "flex-direction":"column", "height":"100%", "width":"100%"}),
         ],
         className='d-none d-sm-none d-md-block',
         style={'width': '350px'},

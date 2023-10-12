@@ -7,177 +7,43 @@ from .. import ids
 from src.backend.data.cfgdata import schedulecfg
 from src.backend.utils import debuglogger
 
+def get_day(name, dayid, taskid):
+    return html.Div([
+            html.Small(name),
+            dcc.RangeSlider(id=dayid, 
+                            min=0, 
+                            max=24, 
+                            value=[12, 12], 
+                            step=0.5, 
+                            marks={
+                                0: '00:00', 
+                                6: '06:00', 
+                                9: '09:00',
+                                12: '12:00',
+                                15: '15:00', 
+                                18: '18:00',
+                                24: '24:00',
+                            },
+                            tooltip={'placement': 'top'},
+            ),
+            dcc.Dropdown(className='m-1', 
+                         multi=True,
+                         id=taskid,
+                )
+            ], className="schedule-day")
+
 switch = daq.BooleanSwitch(id=ids.SWITCHACTIVATESCHEDULE,
                            style={'float' : 'right'},
                            color='#afe0d2',)
 
-monday = html.Div([
-            html.Small('Monday'),
-            dcc.RangeSlider(id=ids.SCHEDULEMONDAY, 
-                            min=0, 
-                            max=24, 
-                            value=[12, 12], 
-                            step=0.5, 
-                            marks={
-                                0: '00:00', 
-                                6: '06:00', 
-                                9: '09:00',
-                                12: '12:00',
-                                15: '15:00', 
-                                18: '18:00',
-                                24: '24:00',
-                            },
-                            tooltip={'placement': 'top'},
-            ),
-            dcc.Dropdown(className='m-1', 
-                         multi=True,
-                         id=ids.MONDAYTASK,
-                )
-            ],)
+monday = get_day('Monday', ids.SCHEDULEMONDAY, ids.MONDAYTASK)
+tuesday = get_day('Tuesday', ids.SCHEDULETUESDAY, ids.TUESDAYTASK)
+wednesday = get_day('Wednesday', ids.SCHEDULEWEDNESDAY, ids.WEDNESDAYTASK)
+thursday = get_day('Thursday', ids.SCHEDULETHURSDAY, ids.THURSDAYTASK)
+friday = get_day('Friday', ids.SCHEDULEFRIDAY, ids.FRIDAYTASK)
+saturday = get_day('Saturday', ids.SCHEDULESATURDAY, ids.SATURDAYTASK)
+sunday = get_day('Sunday', ids.SCHEDULESUNDAY, ids.SUNDAYTASK)
 
-tuesday = html.Div([
-            html.Small('Tuesday'),
-            dcc.RangeSlider(id=ids.SCHEDULETUESDAY, 
-                            min=0, 
-                            max=24, 
-                            value=[12, 12], 
-                            step=0.5, 
-                            marks={
-                                0: '00:00', 
-                                6: '06:00', 
-                                9: '09:00',
-                                12: '12:00',
-                                15: '15:00', 
-                                18: '18:00',
-                                24: '24:00',
-                            },
-                            tooltip={'placement': 'top'},
-            ),
-            dcc.Dropdown(className='m-1', 
-                         multi=True,
-                         id=ids.TUESDAYTASK,
-            ),
-        ],)
-
-wednesday = html.Div([
-            html.Small('Wednesday'),
-            dcc.RangeSlider(id=ids.SCHEDULEWEDNESDAY, 
-                            min=0, 
-                            max=24, 
-                            value=[12, 12], 
-                            step=0.5, 
-                            marks={
-                                0: '00:00', 
-                                6: '06:00', 
-                                9: '09:00',
-                                12: '12:00',
-                                15: '15:00', 
-                                18: '18:00',
-                                24: '24:00',
-                            },
-                            tooltip={'placement': 'top'},
-            ),
-            dcc.Dropdown(className='m-1', 
-                         multi=True,
-                         id=ids.WEDNESDAYTASK,
-            ),
-        ],)
-
-thursday = html.Div([
-            html.Small('Thursday'),
-            dcc.RangeSlider(id=ids.SCHEDULETHURSDAY, 
-                            min=0, 
-                            max=24, 
-                            value=[12, 12], 
-                            step=0.5, 
-                            marks={
-                                0: '00:00', 
-                                6: '06:00', 
-                                9: '09:00',
-                                12: '12:00',
-                                15: '15:00', 
-                                18: '18:00',
-                                24: '24:00',
-                            },
-                            tooltip={'placement': 'top'},
-            ),
-            dcc.Dropdown(className='m-1', 
-                         multi=True,
-                         id=ids.THURSDAYTASK,
-            ),
-        ],)
-
-friday = html.Div([
-            html.Small('Friday'),
-            dcc.RangeSlider(id=ids.SCHEDULEFRIDAY, 
-                            min=0, 
-                            max=24, 
-                            value=[12, 12], 
-                            step=0.5, 
-                            marks={
-                                0: '00:00', 
-                                6: '06:00', 
-                                9: '09:00',
-                                12: '12:00',
-                                15: '15:00', 
-                                18: '18:00',
-                                24: '24:00',
-                            },
-                            tooltip={'placement': 'top'},
-            ),
-            dcc.Dropdown(className='m-1', 
-                         multi=True,
-                         id=ids.FRIDAYTASK,
-            ),
-        ],)
-
-saturday = html.Div([
-            html.Small('Saturday'),
-            dcc.RangeSlider(id=ids.SCHEDULESATURDAY, 
-                            min=0, 
-                            max=24, 
-                            value=[12, 12], 
-                            step=0.5, 
-                            marks={
-                                0: '00:00', 
-                                6: '06:00', 
-                                9: '09:00',
-                                12: '12:00',
-                                15: '15:00', 
-                                18: '18:00',
-                                24: '24:00',
-                            },
-                            tooltip={'placement': 'top'},
-            ),
-            dcc.Dropdown(className='m-1', 
-                         multi=True,
-                         id=ids.SATURDAYTASK,
-            ),
-        ],)
-
-sunday = html.Div([
-            html.Small('Sunday'),
-            dcc.RangeSlider(id=ids.SCHEDULESUNDAY, 
-                            min=0, 
-                            max=24, 
-                            value=[12, 12], 
-                            step=0.5, 
-                            marks={
-                                0: '00:00', 
-                                6: '06:00', 
-                                9: '09:00',
-                                12: '12:00',
-                                15: '15:00', 
-                                18: '18:00',
-                                24: '24:00',
-                            }, 
-                            tooltip={'placement': 'top'},
-            ),
-            dcc.Dropdown(className='m-1', 
-                         multi=True,
-                         id=ids.SUNDAYTASK,
-            ),
-        ],)
 
 @callback(Output(ids.SCHEDULEMONDAY, 'disabled'),
           Output(ids.MONDAYTASK, 'disabled'),
