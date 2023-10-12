@@ -2,6 +2,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 cmd_dock = False
+cmd_dock_schedule = False
 cmd_goto = False
 cmd_gps_reboot = False
 cmd_move = False

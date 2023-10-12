@@ -241,7 +241,7 @@ class Mower:
     def check_dock_reason(self) -> None:
         if self.job == 4: 
             if self.dock_reason_operator:
-                self.dock_reason = 'operator'
+                pass
             elif self.sensor == 16:
                 self.dock_reason = 'rain'
             elif robot.position_mow_point_index == 0:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.84.0 Add schedule ui. Attention new requirements.txt
+#Version:0.85.0 Schedule 
 # package imports
 import os
 import sys

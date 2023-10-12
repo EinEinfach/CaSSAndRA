@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 from .. import ids
 
 from src.backend.data.cfgdata import schedulecfg
-from src.backend.utils import debuglogger
+from src.backend.data.scheduledata import schedule_tasks
 
 def get_day(name, dayid, taskid):
     return html.Div([
@@ -150,6 +150,7 @@ def update_schedule_time(calledpage: str,
           Output(ids.SATURDAYTASK, 'value'),
           Output(ids.SUNDAYTASK, 'value'),
           [Input(ids.URLUPDATE, 'pathname'),
+           Input(ids.DROPDOWNTASKSORDER, 'options'),
            Input(ids.MONDAYTASK, 'value'),
            Input(ids.TUESDAYTASK, 'value'),
            Input(ids.WEDNESDAYTASK, 'value'),
@@ -163,8 +164,10 @@ def update_schedule_time(calledpage: str,
            State(ids.THURSDAYTASK, 'value'),
            State(ids.FRIDAYTASK, 'value'),
            State(ids.SATURDAYTASK, 'value'),
-           State(ids.SUNDAYTASK, 'value'),])
+           State(ids.SUNDAYTASK, 'value'),
+           ])
 def update_schedule_tasks(calledpage: str,
+                          tasks: list,
                           monday_tasks: list,
                           tuesday_tasks: list,
                           wednesday_tasks: list,
@@ -177,20 +180,60 @@ def update_schedule_tasks(calledpage: str,
                           wednesday_tasks_state: list,
                           thursday_tasks_state: list,
                           friday_tasks_state: list,
-                          saturdas_tasks_state: list,
+                          saturday_tasks_state: list,
                           sunday_tasks_state: list,
                           ) -> list:
     context = ctx.triggered_id
-    if (context == ids.MONDAYTASK or context == ids.TUESDAYTASK or context == ids.WEDNESDAYTASK or context == ids.THURSDAYTASK or 
-        context == ids.FRIDAYTASK or context == ids.SATURDAYTASK or context == ids.SUNDAYTASK):
+    if (context == ids.MONDAYTASK or context == ids.TUESDAYTASK or context == ids.WEDNESDAYTASK or context == ids.THURSDAYTASK 
+        or context == ids.FRIDAYTASK or context == ids.SATURDAYTASK or context == ids.SUNDAYTASK):
         schedulecfg.monday_tasks = monday_tasks_state
         schedulecfg.tuesday_tasks = tuesday_tasks_state
         schedulecfg.wednesday_tasks = wednesday_tasks_state
         schedulecfg.thursday_tasks = thursday_tasks_state
         schedulecfg.friday_tasks = friday_tasks_state
-        schedulecfg.saturday_tasks = saturdas_tasks_state
+        schedulecfg.saturday_tasks = saturday_tasks_state
         schedulecfg.sunday_tasks = sunday_tasks_state
         schedulecfg.save_schedulecfg()
+        schedule_tasks.load_task_order(schedulecfg)
+    #remove task from schedule task if this not available
+    elif context == ids.DROPDOWNTASKSORDER and monday_tasks_state != None:
+        missing_task = list(set(monday_tasks_state).difference(set(tasks)))
+        if missing_task != []:
+            for item in missing_task:
+                monday_tasks_state.remove(item)
+            schedulecfg.monday_tasks = monday_tasks_state
+        missing_task = list(set(tuesday_tasks_state).difference(set(tasks)))
+        if missing_task != []:
+            for item in missing_task:
+                tuesday_tasks_state.remove(item)
+            schedulecfg.tuesday_tasks = tuesday_tasks_state
+        missing_task = list(set(wednesday_tasks_state).difference(set(tasks)))
+        if missing_task != []:
+            for item in missing_task:
+                wednesday_tasks_state.remove(item)
+            schedulecfg.wednesday_tasks = wednesday_tasks_state
+        missing_task = list(set(thursday_tasks_state).difference(set(tasks)))
+        if missing_task != []:
+            for item in missing_task:
+                thursday_tasks_state.remove(item)
+            schedulecfg.thursday_tasks = thursday_tasks_state
+        missing_task = list(set(friday_tasks_state).difference(set(tasks)))
+        if missing_task != []:
+            for item in missing_task:
+                friday_tasks_state.remove(item)
+            schedulecfg.friday_tasks = friday_tasks_state
+        missing_task = list(set(saturday_tasks_state).difference(set(tasks)))
+        if missing_task != []:
+            for item in missing_task:
+                saturday_tasks_state.remove(item)
+            schedulecfg.saturday_tasks = saturday_tasks_state
+        missing_task = list(set(sunday_tasks_state).difference(set(tasks)))
+        if missing_task != []:
+            for item in missing_task:
+                sunday_tasks_state.remove(item)
+            schedulecfg.sunday_tasks = sunday_tasks_state
+        schedulecfg.save_schedulecfg()
+        schedule_tasks.load_task_order(schedulecfg)
     return schedulecfg.monday_tasks, schedulecfg.tuesday_tasks, schedulecfg.wednesday_tasks, schedulecfg.thursday_tasks, schedulecfg.friday_tasks, schedulecfg.saturday_tasks, schedulecfg.sunday_tasks
 
 

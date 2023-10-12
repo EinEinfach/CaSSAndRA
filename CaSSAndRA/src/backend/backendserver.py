@@ -6,12 +6,21 @@ import time
 import os
 
 from . data import saveddata, calceddata, cleandata, cfgdata, logdata
+from . data.scheduledata import schedule_tasks
 from .comm.connections import mqttcomm, httpcomm, uartcomm
 
 restart = threading.Event()
 
 #from data import saveddata
 #from comm import mqttcomm, cmdlist, cmdtorover, comcfg
+
+def schedule_loop(restart: threading.Event) -> None:
+    while True:
+        if restart.is_set():
+            logger.info('Schedule thread is stopped')
+            return
+        schedule_tasks.check()
+        time.sleep(60)
 
 def store_data(restart: threading.Event, file_paths: tuple) -> None:
     start_time_save = datetime.now()
@@ -129,7 +138,7 @@ def start(file_paths) -> None:
     cfgdata.pathplannercfgtasktmp.read_pathplannercfg()
     cfgdata.appcfg.read_appcfg()
     cfgdata.schedulecfg.read_schedulecfg()
-
+   
     # todo: saveddata should probably be a class instead
     saveddata.file_paths = file_paths
     logger.info('Backend: Read saved data')
@@ -138,6 +147,9 @@ def start(file_paths) -> None:
     saveddata.read_perimeter(file_paths.map)
     logger.info('Backend: Read tasks data file')
     saveddata.read_tasks(file_paths.map)
+
+    #read schedule tasks
+    schedule_tasks.load_task_order(cfgdata.schedulecfg)
 
     if connect_data['USE'] == 'MQTT':
         logger.info('Selected connection MQTT')
@@ -183,6 +195,12 @@ def start(file_paths) -> None:
     datastorage_thread = threading.Thread(target=store_data, args=(restart, file_paths), name='data storage')
     datastorage_thread.setDaemon(True)
     datastorage_thread.start()
+
+    #start an own thread for schedule
+    logger.info('Starting schedule thread')
+    schedule_thread = threading.Thread(target=schedule_loop, args=(restart,), name='schedule_loop')
+    schedule_thread.setDaemon(True)
+    schedule_thread.start()
 
     #give some times to establish connection
     time.sleep(2)

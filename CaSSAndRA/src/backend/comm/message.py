@@ -123,6 +123,7 @@ def check() -> pd.DataFrame():
                     robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
                     cmdlist.cmd_dock = False
                     robot.dock_reason_operator = True
+                    robot.dock_reason = 'operator'
                     robot.dock_reason_time = datetime.now()
                     return msg_pckg 
                 else:
@@ -136,8 +137,19 @@ def check() -> pd.DataFrame():
             robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
             cmdlist.cmd_dock = False
             robot.dock_reason_operator = True
+            robot.dock_reason = 'operator'
             robot.dock_reason_time = datetime.now()
             return msg_pckg
+    
+    elif cmdlist.cmd_dock_schedule:
+        dock_msg = cmdtorover.dock()   
+        msg_pckg = dock_msg
+        robot.last_mow_status = checkmowmotor(dock_msg, robot.last_mow_status)
+        cmdlist.cmd_dock_schedule = False
+        robot.dock_reason_operator = True
+        robot.dock_reason = 'schedule'
+        robot.dock_reason_time = datetime.now()
+        return msg_pckg
     
     elif cmdlist.cmd_mow:
         if cmdlist.cmd_take_map_attempt == 0 or robot.map_upload_failed:

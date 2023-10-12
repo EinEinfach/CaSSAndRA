@@ -211,9 +211,6 @@ def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), tasks_a
         logger.info('Backend: Perimeter is successfully removed from perimeter.json')
         mapping_maps.saved = perimeter_arr
         mapping_maps.select_saved(pd.DataFrame(columns=['X', 'Y', 'type', 'name']))
-        #remove also perimeter in current map, if matched
-        if perimeter_name == current_map.name:
-            current_map.clear_map()
     except Exception as e:
         logger.error('Backend: Could not remove perimeter data from file')
         logger.debug(str(e))

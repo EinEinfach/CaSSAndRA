@@ -278,6 +278,24 @@ class ScheduleCfg:
     saturday_tasks: list = field(default_factory=list)
     sunday_tasks: list = field(default_factory=list)
 
+    def reset_schedulecfg(self) -> None:
+        self.active = False
+        self.monday_time = [12, 12]
+        self.tuesday_time = [12, 12]
+        self.wednesday_time = [12, 12]
+        self.thursday_time = [12, 12]
+        self.friday_time = [12, 12]
+        self.saturday_time = [12, 12]
+        self.sunday_time = [12, 12]
+        self.monday_tasks = []
+        self.tuesday_tasks = []
+        self.wednesday_tasks = []
+        self.thursday_tasks = []
+        self.friday_tasks = []
+        self.saturday_tasks = []
+        self.sunday_tasks = []
+        self.save_schedulecfg()
+
     def read_schedulecfg(self) -> None:
         try:
             with open(file_paths.user.schedulecfg) as f: 

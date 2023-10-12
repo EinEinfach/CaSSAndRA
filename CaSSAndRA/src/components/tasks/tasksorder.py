@@ -4,7 +4,11 @@ import time
 
 from src.components import ids
 from . import buttons
-from src.backend.data.mapdata import current_map, current_task, tasks
+from src.backend.data.mapdata import (current_map, 
+                                      current_task, 
+                                      tasks,
+                                      )
+from src.backend.data.scheduledata import schedule_tasks
 
 tasksorder = dbc.Col([
                     dbc.Card([
@@ -57,4 +61,5 @@ def update_dropdown_tasksorder(rt_isopen: bool,
         options = []
     if options == []:
         current_task.create()
+        schedule_tasks.create()
     return [options]*8   

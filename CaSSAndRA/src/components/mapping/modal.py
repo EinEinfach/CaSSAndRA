@@ -5,6 +5,8 @@ from .. import ids
 from . import buttons
 from src.backend.data import saveddata
 from src.backend.data.mapdata import current_map, mapping_maps, current_task, tasks
+from src.backend.data.scheduledata import schedule_tasks
+from src.backend.data.cfgdata import schedulecfg
 from src.backend.data.roverdata import robot
 from src.backend.comm import cmdlist
 
@@ -156,6 +158,8 @@ def selected_perimeter(bsp_n_clicks: int, bok_n_clicks: int,
         current_map.perimeter = selected
         current_map.create(selected_perimeter)
         current_task.create()
+        schedule_tasks.create()
+        schedulecfg.reset_schedulecfg()
         cmdlist.cmd_take_map = True
     if bsp_n_clicks or bok_n_clicks:
         return not is_open
@@ -199,6 +203,11 @@ def remove_perimeter(brp_n_clicks: int, bok_n_clicks,
     context = ctx.triggered_id
     if context == ids.OKBUTTONREMOVEPERIMETER:
         saveddata.remove_perimeter(mapping_maps.saved, selected_perimeter, tasks.saved, tasks.saved_parameters)
+        #remove also perimeter in current map, if matched
+        if selected_perimeter == current_map.name:
+            current_map.clear_map()
+            schedule_tasks.create()
+            schedulecfg.reset_schedulecfg()
         return False
     if context == ids.BUTTONREMOVEPERIMETER and brp_n_clicks:
         return True

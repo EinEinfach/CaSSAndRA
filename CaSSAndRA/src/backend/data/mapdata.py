@@ -659,6 +659,28 @@ class Task:
                       'mowexclusion': [self.parameters.mowexclusion], 'mowborderccw': [self.parameters.mowborderccw]}
         return parameters
     
+    def load_task_order(self, tasks_order: list) -> None:
+        if tasks_order is not None and tasks_order != []:
+            logger.debug(f'Load tasks: {tasks_order}')
+            tasks_to_be_done = 0
+            self.subtasks = pd.DataFrame()
+            self.subtasks_parameters = pd.DataFrame()
+            for task in tasks_order:
+                subtasks = tasks.saved[(tasks.saved['name'] == task)&(tasks.saved['map name'] == current_map.name)]
+                subtasks_parameters = tasks.saved_parameters[(tasks.saved_parameters['name'] == task)&(tasks.saved_parameters['map name'] == current_map.name)]
+                for subtask_nr in subtasks['task nr'].unique():
+                    subtask = subtasks[subtasks['task nr'] == subtask_nr]
+                    subtask_parameters = subtasks_parameters[subtasks_parameters['task nr'] == subtask_nr]
+                    subtask.loc[:, 'task nr'] = tasks_to_be_done
+                    subtask_parameters.loc[:, 'task nr'] = tasks_to_be_done
+                    self.subtasks = pd.concat([self.subtasks, subtask], ignore_index=True)
+                    self.subtasks_parameters = pd.concat([self.subtasks_parameters, subtask_parameters], ignore_index=True)
+                    tasks_to_be_done += 1
+        else:
+            logger.debug('No tasks to load')
+            self.subtasks = pd.DataFrame()
+            self.subtasks_parameters = pd.DataFrame()
+    
     def create(self) -> None:
         self.name = ''
         self.map_name = current_map.name
