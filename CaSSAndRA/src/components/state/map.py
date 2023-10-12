@@ -4,7 +4,7 @@ import pandas as pd
 
 from .. import ids
 from src.backend.data import mapdata, calceddata
-from src.backend.data.mapdata import current_map, current_task, tasks
+from src.backend.data.mapdata import current_map, current_task, tasks, progress_color_palette
 from src.backend.map import map, path
 from src.backend.data.roverdata import robot
 from src.backend.data.cfgdata import pathplannercfgstate
@@ -219,9 +219,13 @@ def update(n_intervals: int,
           filtered = current_map.preview[current_map.preview['type'] == 'preview route']
           traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color='#7fb249')))
      elif not current_task.subtasks_statemap.empty:
+          index = 0
           for subtask in current_task.subtasks_statemap['task nr'].unique():
+               color_index = index % len(progress_color_palette)
+               preview_color = progress_color_palette[color_index]
                filtered = current_task.subtasks_statemap[(current_task.subtasks_statemap['task nr'] == subtask)&(current_task.subtasks_statemap['type'] == 'preview route')]
-               traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color='#7fb249'))) 
+               traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color=preview_color))) 
+               index += 1
 
      #Plot obstacles if there
      imgs = []

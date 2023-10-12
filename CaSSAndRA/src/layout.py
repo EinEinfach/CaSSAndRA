@@ -11,7 +11,7 @@ from src.components import (
     modalerror,
 )
 
-from src.backend.data.mapdata import current_map
+from src.backend.data.mapdata import current_map, progress_color_palette
 
 
 def serve_layout() -> html.Div:
@@ -33,45 +33,54 @@ def serve_layout() -> html.Div:
         ]
     )
 
-@callback([
-            Output(ids.STATEPROGRESSBAR, 'children'),
-            Output(ids.STATEPROGRESSBAR, 'class_name'),
-            Output(ids.STATEPROGRESSBARCONTAINER, 'className'),
-        ],
-        [
-            Input(ids.PROGRESSBARINTERVAL, 'n_intervals'),
-            State(ids.STATEPROGRESSBAR, 'children'),
-        ])
+@callback(
+[
+	Output(ids.STATEPROGRESSBAR, 'children'),
+	Output(ids.STATEPROGRESSBAR, 'class_name'),
+	Output(ids.STATEPROGRESSBARCONTAINER, 'className'),
+],
+[
+	Input(ids.PROGRESSBARINTERVAL, 'n_intervals'),
+	State(ids.STATEPROGRESSBAR, 'children'),
+])
 def update_progress_bar(
-                        n_intervals: int,
-                        children : list,
-                    ) -> list:
+	n_intervals: int,
+	children : list,
+) -> list:
     
     total_tasks = current_map.total_tasks
-    task = min(current_map.task_progress, 5)
+    task = current_map.task_progress
     data = children
-    
+
+    # Append progress bar elements if necessary
+    if len(data) < task + 1:
+        color_index = task % len(progress_color_palette)
+        bar_color = progress_color_palette[color_index]
+        data.append({'props': {'children': None, 'animated': True, 'bar': True, 'striped': True, 'value': 0, 'color' : bar_color}, 'type': 'Progress', 'namespace': 'dash_bootstrap_components'})       
+
+    # Calculate currents task progress
     if current_map.total_progress > 0:
         progress = (current_map.calculated_progress / current_map.total_progress) * 100 / total_tasks
     else:
         progress = 0
 
+    # Set progress bar values and classes
     if current_map.calculating == True:
         progress_class_name = "progress-bar-visible"
         progress_container_class_name = "progress-bar-container-visible"
+        
+        data[0]["props"]["value"] = max(data[0]["props"]["value"], 2) # Show a minimum amount of fake progress
+        data[task]["props"]["value"] = max(data[task]["props"]["value"], progress) # Set current task progress
 
-        data[0]["props"]["value"] = max(data[0]["props"]["value"], 2)
-        data[current_map.task_progress]["props"]["value"] = max(data[task]["props"]["value"], progress)
-
-        for i in range(0, task):
-            if (task > i):
-                data[i]["props"]["value"] = 100 / total_tasks
-
+        # Set past task progress to 100%
+        if task > 0:
+            data[task-1]["props"]["value"] = 100 / total_tasks
     else:
         progress_class_name = "progress-bar-hidden"
         progress_container_class_name = "progress-bar-container-hidden"
 
-        for i in range(0, 6):
-            data[i]["props"]["value"] = 0
+        # Reset progress
+        for bar in data:
+            bar["props"]["value"] = 0
 
     return data, progress_class_name, progress_container_class_name
