@@ -36,7 +36,7 @@
             "BAUDRATE": 115200
         }
     ],
-    "API": "MQTT",
+    "API": null,
     "MQTT_API": [
         {
             "CLIENT_ID": "CaSSAndRA_api"
