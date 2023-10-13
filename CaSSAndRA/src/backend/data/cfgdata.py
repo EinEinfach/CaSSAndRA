@@ -96,6 +96,7 @@ class AppCfg:
     current_thd_charge: float = -0.03
     rover_picture: str = 'default/'
     rover_pictures: RoverIMG = RoverIMG()
+    obstacles_amount: int = 0
     file_path: str = ''
 
     def read_appcfg(self) -> None:
@@ -117,8 +118,9 @@ class AppCfg:
             self.current_thd_charge = appcfg_from_file['current_thd_charge']
             self.rover_picture = appcfg_from_file['rover_picture']
             self.rover_pictures.load_rover_pictures(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+self.rover_picture))
+            self.obstacles_amount = appcfg_from_file['obstacles_amount']
         except Exception as e:
-            logger.error('Could not read rovercfg.json. Data are invalid. Go with standard values')
+            logger.error('Could not read appcfg.json. Data are invalid. Go with standard values')
             logger.debug(str(e))
             res = self.save_appcfg()
     
@@ -131,10 +133,11 @@ class AppCfg:
             new_data['voltage_to_soc'] = soc_look_up_table
             new_data['current_thd_charge'] = self.current_thd_charge
             new_data['rover_picture'] = self.rover_picture
+            new_data['obstacles_amount'] = self.obstacles_amount
             with open(file_paths.user.appcfg, 'w') as f:
                 logger.debug('New appcfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)
-            logger.info('rovercfg data are successfully stored in appcfg.json')
+            logger.info('appcfg data are successfully stored in appcfg.json')
             return 0
         except Exception as e:
             logger.error('Could not save appcfg.json. Unexpected behaivor')

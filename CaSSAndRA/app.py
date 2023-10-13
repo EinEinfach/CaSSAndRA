@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.85.1 Fix schedule doesn't start a task next day 
+#Version:0.86.0 Amount of showing obstacles adjustable (Settings -> App). Default log level changed to INFO 
 # package imports
 import os
 import sys
@@ -99,7 +99,7 @@ def check_startup(data_path):
 @click.option('--proxy', default=None, help='format={{input}}::{{output}} example=http://0.0.0.0:8050::https://my.domain.com')
 @click.option('--data_path', default=default_data_path, show_default=True)
 @click.option('--debug', default=False, is_flag=True, help="Enables debug mode for dash application")
-@click.option('--app_log_level', default="DEBUG", envvar='APPLOGLEVEL', type=logging_choices, show_default=True)
+@click.option('--app_log_level', default="INFO", envvar='APPLOGLEVEL', type=logging_choices, show_default=True)
 @click.option('--app_log_file_level', default="INFO", envvar='APPLOGFILELEVEL', type=logging_choices, show_default=True)
 @click.option('--server_log_level', default="ERROR", envvar='SERVERLOGLEVEL', type=logging_choices, show_default=True)
 @click.option('--pil_log_level', default="WARN", envvar='PILLOGLEVEL', type=logging_choices, show_default=True)

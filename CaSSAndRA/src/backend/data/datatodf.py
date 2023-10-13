@@ -10,6 +10,7 @@ from shapely import Polygon
 from . import roverdata, calceddata
 from . roverdata import robot
 from . mapdata import current_map
+from . cfgdata import appcfg
 
 def create_obstacle(data: list) -> pd.DataFrame:
     list_for_df = []
@@ -234,8 +235,9 @@ def add_obstacles_to_df(data: str) -> None:
         del data_list[-1]
         del data_list[0]
         if len(data_list) == 1:
-            #current_map.obstacles = pd.DataFrame() #Comment out this line for mirroring obstacles 
-            return
+            if appcfg.obstacles_amount == 0: #Synchronize to sunray fw
+                current_map.obstacles = pd.DataFrame() 
+                return
         obstacles_number = int(data_list[0]) 
         del data_list[0]
         data_list = [float(x) if '.' in x else int(x) for x in data_list]
@@ -244,6 +246,13 @@ def add_obstacles_to_df(data: str) -> None:
             if current_map.obstacles.empty or current_map.obstacles[current_map.obstacles['CRC'] == obstacle['CRC'].unique()[0]].empty:
                 current_map.obstacles = pd.concat([current_map.obstacles, obstacle], ignore_index=True)
             del data_list[0:4+2*data_list[3]]
+        #check of max amount of obstacles
+        if appcfg.obstacles_amount != 0:
+            if not current_map.obstacles.empty and len(current_map.obstacles['CRC'].unique()) > appcfg.obstacles_amount:
+                obstacles_crc = current_map.obstacles['CRC'].unique()
+                obstacles_crc = obstacles_crc[-appcfg.obstacles_amount:]
+                current_map.obstacles = current_map.obstacles[current_map.obstacles['CRC'].isin(obstacles_crc)]
+                current_map.obstacles = current_map.obstacles.reset_index(drop=True)
     except Exception as e:
         logger.error('Backend: Failed to write obstacles data to data frame')
         logger.debug(str(e))

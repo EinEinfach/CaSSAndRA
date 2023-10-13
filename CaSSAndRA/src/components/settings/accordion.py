@@ -158,6 +158,8 @@ accordion_settings = dbc.Accordion([
                                     dbc.Input(value=appcfg.voltage_100, type='number', min=0, step=0.1, id=ids.VOLTAGEMAXSETTINGS),
                                 ]),                         
                             ]),
+                            dbc.FormText('Max amount of showing obstacles (0 means synchronous to sunray fw)'),
+                            dbc.Input(value=appcfg.obstacles_amount, type='number', min=0, step=1, id=ids.MAXAMOUNTOBSTACLESSETTINGS),
                         ], title='App'),
                         dbc.AccordionItem(
                             [
@@ -310,10 +312,20 @@ def update_pathplanner_settings_data(bsr_n_clicks: int, bok_n_clicks: int,
            State(ids.CURRENTTHDCHARGESETTINGS, 'value'),
            State(ids.VOLTAGEMINSETTINGS, 'value'),
            State(ids.VOLTAGEMAXSETTINGS, 'value'),
-           State(ids.ROVERPICTURESETTINGS, 'value')])
-def update_app_data(bsr_n_clicks: int, bok_n_clicks: int, is_open: bool, 
-                    maxage: int, timetooffline: int, currentthd: float,
-                    voltagemin: float, voltagemax: float, roverpicture: str) -> bool():
+           State(ids.ROVERPICTURESETTINGS, 'value'),
+           State(ids.MAXAMOUNTOBSTACLESSETTINGS, 'value'),
+           ])
+def update_app_data(bsr_n_clicks: int, 
+                    bok_n_clicks: int, 
+                    is_open: bool, 
+                    maxage: int, 
+                    timetooffline: int, 
+                    currentthd: float,
+                    voltagemin: float, 
+                    voltagemax: float, 
+                    roverpicture: str,
+                    maxobstacles: int,
+                    ) -> bool():
     context = ctx.triggered_id
     if context == ids.BUTTONOKAPPSETTINGS:
         if maxage != None:
@@ -326,6 +338,8 @@ def update_app_data(bsr_n_clicks: int, bok_n_clicks: int, is_open: bool,
             appcfg.voltage_0 = voltagemin
         if voltagemax != None:
             appcfg.voltage_100 = voltagemax
+        if maxobstacles != None:
+            appcfg.obstacles_amount = maxobstacles
         appcfg.rover_picture = roverpicture
         appcfg.save_appcfg()
         appcfg.read_appcfg()
@@ -393,8 +407,9 @@ def update_pathplandersettings_on_reload(pathname: str) -> list:
           Output(ids.VOLTAGEMINSETTINGS, 'value'),
           Output(ids.VOLTAGEMAXSETTINGS, 'value'),
           Output(ids.ROVERPICTURESETTINGS, 'value'),
+          Output(ids.MAXAMOUNTOBSTACLESSETTINGS, 'value'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_appsettings_on_reload(pathname: str) -> list:
-    return appcfg.datamaxage, appcfg.time_to_offline, appcfg.current_thd_charge, appcfg.voltage_0, appcfg.voltage_100, appcfg.rover_picture
+    return appcfg.datamaxage, appcfg.time_to_offline, appcfg.current_thd_charge, appcfg.voltage_0, appcfg.voltage_100, appcfg.rover_picture, appcfg.obstacles_amount
   
    
