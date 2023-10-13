@@ -1,4 +1,4 @@
-/*html margin-left*/
+/* html margin-left */
 .margin-5px{
   margin-left: 5px;
   margin-top: 5px;
@@ -119,11 +119,11 @@ body{
   overflow: hidden;
 }
 #react-entry-point > div:first-of-type > div:first-of-type{
-	overflow: hidden;
-	flex-grow: 1;
+    overflow: hidden;
+    flex-grow: 1;
 }
 #_pages_content{
-	height: 100%;
+    height: 100%;
 }
 
 /* Make sure we can still scroll when needed for pages like the Settings accordians */
@@ -204,14 +204,14 @@ html {
 
 .stateCardHeader
 {
-	padding-top: 0.25rem;
-	padding-bottom: 0.25rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
 }
 
 .stateCardBody
 {
-	padding-top: 0.6rem;
-	padding-bottom: 0.6rem;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
 }
 
 /************************* End of Card Group Customizations ********************/
@@ -270,119 +270,117 @@ html {
 /* Log Table*/
 .log_table
 {
-	font-size: 0.8rem;
-	text-align: left;
+    font-size: 0.8rem;
+    text-align: left;
 }
 
 .log_table tbody td:nth-child(2){
-	overflow-wrap: anywhere;
+    overflow-wrap: anywhere;
 }
 
 /* Progress bar */
 .progress-bar-visible
 {
-	opacity: 0.9;
-	transition-duration: 0.5s;
-	transition-property: opacity;
+    opacity: 0.9;
+    transition-duration: 0.5s;
+    transition-property: opacity;
 }
 
 .progress-bar-hidden
 {
-	opacity: 0.0;
-	transition-duration: 1s;
-	transition-property: opacity;
+    opacity: 0.0;
+    transition-duration: 1s;
+    transition-property: opacity;
 }
 
 /* Progress bar container */
 .progress-bar-container-visible
 {
-	backdrop-filter: blur(2px);
-	transition-duration: 0.5s;
-	transition-property: backdrop-filter
+    backdrop-filter: blur(2px);
+    transition-duration: 0.5s;
+    transition-property: backdrop-filter
 }
 
 .progress-bar-container-hidden
 {
-	backdrop-filter: blur(0px);
-	transition-duration: 1s;
-	transition-property: backdrop-filter
+    backdrop-filter: blur(0px);
+    transition-duration: 1s;
+    transition-property: backdrop-filter
 }
 
 /* Modebar and plot styling */
 .modebar
 {
-	top: 0.3rem !important;
-	right: 0px !important;
+    top: 0.3rem !important;
+    right: 0px !important;
 }
 .modebar-group
 {
-	backdrop-filter: blur(2px);
-	top: 0 !important;
-	padding-left: 4px !important;
-	padding-right: 4px !important;
+    backdrop-filter: blur(2px);
+    top: 0 !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
 }
 .modebar-btn svg
 {
-	top: 0px !important;
+    top: 0px !important;
 }
 .plotly [data-title]::before
 {
-	display: none !important;
+    display: none !important;
 }
 .plotly [data-title]::after
 {
-	display: none !important;
+    display: none !important;
 }
 .plotly-notifier
 {
-	display: none !important;
+    display: none !important;
 }
-.main-svg
+/* .main-svg
 {
-	-webkit-mask-size:100% 100%;
-	-webkit-mask-position:center;
-	-webkit-mask-repeat:no-repeat;
-	-webkit-mask-composite: source-in;
-	-webkit-mask: linear-gradient(to top,  transparent 0%, #ffff 0.3rem calc(100% - 0.3rem), transparent 100%);
+    -webkit-mask: linear-gradient(to top,  transparent 0%, #ffff 0.3rem calc(100% - 0.3rem), transparent 100%);
 }
 .svg-container:first-child:before
 {
-	display: block;
-	content: "";
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	z-index: 2;
-	backdrop-filter: blur(2px);
-	pointer-events: none;
+    display: block;
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    backdrop-filter: blur(2px);
+    pointer-events: none;
 
-	-webkit-mask-size:100% 100%;
-	-webkit-mask-position:center;
-	-webkit-mask-repeat:no-repeat;
-	-webkit-mask-composite: source-in;
-	-webkit-mask: linear-gradient(to top,  #ffff 0%, transparent 0.3rem calc(100% - 0.3rem), #ffff 100%);
-}
+    -webkit-mask: linear-gradient(to top,  #ffff 0%, transparent 0.3rem calc(100% - 0.3rem), #ffff 100%);
+} */
 .infolayer
 {
-	transform: translateY(2.25rem);
+    transform: translateY(2.25rem);
 }
 .annotation:last-child
 {
-	transform: translateY(-2.5rem);
+    transform: translateY(-2.5rem);
 }
 .navbar-toggler:focus
 {
-	box-shadow: none !important;
+    box-shadow: none !important;
 }
 .navbar-toggler:active
 {
-	text-decoration: none !important;
-	outline: 0 !important;
-	box-shadow: 0 0 0 0.1rem !important;
+    text-decoration: none !important;
+    outline: 0 !important;
+    box-shadow: 0 0 0 0.1rem !important;
 }
 
 /* Schedule */
 .schedule-day{}
 .schedule-day:nth-child(even){
-	background-color: rgba(0, 0, 0, 0.041);
+    background-color: rgba(0, 0, 0, 0.041);
+}
+
+/* Zoom */
+#_pages_content
+{
+    pointer-events: all;
 }

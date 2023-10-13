@@ -16,11 +16,16 @@ tasksmap.update_layout(
                     scaleanchor='x',
                     gridcolor = '#eeeeee', 
                     zerolinecolor = 'lightgrey',
-                    showticklabels=False),
+                    showticklabels=False,
+                    showgrid=False,
+                    zeroline=False,
+                    ),
                xaxis=dict(
                     gridcolor = '#eeeeee', 
                     zerolinecolor = 'lightgrey',
-                    showticklabels=False
+                    showticklabels=False,
+                    showgrid=False,
+                    zeroline=False,
                ),
                margin=dict(
                     b=0, #bottom margin 40px
@@ -136,7 +141,7 @@ def update(bpma_nclicks: int,
                                         name='perimeter', 
                                         mode='lines+markers', 
                                         line=dict(color='#008080'), 
-                                        marker=dict(size=3),
+                                        marker=dict(size=1),
                                         hoverinfo='skip')) 
 
     #plot preview if there
