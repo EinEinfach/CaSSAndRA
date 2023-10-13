@@ -17,11 +17,16 @@ statemap.update_layout(
                     scaleanchor='x',
                     gridcolor = '#eeeeee', 
                     zerolinecolor = 'lightgrey',
-                    showticklabels=False),
+                    showticklabels=False,
+                    showgrid=False,
+                    zeroline=False,
+                ),
                xaxis=dict(
                     gridcolor = '#eeeeee', 
                     zerolinecolor = 'lightgrey',
-                    showticklabels=False
+                    showticklabels=False,
+                    showgrid=False,
+                    zeroline=False,
                ),
                margin=dict(
                     b=0, #bottom margin 40px
@@ -165,7 +170,7 @@ def update(n_intervals: int,
                filtered = coords_filtered.loc[coords['type']==trace]
                traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
                                         name='perimeter', 
-                                        mode='lines+markers', 
+                                        mode='lines', 
                                         line=dict(color='#008080'), 
                                         marker=dict(size=3),
                                         hoverinfo='skip')) 
