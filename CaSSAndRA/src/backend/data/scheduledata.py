@@ -63,7 +63,7 @@ class ScheduleTasks:
     
     def check_new_day(self) -> None:
         if datetime.now().weekday() != self.dayweek:
-            self.dayweek = datetime.now().weekday
+            self.dayweek = datetime.now().weekday()
             self.midnight = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
             self.job_started = False
             self.job_finished = False
