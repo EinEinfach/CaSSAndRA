@@ -13,7 +13,7 @@ from datetime import datetime
 
 #local imports
 from .. data import datatodf
-from .. data.cfgdata import commcfg
+from .. data.cfgdata import CommCfg, commcfg
 from . import message
 
 @dataclass
@@ -27,20 +27,19 @@ class MQTT:
     mqtt_mower_name: str = None
     mqtt_topics: dict = field(default_factory=dict)
     sub_ids: dict = field(default_factory=dict)
+    buffer_api: list = field(default_factory=list)
 
-    def create(self) -> None:
-        self.mqtt_client_id = commcfg.mqtt_client_id
-        self.mqtt_username = commcfg.mqtt_username
-        self.mqtt_pass = commcfg.mqtt_pass
-        self.mqtt_server = commcfg.mqtt_server
-        self.mqtt_port = commcfg.mqtt_port
-        self.mqtt_mower_name = commcfg.mqtt_mower_name
-        self.mqtt_topics = {'TOPIC_STATE':'state', 'TOPIC_STATS':'stats','TOPIC_PROPS':'props','TOPIC_ONLINE':'online'}
+    def create(self, cfg: dict, topics: dict) -> None:
+        self.mqtt_client_id = cfg['CLIENT_ID']
+        self.mqtt_username = cfg['USERNAME']
+        self.mqtt_pass = cfg['PASSWORD']
+        self.mqtt_server = cfg['MQTT_SERVER']
+        self.mqtt_port = cfg['PORT']
+        self.mqtt_mower_name = cfg['NAME']
+        self.mqtt_topics = topics
         self.client = mqtt.Client(self.mqtt_client_id + str(random.randint(1, 1000)))
         self.client.connection_flag = False
         self.client.username_pw_set(self.mqtt_username, self.mqtt_pass)
-        self.connect()
-        self.client.loop_start()
     
     def disconnect(self) -> None:
         logger.info('Disconnecting')
@@ -55,6 +54,7 @@ class MQTT:
         except Exception as e:
             logger.warning('Connection to the MQTT server failed')
             logger.debug(str(e))
+        self.client.loop_start()
     
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
@@ -72,21 +72,32 @@ class MQTT:
     
     def on_message(self, client, userdata, msg):
         logger.info('RX:'+msg.topic+' message:'+str(msg.payload))
-        if msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_STATE']:
+        if 'TOPIC_STATE' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_STATE']:
             decoded_message = str(msg.payload.decode('utf-8'))
             data = json.loads(decoded_message)
             datatodf.add_state_to_df_from_mqtt(data)
-        elif msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_PROPS']:
+        elif 'TOPIC_PROPS' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_PROPS']:
             decoded_message = str(msg.payload.decode('utf-8'))
             data = json.loads(decoded_message)
             datatodf.add_props_to_df_from_mqtt(data)
-        elif msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_STATS']:
+        elif 'TOPIC_STATS' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_STATS']:
             decoded_message = str(msg.payload.decode('utf-8'))
             data = json.loads(decoded_message)
             datatodf.add_stats_to_df_from_mqtt(data)
-        elif msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_ONLINE']:
+        elif 'TOPIC_ONLINE' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_ONLINE']:
             data = msg.payload.decode('utf-8')
             datatodf.add_online_to_df_from_mqtt(data)
+        elif 'TOPIC_API_CMD' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_API_CMD']:
+            data = msg.payload.decode('utf-8')
+            try:
+                logger.info(f'Got message over api: {data}')
+                data = json.loads(data)
+                self.buffer_api.append(data)
+            except Exception as e:
+                logger.warning('Message content is not valid json format')
+                logger.debug(str(e))
+                self.buffer_api = []
+            self.buffer_api = data
     
     def on_subscribe(self, client, userdata, mid, granted_qos):
         if mid in self.sub_ids.keys():
@@ -98,18 +109,9 @@ class MQTT:
         self.client.on_subscribe = self.on_subscribe
         mower_name = self.mqtt_mower_name
         topics = self.mqtt_topics
-        topic = mower_name+'/'+topics['TOPIC_STATE']
-        resp, mid = self.client.subscribe(topic)
-        self.sub_ids[mid] = topic
-        topic = mower_name+'/'+topics['TOPIC_STATS']
-        resp, mid = self.client.subscribe(mower_name+'/'+topics['TOPIC_STATS'])
-        self.sub_ids[mid] = topic
-        topic = mower_name+'/'+topics['TOPIC_PROPS']
-        resp, mid = self.client.subscribe(mower_name+'/'+topics['TOPIC_PROPS'])
-        self.sub_ids[mid] = topic
-        topic = mower_name+'/'+topics['TOPIC_ONLINE']
-        resp, mid = self.client.subscribe(mower_name+'/'+topics['TOPIC_ONLINE'])
-        self.sub_ids[mid] = topic
+        for topic in topics:
+            resp, mid = self.client.subscribe(mower_name+'/'+topics[topic])
+            self.sub_ids[mid] = mower_name+'/'+topics[topic]
         self.client.on_message = self.on_message
     
     def cmd_to_rover(self) -> None:
@@ -123,7 +125,14 @@ class MQTT:
             else:
                 logger.warning('Failed to publish: '+topic+' with message: '+msg_pckg['msg'][i])   
             time.sleep(0.1)
-
+    
+    def api_publish(self, topic, payload) -> None:
+        topic = self.mqtt_mower_name+'/'+topic
+        result = self.client.publish(topic, payload)
+        if result[0] == 0:
+            logger.debug('API TX: '+topic+' '+payload)
+        else:
+            logger.warning('API failed to publish: '+topic+'with message: '+payload)
 @dataclass
 class HTTP:
     http_ip: str = None
@@ -402,6 +411,8 @@ mqttcomm = MQTT()
 httpcomm = HTTP()
 uartcomm = UART()
 
+#Create api instance
+mqttapi = MQTT()
 
         
     

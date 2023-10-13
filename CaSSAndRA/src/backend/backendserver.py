@@ -7,12 +7,37 @@ import os
 
 from . data import saveddata, calceddata, cleandata, cfgdata, logdata
 from . data.scheduledata import schedule_tasks
-from .comm.connections import mqttcomm, httpcomm, uartcomm
+from . comm.connections import mqttcomm, httpcomm, uartcomm, mqttapi
+from . comm.api import cassandra_api
+from . data.roverdata import robot
 
 restart = threading.Event()
 
 #from data import saveddata
 #from comm import mqttcomm, cmdlist, cmdtorover, comcfg
+
+def api(restart: threading.ExceptHookArgs) -> None:
+    start_time_api = datetime.now()
+    time_to_wait = 1
+    while True:
+        if restart.is_set():
+            logger.info('API thread is stopped')
+            mqttapi.disconnect()
+            return
+        if (datetime.now() - start_time_api).seconds >= 5*time_to_wait:
+            logger.debug('Update api data')
+            cassandra_api.update_payload()
+            mqttapi.api_publish('status', cassandra_api.apistate)
+            mqttapi.api_publish('robot', cassandra_api.robotstate)
+            mqttapi.api_publish('maps', cassandra_api.mapsstate)
+            mqttapi.api_publish('tasks', cassandra_api.taskstate)
+            start_time_api = datetime.now()
+        if mqttapi.buffer_api != []:
+            cassandra_api.apistate = 'busy'
+            mqttapi.api_publish('status', cassandra_api.apistate)
+            cassandra_api.check_cmd(mqttapi.buffer_api)
+            mqttapi.buffer_api = []
+        time.sleep(1)
 
 def schedule_loop(restart: threading.Event) -> None:
     while True:
@@ -153,7 +178,11 @@ def start(file_paths) -> None:
 
     if connect_data['USE'] == 'MQTT':
         logger.info('Selected connection MQTT')
-        mqttcomm.create()
+        topics = {'TOPIC_STATE':'state', 'TOPIC_STATS':'stats','TOPIC_PROPS':'props','TOPIC_ONLINE':'online'}
+        cfg = dict(CLIENT_ID=cfgdata.commcfg.mqtt_client_id, USERNAME=cfgdata.commcfg.mqtt_username, PASSWORD=cfgdata.commcfg.mqtt_pass,
+                   MQTT_SERVER=cfgdata.commcfg.mqtt_server, PORT=cfgdata.commcfg.mqtt_port, NAME=cfgdata.commcfg.mqtt_mower_name)
+        mqttcomm.create(cfg, topics)
+        mqttcomm.connect()
         connection_start = datetime.now()
         while mqttcomm.client.connection_flag != True:
             time.sleep(0.1)
@@ -186,9 +215,31 @@ def start(file_paths) -> None:
         connection_thread.setDaemon(True)
         connection_thread.start()
         logger.info('Backend is successfully started')
-
     else:
         logger.error('commcfg.json file is invalid')
+    
+    if connect_data['API'] != None:
+        logger.info('Create API')
+        if connect_data['API'] == 'MQTT':
+            logger.info('Selected API is MQTT')
+            topics = {'TOPIC_API_CMD':'api_cmd'}
+            cfg = cfg = dict(CLIENT_ID=cfgdata.commcfg.api_mqtt_client_id, USERNAME=cfgdata.commcfg.api_mqtt_username, PASSWORD=cfgdata.commcfg.api_mqtt_pass,
+                             MQTT_SERVER=cfgdata.commcfg.api_mqtt_server, PORT=cfgdata.commcfg.api_mqtt_port, NAME=cfgdata.commcfg.api_mqtt_cassandra_server_name)
+            mqttapi.create(cfg, topics)
+            mqttapi.client.will_set(mqttapi.mqtt_mower_name+'/status', payload='offline')
+            mqttapi.connect()
+            connection_start = datetime.now()
+            while mqttapi.client.connection_flag != True:
+                time.sleep(0.1)
+                if (datetime.now()-connection_start).seconds >10:
+                    break
+            if mqttapi.client.connection_flag:
+                mqttapi.client.publish(cfgdata.commcfg.api_mqtt_cassandra_server_name+'/status', 'boot')
+                logger.info('Starting API thread')
+                api_thread = threading.Thread(target=api, args=(restart,), name='api')
+                api_thread.setDaemon(True)
+                api_thread.start()
+                logger.info('API successful created')
     
     #start an own thread for data storing
     logger.info('Starting thread for data storage')

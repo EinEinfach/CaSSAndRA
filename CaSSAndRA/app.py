@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.86.0 Amount of showing obstacles adjustable (Settings -> App). Default log level changed to INFO 
+#Version:0.87.0 First API commit (Some stuff working well) 
 # package imports
 import os
 import sys

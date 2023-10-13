@@ -35,5 +35,26 @@
         {
             "BAUDRATE": 115200
         }
+    ],
+    "API": "MQTT",
+    "MQTT_API": [
+        {
+            "CLIENT_ID": "CaSSAndRA_api"
+        },
+        {
+            "USERNAME": ""
+        },
+        {
+            "PASSWORD": ""
+        },
+        {
+            "MQTT_SERVER": "192.168.1.1"
+        },
+        {
+            "PORT": 1883
+        },
+        {
+            "API_SERVER_NAME": "myCaSSAndRA"
+        }
     ]
 }

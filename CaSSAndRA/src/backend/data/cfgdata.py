@@ -25,6 +25,13 @@ class CommCfg:
     http_pass: int = 123456
     uart_port: str = '/dev/ttyACM0'
     uart_baudrate: int = 115200
+    api: str = None
+    api_mqtt_client_id: str = 'CaSSAndRA_api'
+    api_mqtt_username: str = ''
+    api_mqtt_pass: str = ''
+    api_mqtt_server: str = '192.168.1.1'
+    api_mqtt_port: int = 1883
+    api_mqtt_cassandra_server_name:str = 'myCaSSAndRA'
     
     def read_commcfg(self) -> dict():
         try:
@@ -43,6 +50,13 @@ class CommCfg:
                 self.http_pass = commcfg_from_file['HTTP'][1]['PASSWORD']
                 self.uart_port = commcfg_from_file['UART'][0]['SERPORT']
                 self.uart_baudrate = commcfg_from_file['UART'][1]['BAUDRATE']
+                self.api = commcfg_from_file['API']
+                self.api_mqtt_client_id = commcfg_from_file['MQTT_API'][0]['CLIENT_ID']
+                self.api_mqtt_username = commcfg_from_file['MQTT_API'][1]['USERNAME']
+                self.api_mqtt_pass = commcfg_from_file['MQTT_API'][2]['PASSWORD']
+                self.api_mqtt_server = commcfg_from_file['MQTT_API'][3]['MQTT_SERVER']
+                self.api_mqtt_port = commcfg_from_file['MQTT_API'][4]['PORT'] 
+                self.api_mqtt_cassandra_server_name = commcfg_from_file['MQTT_API'][5]['API_SERVER_NAME']
                 return commcfg_from_file
         except Exception as e:
             logger.error('Could not read commcfg.json. Missing commcfg.json. Go with standard values')
@@ -69,6 +83,14 @@ class CommCfg:
                                 ]
             new_data['UART'] = [{'SERPORT': self.uart_port},
                                 {'BAUDRATE': self.uart_baudrate}
+                                ]
+            new_data['API'] = self.api
+            new_data['MQTT_API'] = [{'CLIENT_ID': self.api_mqtt_client_id}, 
+                                {'USERNAME': self.api_mqtt_username},
+                                {'PASSWORD': self.api_mqtt_pass},
+                                {'MQTT_SERVER': self.api_mqtt_server},
+                                {'PORT': self.api_mqtt_port},
+                                {'API_SERVER_NAME': self.api_mqtt_cassandra_server_name}
                                 ]
             with open(file_paths.user.comm, 'w') as f:
                 logger.debug('New commcfg data: '+str(new_data))
