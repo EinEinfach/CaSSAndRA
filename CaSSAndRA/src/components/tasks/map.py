@@ -139,9 +139,9 @@ def update(bpma_nclicks: int,
                filtered = coords_filtered.loc[coords['type']==trace]
                traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], 
                                         name='perimeter', 
-                                        mode='lines', 
+                                        mode='lines+markers', 
                                         line=dict(color='#008080'), 
-                                        marker=dict(size=3),
+                                        marker=dict(size=1),
                                         hoverinfo='skip')) 
 
     #plot preview if there
