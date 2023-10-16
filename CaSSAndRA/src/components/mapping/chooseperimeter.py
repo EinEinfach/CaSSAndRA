@@ -47,6 +47,7 @@ def update_dropdown_chooseperimeter(boknp_nclicks: int,
     context = ctx.triggered_id
     try:
         options = mapping_maps.saved.name.unique()
+        options.sort()
         value = dropdown_val_state
     except:
         options = []

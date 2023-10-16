@@ -7,7 +7,7 @@ import json
 from .. data.mapdata import current_map, current_task, mapping_maps, tasks
 from .. data.scheduledata import schedule_tasks
 from .. data.cfgdata import schedulecfg, pathplannercfgapi
-from .. map import path
+from .. map import path, map
 from .. comm import cmdlist
 from .. data.roverdata import robot
 
@@ -20,10 +20,12 @@ class API:
     tasksstate: dict = field(default_factory=dict)
     mapsstate: dict = field(default_factory=dict)
     mowparametersstate: dict = field(default_factory=dict)
+    mapstate: dict = field(default_factory=dict)
     robotstate_json: str = '{}'
     tasksstate_json: str = '{}'
     mapsstate_json: str = '{}'
     mowparametersstate_json = '{}'
+    mapstate_json: str ='{}'
     loaded_tasks: list = field(default_factory=list)
     commanded_object: str = ''
     command: str = ''
@@ -33,49 +35,45 @@ class API:
         self.apistate = 'ready'
 
     def create_robot_payload(self) -> None:
-        robotstate = dict()
-        robotstate['status'] = robot.status
-        robotstate['battery'] = robot.soc
-        self.robotstate = robotstate
-        self.robotstate_json = json.dumps(robotstate)
+        self.robotstate['status'] = robot.status
+        self.robotstate['battery'] = robot.soc
+        self.robotstate_json = json.dumps(self.robotstate)
 
     def create_maps_payload(self) -> None:
-        mapsstate = dict()
-        mapsstate['loaded'] = current_map.name
+        self.mapsstate['loaded'] = current_map.name
         if not mapping_maps.saved.empty:
-            mapsstate['available'] = list(mapping_maps.saved['name'].unique())
+            self.mapsstate['available'] = list(mapping_maps.saved['name'].unique())
         else:
-            mapsstate['available'] = []
-        self.mapsstate = mapsstate
-        self.mapsstate_json = json.dumps(mapsstate)
+            self.mapsstate['available'] = []
+        self.mapsstate = self.mapsstate
+        self.mapsstate_json = json.dumps(self.mapsstate)
     
     def create_tasks_payload(self) -> None:
-        tasksstate = dict()
         if not current_task.subtasks.empty:
-            tasksstate['selected'] = list(current_task.subtasks['name'].unique())
-            tasksstate['loaded'] = self.loaded_tasks
+            self.tasksstate['selected'] = list(current_task.subtasks['name'].unique())
+            self.tasksstate['loaded'] = self.loaded_tasks
         else:
-            tasksstate['selected'] = []
-            tasksstate['loaded'] = self.loaded_tasks
+            self.tasksstate['selected'] = []
+            self.tasksstate['loaded'] = self.loaded_tasks
         if not tasks.saved.empty:
-            tasksstate['available'] = list(tasks.saved[tasks.saved['map name'] == current_map.name]['name'].unique())
+            self.tasksstate['available'] = list(tasks.saved[tasks.saved['map name'] == current_map.name]['name'].unique())
         else:
-            tasksstate['available'] = []
-        self.tasksstate = tasksstate
-        self.tasksstate_json = json.dumps(tasksstate)
+            self.tasksstate['available'] = []
+        self.tasksstate_json = json.dumps(self.tasksstate)
     
     def create_mow_parameters_payload(self) -> None:
-        mowparametersstate = dict()
-        mowparametersstate['pattern'] = pathplannercfgapi.pattern
-        mowparametersstate['width'] = pathplannercfgapi.width
-        mowparametersstate['angle'] = pathplannercfgapi.angle
-        mowparametersstate['distancetoborder'] = pathplannercfgapi.distancetoborder
-        mowparametersstate['mowarea'] = pathplannercfgapi.mowarea
-        mowparametersstate['mowborder'] = pathplannercfgapi.mowborder
-        mowparametersstate['mowexclusion'] = pathplannercfgapi.mowexclusion
-        mowparametersstate['mowborderccw'] = pathplannercfgapi.mowborderccw
-        self.mowparametersstate = mowparametersstate
-        self.mowparametersstate_json = json.dumps(mowparametersstate)
+        self.mowparametersstate['pattern'] = pathplannercfgapi.pattern
+        self.mowparametersstate['width'] = pathplannercfgapi.width
+        self.mowparametersstate['angle'] = pathplannercfgapi.angle
+        self.mowparametersstate['distancetoborder'] = pathplannercfgapi.distancetoborder
+        self.mowparametersstate['mowarea'] = pathplannercfgapi.mowarea
+        self.mowparametersstate['mowborder'] = pathplannercfgapi.mowborder
+        self.mowparametersstate['mowexclusion'] = pathplannercfgapi.mowexclusion
+        self.mowparametersstate['mowborderccw'] = pathplannercfgapi.mowborderccw
+        self.mowparametersstate_json = json.dumps(self.mowparametersstate)
+    
+    def create_map_payload(self) -> None:
+        self.mapstate_json = json.dumps(self.mapstate)
 
     def update_payload(self) -> None:
         self.create_api_payload()
@@ -83,6 +81,7 @@ class API:
         self.create_maps_payload()
         self.create_tasks_payload()
         self.create_mow_parameters_payload()
+        self.create_map_payload()
 
     def check_cmd(self, buffer: dict) -> None:
         if 'tasks' in buffer:
@@ -101,6 +100,10 @@ class API:
             self.commanded_object = 'mow parameters'
             buffer = buffer['mow parameters']
             self.check_mow_parameters_cmd(buffer)
+        elif 'map' in buffer:
+            self.commanded_object = 'map'
+            buffer = buffer['map']
+            self.check_map_cmd(buffer)
         else:
             logger.info('No valid object in api message found. Aborting')
             return
@@ -225,6 +228,16 @@ class API:
             except Exception as e:
                 logger.info(f'Mow border in ccw value is invalid')
                 logger.debug(str(e))
+    
+    def check_map_cmd(self, buffer) -> None:
+        allowed_values = ['set selection']
+        command = list(set([buffer['command']]).intersection(allowed_values))
+        if command != []:
+            if command[0] == 'set selection':
+                self.perform_map_set_selection_cmd(buffer)
+        else:
+            logger.info(f'No valid command in api message found. Allowed commands: {allowed_values}. Aborting')
+        
 
     def perform_tasks_cmd(self, buffer: dict) -> None:
         if 'value' in buffer:
@@ -306,8 +319,29 @@ class API:
             current_map.mowpath['type'] = 'way'
             cmdlist.cmd_mow = True
         elif self.value == 'selection':
-            pass
+            if 'selection' in self.mapstate:
+                current_map.selected_perimeter = map.selection(current_map.perimeter_polygon, self.mapstate['selection'])
+                current_map.calculating = True
+                current_map.task_progress = 0
+                current_map.total_tasks = 1
+                route = path.calc(current_map.selected_perimeter, pathplannercfgapi, [robot.position_x, robot.position_y])
+                current_map.areatomow = round(current_map.selected_perimeter.area)
+                current_map.calc_route_preview(route) 
+                current_map.calculating = False
+                current_map.mowpath = current_map.preview
+                current_map.mowpath['type'] = 'way'
+                cmdlist.cmd_mow = True
+            else:
+                logger.info(f'No selection found')
         else:
             logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
+    
+    def perform_map_set_selection_cmd(self, buffer) -> None:
+        if 'value' in buffer and 'x' in buffer['value'] and 'y' in buffer['value']:
+            try:
+                self.mapstate['selection'] = dict(api=buffer['value'])
+            except Exception as e:
+                logger.info('Selection invalid')
+                logger.debug(str(e)) 
     
 cassandra_api = API()

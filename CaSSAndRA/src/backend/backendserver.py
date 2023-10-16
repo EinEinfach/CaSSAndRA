@@ -32,6 +32,7 @@ def api(restart: threading.ExceptHookArgs) -> None:
             mqttapi.api_publish('maps', cassandra_api.mapsstate_json)
             mqttapi.api_publish('tasks', cassandra_api.tasksstate_json)
             mqttapi.api_publish('mow parameters', cassandra_api.mowparametersstate_json)
+            mqttapi.api_publish('map', cassandra_api.mapstate_json)
             start_time_api = datetime.now()
         if mqttapi.buffer_api != []:
             cassandra_api.apistate = 'busy'

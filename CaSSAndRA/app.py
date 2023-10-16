@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.88.0 API over MQTT 
+#Version:0.89.0 Sort order for tasks and saved maps
 # package imports
 import os
 import sys

@@ -9,15 +9,15 @@ import networkx as nx
 
 def selection(perimeter: Polygon, selection: dict()) -> Polygon():
     try: 
-        logger.info('Backend: Check for selection and create a new perimter if there')
+        logger.info('Check for selection and create a new perimter if there')
         logger.debug('perimeter coords: '+str(perimeter.exterior.coords)+' selection: '+str(selection))
 
         if selection == None:
-            logger.info('Backend: No selection detected, go further with whole perimeter')
+            logger.info('No selection detected, go further with whole perimeter')
             return perimeter
         
         elif 'range' in selection:
-            logger.info('Backend: Selection box detected. Create an new perimeter with box select.') 
+            logger.info('Selection box detected. Create an new perimeter with box select.') 
             selection = selection['range']
             selected_polygon = box(selection['x'][0], selection['y'][0],
                                 selection['x'][1], selection['y'][1])
@@ -25,13 +25,26 @@ def selection(perimeter: Polygon, selection: dict()) -> Polygon():
             return new_perimeter
         
         elif 'lassoPoints' in selection:
-            logger.info('Backend: Selection lasso detected. Create a new perimeter with lasso select.')
+            logger.info('Selection lasso detected. Create a new perimeter with lasso select.')
             logger.debug('Lasso points: '+str(selection))
             selection = selection['lassoPoints']
             selection_list = list(zip(selection['x'], selection['y']))
             selected_polygon = Polygon(selection_list)
             if not selected_polygon.is_valid:
-                logger.warning('Backend: Selection not valid, calculation aborted')
+                logger.warning('Selection not valid, calculation aborted')
+                return Polygon()
+            else:
+                new_perimeter = perimeter.intersection(selected_polygon)
+                return new_perimeter
+        
+        elif 'api' in selection:
+            logger.info('Selection via api. Create new perimeter with api select.')
+            logger.debug(f'API points: {selection}')
+            selection = selection['api']
+            selection_list = list(zip(selection['x'], selection['y']))
+            selected_polygon = Polygon(selection_list)
+            if not selected_polygon.is_valid:
+                logger.warning('Selection not valid, calculation aborted')
                 return Polygon()
             else:
                 new_perimeter = perimeter.intersection(selected_polygon)
