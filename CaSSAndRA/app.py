@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.87.0 First API commit (Some stuff working well) 
+#Version:0.88.0 API over MQTT 
 # package imports
 import os
 import sys

@@ -194,6 +194,41 @@ accordion_settings = dbc.Accordion([
                             dbc.FormText('Default transit speed setpoint [m/s]'),
                             dbc.Input(value=rovercfg.gotospeed_setpoint, type='number', min=0.1, max=1.0, step=0.01, id=ids.GOTOSPEEDSETPOINTSETTINSGS),
                         ], title='Robot'),
+                        dbc.AccordionItem(
+                            [
+                                html.P('Which way should be used for API connection'),
+                                html.Div([
+                                    dbc.RadioItems(
+                                        options=[
+                                            {'label': 'deactivated', 'value': 'deactivated'},
+                                            {'label': 'MQTT', 'value': 'MQTT'},
+                                        ],
+                                        id=ids.RADIOAPICONNECTIONTYPE,
+                                        inline=True
+                                    ), 
+                                ]),
+                                html.Div([
+                                    html.Div(buttons.savebutton),
+
+                                    html.Div(id=ids.APINONECONNECTIONSTYLE),  
+                                    html.Div([
+                                        dbc.FormText('Client-ID'),
+                                        dbc.Input(value = commcfg.api_mqtt_client_id, id=ids.APIMQTTCLIENTID),
+                                        dbc.FormText('Username'),
+                                        dbc.Input(placeholder='your MQTT-Server username, leave empty if not in use', id=ids.APIMQTTUSERNAME),
+                                        dbc.FormText('Password'),
+                                        dbc.Input(placeholder='your MQTT-Server password, leave empty if not in use', id=ids.APIMQTTPASSWORD),
+                                        dbc.FormText('MQTT-Server'),
+                                        dbc.Input(value = commcfg.api_mqtt_server, id=ids.APIMQTTSERVER),
+                                        dbc.FormText('Port'),
+                                        dbc.Input(value = commcfg.api_mqtt_port, id=ids.APIMQTTPORT, type='number'),
+                                        dbc.FormText('Cassandra server name with prefix'),
+                                        dbc.Input(value = commcfg.api_mqtt_cassandra_server_name, id=ids.APIMQTTCASSANDRASERVERNAME)  
+                                    ], id=ids.APIMQTTCONNECTIONSTYLE), 
+                                ]),
+                            ],
+                            title='API',
+                        ),
                     ], start_collapsed=True, id=ids.ACCORDIONSETTINGS
                 )
 
@@ -225,12 +260,36 @@ def update_connectioninput(radio_input: str()) -> list(dict()):
            State(ids.IPADRESSROVER, 'value'),
            State(ids.SUNRAYPASS, 'value'),
            State(ids.SERPORT, 'value'),
-           State(ids.BAUDRATE, 'value')])
-def update_connection_data(bsr_n_clicks: int, bok_n_clicks: int,
-                           is_open: bool, connectiontype: str(),
-                           mqttclientid: str(), mqttusername: str(), mqttpassword: str(), mqttserver: str(), mqttport: int(), mqttrovername: str(), 
-                           ipadressrover: str(), sunraypass: str(),
-                           serport: str(), baudrate: int()) -> bool():
+           State(ids.BAUDRATE, 'value'),
+           State(ids.RADIOAPICONNECTIONTYPE, 'value'),
+           State(ids.APIMQTTCLIENTID, 'value'),
+           State(ids.APIMQTTUSERNAME, 'value'),
+           State(ids.APIMQTTPASSWORD, 'value'),
+           State(ids.APIMQTTSERVER, 'value'),
+           State(ids.APIMQTTPORT, 'value'),
+           State(ids.APIMQTTCASSANDRASERVERNAME, 'value')])
+def update_connection_data(bsr_n_clicks: int, 
+                           bok_n_clicks: int,
+                           is_open: bool, 
+                           connectiontype: str(),
+                           mqttclientid: str(), 
+                           mqttusername: str(), 
+                           mqttpassword: str(), 
+                           mqttserver: str(), 
+                           mqttport: int, 
+                           mqttrovername: str(), 
+                           ipadressrover: str(), 
+                           sunraypass: str(),
+                           serport: str(), 
+                           baudrate: int,
+                           apiconnectiontype: str(),
+                           apimqttclientid: str(),
+                           apimqttusername: str(),
+                           apimqttpassword: str(),
+                           apimqttserver: str(),
+                           apimqttport: int,
+                           apicassandraservername: str(),
+                           ) -> bool():
     context = ctx.triggered_id
     if context == ids.BUTTONOK:
         if connectiontype == 'MQTT':
@@ -252,6 +311,20 @@ def update_connection_data(bsr_n_clicks: int, bok_n_clicks: int,
             commcfg.use = connectiontype
             commcfg.uart_port = serport
             commcfg.uart_baudrate = baudrate
+            commcfg.save_commcfg()
+            backendserver.reboot()
+        elif apiconnectiontype == 'deactivated':
+            commcfg.api = None
+            commcfg.save_commcfg()
+            backendserver.reboot()
+        elif apiconnectiontype == 'MQTT':
+            commcfg.api = 'MQTT'
+            commcfg.api_mqtt_client_id = apimqttclientid
+            commcfg.api_mqtt_username = apimqttusername
+            commcfg.api_mqtt_pass = apimqttpassword
+            commcfg.api_mqtt_server = apimqttserver
+            commcfg.api_mqtt_port = apimqttport
+            commcfg.api_mqtt_cassandra_server_name = apicassandraservername
             commcfg.save_commcfg()
             backendserver.reboot()
 
@@ -380,6 +453,17 @@ def update_robotsettings_data(bsrs_nclicks: int, bok_nclicks: int, is_open: bool
         return not is_open
     return is_open
 
+@callback(Output(ids.APINONECONNECTIONSTYLE, 'style'),
+          Output(ids.APIMQTTCONNECTIONSTYLE, 'style'),
+          Input(ids.RADIOAPICONNECTIONTYPE, 'value'))
+def update_apiconnectioninput(radio_input: str()) -> list(dict()):
+    if radio_input == 'deactivated':
+        return {'display': 'none'}, {'display': 'none'}
+    elif radio_input == 'MQTT':
+        return {'display': 'none'}, {'display': 'block'}
+    else:
+        return {'display': 'none'}, {'display': 'none'}
+
 @callback(Output(ids.RADIOPOSITIONMODE, 'value'),
           Output(ids.POSITIONMODELON, 'value'),
           Output(ids.POSITIONMODELAT, 'value'),
@@ -412,4 +496,3 @@ def update_pathplandersettings_on_reload(pathname: str) -> list:
 def update_appsettings_on_reload(pathname: str) -> list:
     return appcfg.datamaxage, appcfg.time_to_offline, appcfg.current_thd_charge, appcfg.voltage_0, appcfg.voltage_100, appcfg.rover_picture, appcfg.obstacles_amount
   
-   

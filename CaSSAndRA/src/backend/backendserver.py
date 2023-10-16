@@ -28,9 +28,10 @@ def api(restart: threading.ExceptHookArgs) -> None:
             logger.debug('Update api data')
             cassandra_api.update_payload()
             mqttapi.api_publish('status', cassandra_api.apistate)
-            mqttapi.api_publish('robot', cassandra_api.robotstate)
-            mqttapi.api_publish('maps', cassandra_api.mapsstate)
-            mqttapi.api_publish('tasks', cassandra_api.taskstate)
+            mqttapi.api_publish('robot', cassandra_api.robotstate_json)
+            mqttapi.api_publish('maps', cassandra_api.mapsstate_json)
+            mqttapi.api_publish('tasks', cassandra_api.tasksstate_json)
+            mqttapi.api_publish('mow parameters', cassandra_api.mowparametersstate_json)
             start_time_api = datetime.now()
         if mqttapi.buffer_api != []:
             cassandra_api.apistate = 'busy'
@@ -161,6 +162,7 @@ def start(file_paths) -> None:
     cfgdata.pathplannercfgstate.read_pathplannercfg()
     cfgdata.pathplannercfgtask.read_pathplannercfg()
     cfgdata.pathplannercfgtasktmp.read_pathplannercfg()
+    cfgdata.pathplannercfgapi.read_pathplannercfg()
     cfgdata.appcfg.read_appcfg()
     cfgdata.schedulecfg.read_schedulecfg()
    

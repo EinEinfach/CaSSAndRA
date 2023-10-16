@@ -389,6 +389,7 @@ pathplannercfg = PathPlannerCfg()
 pathplannercfgstate = PathPlannerCfg()
 pathplannercfgtask = PathPlannerCfg()
 pathplannercfgtasktmp = PathPlannerCfg()
+pathplannercfgapi = PathPlannerCfg()
 appcfg = AppCfg()
 schedulecfg = ScheduleCfg()
 
