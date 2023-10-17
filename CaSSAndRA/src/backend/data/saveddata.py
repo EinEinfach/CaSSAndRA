@@ -196,6 +196,18 @@ def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimet
             perimeter_arr.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
             logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
             mapping_maps.saved = perimeter_arr
+            #check for tasks what have to be copied
+            if mapping_maps.map_old_name != None:
+                map_tasks = tasks.saved[tasks.saved['map name'] == mapping_maps.map_old_name]
+                map_tasks_parameters = tasks.saved_parameters[tasks.saved_parameters['map name'] == mapping_maps.map_old_name]
+                map_tasks.loc[:, 'map name'] = perimeter_name
+                map_tasks_parameters.loc[:, 'map name'] = perimeter_name
+                tasks.saved = pd.concat([tasks.saved, map_tasks], ignore_index=True)
+                tasks.saved_parameters = pd.concat([tasks.saved_parameters, map_tasks_parameters], ignore_index=True)
+                tasks.saved.to_json(file_paths.map.tasks, indent=2, date_format='iso')
+                logger.info('Task data are successfully saved in tasks.json')
+                tasks.saved_parameters.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
+                logger.info('Tasks parameters data are successfully saved in tasks_parameters.json')
         except Exception as e:
             logger.warning('Backend: Could not save perimeter data to the file')
             logger.debug(str(e))
@@ -332,5 +344,18 @@ def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_n
         logger.error('Backend: Could not remove task data from file')
         logger.debug(str(e))
 
+def update_task_preview(task_arr: pd.DataFrame, new_preview: pd.DataFrame) -> None:
+    new_preview['map name'] = current_map.name
+    new_preview['task nr'] = 0
+    new_preview['name'] = current_task.subtasks['name'].unique()[0]
+    task_to_update = task_arr[(task_arr['map name'] == current_map.name)&(task_arr['name'] == current_task.subtasks['name'].unique()[0])]
+    task_to_update = task_to_update[task_to_update['type'] != 'preview route']
+    task_to_update = pd.concat([new_preview, task_to_update], ignore_index=True)
+    task_arr = task_arr[(task_arr['map name'] == current_map.name)&(task_arr['name'] != current_task.subtasks['name'].unique()[0]) | (task_arr['map name'] != current_map.name)]
+    task_arr = pd.concat([task_arr, task_to_update], ignore_index=True)
+    task_arr.to_json(file_paths.map.tasks, indent=2, date_format='iso')
+    logger.info('Task preview data are successfully saved in tasks.json')
+    tasks.saved = task_arr
+    
 if __name__ == '__main__':
     read()

@@ -3,8 +3,9 @@ import dash_bootstrap_components as dbc
 
 from .. import ids
 from src.backend.comm import cmdlist
+from src.backend.data import saveddata
 from src.backend.data.roverdata import robot
-from src.backend.data.mapdata import current_map, current_task
+from src.backend.data.mapdata import current_map, current_task, tasks
 from src.backend.map import path
 
 buttonhome = dbc.Button(id=ids.BUTTONHOME, size='lg',class_name='mx-1 mt-1 bi bi-house', disabled=False, title='go home(dock)')
@@ -115,6 +116,8 @@ def perfom_cmd(n_clicks_bgo: int,
             current_map.task_progress = 0
             current_map.calculating = True
             path.calc_task(current_task.subtasks_statemap, current_task.subtasks_parameters_statemap)
+            if len(current_task.subtasks['name'].unique()) == 1:
+                saveddata.update_task_preview(tasks.saved, current_map.preview)
             current_map.calculating = False
             current_map.mowpath = current_map.preview
             current_map.mowpath['type'] = 'way'

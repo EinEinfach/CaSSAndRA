@@ -47,6 +47,7 @@ def update_dropdown_shortcuts(is_open: bool,
     try:
         filtered_tasks = tasks.saved[tasks.saved['map name'] == current_map.name]
         options = filtered_tasks.name.unique() 
+        options.sort()
     except:
         options = []
     if options == []:

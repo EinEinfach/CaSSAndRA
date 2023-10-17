@@ -225,6 +225,7 @@ class Perimeter:
 @dataclass
 class Perimeters:
     selected: str() = ''
+    map_old_name: str() = None
     imported: pd.DataFrame = pd.DataFrame()
     selected_import: pd.DataFrame = pd.DataFrame()
     saved: pd.DataFrame = pd.DataFrame()
@@ -240,6 +241,7 @@ class Perimeters:
 
     def init(self) -> None:
         self.selected = ''
+        self.map_old_name = None
         self.selected_save = pd.DataFrame()
         self.selected_point = pd.DataFrame()
         self.selected_name = ''
@@ -713,6 +715,20 @@ preview = pd.DataFrame()
 imported = pd.DataFrame()
 
 progress_color_palette = [
+    "#78c2ad",
+    "#78c2ad",
+    "#78c2ad",
+    "#78c2ad",
+    "#78c2ad",
+    "#78c2ad",
+    #"goldenrod",
+    #"blueviolet",
+    #"cornflowerblue",
+    #"lightcoral",
+    #"lightslategrey",
+]
+
+tasks_color_palette = [
     "#78c2ad",
     "goldenrod",
     "blueviolet",

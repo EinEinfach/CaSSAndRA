@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.89.0 Sort order for tasks and saved maps
+#Version:0.90.0 Tasks are still available after editing the map. Preview of task is updated everytime after calculating. Temporarly deactivate progress bar color due to some issues with new feature
 # package imports
 import os
 import sys

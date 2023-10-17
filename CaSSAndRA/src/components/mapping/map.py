@@ -154,6 +154,7 @@ def update(n_intervals: int,
             mapping_maps.selected_import = mapping_maps.imported[mapping_maps.imported['map_nr'] == selected_import]
     elif context == ids.DROPDOWNCHOOSEPERIMETER and selected_perimeter is not None:
             mapping_maps.selected = 'from save'
+            mapping_maps.map_old_name = selected_perimeter
             mapping_maps.select_saved(mapping_maps.saved[mapping_maps.saved['name'] == selected_perimeter])
             #mapping_maps.selected_save = mapping_maps.saved[mapping_maps.saved['name'] == selected_perimeter]
 

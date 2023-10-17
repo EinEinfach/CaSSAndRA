@@ -4,7 +4,7 @@ import pandas as pd
 
 from .. import ids
 from src.backend.data.roverdata import robot
-from src.backend.data.mapdata import current_map, current_task, tasks, progress_color_palette
+from src.backend.data.mapdata import current_map, current_task, tasks, progress_color_palette, tasks_color_palette
 from src.backend.data.cfgdata import pathplannercfgtask
 from src.backend.map import map, path
 
@@ -156,8 +156,8 @@ def update(bpma_nclicks: int,
     if not current_task.subtasks.empty and tasks_order != None:
         for task_name in current_task.subtasks['name'].unique():
             for subtask_nr in current_task.subtasks[current_task.subtasks['name'] == task_name]['task nr'].unique():
-                color_index = index % len(progress_color_palette)
-                preview_color = progress_color_palette[color_index]
+                color_index = index % len(tasks_color_palette)
+                preview_color = tasks_color_palette[color_index]
                 filtered = current_task.subtasks[(current_task.subtasks['name'] == task_name) & (current_task.subtasks['task nr'] == subtask_nr) & (current_task.subtasks['type'] == 'preview route')]
                 traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='subtask', opacity=0.7, line=dict(color=preview_color)))
                 index += 1

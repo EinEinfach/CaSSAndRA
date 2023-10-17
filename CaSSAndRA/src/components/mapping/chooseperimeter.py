@@ -25,7 +25,6 @@ chooseperimeter = dbc.Col([
                 ])
 
 @callback(Output(ids.DROPDOWNCHOOSEPERIMETER, 'options'),
-          Output(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
           [Input(ids.OKBUTTONNEWPERIMETER, 'n_clicks'),
           Input(ids.MODALCOPYPERIMETER, 'is_open'),
           Input(ids.MODALREMOVEPERIMETER, 'is_open'),
@@ -48,12 +47,9 @@ def update_dropdown_chooseperimeter(boknp_nclicks: int,
     try:
         options = mapping_maps.saved.name.unique()
         options.sort()
-        value = dropdown_val_state
     except:
         options = []
-        value = None
     if context == ids.OKBUTTONNEWPERIMETER or context == ids.OKBUTTONREMOVEPERIMETER:
-        value = None
         mapping_maps.init()
-    return options, value
+    return options
 
