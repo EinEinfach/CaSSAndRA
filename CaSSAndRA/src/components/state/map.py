@@ -85,16 +85,16 @@ def handle_buttons(
           #What to do, if home button active
           current_map.gotopoint = pd.DataFrame() 
           current_map.preview = pd.DataFrame()
-          current_task.subtasks_statemap = pd.DataFrame()
-          current_task.subtasks_parameters_statemap = pd.DataFrame()
+          current_task.subtasks = pd.DataFrame()
+          current_task.subtasks_parameters = pd.DataFrame()
           #current_map.mowpath = pd.DataFrame()
           current_map.plotgotopoints = False
      elif context == ids.BUTTONMOWALL and buttonmowall:
           current_map.gotopoint = pd.DataFrame() 
           current_map.preview = pd.DataFrame()
           current_map.mowpath = pd.DataFrame()
-          current_task.subtasks_statemap = pd.DataFrame()
-          current_task.subtasks_parameters_statemap = pd.DataFrame()
+          current_task.subtasks = pd.DataFrame()
+          current_task.subtasks_parameters= pd.DataFrame()
           if 'selections' in fig_state['layout'] and fig_state['layout']['selections'] != []:
                current_map.selected_perimeter = map.selection(current_map.perimeter_polygon, selecteddata)
           else:
@@ -113,8 +113,8 @@ def handle_buttons(
           current_map.preview = pd.DataFrame()
           current_map.mowpath = pd.DataFrame()
           tasks_to_be_done = 0
-          current_task.subtasks_statemap = pd.DataFrame()
-          current_task.subtasks_parameters_statemap = pd.DataFrame()
+          current_task.subtasks = pd.DataFrame()
+          current_task.subtasks_parameters = pd.DataFrame()
           for task in tasks_order:
                subtasks = tasks.saved[(tasks.saved['name'] == task)&(tasks.saved['map name'] == current_map.name)]
                subtasks_parameters = tasks.saved_parameters[(tasks.saved_parameters['name'] == task)&(tasks.saved_parameters['map name'] == current_map.name)]
@@ -123,16 +123,16 @@ def handle_buttons(
                     subtask_parameters = subtasks_parameters[subtasks_parameters['task nr'] == subtask_nr]
                     subtask.loc[:, 'task nr'] = tasks_to_be_done
                     subtask_parameters.loc[:, 'task nr'] = tasks_to_be_done
-                    current_task.subtasks_statemap = pd.concat([current_task.subtasks_statemap, subtask], ignore_index=True)
-                    current_task.subtasks_parameters_statemap = pd.concat([current_task.subtasks_parameters_statemap, subtask_parameters], ignore_index=True)
+                    current_task.subtasks = pd.concat([current_task.subtasks, subtask], ignore_index=True)
+                    current_task.subtasks_parameters = pd.concat([current_task.subtasks_parameters, subtask_parameters], ignore_index=True)
                     tasks_to_be_done += 1
           current_map.plotgotopoints = False
      elif context == ids.BUTTONGOTO and buttongoto:
           current_map.gotopoint = pd.DataFrame()
           current_map.preview = pd.DataFrame()
           current_map.mowpath = pd.DataFrame()
-          current_task.subtasks_statemap = pd.DataFrame()
-          current_task.subtasks_parameters_statemap = pd.DataFrame()
+          current_task.subtasks = pd.DataFrame()
+          current_task.subtasks_parameters = pd.DataFrame()
           current_map.plotgotopoints = True
      elif context == ids.BUTTONCANCEL:
           if not current_map.obstacles.empty:
@@ -141,8 +141,8 @@ def handle_buttons(
                current_map.gotopoint = pd.DataFrame()
                current_map.preview = pd.DataFrame()
                current_map.mowpath = pd.DataFrame()
-               current_task.subtasks_statemap = pd.DataFrame()
-               current_task.subtasks_parameters_statemap = pd.DataFrame()
+               current_task.subtasks = pd.DataFrame()
+               current_task.subtasks_parameters = pd.DataFrame()
                current_map.plotgotopoints = False
 
      return str()
@@ -223,14 +223,16 @@ def update(n_intervals: int,
      elif not current_map.preview.empty:
           filtered = current_map.preview[current_map.preview['type'] == 'preview route']
           traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color='#7fb249')))
-     elif not current_task.subtasks_statemap.empty:
+     elif not current_task.subtasks.empty:
           index = 0
-          for subtask in current_task.subtasks_statemap['task nr'].unique():
+          for task_name in current_task.subtasks['name'].unique():
                color_index = index % len(tasks_color_palette)
                preview_color = tasks_color_palette[color_index]
-               filtered = current_task.subtasks_statemap[(current_task.subtasks_statemap['task nr'] == subtask)&(current_task.subtasks_statemap['type'] == 'preview route')]
-               traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color=preview_color))) 
-               index += 1
+               task_to_plot = current_task.subtasks[current_task.subtasks['name'] == task_name]
+               for subtask in task_to_plot['task nr'].unique():
+                    filtered = task_to_plot[(task_to_plot['task nr'] == subtask)&(task_to_plot['type'] == 'preview route')]
+                    traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color=preview_color))) 
+                    index += 1
 
      #Plot obstacles if there
      imgs = []

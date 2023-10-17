@@ -155,9 +155,9 @@ def update(bpma_nclicks: int,
     preview_color = None
     if not current_task.subtasks.empty and tasks_order != None:
         for task_name in current_task.subtasks['name'].unique():
+            color_index = index % len(tasks_color_palette)
+            preview_color = tasks_color_palette[color_index]
             for subtask_nr in current_task.subtasks[current_task.subtasks['name'] == task_name]['task nr'].unique():
-                color_index = index % len(tasks_color_palette)
-                preview_color = tasks_color_palette[color_index]
                 filtered = current_task.subtasks[(current_task.subtasks['name'] == task_name) & (current_task.subtasks['task nr'] == subtask_nr) & (current_task.subtasks['type'] == 'preview route')]
                 traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='subtask', opacity=0.7, line=dict(color=preview_color)))
                 index += 1

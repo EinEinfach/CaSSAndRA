@@ -115,7 +115,7 @@ def perfom_cmd(n_clicks_bgo: int,
         elif active_bss:
             current_map.task_progress = 0
             current_map.calculating = True
-            path.calc_task(current_task.subtasks_statemap, current_task.subtasks_parameters_statemap)
+            path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
             if len(current_task.subtasks['name'].unique()) == 1:
                 saveddata.update_task_preview(tasks.saved, current_map.preview)
             current_map.calculating = False

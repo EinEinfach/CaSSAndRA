@@ -624,8 +624,6 @@ class Task:
     subtasks_parameters: pd.DataFrame = pd.DataFrame()
     tasks_order: pd.DataFrame = pd.DataFrame()
     tasks_order_parameters: pd.DataFrame = pd.DataFrame()
-    subtasks_statemap: pd.DataFrame() = pd.DataFrame()
-    subtasks_parameters_statemap: pd.DataFrame() = pd.DataFrame()
 
     def calc_route_preview(self, route: list()) -> None:
         self.preview = pd.DataFrame(route)
