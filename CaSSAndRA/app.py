@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.90.1 Remove separate reference to statemap tasks and replace through tasks from task page
+#Version:0.90.2 Some fixes in mapping mode
 # package imports
 import os
 import sys

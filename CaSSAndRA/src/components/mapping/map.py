@@ -140,7 +140,7 @@ def update(n_intervals: int,
                 data_for_figure = mapping_maps.csvtocartesian(fig_state['layout']['shapes'][i]['path'])
                 data_for_figure['type'] = fig_state['layout']['shapes'][i]['name']
                 mapping_maps.build = pd.concat([mapping_maps.build, data_for_figure], ignore_index=True)
-                mapping_maps.figure_action('recreate')
+            mapping_maps.figure_action('recreate')
             #avoiding of adjustment of last dockpoint, if move tool was used on dockpoints
             mapping_maps.dockpoints = mapping_maps.build[mapping_maps.build['type'] == 'dockpoints']
             mapping_maps.legacy_figure = pd.DataFrame()

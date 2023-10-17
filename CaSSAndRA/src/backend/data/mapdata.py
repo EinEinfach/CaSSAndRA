@@ -483,27 +483,30 @@ class Perimeters:
         self.selected_point = pd.DataFrame()
         try:
             logger.debug('Mapping finish figure as: '+action)
-            df = self.build[self.build['type'] == 'figure']
-            df.loc[:,'type'] = 'perimeter'
-            new_perimeter = map.create(df)
-            if new_perimeter.geom_type != 'Polygon' or not new_perimeter.is_valid:
-                logger.info('Backend: New figure is not a polygon or not valid polygon, try again')
-                self.build = self.build[self.build['type'] != 'figure']
-                return
-            logger.debug('Mapping figure coords: '+str(new_perimeter.exterior.coords))
-            df = self.build[self.build['type'] != 'figure']
-            old_perimeter = map.create(df)
-            if action == 'add':
-                new_perimeter = old_perimeter.union(new_perimeter)
-                if new_perimeter.geom_type != 'Polygon':
-                    logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
-                    new_perimeter = old_perimeter
-            elif action == 'diff':
-                new_perimeter = old_perimeter.difference(new_perimeter)
-                if new_perimeter.geom_type != 'Polygon':
-                    logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
-                    new_perimeter = old_perimeter
+            if action == 'add' or action == 'diff':
+                df = self.build[self.build['type'] == 'figure']
+                df.loc[:,'type'] = 'perimeter'
+                new_perimeter = map.create(df)
+                if new_perimeter.geom_type != 'Polygon' or not new_perimeter.is_valid:
+                    logger.info('Backend: New figure is not a polygon or not valid polygon, try again')
+                    self.build = self.build[self.build['type'] != 'figure']
+                    return
+                logger.debug('Mapping figure coords: '+str(new_perimeter.exterior.coords))
+                df = self.build[self.build['type'] != 'figure']
+                old_perimeter = map.create(df)
+                if action == 'add':
+                    new_perimeter = old_perimeter.union(new_perimeter)
+                    if new_perimeter.geom_type != 'Polygon':
+                        logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
+                        new_perimeter = old_perimeter
+                elif action == 'diff':
+                    new_perimeter = old_perimeter.difference(new_perimeter)
+                    if new_perimeter.geom_type != 'Polygon':
+                        logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
+                        new_perimeter = old_perimeter
             else:
+                df = self.build[self.build['type'] != 'figure']
+                old_perimeter = map.create(df)
                 new_perimeter = old_perimeter
                 if new_perimeter.geom_type != 'Polygon':
                     logger.warning('Backend: Could not create new perimeter, new figure is: '+new_perimeter.geom_type)
@@ -511,6 +514,7 @@ class Perimeters:
             new_perimeter = new_perimeter.simplify(0.02)
             if new_perimeter.is_empty or not new_perimeter.is_valid:
                 logger.warning('Backend: Action aborted')
+                self.build = self.build_cpy
                 return
             else:
                 logger.debug('Mapping create a new data frame')
