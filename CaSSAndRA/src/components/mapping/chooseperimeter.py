@@ -25,19 +25,20 @@ chooseperimeter = dbc.Col([
                 ])
 
 @callback(Output(ids.DROPDOWNCHOOSEPERIMETER, 'options'),
+          Output(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
           [Input(ids.OKBUTTONNEWPERIMETER, 'n_clicks'),
-          Input(ids.MODALCOPYPERIMETER, 'is_open'),
-          Input(ids.MODALREMOVEPERIMETER, 'is_open'),
-          Input(ids.MODALFINISHMAPPING, 'is_open'),
-          Input(ids.MODALRENAMEPERIMETER, 'is_open'),
-          Input(ids.URLUPDATE, 'pathname'),
-          State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
-          State(ids.DROPDOWNCHOOSEPERIMETER, 'options')])
+           Input(ids.OKBUTTONCOPYPERIMETER, 'n_clicks'),
+           Input(ids.OKBUTTONREMOVEPERIMETER, 'n_clicks'),
+           Input(ids.OKBUTTONFINISHMAPPING, 'n_clicks'),
+           Input(ids.OKBUTTONRENAMEPERIMETER, 'n_clicks'),
+           Input(ids.URLUPDATE, 'pathname'),
+           State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
+           State(ids.DROPDOWNCHOOSEPERIMETER, 'options')])
 def update_dropdown_chooseperimeter(boknp_nclicks: int, 
-                                    cp_isopen: bool, 
-                                    dp_isopen: bool, 
-                                    sp_isopen: bool, 
-                                    rp_isopen: bool,
+                                    bokcp_nclicks: int, 
+                                    bokdp_nclicks: int, 
+                                    bokfm_nclicks: int, 
+                                    bokrp_nclicks: int,
                                     pathname: str,
                                     dropdown_val_state: str(), 
                                     dropdown_opt_state: list(),
@@ -47,9 +48,12 @@ def update_dropdown_chooseperimeter(boknp_nclicks: int,
     try:
         options = mapping_maps.saved.name.unique()
         options.sort()
+        value = dropdown_val_state
     except:
         options = []
+        value = None
     if context == ids.OKBUTTONNEWPERIMETER or context == ids.OKBUTTONREMOVEPERIMETER:
         mapping_maps.init()
-    return options
+        value = None
+    return options, value
 
