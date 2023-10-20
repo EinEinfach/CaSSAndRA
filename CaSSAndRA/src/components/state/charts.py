@@ -11,8 +11,10 @@ daterange = dcc.DatePickerRange(id=ids.CHARTSDATERANGE,
                 end_date=datetime.now().date(),
                 display_format='YYYY-MM-DD',
                 start_date=datetime.now().date(),
-                max_date_allowed = datetime.now().date(),
-                min_date_allowed=roverdata.state.iloc[1]['timestamp']
+                max_date_allowed=datetime.now().date(),
+                min_date_allowed=roverdata.state.iloc[1]['timestamp'],
+                stay_open_on_select=False,
+                minimum_nights=0,
 )
 timerange = dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None)
 
@@ -94,6 +96,7 @@ fixfloatinvalidpie.update_layout(
                         yanchor='auto'
                     ),
                     font=dict(size=7),
+                    plot_bgcolor='white',
                     margin=dict(b=0, l=0, r=0, t=0),
                     uniformtext_minsize=6, 
                     uniformtext_mode='hide',
@@ -109,6 +112,7 @@ chargeidlemowpie.update_layout(
                         yanchor='auto'
                     ),
                     font=dict(size=7),
+                    plot_bgcolor='white',
                     margin=dict(b=0, l=0, r=0, t=0),
                     uniformtext_minsize=6, 
                     uniformtext_mode='hide',

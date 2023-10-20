@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.92.1 Lateral error only in case of fix
+#Version:0.92.2 Change behavior of date picker
 # package imports
 import os
 import sys
