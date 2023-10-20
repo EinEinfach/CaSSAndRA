@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.92.0 Added lateral error histogramm
+#Version:0.92.1 Lateral error only in case of fix
 # package imports
 import os
 import sys

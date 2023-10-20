@@ -239,10 +239,10 @@ def update_charts(#n_intervals: int,
             )
     #Histogramm lateral error
     traces5.append(go.Histogram(
-                    x=state_filtered_mow['lateral_error'],
+                    x=state_filtered_mow[state_filtered_mow['position_solution']==2]['lateral_error'],
                     xbins=dict(
-                        start=state_filtered_mow['lateral_error'].min()-0.05,
-                        end=state_filtered_mow['lateral_error'].max()+0.05,
+                        start=-0.5,
+                        end=0.5,
                         size=0.01
                     )
                     
