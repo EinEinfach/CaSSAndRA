@@ -178,6 +178,30 @@ def update_layout() -> html.Div:
 							    ),
                         ),
                     ]),
+                    # dbc.Row([
+                    #     dbc.Col([
+                            dbc.Card([
+                                dbc.CardBody(
+                                    dcc.Graph(
+                                            id=ids.CHARTLATERRORHIST, 
+                                            figure=charts.lateralerror,
+                                            config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                            style={'height': '15vh'},
+                                    ),
+                                )
+                            ]),
+                        # ]),
+                        # dbc.Col([
+                        #    dbc.Card([
+                        #         dbc.CardBody(
+                        #             dcc.Graph(
+                        #                     config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                        #                     style={'height': '15vh'},
+                        #             ),
+                        #         )
+                        #     ])
+                    #     ]),
+                    # ]),
                     dbc.Row([
                         dbc.Col([
                             dbc.Card([
@@ -292,6 +316,12 @@ def toggle_modal(bom_nclicks: int,
                     dcc.Graph(
                         id=ids.CHARTSATELLITES, 
                         figure=charts.satellites,
+                        config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                        style={'height': '15vh'},
+					),
+                    dcc.Graph(
+                        id=ids.CHARTLATERRORHIST, 
+                        figure=charts.lateralerror,
                         config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
                         style={'height': '15vh'},
 					),

@@ -114,10 +114,28 @@ chargeidlemowpie.update_layout(
                     uniformtext_mode='hide',
     )
 
+lateralerror = go.Figure()
+lateralerror.update_layout(
+                title=dict(
+                    text='lateral error',
+                    x=0.5,
+                    y=1,
+                    xanchor='center',
+                    yanchor='auto', 
+                ),
+                font=dict(size=7),
+                plot_bgcolor='white',
+                margin=dict(b=0, l=0, r=0, t=0),
+                showlegend=False,
+                hovermode='x unified',
+                dragmode='pan',
+    )
+
 @callback(Output(ids.CHARTVOLTAGECURRENT, 'figure'),
           Output(ids.CHARTSATELLITES, 'figure'),
           Output(ids.CHARTFIXFLOATINVALIDPIE, 'figure'),
           Output(ids.CHARTCHARGEIDLEMOWPIE, 'figure'),
+          Output(ids.CHARTLATERRORHIST, 'figure'),
           Output(ids.CHARTSTIMERANGE, 'value'),
           Output(ids.CHARTSTIMERANGE, 'min'),
           Output(ids.CHARTSTIMERANGE, 'max'),
@@ -155,6 +173,7 @@ def update_charts(#n_intervals: int,
         timerange_state.append(state_filtered.index.min())
         timerange_state.append(state_filtered.index.max())
     state_filtered = state_filtered.loc[timerange_state[0]:timerange_state[1]]
+    state_filtered_mow = state_filtered[state_filtered['job'] == 1]
     #calc stats time range from state time range
     calced_from_stats_filtered = calced_from_stats_filtered[(calced_from_stats_filtered['timestamp'] >= state_filtered.iloc[1]['timestamp'])&
                                                             (calced_from_stats_filtered['timestamp'] <= state_filtered.iloc[-1]['timestamp'])]
@@ -163,13 +182,14 @@ def update_charts(#n_intervals: int,
     traces2 = []
     traces3 = []
     traces4 = []
+    traces5 = []
     #Battery plot
     traces.append(go.Scatter(x=state_filtered['timestamp'],
                              y=state_filtered['battery_voltage'],
                              name='voltage', 
                              mode='lines',
                              yaxis='y'
-                    )
+                )
     )
     traces.append(go.Scatter(x=state_filtered['timestamp'], 
                              y=state_filtered['amps'],
@@ -183,7 +203,7 @@ def update_charts(#n_intervals: int,
                              y=state_filtered['position_visible_satellites'],
                              name='visible', 
                              mode='lines',
-                    )
+                )
     )
     traces2.append(go.Scatter(x=state_filtered['timestamp'], 
                              y=state_filtered['position_visible_satellites_dgps'],
@@ -202,7 +222,7 @@ def update_charts(#n_intervals: int,
                     showlegend=False,
                     textposition='inside',
                     hoverinfo='label+percent',
-                    )
+                )
             )
     #Pie chart charge, idle, mow ratio
     duration_charge = calced_from_stats_filtered['duration_charge'].sum()
@@ -215,14 +235,27 @@ def update_charts(#n_intervals: int,
                     showlegend=False,
                     textposition='inside',
                     hoverinfo='label+percent',
+                )
+            )
+    #Histogramm lateral error
+    traces5.append(go.Histogram(
+                    x=state_filtered_mow['lateral_error'],
+                    xbins=dict(
+                        start=state_filtered_mow['lateral_error'].min()-0.05,
+                        end=state_filtered_mow['lateral_error'].max()+0.05,
+                        size=0.01
                     )
+                    
+                )
             )
     fig = Patch()
     fig2 = Patch()
     fig3 = Patch()
     fig4 = Patch()
+    fig5 = Patch()
     fig.data = traces
     fig2.data = traces2
     fig3.data = traces3
     fig4.data = traces4
-    return fig, fig2, fig3, fig4, timerange_state, state_filtered.index.min(), state_filtered.index.max()
+    fig5.data = traces5
+    return fig, fig2, fig3, fig4, fig5, timerange_state, state_filtered.index.min(), state_filtered.index.max()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.91.0 First approach for charts
+#Version:0.92.0 Added lateral error histogramm
 # package imports
 import os
 import sys
