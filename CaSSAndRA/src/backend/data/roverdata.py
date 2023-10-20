@@ -30,6 +30,7 @@ class Mower:
     amps: float = 0
     position_visible_satellites_dgps: int = 0
     map_crc: int = 0
+    lateral_error: float = 0
     soc: float = 0
     speed: float = 0
     mowspeed_setpoint: float = rovercfg.mowspeed_setpoint
@@ -80,6 +81,7 @@ class Mower:
         self.amps = round(state['amps'], 2)
         self.position_visible_satellites_dgps = state['position_visible_satellites_dgps']
         self.map_crc = state['map_crc']
+        self.lateral_error = state['lateral_error']
         self.soc = self.calc_soc()
         self.solution = self.calc_solution()
         self.timestamp = datetime.now()

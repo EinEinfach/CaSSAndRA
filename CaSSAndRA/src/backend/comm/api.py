@@ -24,12 +24,12 @@ class API:
     robotstate_json: str = '{}'
     tasksstate_json: str = '{}'
     mapsstate_json: str = '{}'
-    mowparametersstate_json = '{}'
+    mowparametersstate_json: str = '{}'
     mapstate_json: str ='{}'
     loaded_tasks: list = field(default_factory=list)
     commanded_object: str = ''
     command: str = ''
-    value: str = ''
+    value: list = field(default_factory=list)
 
     def create_api_payload(self) -> None:
         self.apistate = 'ready'
@@ -37,6 +37,8 @@ class API:
     def create_robot_payload(self) -> None:
         self.robotstate['status'] = robot.status
         self.robotstate['battery'] = robot.soc
+        self.robotstate['position'] = dict(x=robot.position_x, y=robot.position_y)
+        self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
         self.robotstate_json = json.dumps(self.robotstate)
 
     def create_maps_payload(self) -> None:
@@ -106,7 +108,6 @@ class API:
             self.check_map_cmd(buffer)
         else:
             logger.info('No valid object in api message found. Aborting')
-            return
 
     def check_tasks_cmd(self, buffer: dict) -> None:
         allowed_cmds = ['select', 'load']
@@ -241,55 +242,69 @@ class API:
 
     def perform_tasks_cmd(self, buffer: dict) -> None:
         if 'value' in buffer:
-            value = []
-            value.append(buffer['value'])
-            self.value = list(set(value).intersection(list(tasks.saved[tasks.saved['map name'] == current_map.name]['name'].unique())))
-            if self.value == []:
-                allowed_values = list(tasks.saved[tasks.saved['map name'] == current_map.name]['name'].unique())
+            value = buffer['value']
+            allowed_values = list(tasks.saved[tasks.saved['map name'] == current_map.name]['name'].unique())
+            try:
+                tasks_to_load = []
+                for task in value: #Workaround to keep order of tasks after intersection call
+                    tasks_to_load.append(list(set([task]).intersection(list(tasks.saved[tasks.saved['map name'] == current_map.name]['name'].unique())))[0])
+                self.value = tasks_to_load
+                if self.value == []:
+                    logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
+                else:
+                    if self.command == 'select':
+                        current_task.load_task_order(self.value)
+                    elif self.command == 'load':
+                        self.loaded_tasks = self.value
+                        current_task.load_task_order(self.value)
+                        current_map.task_progress = 0
+                        current_map.calculating = True
+                        path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
+                        current_map.calculating = False
+                        current_map.mowpath = current_map.preview
+                        current_map.mowpath['type'] = 'way'
+                        cmdlist.cmd_take_map = True
+            except Exception as e:
                 logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
-            else:
-                if self.command == 'select':
-                    current_task.load_task_order(self.value)
-                elif self.command == 'load':
-                    self.loaded_tasks = self.value
-                    current_task.load_task_order(self.value)
-                    current_map.task_progress = 0
-                    current_map.calculating = True
-                    path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
-                    current_map.calculating = False
-                    current_map.mowpath = current_map.preview
-                    current_map.mowpath['type'] = 'way'
-                    cmdlist.cmd_take_map = True
+                logger.debug(f'{e}')
 
     def perform_maps_cmd(self, buffer: dict) -> None:
         if 'value' in buffer:
             value = buffer['value']
-            self.value = list(set([value]).intersection(list(mapping_maps.saved['name'].unique())))
-            if self.value == []:
-                allowed_values = list(mapping_maps.saved['name'].unique())
+            allowed_values = list(mapping_maps.saved['name'].unique())
+            try:
+                self.value = list(set(value).intersection(list(mapping_maps.saved['name'].unique())))
+                if self.value == []:
+                    logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
+                else:
+                    if self.command == 'load':
+                        selected = mapping_maps.saved[mapping_maps.saved['name'] == self.value[0]] 
+                        current_map.perimeter = selected
+                        current_map.create(self.value[0])
+                        current_task.create()
+                        schedule_tasks.create()
+                        schedulecfg.reset_schedulecfg()
+                        cmdlist.cmd_take_map = True
+            except Exception as e:
                 logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
-            else:
-                if self.command == 'load':
-                    selected = mapping_maps.saved[mapping_maps.saved['name'] == self.value[0]] 
-                    current_map.perimeter = selected
-                    current_map.create(self.value[0])
-                    current_task.create()
-                    schedule_tasks.create()
-                    schedulecfg.reset_schedulecfg()
-                    cmdlist.cmd_take_map = True
+                logger.debug(f'{e}')
 
     def perform_robot_cmd(self, buffer) -> None:
-        allowed_values = ['mow', 'stop', 'dock']
         if 'value' in buffer:
-            self.value = buffer['value']
-            if self.command == 'mow':
-                self.perform_mow_cmd()
-            elif self.command == 'stop':
-                cmdlist.cmd_stop = True
-            elif self.command == 'dock':
-                cmdlist.cmd_dock = True
-            else:
-                logger.info(f'No valid command in api message found. Allowed values: {allowed_values}. Aborting')
+            allowed_values = ['mow', 'stop', 'dock']
+            try:
+                self.value = buffer['value'][0]
+                if self.command == 'mow':
+                    self.perform_mow_cmd()
+                elif self.command == 'stop':
+                    cmdlist.cmd_stop = True
+                elif self.command == 'dock':
+                    cmdlist.cmd_dock = True
+                else:
+                    logger.info(f'No valid command in api message found. Allowed values: {allowed_values}. Aborting')
+            except Exception as e:
+                logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
+                logger.debug(f'{e}')
 
     def perform_mow_cmd(self) -> None:
         allowed_values = ['resume', 'task', 'all', 'selection']

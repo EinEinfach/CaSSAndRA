@@ -96,8 +96,6 @@ class MQTT:
             except Exception as e:
                 logger.warning('Message content is not valid json format')
                 logger.debug(str(e))
-                self.buffer_api = []
-            self.buffer_api = data
     
     def on_subscribe(self, client, userdata, mid, granted_qos):
         if mid in self.sub_ids.keys():

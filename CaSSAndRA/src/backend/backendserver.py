@@ -37,8 +37,8 @@ def api(restart: threading.ExceptHookArgs) -> None:
         if mqttapi.buffer_api != []:
             cassandra_api.apistate = 'busy'
             mqttapi.api_publish('status', cassandra_api.apistate)
-            cassandra_api.check_cmd(mqttapi.buffer_api)
-            mqttapi.buffer_api = []
+            cassandra_api.check_cmd(mqttapi.buffer_api[0])
+            del mqttapi.buffer_api[0]
         time.sleep(1)
 
 def schedule_loop(restart: threading.Event) -> None:
