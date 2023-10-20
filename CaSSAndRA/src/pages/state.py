@@ -5,12 +5,12 @@ import dash_bootstrap_components as dbc
 
 # local imports
 from src.components import ids, modalmowsettings
-from src.components.state import map, buttongroupcontrol, state, modal
+from src.components.state import map, buttongroupcontrol, state, modal, charts
 from src.backend.data.roverdata import robot
 
 dash.register_page(__name__, path="/", redirect_from=["/state"], title="State")
 
-ENABLE_RIGHT_COL = False  # temporary control of right column
+ENABLE_RIGHT_COL = True # temporary control of right column
 
 
 def update_layout() -> html.Div:
@@ -100,6 +100,41 @@ def update_layout() -> html.Div:
                                 align="center",
                                 class_name="g-1 p-1",
                             ),
+                            dbc.Row(
+                                [
+                                    dbc.Col(
+                                        [
+                                            dbc.Button(
+                                                # 'Charts',
+                                                color='info',
+                                                size='lg',
+                                                id=ids.BUTTONOPENMODALCHARTS,
+                                                n_clicks=0,
+                                                style={'width': '100%'},
+                                                class_name='bi bi-graph-up',
+                                            ),
+                                            dbc.Modal(
+                                                [
+                                                dbc.ModalHeader(
+                                                    dbc.ModalTitle('Charts')
+                                                ),
+                                                dbc.ModalBody(id=ids.CONTENTMODALCHARTS),
+                                                dbc.ModalFooter([]),
+                                            ],
+                                            id=ids.MODALCHARTS,
+                                            is_open=False, centered=True,
+                                        ),
+                                        ],
+                                        width=6,
+                                        md=4,
+                                        lg=3,
+                                        xxl=2,
+                                    ),
+                                ],
+                                justify='center',
+                                align='center',
+                                class_name='g-1 p-1 d-md-none d-lg-none d-xl-none d-xxl-none',
+                            ),
                         ],
                         class_name="action-bar",
                     ),
@@ -119,21 +154,72 @@ def update_layout() -> html.Div:
         [
             dbc.Row(
                 [
+                    dbc.Row([
+                        charts.daterange,
+                        charts.timerange,
+                    ]),
+                    dbc.Card([
+                        dbc.CardBody(
+                            dcc.Graph(
+                                id=ids.CHARTVOLTAGECURRENT, 
+                                figure=charts.voltagecurrent,
+                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                style={'height': '15vh'},
+							),
+                        ),
+                    ]),
+                    dbc.Card([
+                        dbc.CardBody(
+                                dcc.Graph(
+                                    id=ids.CHARTSATELLITES, 
+                                    figure=charts.satellites,
+                                    config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                    style={'height': '15vh'},
+							    ),
+                        ),
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Card([
+                                dbc.CardBody(
+                                    dcc.Graph(
+                                            id=ids.CHARTFIXFLOATINVALIDPIE, 
+                                            figure=charts.fixfloatinvalidpie,
+                                            config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                            style={'height': '15vh'},
+                                    ),
+                                )
+                            ])
+                        ]),
+                        dbc.Col([
+                           dbc.Card([
+                                dbc.CardBody(
+                                    dcc.Graph(
+                                            id=ids.CHARTCHARGEIDLEMOWPIE, 
+                                            figure=charts.chargeidlemowpie,
+                                            config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                            style={'height': '15vh'},
+                                    ),
+                                )
+                            ])
+                        ]),
+                    ]),
+                    
                     # Add components to second column here and remove placeholders
-                    dbc.Card(
-                        [dbc.CardHeader("Placeholder"), dbc.CardBody("Placeholder")],
-                        class_name="text-center",
-                    ),
-                    html.Div(id=ids.STATEHIDDEN, style={"display": "none"}),
-                    html.Div(id=ids.STATEHIDDEN2, style={"display": "none"}),
-                    html.Div(id=ids.STATEHIDDEN3, style={"display": "none"}),
+                    # dbc.Card(
+                    #     [dbc.CardHeader("Placeholder"), dbc.CardBody("Placeholder")],
+                    #     class_name="text-center",
+                    # ),
+                    # html.Div(id=ids.STATEHIDDEN, style={"display": "none"}),
+                    # html.Div(id=ids.STATEHIDDEN2, style={"display": "none"}),
+                    # html.Div(id=ids.STATEHIDDEN3, style={"display": "none"}),
                 ],
                 justify="evenly",
                 class_name="g-0 p-1",
             ),
         ],
         className="d-none d-sm-none d-md-block",
-        style={"width": "330px"},
+        style={"width": "400px"},
     )
 
     # Temporary control of right col
@@ -182,3 +268,52 @@ def interval_enabler(fig: dict,
         disable_interval = False
     return disable_interval
 	
+# Callback to open/close charts modal
+@callback(Output(ids.MODALCHARTS, 'is_open'),
+          Output(ids.CONTENTMODALCHARTS, 'children'),
+          [Input(ids.BUTTONOPENMODALCHARTS, 'n_clicks'),
+           State(ids.MODALCHARTS, 'is_open'),
+           ])
+def toggle_modal(bom_nclicks: int,
+                 is_open: bool,
+                 ) -> list:
+    if bom_nclicks:
+        content = dbc.Col([
+                    dbc.Row([
+                        charts.daterange,
+                        charts.timerange,
+                    ]),
+                    dcc.Graph(
+                        id=ids.CHARTVOLTAGECURRENT, 
+                        figure=charts.voltagecurrent,
+                        config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                style={'height': '15vh'},
+                    ),
+                    dcc.Graph(
+                        id=ids.CHARTSATELLITES, 
+                        figure=charts.satellites,
+                        config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                        style={'height': '15vh'},
+					),
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.Graph(
+                                id=ids.CHARTFIXFLOATINVALIDPIE, 
+                                figure=charts.fixfloatinvalidpie,
+                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                style={'height': '15vh'},
+                            ),
+                        ]),
+                        dbc.Col([
+                            dcc.Graph(
+                                id=ids.CHARTCHARGEIDLEMOWPIE, 
+                                figure=charts.chargeidlemowpie,
+                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                style={'height': '15vh'},
+                            ),
+                        ]),
+                    ]),
+                    ]
+                )
+        return True, content 
+    return False, dbc.Col()

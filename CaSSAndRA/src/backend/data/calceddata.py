@@ -97,7 +97,8 @@ def calcdata_from_stats():
         diff_df = last2_rows.diff()
         diff_df = diff_df.drop([0])
         #Last df data is smaller than 0 -> rover reset?
-        if diff_df.iloc[-1]['duration_idle'] < 0:
+        if (diff_df.iloc[-1]['duration_idle'] < 0 or diff_df.iloc[-1]['duration_charge'] < 0 or diff_df.iloc[-1]['duration_mow'] < 0 
+            or diff_df.iloc[-1]['duration_mow_fix'] < 0 or diff_df.iloc[-1]['duration_mow_float'] < 0 or diff_df.iloc[-1]['duration_mow_invalid'] < 0):
             diff_df = roverdata.stats.tail(1)
         diff_df.loc[:,'timestamp'] = roverdata.stats.iloc[-1]['timestamp']
         calced_from_stats = diff_df

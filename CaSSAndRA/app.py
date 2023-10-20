@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.90.4 Some fixes in API
+#Version:0.91.0 First approach for charts
 # package imports
 import os
 import sys

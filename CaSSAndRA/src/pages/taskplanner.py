@@ -179,7 +179,7 @@ def update_layout() -> html.Div:
             style={"display":"flex", "flex-direction":"column", "height":"100%", "width":"100%"}),
         ],
         className='d-none d-sm-none d-md-block',
-        style={'width': '350px'},
+        style={'width': '400px'},
     )
 
     # build and return the page

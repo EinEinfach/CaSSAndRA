@@ -182,7 +182,7 @@ def update_layout() -> html.Div:
             ),
         ],
         className='d-none d-sm-none d-md-block',
-        style={'width': '350px'},
+        style={'width': '400px'},
     )
 
     # Build the page using the two columns and remaining styles/components required
