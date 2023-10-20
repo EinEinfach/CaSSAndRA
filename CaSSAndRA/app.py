@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.92.2 Change behavior of date picker
+#Version:0.92.3 Bug fix first start issue in charts.py
 # package imports
 import os
 import sys

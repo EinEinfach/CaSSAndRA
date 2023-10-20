@@ -12,7 +12,7 @@ daterange = dcc.DatePickerRange(id=ids.CHARTSDATERANGE,
                 display_format='YYYY-MM-DD',
                 start_date=datetime.now().date(),
                 max_date_allowed=datetime.now().date(),
-                min_date_allowed=roverdata.state.iloc[1]['timestamp'],
+                min_date_allowed=roverdata.state.iloc[0]['timestamp'],
                 stay_open_on_select=False,
                 minimum_nights=0,
 )
