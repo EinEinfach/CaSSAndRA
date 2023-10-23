@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.92.3 Bug fix first start issue in charts.py
+#Version:0.93.0 Some working progress on charts
 # package imports
 import os
 import sys

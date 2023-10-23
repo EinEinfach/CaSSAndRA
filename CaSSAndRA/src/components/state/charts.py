@@ -6,6 +6,7 @@ from datetime import datetime
 
 from .. import ids
 from ... backend.data import roverdata
+from ... backend.data.chartsdata import chartsdata
 
 daterange = dcc.DatePickerRange(id=ids.CHARTSDATERANGE,
                 end_date=datetime.now().date(),
@@ -15,6 +16,7 @@ daterange = dcc.DatePickerRange(id=ids.CHARTSDATERANGE,
                 min_date_allowed=roverdata.state.iloc[0]['timestamp'],
                 stay_open_on_select=False,
                 minimum_nights=0,
+                updatemode='bothdates'
 )
 timerange = dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None)
 
@@ -66,24 +68,14 @@ satellites.update_layout(
                 ),
                 font=dict(size=7),
                 plot_bgcolor='white',
+                margin=dict(b=0, l=0, r=0, t=0),
+                showlegend=False,
+                dragmode='pan',
+                hovermode='x unified',
+                barmode='overlay',
                 yaxis=dict(
-                    title='amount',
-                    gridcolor = '#eeeeee', 
-                    showgrid=True,
-                    zeroline=False,
-                    tickfont=dict(size=7),
+                    showticklabels=False,
                 ),
-               xaxis=dict(
-                    gridcolor = '#eeeeee', 
-                    showticklabels=True,
-                    showgrid=True,
-                    zeroline=False,
-                    tickfont=dict(size=7),
-               ),
-               margin=dict(b=0, l=0, r=0, t=0),
-               showlegend=False,
-               hovermode='x unified',
-               dragmode='pan',
     )
 
 fixfloatinvalidpie = go.Figure()
@@ -129,6 +121,7 @@ lateralerror.update_layout(
                 ),
                 font=dict(size=7),
                 plot_bgcolor='white',
+                xaxis=dict(range=[-0.3, 0.3]),
                 margin=dict(b=0, l=0, r=0, t=0),
                 showlegend=False,
                 hovermode='x unified',
@@ -143,8 +136,10 @@ lateralerror.update_layout(
           Output(ids.CHARTSTIMERANGE, 'value'),
           Output(ids.CHARTSTIMERANGE, 'min'),
           Output(ids.CHARTSTIMERANGE, 'max'),
+          Output(ids.CHARTSDATERANGE, 'max_data_allowed'),
+          Output(ids.CHARTSDATERANGE, 'min_date_allowed'),
         [
-            #Input(ids.STATEMAPINTERVAL, 'n_intervals'),
+            #Input(ids.CHARTSINTERVAL, 'n_intervals'),
             Input(ids.URLUPDATE, 'pathname'),
             Input(ids.CHARTSDATERANGE, 'start_date'),
             Input(ids.CHARTSTIMERANGE, 'end_date'),
@@ -163,6 +158,8 @@ def update_charts(#n_intervals: int,
                   timerange_state: list,
                   ) -> Patch():
     context = ctx.triggered_id
+    max_date_allowed=datetime.now().date()
+    min_date_allowed=roverdata.state.iloc[0]['timestamp'][:10]
     if start_date_state == None or end_date_state == None:
         start_date_state = str(datetime.now().date())
         end_date_state = str(datetime.now().date())
@@ -176,6 +173,8 @@ def update_charts(#n_intervals: int,
         timerange_state = []
         timerange_state.append(state_filtered.index.min())
         timerange_state.append(state_filtered.index.max())
+    if chartsdata.live_update:
+        timerange_state[1] = state_filtered.index.max()
     state_filtered = state_filtered.loc[timerange_state[0]:timerange_state[1]]
     state_filtered_mow = state_filtered[state_filtered['job'] == 1]
     #calc stats time range from state time range
@@ -203,16 +202,14 @@ def update_charts(#n_intervals: int,
                 )
     )
     #Satellites plot
-    traces2.append(go.Scatter(x=state_filtered['timestamp'],
-                             y=state_filtered['position_visible_satellites'],
+    traces2.append(go.Histogram(x=state_filtered_mow['position_visible_satellites'],
                              name='visible', 
-                             mode='lines',
+                             opacity=0.7
                 )
     )
-    traces2.append(go.Scatter(x=state_filtered['timestamp'], 
-                             y=state_filtered['position_visible_satellites_dgps'],
+    traces2.append(go.Histogram(x=state_filtered_mow['position_visible_satellites_dgps'],
                              name='dgps', 
-                             mode='lines',
+                             opacity=0.7
                 )
     )
     #Pie chart fix, float, invalid duration
@@ -262,4 +259,4 @@ def update_charts(#n_intervals: int,
     fig3.data = traces3
     fig4.data = traces4
     fig5.data = traces5
-    return fig, fig2, fig3, fig4, fig5, timerange_state, state_filtered.index.min(), state_filtered.index.max()
+    return fig, fig2, fig3, fig4, fig5, timerange_state, state_filtered.index.min(), state_filtered.index.max(), max_date_allowed, min_date_allowed

@@ -158,74 +158,48 @@ def update_layout() -> html.Div:
                         charts.daterange,
                         charts.timerange,
                     ]),
-                    dbc.Card([
-                        dbc.CardBody(
-                            dcc.Graph(
-                                id=ids.CHARTVOLTAGECURRENT, 
-                                figure=charts.voltagecurrent,
-                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                style={'height': '15vh'},
-							),
+                    dbc.Row([ 
+                        dcc.Graph(
+                            id=ids.CHARTVOLTAGECURRENT, 
+                            figure=charts.voltagecurrent,
+                            config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                            style={'height': '15vh'},
                         ),
-                    ]),
-                    dbc.Card([
-                        dbc.CardBody(
-                                dcc.Graph(
-                                    id=ids.CHARTSATELLITES, 
-                                    figure=charts.satellites,
-                                    config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                    style={'height': '15vh'},
-							    ),
-                        ),
-                    ]),
-                    # dbc.Row([
-                    #     dbc.Col([
-                            dbc.Card([
-                                dbc.CardBody(
-                                    dcc.Graph(
-                                            id=ids.CHARTLATERRORHIST, 
-                                            figure=charts.lateralerror,
-                                            config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                            style={'height': '15vh'},
-                                    ),
-                                )
-                            ]),
-                        # ]),
-                        # dbc.Col([
-                        #    dbc.Card([
-                        #         dbc.CardBody(
-                        #             dcc.Graph(
-                        #                     config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                        #                     style={'height': '15vh'},
-                        #             ),
-                        #         )
-                        #     ])
-                    #     ]),
-                    # ]),
+                    ]),   
                     dbc.Row([
                         dbc.Col([
-                            dbc.Card([
-                                dbc.CardBody(
-                                    dcc.Graph(
-                                            id=ids.CHARTFIXFLOATINVALIDPIE, 
-                                            figure=charts.fixfloatinvalidpie,
-                                            config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                            style={'height': '15vh'},
-                                    ),
-                                )
-                            ])
+                            dcc.Graph(
+                                id=ids.CHARTSATELLITES, 
+                                figure=charts.satellites,
+                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                style={'height': '15vh'},
+                            ),
                         ]),
                         dbc.Col([
-                           dbc.Card([
-                                dbc.CardBody(
-                                    dcc.Graph(
-                                            id=ids.CHARTCHARGEIDLEMOWPIE, 
-                                            figure=charts.chargeidlemowpie,
-                                            config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                            style={'height': '15vh'},
-                                    ),
-                                )
-                            ])
+                            dcc.Graph(
+                                id=ids.CHARTLATERRORHIST, 
+                                figure=charts.lateralerror,
+                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                style={'height': '15vh'},
+                            ),
+                        ]),
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.Graph(
+                                    id=ids.CHARTFIXFLOATINVALIDPIE, 
+                                    figure=charts.fixfloatinvalidpie,
+                                    config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                    style={'height': '15vh'},
+                            ),
+                        ]),
+                        dbc.Col([
+                            dcc.Graph(
+                                    id=ids.CHARTCHARGEIDLEMOWPIE, 
+                                    figure=charts.chargeidlemowpie,
+                                    config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                    style={'height': '15vh'},
+                            ),
                         ]),
                     ]),
                     
@@ -313,18 +287,24 @@ def toggle_modal(bom_nclicks: int,
                         config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
                                 style={'height': '15vh'},
                     ),
-                    dcc.Graph(
-                        id=ids.CHARTSATELLITES, 
-                        figure=charts.satellites,
-                        config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                        style={'height': '15vh'},
-					),
-                    dcc.Graph(
-                        id=ids.CHARTLATERRORHIST, 
-                        figure=charts.lateralerror,
-                        config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                        style={'height': '15vh'},
-					),
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.Graph(
+                                id=ids.CHARTSATELLITES, 
+                                figure=charts.satellites,
+                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                style={'height': '15vh'},
+                            ),
+                        ]),
+                        dbc.Col([
+                            dcc.Graph(
+                                id=ids.CHARTLATERRORHIST, 
+                                figure=charts.lateralerror,
+                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                                style={'height': '15vh'},
+                            ),
+                        ]),
+                    ]),
                     dbc.Row([
                         dbc.Col([
                             dcc.Graph(
