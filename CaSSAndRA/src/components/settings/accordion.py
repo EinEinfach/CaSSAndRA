@@ -9,6 +9,7 @@ from src.backend import backendserver
 from src.backend.data import appdata
 from src.backend.data.cfgdata import rovercfg, pathplannercfg, appcfg, commcfg
 from src.backend.comm import cmdlist
+from src.backend.comm.messageservice import telegram
 
 accordion_settings = dbc.Accordion([
                         dbc.AccordionItem(
@@ -229,6 +230,37 @@ accordion_settings = dbc.Accordion([
                             ],
                             title='API',
                         ),
+                        dbc.AccordionItem(
+                            [
+                                html.P('Should CaSSAndRA send messages to you'),
+                                html.Div([
+                                    dbc.RadioItems(
+                                        options=[
+                                            {'label': 'deactivated', 'value': 'deactivated'},
+                                            {'label': 'Telegram', 'value': 'Telegram'},
+                                        ],
+                                        id=ids.RADIOMESSAGESERVICETYPE,
+                                        inline=True
+                                    ), 
+                                ]),
+                                html.Div([
+                                    html.Div(buttons.savebutton),
+
+                                    html.Div(id=ids.MESSAGESERVICESTYLE),  
+                                    html.Div([
+                                        dbc.FormText('API-Token'),
+                                        dbc.Input(id=ids.TELEGRAMTOKEN), 
+                                        dbc.FormText('Test message'),
+                                        dbc.Row([
+                                            dbc.Col([dbc.Input(id=ids.TELEGRAMTESTMESSAGE)]),
+                                            dbc.Col([dbc.Button(id=ids.BUTTONSENDTELEGRAMMESSAGE, size='lg', class_name='me-1 mt-1 mb-1 bi bi-send-fill', title='send test message')])
+                                        ])
+                                        
+                                    ], id=ids.TELEGRAMSERVICESTYLE), 
+                                ]),
+                            ],
+                            title='Message service',
+                        ),
                     ], start_collapsed=True, id=ids.ACCORDIONSETTINGS
                 )
 
@@ -267,7 +299,10 @@ def update_connectioninput(radio_input: str()) -> list(dict()):
            State(ids.APIMQTTPASSWORD, 'value'),
            State(ids.APIMQTTSERVER, 'value'),
            State(ids.APIMQTTPORT, 'value'),
-           State(ids.APIMQTTCASSANDRASERVERNAME, 'value')])
+           State(ids.APIMQTTCASSANDRASERVERNAME, 'value'),
+           State(ids.RADIOMESSAGESERVICETYPE, 'value'),
+           State(ids.TELEGRAMTOKEN, 'value'),
+           ])
 def update_connection_data(bsr_n_clicks: int, 
                            bok_n_clicks: int,
                            is_open: bool, 
@@ -289,6 +324,8 @@ def update_connection_data(bsr_n_clicks: int,
                            apimqttserver: str(),
                            apimqttport: int,
                            apicassandraservername: str(),
+                           messageservicetype: str(),
+                           telegramtoken: str(),
                            ) -> bool():
     context = ctx.triggered_id
     if context == ids.BUTTONOK:
@@ -325,6 +362,16 @@ def update_connection_data(bsr_n_clicks: int,
             commcfg.api_mqtt_server = apimqttserver
             commcfg.api_mqtt_port = apimqttport
             commcfg.api_mqtt_cassandra_server_name = apicassandraservername
+            commcfg.save_commcfg()
+            backendserver.reboot()
+        elif messageservicetype == 'deactivated':
+            commcfg.message_service = None,
+            commcfg.telegram_token = None,
+            commcfg.save_commcfg()
+            backendserver.reboot()
+        elif messageservicetype == 'Telegram':
+            commcfg.message_service = 'Telegram'
+            commcfg.telegram_token = telegramtoken
             commcfg.save_commcfg()
             backendserver.reboot()
 
@@ -455,14 +502,29 @@ def update_robotsettings_data(bsrs_nclicks: int, bok_nclicks: int, is_open: bool
 
 @callback(Output(ids.APINONECONNECTIONSTYLE, 'style'),
           Output(ids.APIMQTTCONNECTIONSTYLE, 'style'),
-          Input(ids.RADIOAPICONNECTIONTYPE, 'value'))
-def update_apiconnectioninput(radio_input: str()) -> list(dict()):
+          [Input(ids.RADIOAPICONNECTIONTYPE, 'value'),
+           ])
+def update_apiconnectioninput(radio_input: str,
+                              ) -> list(dict()):
     if radio_input == 'deactivated':
         return {'display': 'none'}, {'display': 'none'}
     elif radio_input == 'MQTT':
         return {'display': 'none'}, {'display': 'block'}
     else:
         return {'display': 'none'}, {'display': 'none'}
+
+@callback(Output(ids.MESSAGESERVICESTYLE, 'style'),
+          Output(ids.TELEGRAMSERVICESTYLE, 'style'),
+          [Input(ids.RADIOMESSAGESERVICETYPE, 'value')],
+          )
+def update_messageservicetype(radio_input: str,
+                              ) -> list(dict()):
+    if radio_input == 'deactivated':
+        return {'display': 'none'}, {'display': 'none'}
+    elif radio_input == 'Telegram':
+        return {'display': 'none'}, {'display': 'block'}
+    else:
+        return {'display': 'none'}, {'display': 'none'} 
 
 @callback(Output(ids.RADIOPOSITIONMODE, 'value'),
           Output(ids.POSITIONMODELON, 'value'),
@@ -496,3 +558,13 @@ def update_pathplandersettings_on_reload(pathname: str) -> list:
 def update_appsettings_on_reload(pathname: str) -> list:
     return appcfg.datamaxage, appcfg.time_to_offline, appcfg.current_thd_charge, appcfg.voltage_0, appcfg.voltage_100, appcfg.rover_picture, appcfg.obstacles_amount
   
+@callback(Output(ids.BUTTONSENDTELEGRAMMESSAGE, 'active'),
+          [Input(ids.BUTTONSENDTELEGRAMMESSAGE, 'n_clicks'),
+          State(ids.TELEGRAMTESTMESSAGE, 'value'),
+          ])
+def send_test_message(bsm_nclicks: int,
+                      message: str,
+                      ) -> bool:
+    if bsm_nclicks:
+        telegram.send_message(message)
+    return False

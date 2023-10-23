@@ -56,5 +56,11 @@
         {
             "API_SERVER_NAME": "myCaSSAndRA"
         }
+    ],
+    "MESSAGE_SERVICE": null,
+    "TELEGRAM": [
+        {
+            "TOKEN": null
+        }
     ]
 }

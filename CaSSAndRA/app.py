@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.93.0 Some working progress on charts
+#Version:0.94.0 Message service via telegram
 # package imports
 import os
 import sys

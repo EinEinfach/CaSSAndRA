@@ -32,6 +32,8 @@ class CommCfg:
     api_mqtt_server: str = '192.168.1.1'
     api_mqtt_port: int = 1883
     api_mqtt_cassandra_server_name:str = 'myCaSSAndRA'
+    message_service: str = None
+    telegram_token: str = None
     
     def read_commcfg(self) -> dict():
         try:
@@ -57,6 +59,8 @@ class CommCfg:
                 self.api_mqtt_server = commcfg_from_file['MQTT_API'][3]['MQTT_SERVER']
                 self.api_mqtt_port = commcfg_from_file['MQTT_API'][4]['PORT'] 
                 self.api_mqtt_cassandra_server_name = commcfg_from_file['MQTT_API'][5]['API_SERVER_NAME']
+                self.message_service = commcfg_from_file['MESSAGE_SERVICE']
+                self.telegram_token = commcfg_from_file['TELEGRAM'][0]['TOKEN']
                 return commcfg_from_file
         except Exception as e:
             logger.error('Could not read commcfg.json. Missing commcfg.json. Go with standard values')
@@ -92,6 +96,8 @@ class CommCfg:
                                 {'PORT': self.api_mqtt_port},
                                 {'API_SERVER_NAME': self.api_mqtt_cassandra_server_name}
                                 ]
+            new_data['MESSAGE_SERVICE'] = self.message_service
+            new_data['TELEGRAM'] = [{'TOKEN': self.telegram_token}]
             with open(file_paths.user.comm, 'w') as f:
                 logger.debug('New commcfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)
