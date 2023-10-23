@@ -27,7 +27,6 @@ class TelegramMessageService:
         except Exception as e:
             logger.warning('Did not get chat id via telegram api. Message service not active')
             logger.debug(f'{e}')
-            ic(e)
             return -1
     
     def send_offline(self) -> None:

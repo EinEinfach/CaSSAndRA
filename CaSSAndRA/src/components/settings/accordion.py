@@ -247,16 +247,23 @@ accordion_settings = dbc.Accordion([
                                     html.Div(buttons.savebutton),
 
                                     html.Div(id=ids.MESSAGESERVICESTYLE),  
-                                    html.Div([
+                                    dbc.Container([
                                         dbc.FormText('API-Token'),
                                         dbc.Input(id=ids.TELEGRAMTOKEN), 
                                         dbc.FormText('Test message'),
                                         dbc.Row([
-                                            dbc.Col([dbc.Input(id=ids.TELEGRAMTESTMESSAGE)]),
-                                            dbc.Col([dbc.Button(id=ids.BUTTONSENDTELEGRAMMESSAGE, size='lg', class_name='me-1 mt-1 mb-1 bi bi-send-fill', title='send test message')])
-                                        ])
-                                        
-                                    ], id=ids.TELEGRAMSERVICESTYLE), 
+                                            dbc.Col([dbc.Input(id=ids.TELEGRAMTESTMESSAGE)], style={"flex" : "1 0 0%"}),
+                                            dbc.Col([dbc.Button(id=ids.BUTTONSENDTELEGRAMMESSAGE, 
+                                                                size='lg', 
+                                                                class_name='bi bi-send-fill', 
+                                                                title='send test message'),
+                                                    ], style={"flex" : "0 0 0%"}
+                                            )
+                                            ], justify='center', align='center',
+                                        )
+                                    ], 
+                                    id=ids.TELEGRAMSERVICESTYLE, 
+                                    style={"height" : "100%", "overflow" : "hidden", "display" : "flex", "flex-direction" : "column"}), 
                                 ]),
                             ],
                             title='Message service',
