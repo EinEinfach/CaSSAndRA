@@ -193,7 +193,7 @@ class Perimeter:
                     possible_way = self.check_direct_way(search_wire_coords[i], list(perimeter_point.coords)[0])
                     if possible_way:
                         direct_way = LineString((search_wire_coords[i], list(perimeter_point.coords)[0]))
-                        G.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length/2)
+                        G.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
             logger.debug('NetworkX perimeter + exclusion + perimeter/exclusion edges + search wire edges: '+str(len(G.edges)))
         else:
             logger.info('No search wire found.')
