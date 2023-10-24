@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.95.1 Fix map upload with search wire
+#Version:0.95.2 Fixed max_date_allowed in date picker
 # package imports
 import os
 import sys

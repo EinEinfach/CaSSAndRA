@@ -12,7 +12,7 @@ daterange = dcc.DatePickerRange(id=ids.CHARTSDATERANGE,
                 end_date=datetime.now().date(),
                 display_format='YYYY-MM-DD',
                 start_date=datetime.now().date(),
-                max_date_allowed=datetime.now().date(),
+                max_date_allowed=roverdata.state.iloc[-1]['timestamp'],
                 min_date_allowed=roverdata.state.iloc[0]['timestamp'],
                 stay_open_on_select=False,
                 minimum_nights=0,
@@ -136,7 +136,7 @@ lateralerror.update_layout(
           Output(ids.CHARTSTIMERANGE, 'value'),
           Output(ids.CHARTSTIMERANGE, 'min'),
           Output(ids.CHARTSTIMERANGE, 'max'),
-          Output(ids.CHARTSDATERANGE, 'max_data_allowed'),
+          Output(ids.CHARTSDATERANGE, 'max_date_allowed'),
           Output(ids.CHARTSDATERANGE, 'min_date_allowed'),
         [
             #Input(ids.CHARTSINTERVAL, 'n_intervals'),
@@ -158,8 +158,8 @@ def update_charts(#n_intervals: int,
                   timerange_state: list,
                   ) -> Patch():
     context = ctx.triggered_id
-    max_date_allowed=datetime.now().date()
-    min_date_allowed=roverdata.state.iloc[0]['timestamp'][:10]
+    max_date_allowed=roverdata.state.iloc[-1]['timestamp']
+    min_date_allowed=roverdata.state.iloc[0]['timestamp']
     if start_date_state == None or end_date_state == None:
         start_date_state = str(datetime.now().date())
         end_date_state = str(datetime.now().date())
