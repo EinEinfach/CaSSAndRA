@@ -3,6 +3,8 @@ import plotly.graph_objects as go
 import pandas as pd
 from shapely.geometry import Polygon
 
+from icecream import ic
+
 from .. import ids
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import current_map, mapping_maps
@@ -193,6 +195,14 @@ def update(n_intervals: int,
                                 mode='lines+markers', 
                                 line=dict(color='#0f2105'), 
                                 marker=dict(size=3)))
+        
+        #Plot search wire
+        filtered = coords.loc[coords['type'] == 'search wire']
+        traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'],
+                                 name='search wire',
+                                 mode='lines+markers',
+                                 line=dict(color='#34a123'),
+                                 marker=dict(size=3)))
         
         #Plot unsaved figure
         filtered = coords.loc[coords['type'] == 'figure']

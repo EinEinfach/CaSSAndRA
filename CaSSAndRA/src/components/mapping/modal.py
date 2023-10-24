@@ -232,9 +232,15 @@ def finish_mapping(bff_n_clicks: int, bok_n_clicks: int,
           [Input(ids.BUTTONADDNEWPOINT, 'n_clicks'),
            Input(ids.OKBUTTONNOFIXSOLUTION, 'n_clicks'),
            State(ids.BUTTONHOMEADD, 'active'),
-           State(ids.MODALNOFIXSOLUTION, 'is_open')])
-def nofix_solution(banp_n_clicks: int, bok_n_clicks, bha_state: bool,
-                   is_open: bool) -> bool:
+           State(ids.BUTTONSEARCHWIREADD, 'active'),
+           State(ids.MODALNOFIXSOLUTION, 'is_open')
+           ])
+def nofix_solution(banp_n_clicks: int, 
+                   bok_n_clicks, 
+                   bha_state: bool,
+                   bswa_state: bool,
+                   is_open: bool,
+                   ) -> bool:
     context = ctx.triggered_id
 
     #check if recording mode
@@ -245,6 +251,8 @@ def nofix_solution(banp_n_clicks: int, bok_n_clicks, bha_state: bool,
 
     if bha_state:
         create = 'dockpoints'
+    elif bswa_state:
+        create = 'search wire'
     else:
         create = 'figure'
     if context == ids.BUTTONADDNEWPOINT and (robot.position_solution == 2 or not record_mode):

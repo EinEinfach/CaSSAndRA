@@ -31,11 +31,10 @@ def selection(perimeter: Polygon, selection: dict()) -> Polygon():
             selection_list = list(zip(selection['x'], selection['y']))
             selected_polygon = Polygon(selection_list)
             if not selected_polygon.is_valid:
-                logger.warning('Selection not valid, calculation aborted')
-                return Polygon()
-            else:
-                new_perimeter = perimeter.intersection(selected_polygon)
-                return new_perimeter
+                logger.warning('Selection not valid, take convex hull')
+                selected_polygon = selected_polygon.convex_hull
+            new_perimeter = perimeter.intersection(selected_polygon)
+            return new_perimeter
         
         elif 'api' in selection:
             logger.info('Selection via api. Create new perimeter with api select.')
@@ -63,6 +62,7 @@ def create(map: pd.DataFrame) -> Polygon:
     map = map[map['type'] != 'perimeter']
     map = map[map['type'] != 'way']
     map = map[map['type'] != 'dockpoints']
+    map = map[map['type'] != 'search wire']
     perimeter_coords = perimeter[['X', 'Y']]
     #create perimeter
     perimeter = Polygon(perimeter_coords.values.tolist())
@@ -132,6 +132,7 @@ def border(perimeter: Polygon, distancetoborder: int, mowoffset: float) -> list(
     if perimeter.geom_type == 'MultiPolygon':
         logger.warning('Backend: Current selection contains more than one closed perimeters. Continue with first one')
         border = perimeter.geoms[0]
+        perimeter = perimeter.geoms[0]
     else: 
         border = perimeter
     if distancetoborder == 0:

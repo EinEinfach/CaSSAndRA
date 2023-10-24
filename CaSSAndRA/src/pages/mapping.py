@@ -52,6 +52,7 @@ def update_layout() -> html.Div:
                         html.Div(
                             [
                                 buttongroupcontrol.buttonhomeadd,
+                                buttongroupcontrol.buttonsearchwireadd,
                                 buttongroupcontrol.buttonaddnewpoint,
                                 buttongroupcontrol.buttondeletelastpoint,
                                 buttongroupcontrol.buttonmovepoints,

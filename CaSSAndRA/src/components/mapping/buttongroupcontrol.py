@@ -10,6 +10,7 @@ buttonperimeteradd = dbc.Button(id=ids.BUTTONPERIMETERADD, size='lg', color="suc
 buttonperimeterdiff = dbc.Button(id=ids.BUTTONPERIMETERDIFF, size='lg', color="danger", class_name='bi bi-dash-circle', disabled=False, title='remove surface from perimeter', style={"width": "100%"})
 
 buttonhomeadd = dbc.Button(id=ids.BUTTONHOMEADD, size='lg',class_name='me-1 mt-1 mb-1 bi bi-house-add', disabled=False, title='create dockpoints')
+buttonsearchwireadd = dbc.Button(id=ids.BUTTONSEARCHWIREADD, size='lg',class_name='me-1 mt-1 mb-1 bi bi-compass', disabled=False, title='create search wire')
 buttonaddnewpoint = dbc.Button(id=ids.BUTTONADDNEWPOINT, size='lg', class_name='me-1 mt-1 mb-1 bi bi-node-plus', disabled=False, title='add new point')
 buttondeletelastpoint = dbc.Button(id=ids.BUTTONDELETELASTPOINT, size='lg', class_name='me-1 mt-1 mb-1 bi bi-node-minus', disabled=False, title='remove last point')
 buttonmovepoints= dbc.Button(id=ids.BUTTONMOVEPOINTS, size='lg', class_name='me-1 mt-1 mb-1 bi bi-arrows-move', disabled=False, title='move points')
@@ -18,27 +19,38 @@ buttoncancelmapaction = dbc.Button(id=ids.BUTTONCANCELMAPACTION, size='lg', clas
 @callback(Output(ids.BUTTONPERIMETERADD, 'disabled'),
           Output(ids.BUTTONPERIMETERDIFF, 'disabled'),
           Output(ids.BUTTONHOMEADD, 'disabled'),
+          Output(ids.BUTTONSEARCHWIREADD, 'disabled'),
           Output(ids.BUTTONADDNEWPOINT, 'disabled'),
           Output(ids.BUTTONDELETELASTPOINT, 'disabled'),
           Output(ids.BUTTONFINISHFIGURE, 'disabled'),
           [Input(ids.BUTTONDELETELASTPOINT, 'n_clicks'), 
            Input(ids.BUTTONHOMEADD, 'n_clicks'),
+           Input(ids.BUTTONSEARCHWIREADD, 'n_clicks'),
            Input(ids.BUTTONPERIMETERADD, 'n_clicks'),
            Input(ids.BUTTONPERIMETERDIFF, 'n_clicks'),
            Input(ids.MAPPINGMAP, 'figure'),
            State(ids.BUTTONHOMEADD, 'active'),
+           State(ids.BUTTONSEARCHWIREADD, 'active'),
            State(ids.BUTTONMOVEPOINTS, 'active')])
-def create_figure(bdlp_n_clicks: int, bha_n_clicks: int, 
-                  bpa_n_clicks: int, bpd_n_clicks: int, 
-                  map_figure: dict(), bha_state: bool,
-                  bmp_state: bool) -> list():
+def create_figure(bdlp_n_clicks: int, 
+                  bha_n_clicks: int, 
+                  bswa_n_clicks: int,
+                  bpa_n_clicks: int, 
+                  bpd_n_clicks: int, 
+                  map_figure: dict(), 
+                  bha_state: bool,
+                  bswa_state: bool,
+                  bmp_state: bool
+                  ) -> list():
     context = ctx.triggered_id
     #Check if map is loaded
     if mapping_maps.selected == 'from upload' or bmp_state:
-        return True, True, True, True, True, True
+        return True, True, True, True, True, True, True
     
     if bha_state:
         create = 'dockpoints'
+    elif bswa_state:
+        create = 'search wire'
     else:
         create = 'figure'
 
@@ -52,22 +64,32 @@ def create_figure(bdlp_n_clicks: int, bha_n_clicks: int,
     state_finish_figure = mapping_maps.is_changed()
     
     if not mapping_maps.build.empty and not mapping_maps.build[mapping_maps.build['type'] == 'edit'].empty:
-        return True, True, True, False, False, True
+        return True, True, True, True, False, False, True
     elif not mapping_maps.build.empty:
         if len(mapping_maps.build[mapping_maps.build['type'] == 'figure']) < 3:
-            return True, True, False, False, False, state_finish_figure
-        return False, False, False, False, False, state_finish_figure
-    return True, True, False, False, False, state_finish_figure
+            return True, True, False, False, False, False, state_finish_figure
+        return False, False, False, False, False, False, state_finish_figure
+    return True, True, False, False, False, False, state_finish_figure
 
 @callback(Output(ids.BUTTONHOMEADD, 'active'),
-          Input(ids.BUTTONHOMEADD, 'n_clicks'),
-          State(ids.BUTTONHOMEADD, 'active'))
-def home_add_state(bha_n_clicks: int, bha_state: bool) -> bool:
+          Output(ids.BUTTONSEARCHWIREADD, 'active'),
+          [Input(ids.BUTTONHOMEADD, 'n_clicks'),
+          Input(ids.BUTTONSEARCHWIREADD, 'n_clicks'),
+          State(ids.BUTTONHOMEADD, 'active'),
+          State(ids.BUTTONSEARCHWIREADD, 'active'),
+          ])
+def home_add_state(bha_n_clicks: int, 
+                   bswa_n_clicks: int,
+                   bha_state: bool,
+                   bswa_state: bool,
+                   ) -> bool:
     context = ctx.triggered_id
-    if context == ids.BUTTONHOMEADD:
-        return not bha_state
+    if context == ids.BUTTONHOMEADD and not bha_state:
+        return True, False
+    elif context == ids.BUTTONSEARCHWIREADD and not bswa_state:
+        return False, True
     else:
-        return bha_state
+        return False, False
 
 @callback(Output(ids.BUTTONADDNEWPOINT, 'active'),
           [Input(ids.BUTTONADDNEWPOINT, 'n_clicks')])

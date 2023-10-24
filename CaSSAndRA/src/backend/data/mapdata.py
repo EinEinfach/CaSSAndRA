@@ -25,6 +25,8 @@ class Perimeter:
     selected_perimeter: Polygon = Polygon()
     perimeter_for_plot: pd.DataFrame = pd.DataFrame()
     perimeter_points: MultiPoint = MultiPoint()
+    search_wire: LineString = LineString()
+    search_wire_points: MultiPoint = MultiPoint()
     gotopoints: pd.DataFrame = pd.DataFrame()
     gotopoint: pd.DataFrame = pd.DataFrame()
     mowpath: pd.DataFrame = pd.DataFrame()
@@ -51,9 +53,11 @@ class Perimeter:
     def create_perimeter_polygon(self) -> None:
         df = self.perimeter
         perimeter = df[df['type'] == 'perimeter']
+        search_wire = df[df['type'] == 'search wire']
         df = df[df['type'] != 'perimeter']
         df = df[df['type'] != 'way']
         df = df[df['type'] != 'dockpoints']
+        df = df[df['type'] != 'search wire']
         perimeter_coords = perimeter[['X', 'Y']]
         #create perimeter
         perimeter = Polygon(perimeter_coords.values.tolist())
@@ -67,6 +71,10 @@ class Perimeter:
             else:
                 perimeter = perimeter.difference(exclusions.convex_hull)
         self.perimeter_polygon = perimeter
+        #create search wire
+        if not search_wire.empty and len(search_wire) >= 2:
+            search_wire_coords = search_wire[['X', 'Y']]
+            self.search_wire = LineString(search_wire_coords.values.tolist())
     
     def create_perimeter_for_plot(self) -> None:
         self.perimeter_for_plot = pd.DataFrame()
@@ -74,22 +82,28 @@ class Perimeter:
         #Add first value to the end, if perimeter or exclusion
         types = perimeter['type'].unique()
         for type in types:
-            if type != 'dockpoints':
+            if type != 'dockpoints' and type != 'search wire':
                 coords = perimeter[perimeter['type'] == type]
                 first_value_cpy = coords.iloc[:1,:]
                 coords = pd.concat([coords, first_value_cpy], ignore_index=True)
                 self.perimeter_for_plot = pd.concat([self.perimeter_for_plot, coords], ignore_index=True)
-            else:
+            elif type == 'dockpoints':
                 coords = perimeter[perimeter['type'] == type]
                 self.perimeter_for_plot = pd.concat([self.perimeter_for_plot, coords], ignore_index=True)
     
     def create_points_from_polygon(self) -> None:
+        #Create MultiPoint from polygon (perimeter and exclusions)
         perimeter_coords = list(self.perimeter_polygon.exterior.coords)
         for excl in self.perimeter_polygon.interiors:
             excl_coords = list(excl.coords)
             perimeter_coords.extend(excl_coords)
         perimeter_points = MultiPoint((perimeter_coords))
         self.perimeter_points = perimeter_points
+        #Create MultiPoint from search wire
+        if not self.search_wire.is_empty:
+            search_wire_coords = list(self.search_wire.coords)
+            search_wire_points = MultiPoint(search_wire_coords)
+            self.search_wire_points = search_wire_points
     
     def create_go_to_points(self) -> None:
         perimeter = self.perimeter_polygon
@@ -122,7 +136,7 @@ class Perimeter:
     def create_networkx_graph(self):
         G = nx.Graph()
         #Create networkx edges for perimeter
-        logger.info('Backend: Create networkx edges for perimeter (A* pathfinder)')
+        logger.info('Create networkx edges for perimeter (A* pathfinder)')
         perimeter_coords = list(self.perimeter_polygon.exterior.coords)
         for i in range(len(perimeter_coords)-1):
             line = LineString(([perimeter_coords[i], perimeter_coords[i+1]]))
@@ -130,7 +144,7 @@ class Perimeter:
         logger.debug('NetworkX perimeter edges: '+str(len(G.edges)))
         
         #Create networkx edges for exclusions
-        logger.info('Backend: Create networkx edges for exclusions (A* pathfinder)')
+        logger.info('Create networkx edges for exclusions (A* pathfinder)')
         for excl in self.perimeter_polygon.interiors:
             excl_coords = list(excl.coords)
             for i in range(len(excl_coords)-1):
@@ -139,7 +153,7 @@ class Perimeter:
         logger.debug('NetworkX perimeter + exlusion edges: '+str(len(G.edges)))
 
         #Create networkx edges betweed exclusions and perimeter
-        logger.info('Backend: Create networkx edges between exclusions and perimeter (A* pathfinder)')
+        logger.info('Create networkx edges between exclusions and perimeter (A* pathfinder)')
         for excl in self.perimeter_polygon.interiors:
             connected_to_perimeter = False
             excl_coords = list(excl.coords)
@@ -151,8 +165,8 @@ class Perimeter:
                         direct_way = LineString((excl_coords[i], perimeter_coords[k]))
                         G.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
             if connected_to_perimeter == False:
-                logger.info('Backend: One exclusion could not be connected to perimeter')
-                logger.info('Backend: Trying to connect to other exclusions')
+                logger.info('One exclusion could not be connected to perimeter')
+                logger.info('Trying to connect to other exclusions')
                 for l in range(len(excl_coords)-1):
                     for other_exclusion in self.perimeter_polygon.interiors:
                         other_exclusion_coords = list(other_exclusion.coords)
@@ -163,6 +177,26 @@ class Perimeter:
                                 direct_way = LineString((excl_coords[l], other_exclusion_coords[m]))
                                 G.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
         logger.debug('NetworkX perimeter + exclusion + perimeter/exclusion edges: '+str(len(G.edges)))
+        #Create networkx edges from search wire
+        logger.info('Create networkx edges for search wire (A* pathfinder)')
+        if not self.search_wire.is_empty:
+            search_wire_coords = list(self.search_wire.coords)
+            for i in range(len(search_wire_coords)-1):
+                line = LineString(([search_wire_coords[i], search_wire_coords[i+1]]))
+                G.add_edge(list(line.coords)[0], list(line.coords)[1], weight=line.length/2)
+                for other_search_wire_point in self.search_wire_points.geoms:
+                    possible_way = self.check_direct_way(search_wire_coords[i], list(other_search_wire_point.coords)[0])
+                    if possible_way:
+                        direct_way = LineString((search_wire_coords[i], list(other_search_wire_point.coords)[0]))
+                        G.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length/2)
+                for perimeter_point in self.perimeter_points.geoms:
+                    possible_way = self.check_direct_way(search_wire_coords[i], list(perimeter_point.coords)[0])
+                    if possible_way:
+                        direct_way = LineString((search_wire_coords[i], list(perimeter_point.coords)[0]))
+                        G.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length/2)
+            logger.debug('NetworkX perimeter + exclusion + perimeter/exclusion edges + search wire edges: '+str(len(G.edges)))
+        else:
+            logger.info('No search wire found.')
         self.astar_graph = G
     
     def check_direct_way(self, start, end) -> bool:
@@ -307,10 +341,10 @@ class Perimeters:
         #Add first value to the end, if perimeter or exclusion
         types = data_to_plot['type'].unique()
         for type in types:
-            if type == 'dockpoints':
+            if type == 'dockpoints' or type == 'search wire':
                 coords = data_to_plot[data_to_plot['type'] == type]
                 perimeter_df = pd.concat([perimeter_df, coords], ignore_index=True)
-            elif type == 'edit' and mapping_maps.selected_name == 'dockpoints':
+            elif type == 'edit' and (mapping_maps.selected_name == 'dockpoints' or mapping_maps.selected_name == 'search wire'):
                 coords = data_to_plot[data_to_plot['type'] == type]
                 perimeter_df = pd.concat([perimeter_df, coords], ignore_index=True)
             else:
@@ -426,7 +460,7 @@ class Perimeters:
             else:
                 logger.debug('Target new figure')
                 self.build = self.build[self.build['type'] != create]
-            if not figure.empty and (create == 'figure' or create == 'dockpoints'):
+            if not figure.empty and (create == 'figure' or create == 'dockpoints' or create == 'search wire'):
                 logger.debug('Removing last point')
                 figure = figure[:-1]
                 self.build = pd.concat([self.build, figure], ignore_index=True)
@@ -519,6 +553,7 @@ class Perimeters:
             else:
                 logger.debug('Mapping create a new data frame')
                 dockpoints = self.build[self.build['type'] == 'dockpoints']
+                searchwire = self.build[self.build['type'] == 'search wire']
                 self.build = pd.DataFrame(list(new_perimeter.exterior.coords))
                 self.build.columns = ['X', 'Y']
                 self.build['type'] = 'perimeter'
@@ -529,6 +564,8 @@ class Perimeters:
                     self.build = pd.concat([self.build, exclusion_df], ignore_index=True)
                 if not dockpoints.empty:
                     self.build = pd.concat([self.build, dockpoints], ignore_index=True)
+                if not searchwire.empty:
+                    self.build = pd.concat([self.build, searchwire], ignore_index=True)
         except Exception as e:
             self.build = self.build_cpy
             logger.error('Backend: Create new perimeter is not possible. Exception occured. Action aborted')
@@ -609,7 +646,7 @@ class Perimeters:
         path = 'M'
         for i, coord in enumerate(coords):
             path = path+str(coord[0])+','+str(coord[1])+'L'
-        if geometry_type != 'dockpoints':
+        if geometry_type != 'dockpoints' and geometry_type != 'search wire':
             path = path[:-1] + 'Z'
         else:
             path = path[:-1]
