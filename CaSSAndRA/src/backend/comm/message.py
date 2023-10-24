@@ -37,7 +37,7 @@ def check() -> pd.DataFrame():
             robot.map_upload_started = True 
             robot.map_upload_finished = False
             robot.map_upload_failed = False
-            perimeter_no_dockpath = current_map.perimeter[current_map.perimeter['type'] != 'dockpoints']
+            perimeter_no_dockpath = current_map.perimeter[(current_map.perimeter['type'] != 'dockpoints') & (current_map.perimeter['type'] != 'search wire')]
             data = pd.concat([perimeter_no_dockpath, current_map.gotopoint], ignore_index=True)
             mapCRCx = data['X']*100 
             mapCRCy = data['Y']*100
@@ -90,7 +90,7 @@ def check() -> pd.DataFrame():
                 robot.map_upload_started = True 
                 robot.map_upload_finished = False
                 robot.map_upload_failed = False
-                data = current_map.perimeter 
+                data = current_map.perimeter[current_map.perimeter['type'] != 'search wire'] 
                 mapCRCx = data['X']*100 
                 mapCRCy = data['Y']*100
                 current_map.map_crc = int(mapCRCx.sum() + mapCRCy.sum())
@@ -158,7 +158,8 @@ def check() -> pd.DataFrame():
             robot.map_upload_started = True 
             robot.map_upload_finished = False
             robot.map_upload_failed = False
-            data = pd.concat([current_map.perimeter, current_map.mowpath], ignore_index=True)
+            data = current_map.perimeter[current_map.perimeter['type'] != 'search wire']
+            data = pd.concat([data, current_map.mowpath], ignore_index=True)
             mapCRCx = data['X']*100 
             mapCRCy = data['Y']*100
             current_map.map_crc = int(mapCRCx.sum() + mapCRCy.sum())
@@ -250,7 +251,8 @@ def check() -> pd.DataFrame():
             robot.map_upload_started = True 
             robot.map_upload_finished = False
             robot.map_upload_failed = False
-            data = pd.concat([current_map.perimeter, current_map.mowpath], ignore_index=True)
+            data = current_map.perimeter[current_map.perimeter['type'] != 'search wire']
+            data = pd.concat([data, current_map.mowpath], ignore_index=True)
             mapCRCx = data['X']*100 
             mapCRCy = data['Y']*100
             current_map.map_crc = int(mapCRCx.sum() + mapCRCy.sum())

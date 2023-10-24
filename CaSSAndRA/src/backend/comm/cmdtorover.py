@@ -10,6 +10,7 @@ from .. data.cfgdata import rovercfg
 from . import cmdlist
 
 def takemap(perimeter: pd.DataFrame(), way: pd.DataFrame(), dock: bool) -> pd.DataFrame():
+    perimeter = perimeter[perimeter['type'] != 'search wire']
     logger.info('Backend: Prepare map and way data for transmition')
 
     #Remove dockpoints, if neccessary (e.g. for goto command)

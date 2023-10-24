@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.95.0 Search wire im mapping section. Fixed somme small bugs in pathplanner
+#Version:0.95.1 Fix map upload with search wire
 # package imports
 import os
 import sys
