@@ -12,34 +12,28 @@ daterange = dcc.DatePickerRange(id=ids.CHARTSDATERANGE,
                 end_date=datetime.now().date(),
                 display_format='YYYY-MM-DD',
                 start_date=datetime.now().date(),
-                max_date_allowed=datetime.now().date(),
+                max_date_allowed=roverdata.state.iloc[-1]['timestamp'],
                 min_date_allowed=roverdata.state.iloc[0]['timestamp'],
                 stay_open_on_select=False,
                 minimum_nights=0,
-                updatemode='bothdates'
+                updatemode='bothdates',
+                style={"text-align":"center", "margin-bottom":"0.5rem"},
 )
-timerange = dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None)
+timerange = dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None, className="chart-slider")
 
 voltagecurrent = go.Figure()
 voltagecurrent.update_layout(
-                title=dict(
-                    text='battery',
-                    x=0.5,
-                    y=1,
-                    xanchor='center',
-                    yanchor='auto'
-                ),
                 font=dict(size=7),
-                plot_bgcolor='white',
+                plot_bgcolor='rgba(255, 255, 255, 0.0)',
                 yaxis=dict(
-                   title='voltage',
+                #    title='voltage',
                    gridcolor = '#eeeeee', 
                    showgrid=True,
                    zeroline=False,
                    tickfont=dict(size=7),
                 ),
                 yaxis2=dict(
-                    title='current',
+                    # title='current',
                     side='right',
                     overlaying='y',
                     tickfont=dict(size=7),
@@ -59,15 +53,8 @@ voltagecurrent.update_layout(
 
 satellites = go.Figure()
 satellites.update_layout(
-                title=dict(
-                    text='satellites',
-                    x=0.5,
-                    y=1,
-                    xanchor='center',
-                    yanchor='auto'
-                ),
                 font=dict(size=7),
-                plot_bgcolor='white',
+                plot_bgcolor='rgba(255, 255, 255, 0.0)',
                 margin=dict(b=0, l=0, r=0, t=0),
                 showlegend=False,
                 dragmode='pan',
@@ -80,15 +67,8 @@ satellites.update_layout(
 
 fixfloatinvalidpie = go.Figure()
 fixfloatinvalidpie.update_layout(
-                    title=dict(
-                        text='solution ratio',
-                        x=0.5,
-                        y=1,
-                        xanchor='center',
-                        yanchor='auto'
-                    ),
-                    font=dict(size=7),
-                    plot_bgcolor='white',
+                    font=dict(size=8),
+                    plot_bgcolor='rgba(255, 255, 255, 0.0)',
                     margin=dict(b=0, l=0, r=0, t=0),
                     uniformtext_minsize=6, 
                     uniformtext_mode='hide',
@@ -96,15 +76,8 @@ fixfloatinvalidpie.update_layout(
                     
 chargeidlemowpie = go.Figure()
 chargeidlemowpie.update_layout(
-                    title=dict(
-                        text='state ratio',
-                        x=0.5,
-                        y=1,
-                        xanchor='center',
-                        yanchor='auto'
-                    ),
-                    font=dict(size=7),
-                    plot_bgcolor='white',
+                    font=dict(size=8),
+                    plot_bgcolor='rgba(255, 255, 255, 0.0)',
                     margin=dict(b=0, l=0, r=0, t=0),
                     uniformtext_minsize=6, 
                     uniformtext_mode='hide',
@@ -112,21 +85,84 @@ chargeidlemowpie.update_layout(
 
 lateralerror = go.Figure()
 lateralerror.update_layout(
-                title=dict(
-                    text='lateral error',
-                    x=0.5,
-                    y=1,
-                    xanchor='center',
-                    yanchor='auto', 
-                ),
                 font=dict(size=7),
-                plot_bgcolor='white',
+                plot_bgcolor='rgba(255, 255, 255, 0.0)',
                 xaxis=dict(range=[-0.3, 0.3]),
                 margin=dict(b=0, l=0, r=0, t=0),
                 showlegend=False,
                 hovermode='x unified',
                 dragmode='pan',
     )
+
+chartcontainer = [
+    # Date
+	dbc.Row([
+		daterange,
+		timerange,
+	],
+    class_name="chart-row chart-item"),
+    # Battery
+	dbc.Row([ 
+		dbc.Label("Battery", class_name="chart-label"),
+		dcc.Graph(
+			id=ids.CHARTVOLTAGECURRENT, 
+			figure=voltagecurrent,
+			config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+			style={'height': '15vh'},
+		),
+	],
+	class_name="chart-row chart-item"),   
+    #Saterllites and lateral error
+	dbc.Row([
+		dbc.Col([
+			dbc.Label("Satellites", class_name="chart-label"),
+			dcc.Graph(
+				id=ids.CHARTSATELLITES, 
+				figure=satellites,
+				config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+				style={'height': '15vh'},
+			),
+		],
+        style={"margin-right":"0.5rem"},
+		class_name="chart-row chart-item"),
+		dbc.Col([
+			dbc.Label("Lateral Error", class_name="chart-label"),
+			dcc.Graph(
+				id=ids.CHARTLATERRORHIST, 
+				figure=lateralerror,
+				config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+				style={'height': '15vh'},
+			),
+		],
+        style={"margin-left":"0.5rem"},
+		class_name="chart-row chart-item"),
+	],
+	class_name="chart-row"),
+    #Gps and state ratios
+	dbc.Row([
+		dbc.Col([
+			dbc.Label("GPS Solution Ratio", class_name="chart-label"),
+			dcc.Graph(
+					id=ids.CHARTFIXFLOATINVALIDPIE, 
+					figure=fixfloatinvalidpie,
+					config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+					style={'height': '15vh'},
+			),
+		],
+        class_name="chart-item-separator"),
+		dbc.Col([
+			dbc.Label("State Ratio", class_name="chart-label"),
+			dcc.Graph(
+					id=ids.CHARTCHARGEIDLEMOWPIE, 
+					figure=chargeidlemowpie,
+					config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+					style={'height': '15vh'},
+			),
+		]),
+	],
+	class_name="chart-row chart-item"),
+]
+
 
 @callback(Output(ids.CHARTVOLTAGECURRENT, 'figure'),
           Output(ids.CHARTSATELLITES, 'figure'),
@@ -158,8 +194,8 @@ def update_charts(#n_intervals: int,
                   timerange_state: list,
                   ) -> Patch():
     context = ctx.triggered_id
-    max_date_allowed=datetime.now().date()
-    min_date_allowed=roverdata.state.iloc[0]['timestamp'][:10]
+    max_date_allowed=roverdata.state.iloc[-1]['timestamp']
+    min_date_allowed=roverdata.state.iloc[0]['timestamp']
     if start_date_state == None or end_date_state == None:
         start_date_state = str(datetime.now().date())
         end_date_state = str(datetime.now().date())
@@ -191,14 +227,18 @@ def update_charts(#n_intervals: int,
                              y=state_filtered['battery_voltage'],
                              name='voltage', 
                              mode='lines',
-                             yaxis='y'
+                             yaxis='y',
+                             line=dict(color='rgba(70, 145, 219, 0.75)')
                 )
     )
     traces.append(go.Scatter(x=state_filtered['timestamp'], 
                              y=state_filtered['amps'],
                              name='current', 
                              mode='lines',
-                             yaxis='y2'
+                             yaxis='y2',
+                             line=dict(color='rgba(217, 139, 49, 0.75)'),
+                             fillcolor="rgba(217, 139, 49, 0.25)",
+                             fill='tozeroy',
                 )
     )
     #Satellites plot
@@ -218,11 +258,14 @@ def update_charts(#n_intervals: int,
     duration_invalid = calced_from_stats_filtered['duration_mow_invalid'].sum()
     traces3.append(go.Pie(
                     values=[duration_fix, duration_float, duration_invalid], 
-                    labels=['fix', 'float', 'invalid'], 
-                    marker=dict(colors=['green', 'orange', 'red']), 
+                    labels=['Fix', 'Float', 'Invalid'], 
+					marker=dict(colors=['rgba(90, 185, 26, 0.75)', 'rgba(254, 166, 7, 0.75)', 'rgba(225, 46, 46, 0.75)'], line=dict(color='rgba(255, 255, 255, 1.0)', width=1)),
                     showlegend=False,
                     textposition='inside',
+                    textinfo='percent+label',
                     hoverinfo='label+percent',
+                    hole=0.4,
+                    # textfont_size=9,
                 )
             )
     #Pie chart charge, idle, mow ratio
@@ -231,11 +274,13 @@ def update_charts(#n_intervals: int,
     duration_mow = calced_from_stats_filtered['duration_mow'].sum()
     traces4.append(go.Pie(
                     values=[duration_mow, duration_idle, duration_charge], 
-                    labels=['mow', 'idle', 'charge'], 
-                    marker=dict(colors=['green', 'orange', 'red']),
+                    labels=['Mow', 'Idle', 'Charge'], 
+					marker=dict(colors=['rgba(15, 135, 15, 0.75)', 'rgba(255, 165, 0, 0.75)', 'rgba(118, 153, 241, 0.75)'], line=dict(color='rgba(255, 255, 255, 1.0)', width=1)),
                     showlegend=False,
                     textposition='inside',
+                    textinfo='percent+label',
                     hoverinfo='label+percent',
+                    hole=0.4,
                 )
             )
     #Histogramm lateral error
@@ -245,8 +290,8 @@ def update_charts(#n_intervals: int,
                         start=-0.5,
                         end=0.5,
                         size=0.01
-                    )
-                    
+                    ),
+                    opacity=0.7
                 )
             )
     fig = Patch()
