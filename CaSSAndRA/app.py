@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.95.4 Fixed date range on page call
+#Version:0.95.5 Fixed save task issue with not existing task.json
 # package imports
 import os
 import sys

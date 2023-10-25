@@ -60,7 +60,4 @@ def update_dropdown_tasksorder(rt_isopen: bool,
         options.sort()
     except:
         options = []
-    if options == []:
-        current_task.create()
-        schedule_tasks.create()
     return [options]*8   
