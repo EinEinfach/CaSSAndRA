@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.95.3 Changed some weigh factors for search wire
+#Version:0.95.4 Fixed date range on page call
 # package imports
 import os
 import sys

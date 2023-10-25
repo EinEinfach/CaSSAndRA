@@ -2,11 +2,13 @@
 import dash
 from dash import html, dcc, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
+from datetime import datetime
 
 # local imports
 from src.components import ids, modalmowsettings
 from src.components.state import map, buttongroupcontrol, state, modal, charts
 from src.backend.data.roverdata import robot
+from src.backend.data import roverdata
 
 dash.register_page(__name__, path="/", redirect_from=["/state"], title="State")
 
@@ -155,8 +157,18 @@ def update_layout() -> html.Div:
             dbc.Row(
                 [
                     dbc.Row([
-                        charts.daterange,
-                        charts.timerange,
+                        dcc.DatePickerRange(
+                            id=ids.CHARTSDATERANGE,
+                            end_date=datetime.now().date(),
+                            display_format='YYYY-MM-DD',
+                            start_date=datetime.now().date(),
+                            max_date_allowed=roverdata.state.iloc[-1]['timestamp'],
+                            min_date_allowed=roverdata.state.iloc[0]['timestamp'],
+                            stay_open_on_select=False,
+                            minimum_nights=0,
+                            updatemode='bothdates'
+                        ),
+                        dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None),
                     ]),
                     dbc.Row([ 
                         dcc.Graph(
@@ -278,8 +290,18 @@ def toggle_modal(bom_nclicks: int,
     if bom_nclicks:
         content = dbc.Col([
                     dbc.Row([
-                        charts.daterange,
-                        charts.timerange,
+                        dcc.DatePickerRange(
+                            id=ids.CHARTSDATERANGE,
+                            end_date=datetime.now().date(),
+                            display_format='YYYY-MM-DD',
+                            start_date=datetime.now().date(),
+                            max_date_allowed=roverdata.state.iloc[-1]['timestamp'],
+                            min_date_allowed=roverdata.state.iloc[0]['timestamp'],
+                            stay_open_on_select=False,
+                            minimum_nights=0,
+                            updatemode='bothdates'
+                        ),
+                        dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None),
                     ]),
                     dcc.Graph(
                         id=ids.CHARTVOLTAGECURRENT, 

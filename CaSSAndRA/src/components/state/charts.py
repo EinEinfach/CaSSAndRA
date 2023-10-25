@@ -8,18 +8,6 @@ from .. import ids
 from ... backend.data import roverdata
 from ... backend.data.chartsdata import chartsdata
 
-daterange = dcc.DatePickerRange(id=ids.CHARTSDATERANGE,
-                end_date=datetime.now().date(),
-                display_format='YYYY-MM-DD',
-                start_date=datetime.now().date(),
-                max_date_allowed=roverdata.state.iloc[-1]['timestamp'],
-                min_date_allowed=roverdata.state.iloc[0]['timestamp'],
-                stay_open_on_select=False,
-                minimum_nights=0,
-                updatemode='bothdates'
-)
-timerange = dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None)
-
 voltagecurrent = go.Figure()
 voltagecurrent.update_layout(
                 title=dict(
