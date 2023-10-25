@@ -120,8 +120,11 @@ def update_layout() -> html.Div:
                                                 dbc.ModalHeader(
                                                     dbc.ModalTitle('Charts')
                                                 ),
-                                                dbc.ModalBody(id=ids.CONTENTMODALCHARTS),
-                                                dbc.ModalFooter([]),
+                                                dbc.ModalBody(
+                                                    id=ids.CONTENTMODALCHARTS,
+                                                    style={"padding-top":"0"},
+												),
+                                                # dbc.ModalFooter([]),
                                             ],
                                             id=ids.MODALCHARTS,
                                             is_open=False, centered=True,
@@ -151,85 +154,10 @@ def update_layout() -> html.Div:
     )
 
     # Second Column
-    #   This contains a placeholder card and the pre-existing hidden state modules
     sec_col = html.Div(
-        [
-            dbc.Row(
-                [
-                    dbc.Row([
-                        dcc.DatePickerRange(
-                            id=ids.CHARTSDATERANGE,
-                            end_date=datetime.now().date(),
-                            display_format='YYYY-MM-DD',
-                            start_date=datetime.now().date(),
-                            max_date_allowed=roverdata.state.iloc[-1]['timestamp'],
-                            min_date_allowed=roverdata.state.iloc[0]['timestamp'],
-                            stay_open_on_select=False,
-                            minimum_nights=0,
-                            updatemode='bothdates'
-                        ),
-                        dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None),
-                    ]),
-                    dbc.Row([ 
-                        dcc.Graph(
-                            id=ids.CHARTVOLTAGECURRENT, 
-                            figure=charts.voltagecurrent,
-                            config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                            style={'height': '15vh'},
-                        ),
-                    ]),   
-                    dbc.Row([
-                        dbc.Col([
-                            dcc.Graph(
-                                id=ids.CHARTSATELLITES, 
-                                figure=charts.satellites,
-                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                style={'height': '15vh'},
-                            ),
-                        ]),
-                        dbc.Col([
-                            dcc.Graph(
-                                id=ids.CHARTLATERRORHIST, 
-                                figure=charts.lateralerror,
-                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                style={'height': '15vh'},
-                            ),
-                        ]),
-                    ]),
-                    dbc.Row([
-                        dbc.Col([
-                            dcc.Graph(
-                                    id=ids.CHARTFIXFLOATINVALIDPIE, 
-                                    figure=charts.fixfloatinvalidpie,
-                                    config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                    style={'height': '15vh'},
-                            ),
-                        ]),
-                        dbc.Col([
-                            dcc.Graph(
-                                    id=ids.CHARTCHARGEIDLEMOWPIE, 
-                                    figure=charts.chargeidlemowpie,
-                                    config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                    style={'height': '15vh'},
-                            ),
-                        ]),
-                    ]),
-                    
-                    # Add components to second column here and remove placeholders
-                    # dbc.Card(
-                    #     [dbc.CardHeader("Placeholder"), dbc.CardBody("Placeholder")],
-                    #     class_name="text-center",
-                    # ),
-                    # html.Div(id=ids.STATEHIDDEN, style={"display": "none"}),
-                    # html.Div(id=ids.STATEHIDDEN2, style={"display": "none"}),
-                    # html.Div(id=ids.STATEHIDDEN3, style={"display": "none"}),
-                ],
-                justify="evenly",
-                class_name="g-0 p-1",
-            ),
-        ],
+		charts.chartcontainer,
         className="d-none d-sm-none d-md-block",
-        style={"width": "400px"},
+        style={"width": "20%", "min-width":"400px", "z-index":"1", "padding-right":"1rem"},
     )
 
     # Temporary control of right col
@@ -288,64 +216,6 @@ def toggle_modal(bom_nclicks: int,
                  is_open: bool,
                  ) -> list:
     if bom_nclicks:
-        content = dbc.Col([
-                    dbc.Row([
-                        dcc.DatePickerRange(
-                            id=ids.CHARTSDATERANGE,
-                            end_date=datetime.now().date(),
-                            display_format='YYYY-MM-DD',
-                            start_date=datetime.now().date(),
-                            max_date_allowed=roverdata.state.iloc[-1]['timestamp'],
-                            min_date_allowed=roverdata.state.iloc[0]['timestamp'],
-                            stay_open_on_select=False,
-                            minimum_nights=0,
-                            updatemode='bothdates'
-                        ),
-                        dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None),
-                    ]),
-                    dcc.Graph(
-                        id=ids.CHARTVOLTAGECURRENT, 
-                        figure=charts.voltagecurrent,
-                        config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                style={'height': '15vh'},
-                    ),
-                    dbc.Row([
-                        dbc.Col([
-                            dcc.Graph(
-                                id=ids.CHARTSATELLITES, 
-                                figure=charts.satellites,
-                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                style={'height': '15vh'},
-                            ),
-                        ]),
-                        dbc.Col([
-                            dcc.Graph(
-                                id=ids.CHARTLATERRORHIST, 
-                                figure=charts.lateralerror,
-                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                style={'height': '15vh'},
-                            ),
-                        ]),
-                    ]),
-                    dbc.Row([
-                        dbc.Col([
-                            dcc.Graph(
-                                id=ids.CHARTFIXFLOATINVALIDPIE, 
-                                figure=charts.fixfloatinvalidpie,
-                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                style={'height': '15vh'},
-                            ),
-                        ]),
-                        dbc.Col([
-                            dcc.Graph(
-                                id=ids.CHARTCHARGEIDLEMOWPIE, 
-                                figure=charts.chargeidlemowpie,
-                                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-                                style={'height': '15vh'},
-                            ),
-                        ]),
-                    ]),
-                    ]
-                )
+        content = charts.chartcontainer
         return True, content 
     return False, dbc.Col()
