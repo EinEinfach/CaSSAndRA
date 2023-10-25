@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.94.1 Style message service accordion, remove some debug messages
+#Version:0.95.5 Fixed save task issue with not existing task.json
 # package imports
 import os
 import sys

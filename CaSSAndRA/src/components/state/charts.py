@@ -172,7 +172,7 @@ chartcontainer = [
           Output(ids.CHARTSTIMERANGE, 'value'),
           Output(ids.CHARTSTIMERANGE, 'min'),
           Output(ids.CHARTSTIMERANGE, 'max'),
-          Output(ids.CHARTSDATERANGE, 'max_data_allowed'),
+          Output(ids.CHARTSDATERANGE, 'max_date_allowed'),
           Output(ids.CHARTSDATERANGE, 'min_date_allowed'),
         [
             #Input(ids.CHARTSINTERVAL, 'n_intervals'),

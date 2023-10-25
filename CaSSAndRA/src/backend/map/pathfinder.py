@@ -15,12 +15,16 @@ class PathFinder:
     angle: int = 0
     perimeter: Polygon = Polygon()
     perimeter_points: MultiPoint = MultiPoint()
+    search_wire: LineString = LineString()
+    search_wire_points: MultiPoint = MultiPoint()
     G: nx.Graph = nx.Graph()
     Gnew: nx.Graph = nx.Graph()
 
     def create(self) -> None:
         self.perimeter = current_map.perimeter_polygon.buffer(0.01, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
         self.perimeter_points = current_map.perimeter_points
+        self.search_wire = current_map.search_wire
+        self.search_wire_points = current_map.search_wire_points
         self.G = current_map.astar_graph
         self.Gnew = current_map.astar_graph
 
@@ -34,6 +38,7 @@ class PathFinder:
 
     def add_edges(self, point: Point) -> None:
         nearest_point = nearest_points(point, self.perimeter)[1]
+        #Check edges to perimeter and exclusions
         if self.check_direct_way(list(point.coords)[0], list(nearest_point.coords)[0]):
             direct_way = LineString((list(point.coords)[0], list(nearest_point.coords)[0]))
             self.Gnew.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
@@ -44,7 +49,19 @@ class PathFinder:
             if self.check_direct_way(list(nearest_point.coords)[0], list(possible_point.coords)[0]):
                 direct_way = LineString((list(nearest_point.coords)[0], list(possible_point.coords)[0]))
                 self.Gnew.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
-        return list(point.coords)
+        #Check edges to search wire
+        if not self.search_wire.is_empty:
+            nearest_point = nearest_points(point, self.search_wire)[1]
+            if self.check_direct_way(list(point.coords)[0], list(nearest_point.coords)[0]):
+                direct_way = LineString((list(point.coords)[0], list(nearest_point.coords)[0]))
+                self.Gnew.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
+            for possible_point in self.search_wire_points.geoms:
+                if self.check_direct_way(list(point.coords)[0], list(possible_point.coords)[0]):
+                    direct_way = LineString((list(point.coords)[0], list(possible_point.coords)[0]))
+                    self.Gnew.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
+                if self.check_direct_way(list(nearest_point.coords)[0], list(possible_point.coords)[0]):
+                    direct_way = LineString((list(nearest_point.coords)[0], list(possible_point.coords)[0]))
+                    self.Gnew.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
 
     def find_way(self, start: list(), goal: list()) -> list:
         start = affinity.rotate(Point(start), self.angle, origin=(0, 0))
