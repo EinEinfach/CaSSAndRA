@@ -5,6 +5,7 @@ import requests
 from dataclasses import dataclass
 
 from .. data.roverdata import robot
+from .. data.cfgdata import commcfg
 
 from icecream import ic
 
@@ -16,14 +17,20 @@ class TelegramMessageService:
 
     def get_chat_id(self) -> int:
         try:
-            logger.info('Telegram api request for chat id')
-            url = f'https://api.telegram.org/bot{self.token}/getUpdates'
-            result = requests.get(url).json()
-            if 'ok' in result and not 'error_code' in result:
-                self.chat_id = result['result'][0]['message']['chat']['id']
-                return 0
+            if commcfg.telegram_chat_id == None:
+                logger.info('Telegram api request for chat id')
+                url = f'https://api.telegram.org/bot{self.token}/getUpdates'
+                result = requests.get(url).json()
+                if 'ok' in result and not 'error_code' in result:
+                    self.chat_id = result['result'][0]['message']['chat']['id']
+                    commcfg.telegram_chat_id = self.chat_id
+                    commcfg.save_commcfg()
+                    return 0
+                else:
+                    return result['error code']
             else:
-                return result['error code']
+                logger.info('Chat id is already known. Use chat id from commcfg.json')
+                self.chat_id = commcfg.telegram_chat_id
         except Exception as e:
             logger.warning('Did not get chat id via telegram api. Message service not active')
             logger.debug(f'{e}')

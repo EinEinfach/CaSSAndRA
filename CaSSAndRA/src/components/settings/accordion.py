@@ -372,8 +372,9 @@ def update_connection_data(bsr_n_clicks: int,
             commcfg.save_commcfg()
             backendserver.reboot()
         elif messageservicetype == 'deactivated':
-            commcfg.message_service = None,
-            commcfg.telegram_token = None,
+            commcfg.message_service = None
+            commcfg.telegram_token = None
+            commcfg.telegram_chat_id = None
             commcfg.save_commcfg()
             backendserver.reboot()
         elif messageservicetype == 'Telegram':

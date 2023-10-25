@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.95.5 Fixed save task issue with not existing task.json
+#Version:0.95.6 Store telegram chat id in commcfg.json to improve the log in after cassandra reboot 
 # package imports
 import os
 import sys
