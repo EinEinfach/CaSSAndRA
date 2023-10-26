@@ -31,6 +31,7 @@ class TelegramMessageService:
             else:
                 logger.info('Chat id is already known. Use chat id from commcfg.json')
                 self.chat_id = commcfg.telegram_chat_id
+                return 0
         except Exception as e:
             logger.warning('Did not get chat id via telegram api. Message service not active')
             logger.debug(f'{e}')

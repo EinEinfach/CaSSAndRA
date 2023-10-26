@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.96.0 Live update charts if zoomed in (max 1000 data points)
+#Version:0.96.1 Fix debug message
 # package imports
 import os
 import sys
