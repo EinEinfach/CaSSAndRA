@@ -174,8 +174,9 @@ chartcontainer = [
           Output(ids.CHARTSTIMERANGE, 'max'),
           Output(ids.CHARTSDATERANGE, 'max_date_allowed'),
           Output(ids.CHARTSDATERANGE, 'min_date_allowed'),
+          Output(ids.CHARTSINTERVAL, 'disabled'),
         [
-            #Input(ids.CHARTSINTERVAL, 'n_intervals'),
+            Input(ids.CHARTSINTERVAL, 'n_intervals'),
             Input(ids.URLUPDATE, 'pathname'),
             Input(ids.CHARTSDATERANGE, 'start_date'),
             Input(ids.CHARTSTIMERANGE, 'end_date'),
@@ -183,8 +184,9 @@ chartcontainer = [
             State(ids.CHARTSDATERANGE, 'start_date'),
             State(ids.CHARTSDATERANGE, 'end_date'),
             State(ids.CHARTSTIMERANGE, 'value'),
+            State(ids.CHARTSINTERVAL, 'disabled'),
         ])
-def update_charts(#n_intervals: int,
+def update_charts(n_intervals: int,
                   calledpage: str,
                   start_date: str,
                   end_date: str,
@@ -192,7 +194,8 @@ def update_charts(#n_intervals: int,
                   start_date_state: str,
                   end_date_state: str,
                   timerange_state: list,
-                  ) -> Patch():
+                  interval_disabled: bool,
+                  ) -> list:
     context = ctx.triggered_id
     max_date_allowed=roverdata.state.iloc[-1]['timestamp']
     min_date_allowed=roverdata.state.iloc[0]['timestamp']
@@ -209,8 +212,10 @@ def update_charts(#n_intervals: int,
         timerange_state = []
         timerange_state.append(state_filtered.index.min())
         timerange_state.append(state_filtered.index.max())
-    if chartsdata.live_update:
+    if not interval_disabled:
+        timerange_delta = timerange_state[1]-timerange_state[0]
         timerange_state[1] = state_filtered.index.max()
+        timerange_state[0] = max(0, timerange_state[1]-timerange_delta)
     state_filtered = state_filtered.loc[timerange_state[0]:timerange_state[1]]
     state_filtered_mow = state_filtered[state_filtered['job'] == 1]
     #calc stats time range from state time range
@@ -294,6 +299,11 @@ def update_charts(#n_intervals: int,
                     opacity=0.7
                 )
             )
+    #activate interval update if zoomed in
+    if len(state_filtered) <= 1000:
+        interval_disabled = False
+    else:
+        interval_disabled = True   
     fig = Patch()
     fig2 = Patch()
     fig3 = Patch()
@@ -304,4 +314,11 @@ def update_charts(#n_intervals: int,
     fig3.data = traces3
     fig4.data = traces4
     fig5.data = traces5
-    return fig, fig2, fig3, fig4, fig5, timerange_state, state_filtered.index.min(), state_filtered.index.max(), max_date_allowed, min_date_allowed
+    return fig, fig2, fig3, fig4, fig5, timerange_state, state_filtered.index.min(), state_filtered.index.max(), max_date_allowed, min_date_allowed, interval_disabled
+
+@callback(Output(ids.CHARTSDATERANGE, 'start_date'),
+           Output(ids.CHARTSDATERANGE, 'end_date'),
+           [Input(ids.URLUPDATE, 'pathname'),
+            ])
+def update_date(calledpage: str) -> list:
+    return datetime.now().date(), datetime.now().date()

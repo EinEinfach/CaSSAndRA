@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.95.6 Store telegram chat id in commcfg.json to improve the log in after cassandra reboot 
+#Version:0.96.0 Live update charts if zoomed in (max 1000 data points)
 # package imports
 import os
 import sys
