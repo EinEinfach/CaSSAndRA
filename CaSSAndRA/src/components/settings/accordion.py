@@ -343,25 +343,17 @@ def update_connection_data(bsr_n_clicks: int,
             commcfg.mqtt_pass = mqttpassword
             commcfg.mqtt_port = mqttport
             commcfg.mqtt_mower_name = mqttrovername
-            commcfg.save_commcfg()
-            backendserver.reboot()
-        elif connectiontype == 'HTTP':
+        if connectiontype == 'HTTP':
             commcfg.use = connectiontype
             commcfg.http_ip = ipadressrover
             commcfg.http_pass = sunraypass
-            commcfg.save_commcfg()
-            backendserver.reboot()
-        elif connectiontype == 'UART':
+        if connectiontype == 'UART':
             commcfg.use = connectiontype
             commcfg.uart_port = serport
             commcfg.uart_baudrate = baudrate
-            commcfg.save_commcfg()
-            backendserver.reboot()
-        elif apiconnectiontype == 'deactivated':
+        if apiconnectiontype == 'deactivated':
             commcfg.api = None
-            commcfg.save_commcfg()
-            backendserver.reboot()
-        elif apiconnectiontype == 'MQTT':
+        if apiconnectiontype == 'MQTT':
             commcfg.api = 'MQTT'
             commcfg.api_mqtt_client_id = apimqttclientid
             commcfg.api_mqtt_username = apimqttusername
@@ -369,23 +361,20 @@ def update_connection_data(bsr_n_clicks: int,
             commcfg.api_mqtt_server = apimqttserver
             commcfg.api_mqtt_port = apimqttport
             commcfg.api_mqtt_cassandra_server_name = apicassandraservername
-            commcfg.save_commcfg()
-            backendserver.reboot()
-        elif messageservicetype == 'deactivated':
+        if messageservicetype == 'deactivated':
             commcfg.message_service = None
             commcfg.telegram_token = None
             commcfg.telegram_chat_id = None
-            commcfg.save_commcfg()
-            backendserver.reboot()
-        elif messageservicetype == 'Telegram':
+        if messageservicetype == 'Telegram':
             commcfg.message_service = 'Telegram'
             commcfg.telegram_token = telegramtoken
-            commcfg.save_commcfg()
-            backendserver.reboot()
+        commcfg.save_commcfg()
+        backendserver.reboot()
+        return False
 
-    if bsr_n_clicks or bok_n_clicks:
-        return not is_open
-    return is_open
+    if context == ids.BUTTONSAVEANDREBOOT:
+        return True
+    return False
 
 @callback(Output(ids.POSITIONMODESTYLE, 'style'),
           Input(ids.RADIOPOSITIONMODE, 'value'))

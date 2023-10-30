@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.96.1 Fix debug message
+#Version:0.96.2 Fixed modal reboot server
 # package imports
 import os
 import sys
