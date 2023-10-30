@@ -11,7 +11,7 @@ chooseperimeter = dbc.Col([
                     dbc.Card([
                         dbc.CardHeader('Select map'),
                         dbc.CardBody([
-                            dcc.Dropdown(id=ids.DROPDOWNCHOOSEPERIMETER, className='m-1'),
+                            dcc.Dropdown(id=ids.DROPDOWNCHOOSEPERIMETER, className='m-1', searchable=False),
                             dbc.Container([
                                 buttons.selectperimeter,
                                 buttons.addnewperimeter,

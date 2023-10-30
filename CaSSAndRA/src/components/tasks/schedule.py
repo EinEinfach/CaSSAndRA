@@ -1,5 +1,4 @@
 from dash import html, dcc, Input, Output, State, callback, ctx
-import dash_daq as daq
 import dash_bootstrap_components as dbc
 
 from .. import ids
@@ -25,6 +24,7 @@ def get_day(name, dayid, taskid):
                                 24: '24:00',
                             },
                             tooltip={'placement': 'top'},
+                            className="dbc"
             ),
             dcc.Dropdown(className='m-1', 
                          multi=True,
@@ -32,9 +32,9 @@ def get_day(name, dayid, taskid):
                 )
             ], className="schedule-day")
 
-switch = daq.BooleanSwitch(id=ids.SWITCHACTIVATESCHEDULE,
-                           style={'float' : 'right'},
-                           color='#afe0d2',)
+switch = dbc.Switch(id=ids.SWITCHACTIVATESCHEDULE,
+                        style={'float' : 'right'},
+                    )
 
 monday = get_day('Monday', ids.SCHEDULEMONDAY, ids.MONDAYTASK)
 tuesday = get_day('Tuesday', ids.SCHEDULETUESDAY, ids.TUESDAYTASK)
@@ -59,9 +59,9 @@ sunday = get_day('Sunday', ids.SCHEDULESUNDAY, ids.SUNDAYTASK)
           Output(ids.SATURDAYTASK, 'disabled'),
           Output(ids.SCHEDULESUNDAY, 'disabled'),
           Output(ids.SUNDAYTASK, 'disabled'),
-          Output(ids.SWITCHACTIVATESCHEDULE, 'on'),
+          Output(ids.SWITCHACTIVATESCHEDULE, 'value'),
           [Input(ids.URLUPDATE, 'pathname'),
-           Input(ids.SWITCHACTIVATESCHEDULE, 'on'),
+           Input(ids.SWITCHACTIVATESCHEDULE, 'value'),
            ])
 def activate_schedule(calledpage: str,
                     sas_on: bool,

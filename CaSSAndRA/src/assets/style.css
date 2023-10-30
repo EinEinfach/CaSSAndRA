@@ -210,8 +210,8 @@ html {
 
 .stateCardBody
 {
-    padding-top: 0.6rem;
-    padding-bottom: 0.6rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 /************************* End of Card Group Customizations ********************/
@@ -259,9 +259,6 @@ html {
   }
 }
 /************************* End of Map Controls Size Adjustment ******************/
-
-/* Boolean Switch Fix */
-.daq-booleanswitch--light__background { box-sizing: content-box; }
 
 #_pages_content {
     padding-bottom: env(safe-area-inset-bottom); 
@@ -388,50 +385,223 @@ html {
 /* Chart rows */
 .chart-row
 {
-	margin-right: 0;
-	margin-left: 0;
+    margin-right: 0;
+    margin-left: 0;
 }
 
 .chart-item
 {
-	box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.2);
-	border-radius: 0.75rem;
-	margin-top: 1rem;
-	padding-bottom: 0.5rem;
+    box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.2);
+    border-radius: 0.75rem;
+    margin-top: 1rem;
+    padding-bottom: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.035);
 }
 
 .chart-label
 {
-	text-align: center;
-	margin-bottom: 0;
-	margin-top: 0;
-	width:100%;
-	font-size: 0.85rem;
+    text-align: center;
+    margin-bottom: 0;
+    margin-top: 0;
+    width:100%;
+    font-size: 0.85rem;
 }
 
 .chart-slider
 {
-	padding-bottom: 0.1rem !important;
+    padding-bottom: 0.1rem !important;
 }
 
 .chart-item-separator
 {
-	position: relative;
+    position: relative;
 }
 .chart-item-separator::before
 {
-	content: "";
-	display: block;
-	position: absolute;
-	top: calc(0.25rem + 15%);
-	right: 0rem;
-	z-index: 2;
-	width: 100%;
-	height: 70%;
-	border-right: 1px solid #0000001e;
+    content: "";
+    display: block;
+    position: absolute;
+    top: calc(0.25rem + 15%);
+    right: 0rem;
+    z-index: 2;
+    width: 100%;
+    height: 70%;
+    border-right: 1px solid #0000001e;
 }
 
 .DayPickerKeyboardShortcuts_show
 {
-	display: none;
+    display: none;
+}
+
+/* Dark */
+.main-svg
+{
+    background: transparent !important;
+}
+
+.form-switch
+{
+    height: 100%;
+    padding: 0;
+}
+.form-switch > .form-check-input
+{
+    height: 1.5rem;
+    max-height: 100%;
+    width: unset;
+    aspect-ratio: 2 / 1;
+    margin: 0;
+    cursor: pointer;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.Select-control
+{
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border: var(--bs-border-width) solid var(--bs-border-color);
+}
+.Select.is-disabled > .Select-control 
+{
+    background-color: #83838369;
+    cursor: not-allowed;
+}
+.Select-menu-outer {
+    background-color: var(--bs-body-bg);
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    color: var(--bs-body-color);
+}
+.Select.is-focused > .Select-control 
+{
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+.Select-value-label
+{
+    color: var(--bs-body-color) !important;
+}
+
+.x2tick > text,
+.y2tick > text,
+.xtick > text,
+.ytick > text
+{
+    fill: var(--bs-body-color) !important;
+}
+
+.modebar-group
+{
+    background-color: transparent !important;
+}
+.icon > path
+{
+    fill: var(--bs-body-color) !important;
+    opacity: 0.5;
+}
+
+.annotation-text-g > .cursor-pointer > text
+{
+    fill: var(--bs-body-color) !important;
+}
+
+.rc-slider-rail
+{
+    background-color: rgba(129, 129, 129, 0.349);
+}
+.rc-slider-disabled
+{
+    background-color: rgba(189, 189, 189, 0.233);
+}
+
+[data-bs-theme=dark]
+{
+    --bs-body-bg:#272727;
+    --bs-body-bg-rgb:39,39,39;
+
+    --bs-body-color: rgb(212, 212, 212);
+    --bs-body-color-rgb:212,212,212;
+
+    --bs-primary:rgb(94, 160, 141);
+    --bs-primary-rgb:94,160,141;
+
+    --bs-success: rgb(72, 171, 132);
+    --bs-success-rgb: 72, 171, 132;
+
+    --bs-light: rgb(50, 50, 50);
+    --bs-light-rgb: 50, 50, 50;
+
+    --bs-danger: rgb(209, 96, 61);
+    --bs-danger-rgb: (209, 96, 61);
+
+    --bs-warning: rgb(212, 168, 73);
+    --bs-warning-rgb: 212, 168, 73;
+
+    --bs-info: rgb(96, 176, 192);
+    --bs-info-rgb: 96, 176, 192;
+}
+
+.btn
+{
+    --bs-btn-disabled-opacity: 0.5
+}
+.btn-primary
+{
+    --bs-btn-bg: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+}
+.btn-danger {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--bs-danger);
+    --bs-btn-border-color: var(--bs-danger);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #a34d32;
+    --bs-btn-hover-border-color: #a34d32;
+    --bs-btn-focus-shadow-rgb: 255,140,107;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #cc6041;
+    --bs-btn-active-border-color: #bf5a3d;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--bs-danger);
+    --bs-btn-disabled-border-color: var(--bs-danger);
+}
+.btn-success {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--bs-success);
+    --bs-btn-border-color: var(--bs-success);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #3d9773;
+    --bs-btn-hover-border-color: #3d9773;
+    --bs-btn-focus-shadow-rgb: 111,212,172;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #45a37e;
+    --bs-btn-active-border-color: #419976;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--bs-success);
+    --bs-btn-disabled-border-color: var(--bs-success);
+}
+.btn-info {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--bs-info);
+    --bs-btn-border-color: var(--bs-info);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #5194a1;
+    --bs-btn-hover-border-color: #5194a1;
+    --bs-btn-focus-shadow-rgb: 130,204,219;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #569caa;
+    --bs-btn-active-border-color: #5192a0;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--bs-info);
+    --bs-btn-disabled-border-color: var(--bs-info);
+}
+
+.form-check-input:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
 }

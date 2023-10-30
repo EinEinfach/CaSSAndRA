@@ -57,10 +57,10 @@ def update(n_intervals: int) -> dbc.Row:
                     #dbc.CardHeader("Solution", className="truncate-1 stateCardHeader"),
                     dbc.CardBody(
                         [
-                            html.Small(robot.solution, className="truncate-1"),
+                            html.Small(robot.solution.capitalize(), className="truncate-1"),
                             html.Small([
                                         '{}'.format(robot.position_visible_satellites_dgps)+'/{}'.format(robot.position_visible_satellites)+'('+robot.position_age_hr+')'
-                                    ], style={'font-size': '9px'}, className="truncate-1")
+                                    ], style={'font-size': '0.63rem'}, className="truncate-1")
                         ],
                         class_name=CARD_BODY_CLASSES
                     ),
@@ -75,8 +75,8 @@ def update(n_intervals: int) -> dbc.Row:
                     #dbc.CardHeader("State", className="truncate-1 stateCardHeader"),
                     dbc.CardBody(
                         [
-                            html.Small(robot.status, className="truncate-1"),
-                            html.Small(['{}'.format(robot.sensor_status)], style={'font-size': '9px'}, className="truncate-1")
+                            html.Small(robot.status.capitalize(), className="truncate-1"),
+                            html.Small(['{}'.format(robot.sensor_status)], style={'font-size': '0.63rem'}, className="truncate-1")
                         ],
                         class_name=CARD_BODY_CLASSES
                     ),
@@ -91,8 +91,8 @@ def update(n_intervals: int) -> dbc.Row:
                     #dbc.CardHeader("SoC", className="truncate-1 stateCardHeader"),
                     dbc.CardBody(
                         [
-                            html.Small("{}%".format(robot.soc), className="truncate-1"),
-                            html.Small(['{}V'.format(round(robot.battery_voltage, 1))+' '+'{}A'.format(round(robot.amps, 1))], style={'font-size': '9px'}, className="truncate-1")
+                            html.Small("{}%".format(robot.soc).capitalize(), className="truncate-1"),
+                            html.Small(['{}V'.format(round(robot.battery_voltage, 1))+' '+'{}A'.format(round(robot.amps, 1))], style={'font-size': '0.63rem'}, className="truncate-1")
                         ],
                         class_name=CARD_BODY_CLASSES
                     ),

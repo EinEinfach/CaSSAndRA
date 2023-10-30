@@ -9,7 +9,7 @@ uploadsunray = dbc.Col([
                     dbc.Card([
                         dbc.CardHeader('Import map'),
                         dbc.CardBody([
-                            dcc.Dropdown(id=ids.DROPDOWNSUNRAYIMPORT, className='m-1'),
+                            dcc.Dropdown(id=ids.DROPDOWNSUNRAYIMPORT, className='m-1', searchable=False),
                             dbc.Row([
                                 dbc.Col(dcc.Upload(buttons.uploadsunrayfile, id=ids.UPLOADSUNRAYFILE)),
                                 dbc.Col(buttons.saveimportedperimeter)   

@@ -15,11 +15,12 @@ mappingmap.update_layout(
                yaxis=dict(
                     scaleratio=1, 
                     scaleanchor='x',
-                    gridcolor = '#eeeeee', 
-                    zerolinecolor = 'lightgrey'),
+                    gridcolor = 'rgba(200, 200, 200, 0.25)',
+                    zerolinecolor = 'rgba(200, 200, 200, 0.4)'
+                    ),
                xaxis=dict(
-                    gridcolor = '#eeeeee', 
-                    zerolinecolor = 'lightgrey'
+                    gridcolor = 'rgba(200, 200, 200, 0.25)',
+                    zerolinecolor = 'rgba(200, 200, 200, 0.4)'
                ),
                margin=dict(
                     b=0, #bottom margin 40px
