@@ -534,7 +534,7 @@ html {
     --bs-light-rgb: 50, 50, 50;
 
     --bs-danger: rgb(209, 96, 61);
-    --bs-danger-rgb: (209, 96, 61);
+    --bs-danger-rgb: 209, 96, 61;
 
     --bs-warning: rgb(212, 168, 73);
     --bs-warning-rgb: 212, 168, 73;
