@@ -88,6 +88,7 @@ lateralerror.update_layout(
                 font=dict(size=7),
                 plot_bgcolor='rgba(255, 255, 255, 0.0)',
                 xaxis=dict(range=[-0.3, 0.3]),
+                yaxis=dict(showticklabels=False),
                 margin=dict(b=0, l=0, r=0, t=0),
                 showlegend=False,
                 hovermode='x unified',
@@ -212,15 +213,16 @@ def update_charts(n_intervals: int,
         timerange_state = []
         timerange_state.append(state_filtered.index.min())
         timerange_state.append(state_filtered.index.max())
-    if not interval_disabled:
+    if not interval_disabled and not state_filtered.empty:
         timerange_delta = timerange_state[1]-timerange_state[0]
         timerange_state[1] = state_filtered.index.max()
         timerange_state[0] = max(0, timerange_state[1]-timerange_delta)
     state_filtered = state_filtered.loc[timerange_state[0]:timerange_state[1]]
     state_filtered_mow = state_filtered[state_filtered['job'] == 1]
     #calc stats time range from state time range
-    calced_from_stats_filtered = calced_from_stats_filtered[(calced_from_stats_filtered['timestamp'] >= state_filtered.iloc[1]['timestamp'])&
-                                                            (calced_from_stats_filtered['timestamp'] <= state_filtered.iloc[-1]['timestamp'])]
+    if not state_filtered.empty:
+        calced_from_stats_filtered = calced_from_stats_filtered[(calced_from_stats_filtered['timestamp'] >= state_filtered.iloc[0]['timestamp'])&
+                                                                (calced_from_stats_filtered['timestamp'] <= state_filtered.iloc[-1]['timestamp'])]
 
     traces = []
     traces2 = []
