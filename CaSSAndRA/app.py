@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.96.1 Fix debug message
+#Version:0.96.3 Some fixes in charts.py if state_filtered is empty
 # package imports
 import os
 import sys
