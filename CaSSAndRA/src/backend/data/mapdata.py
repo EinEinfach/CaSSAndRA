@@ -32,7 +32,8 @@ class Perimeter:
     mowpath: pd.DataFrame = pd.DataFrame()
     preview: pd.DataFrame = pd.DataFrame()
     obstacles: pd.DataFrame = pd.DataFrame()
-    obstacle_img: Image = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/obstacle.png'))
+    obstacle_img: Image = field(default_factory = lambda: 
+                                Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/obstacle.png')))
     astar_graph: nx.Graph = nx.Graph()
     areatomow: float = 0
     distancetogo: float = 0
