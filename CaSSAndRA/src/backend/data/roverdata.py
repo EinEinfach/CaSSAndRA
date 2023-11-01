@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 import pandas as pd
 import math
 from datetime import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 from PIL import Image
 
@@ -51,7 +51,8 @@ class Mower:
     map_old_crc: int = None
     map_upload_cnt: int = 0
     #frontend
-    rover_image: Image = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png'))
+    rover_image: Image = field(default_factory = lambda: 
+                               Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png')))
     solution: str = 'invalid'
     status: str = 'offline'
     sensor_status: str = 'unknown'
