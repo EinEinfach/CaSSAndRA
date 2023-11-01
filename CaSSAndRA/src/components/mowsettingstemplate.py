@@ -1,6 +1,5 @@
 from dash import html, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
-import dash_daq as daq
 
 def get_mow_settings_template(idInputPattern, cfgPattern,
                               idInputMowOffset, cfgWidth,
@@ -86,11 +85,10 @@ def get_mow_settings_template(idInputPattern, cfgPattern,
                         html.P(['Mow area'], className='mb-0'),
                     ], style={'flex-grow' : '2'}),
                     dbc.Col([ 
-                        daq.BooleanSwitch(
+                        dbc.Switch(
                             id=idMowArea,
-                            on= cfgMowArea,
-                            style={'float' : 'right'},
-                            color='#afe0d2',
+                            value=cfgMowArea,
+                            style={'float' : 'right', "height":"100%"},
                         ),
                     ], style={'flex-shrink' : '2'}),
                 ], style={'padding-bottom' : '0.75rem'}),
@@ -100,11 +98,10 @@ def get_mow_settings_template(idInputPattern, cfgPattern,
                         html.P(['Mow exclusion border'], className='mb-0'),
                     ], style={'flex-grow' : '2'}),
                     dbc.Col([ 
-                        daq.BooleanSwitch(
+                        dbc.Switch(
                             id=idMowExclusion,
-                            on= cfgMowExclusion,
-                            style={'float' : 'right'},
-                            color='#afe0d2',
+                            value=cfgMowExclusion,
+                            style={'float' : 'right', "height":"100%"},
                         ),
                     ], style={'flex-shrink' : '2'}),
                 ], style={'padding-bottom' : '0.75rem'}),
@@ -114,11 +111,10 @@ def get_mow_settings_template(idInputPattern, cfgPattern,
                         html.P(['Mow border CCW'], className='mb-0'),
                     ], style={'flex-grow' : '2'}),
                     dbc.Col([ 			
-                        daq.BooleanSwitch(
+                        dbc.Switch(
                             id=idMowBorderCCW,
-                            on= cfgMowBorderCCW,
-                            style={'float' : 'right'},
-                            color='#afe0d2',
+                            value=cfgMowBorderCCW,
+                            style={'float' : 'right', "height":"100%"},
                         ),															 
                     ], style={'flex-shrink' : '2'}),
                 ], style={'padding-bottom' : '0.75rem'}),

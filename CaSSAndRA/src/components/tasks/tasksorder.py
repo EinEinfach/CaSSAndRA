@@ -18,6 +18,7 @@ tasksorder = dbc.Col([
                                 id=ids.DROPDOWNTASKSORDER, 
                                 className='m-1', 
                                 multi=True, 
+                                searchable=False
                             ),
                             dbc.Container([
                                     buttons.starttasksorder,

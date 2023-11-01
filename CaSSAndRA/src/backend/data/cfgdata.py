@@ -123,6 +123,7 @@ class AppCfg:
     rover_pictures: Image = None
     obstacles_amount: int = 0
     file_path: str = ''
+    light_mode: bool = True
 
     def read_appcfg(self) -> None:
         try:
@@ -144,6 +145,7 @@ class AppCfg:
             self.rover_picture = appcfg_from_file['rover_picture']
             self.rover_pictures = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+self.rover_picture)+'rover0grad.png')
             self.obstacles_amount = appcfg_from_file['obstacles_amount']
+            self.light_mode = appcfg_from_file['light_mode']
         except Exception as e:
             logger.error('Could not read appcfg.json. Data are invalid. Go with standard values')
             logger.debug(str(e))
@@ -159,6 +161,7 @@ class AppCfg:
             new_data['current_thd_charge'] = self.current_thd_charge
             new_data['rover_picture'] = self.rover_picture
             new_data['obstacles_amount'] = self.obstacles_amount
+            new_data['light_mode'] = self.light_mode
             with open(file_paths.user.appcfg, 'w') as f:
                 logger.debug('New appcfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)

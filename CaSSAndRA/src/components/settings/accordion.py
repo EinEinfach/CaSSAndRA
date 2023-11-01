@@ -81,42 +81,39 @@ accordion_settings = dbc.Accordion([
                                 dbc.Input(value=pathplannercfg.distancetoborder, id=ids.DISTANCETOBORDERSETTINGS, type='number', min=0, max=5, step=1),
                                 dbc.FormText('Mow cut edge border (laps)'),
                                 dbc.Input(value=pathplannercfg.mowborder, id=ids.MOWEDGESETTINGS, type='number', min=0, max=6, step=1),
-								dbc.Row(
-								[
-									dbc.FormText('Mow area'),
-									html.Div(
-										daq.BooleanSwitch(
-											id=ids.MOWAREASETTINGS,
-											on= pathplannercfg.mowarea,
-											style={"float" : "left"},
-											color="#afe0d2",
-										),
-									),
-								]),
                                 dbc.Row(
-								[
-									dbc.FormText('Mow cut edge exclusion'),
-									html.Div(
-										daq.BooleanSwitch(
-											id=ids.MOWEDGEEXCLUSIONSETTINGS,
-											on= pathplannercfg.mowexclusion,
-											style={"float" : "left"},
-											color="#afe0d2",
-										),
-									),
-								]),
-								dbc.Row(
-								[
-									dbc.FormText('Mow cut edge border in ccw'),
-									html.Div(
-										daq.BooleanSwitch(
-											id=ids.MOWBORDERCCWSETTINGS,
-											on= pathplannercfg.mowborderccw,
-											style={"float" : "left"},
-											color="#afe0d2",
-										),
-									),
-								]),
+                                [
+                                    dbc.FormText('Mow area'),
+                                    html.Div(
+                                        dbc.Switch(
+                                            id=ids.MOWAREASETTINGS,
+                                            value=pathplannercfg.mowarea,
+                                            style={"float" : "left"},
+                                        ),
+                                    ),
+                                ]),
+                                dbc.Row(
+                                [
+                                    dbc.FormText('Mow cut edge exclusion'),
+                                    html.Div(
+                                        dbc.Switch(
+                                            id=ids.MOWEDGEEXCLUSIONSETTINGS,
+                                            value=pathplannercfg.mowexclusion,
+                                            style={"float" : "left"},
+                                        ),
+                                    ),
+                                ]),
+                                dbc.Row(
+                                [
+                                    dbc.FormText('Mow cut edge border in ccw'),
+                                    html.Div(
+                                        dbc.Switch(
+                                            id=ids.MOWBORDERCCWSETTINGS,
+                                            value=pathplannercfg.mowborderccw,
+                                            style={"float" : "left"},
+                                        ),
+                                    ),
+                                ]),
                             ],
                             title='Coverage path planner',
                         ),
@@ -161,6 +158,15 @@ accordion_settings = dbc.Accordion([
                             ]),
                             dbc.FormText('Max amount of showing obstacles (0 means synchronous to sunray fw)'),
                             dbc.Input(value=appcfg.obstacles_amount, type='number', min=0, step=1, id=ids.MAXAMOUNTOBSTACLESSETTINGS),
+							dbc.FormText('Light mode'),
+							dbc.Select(
+								id=ids.LIGHTMODESETTINGS,
+								options=[
+									{'label': 'light', 'value': "True"},
+									{'label': 'dark', 'value': "False"},
+								],
+								value=appcfg.rover_picture
+							),
                         ], title='App'),
                         dbc.AccordionItem(
                             [
@@ -393,9 +399,9 @@ def update_connectioninput(radio_input: str()) -> list(dict()):
            State(ids.MOWEDGESETTINGS, 'value'),
            State(ids.DISTANCETOBORDERSETTINGS, 'value'),
            State(ids.PATTERNSETTINGS, 'value'),
-           State(ids.MOWAREASETTINGS, 'on'),
-           State(ids.MOWEDGEEXCLUSIONSETTINGS, 'on'),
-           State(ids.MOWBORDERCCWSETTINGS, 'on')])
+           State(ids.MOWAREASETTINGS, 'value'),
+           State(ids.MOWEDGEEXCLUSIONSETTINGS, 'value'),
+           State(ids.MOWBORDERCCWSETTINGS, 'value')])
 def update_pathplanner_settings_data(bsr_n_clicks: int, bok_n_clicks: int, 
                                      is_open: bool, mowoffset: float, 
                                      mowangle: int, mowedge: str, 
@@ -431,6 +437,7 @@ def update_pathplanner_settings_data(bsr_n_clicks: int, bok_n_clicks: int,
            State(ids.VOLTAGEMAXSETTINGS, 'value'),
            State(ids.ROVERPICTURESETTINGS, 'value'),
            State(ids.MAXAMOUNTOBSTACLESSETTINGS, 'value'),
+           State(ids.LIGHTMODESETTINGS, 'value'),
            ])
 def update_app_data(bsr_n_clicks: int, 
                     bok_n_clicks: int, 
@@ -442,6 +449,7 @@ def update_app_data(bsr_n_clicks: int,
                     voltagemax: float, 
                     roverpicture: str,
                     maxobstacles: int,
+                    lightmode: str,
                     ) -> bool():
     context = ctx.triggered_id
     if context == ids.BUTTONOKAPPSETTINGS:
@@ -457,6 +465,8 @@ def update_app_data(bsr_n_clicks: int,
             appcfg.voltage_100 = voltagemax
         if maxobstacles != None:
             appcfg.obstacles_amount = maxobstacles
+        if lightmode != None:
+            appcfg.light_mode = True if lightmode == "True" else False
         appcfg.rover_picture = roverpicture
         appcfg.save_appcfg()
         appcfg.read_appcfg()
@@ -537,9 +547,9 @@ def update_robotsettings_on_reload(pathname: str) -> list:
           Output(ids.MOWEDGESETTINGS, 'value'),
           Output(ids.DISTANCETOBORDERSETTINGS, 'value'),
           Output(ids.PATTERNSETTINGS, 'value'),
-          Output(ids.MOWAREASETTINGS, 'on'),
-          Output(ids.MOWEDGEEXCLUSIONSETTINGS, 'on'),
-          Output(ids.MOWBORDERCCWSETTINGS, 'on'),
+          Output(ids.MOWAREASETTINGS, 'value'),
+          Output(ids.MOWEDGEEXCLUSIONSETTINGS, 'value'),
+          Output(ids.MOWBORDERCCWSETTINGS, 'value'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_pathplandersettings_on_reload(pathname: str) -> list:
     return pathplannercfg.width, pathplannercfg.angle, pathplannercfg.mowborder, pathplannercfg.distancetoborder, pathplannercfg.pattern, pathplannercfg.mowarea, pathplannercfg.mowexclusion, pathplannercfg.mowborderccw
@@ -551,9 +561,10 @@ def update_pathplandersettings_on_reload(pathname: str) -> list:
           Output(ids.VOLTAGEMAXSETTINGS, 'value'),
           Output(ids.ROVERPICTURESETTINGS, 'value'),
           Output(ids.MAXAMOUNTOBSTACLESSETTINGS, 'value'),
+          Output(ids.LIGHTMODESETTINGS, 'value'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_appsettings_on_reload(pathname: str) -> list:
-    return appcfg.datamaxage, appcfg.time_to_offline, appcfg.current_thd_charge, appcfg.voltage_0, appcfg.voltage_100, appcfg.rover_picture, appcfg.obstacles_amount
+    return appcfg.datamaxage, appcfg.time_to_offline, appcfg.current_thd_charge, appcfg.voltage_0, appcfg.voltage_100, appcfg.rover_picture, appcfg.obstacles_amount, str(appcfg.light_mode)
   
 @callback(Output(ids.BUTTONSENDTELEGRAMMESSAGE, 'active'),
           [Input(ids.BUTTONSENDTELEGRAMMESSAGE, 'n_clicks'),

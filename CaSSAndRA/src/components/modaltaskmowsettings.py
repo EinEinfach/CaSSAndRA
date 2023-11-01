@@ -34,10 +34,10 @@ mowsettings = dbc.Modal([
            State(ids.INPUTMOWOFFSETTASK, 'value'),
            State(ids.INPUTMOWOANGLETASK, 'value'),
            State(ids.INPUTDISTANCETOBORDERTASK, 'value'),
-           State(ids.INPUTMOWAREATASK, 'on'),
+           State(ids.INPUTMOWAREATASK, 'value'),
            State(ids.INPUTMOWCUTEDGEBORDERTASK, 'value'),
-           State(ids.INPUTMOWCUTEDGEEXCLUSIONTASK, 'on'),
-           State(ids.INPUTMOWCUTEDGEBORDERCCWTASK, 'on')])
+           State(ids.INPUTMOWCUTEDGEEXCLUSIONTASK, 'value'),
+           State(ids.INPUTMOWCUTEDGEBORDERCCWTASK, 'value')])
 def toggle_modal(n_clicks_bms: int, n_clicks_bok: int,
                  modal_is_open: bool, pattern: str(),
                  mowoffset: float, mowangle: int,
@@ -70,9 +70,9 @@ def toggle_modal(n_clicks_bms: int, n_clicks_bok: int,
           Output(ids.INPUTMOWCUTEDGEBORDERTASK, 'value'),
           Output(ids.INPUTDISTANCETOBORDERTASK, 'value'),
           Output(ids.INPUTPATTERNTASK, 'value'),
-          Output(ids.INPUTMOWAREATASK, 'on'),
-          Output(ids.INPUTMOWCUTEDGEEXCLUSIONTASK, 'on'),
-          Output(ids.INPUTMOWCUTEDGEBORDERCCWTASK, 'on'),
+          Output(ids.INPUTMOWAREATASK, 'value'),
+          Output(ids.INPUTMOWCUTEDGEEXCLUSIONTASK, 'value'),
+          Output(ids.INPUTMOWCUTEDGEBORDERCCWTASK, 'value'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_pathplandersettings_on_reload(pathname: str) -> list:
     return pathplannercfgtask.width, pathplannercfgtask.angle, pathplannercfgtask.mowborder, pathplannercfgtask.distancetoborder, pathplannercfgtask.pattern, pathplannercfgtask.mowarea, pathplannercfgtask.mowexclusion, pathplannercfgtask.mowborderccw

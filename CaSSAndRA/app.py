@@ -117,6 +117,7 @@ def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level
         import dash
         from src.layout import serve_layout
         from src.backend.data.utils import init_data
+        import dash_bootstrap_components as dbc
         
         # initialize data files
         file_paths = init_data(data_path)
@@ -132,10 +133,10 @@ def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level
             __name__,
             use_pages=True,    # turn on Dash pages
             pages_folder='src/pages',
-            # external_stylesheets=[
-            #     dbc.themes.MINTY,
+            external_stylesheets=[
+                # dbc.themes.MINTY,
             #     dbc.icons.BOOTSTRAP
-            # ],  # fetch the proper css items we want
+            ],  # fetch the proper css items we want
             meta_tags=[
                 {   # check if device is a mobile device. This is a must if you do any mobile styling
                     'name': 'viewport',

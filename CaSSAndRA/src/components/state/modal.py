@@ -13,6 +13,7 @@ shortcuts = dbc.Modal(
                                     id=ids.DROPDOWNSHORTCUTS, 
                                     className='m-1', 
                                     multi=True, 
+                                    searchable=False
                                 ),
                             ),
                             dbc.ModalFooter([

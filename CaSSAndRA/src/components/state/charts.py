@@ -18,8 +18,9 @@ daterange = dcc.DatePickerRange(id=ids.CHARTSDATERANGE,
                 minimum_nights=0,
                 updatemode='bothdates',
                 style={"text-align":"center", "margin-bottom":"0.5rem"},
+                className="dbc"
 )
-timerange = dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None, className="chart-slider")
+timerange = dcc.RangeSlider(id=ids.CHARTSTIMERANGE, marks=None, className="chart-slider dbc")
 
 voltagecurrent = go.Figure()
 voltagecurrent.update_layout(
@@ -27,7 +28,7 @@ voltagecurrent.update_layout(
                 plot_bgcolor='rgba(255, 255, 255, 0.0)',
                 yaxis=dict(
                 #    title='voltage',
-                   gridcolor = '#eeeeee', 
+                   gridcolor = 'rgba(200, 200, 200, 0.25)', 
                    showgrid=True,
                    zeroline=False,
                    tickfont=dict(size=7),
@@ -36,10 +37,12 @@ voltagecurrent.update_layout(
                     # title='current',
                     side='right',
                     overlaying='y',
+                    zeroline=False,
                     tickfont=dict(size=7),
+                    showgrid=False,
                 ),
                xaxis=dict(
-                    gridcolor = '#eeeeee', 
+                    gridcolor = 'rgba(200, 200, 200, 0.25)', 
                     showticklabels=True,
                     showgrid=True,
                     zeroline=False,
@@ -62,6 +65,12 @@ satellites.update_layout(
                 barmode='overlay',
                 yaxis=dict(
                     showticklabels=False,
+                    showgrid=False,
+                    zeroline=False,
+                ),
+                xaxis=dict(
+                    showgrid=False,
+                    zeroline=False,
                 ),
     )
 
@@ -72,6 +81,14 @@ fixfloatinvalidpie.update_layout(
                     margin=dict(b=0, l=0, r=0, t=0),
                     uniformtext_minsize=6, 
                     uniformtext_mode='hide',
+                    yaxis=dict(
+                        showgrid=False,
+                        zeroline=False,
+                    ),
+                    xaxis=dict(
+                        showgrid=False,
+                        zeroline=False,
+                    ),
     )
                     
 chargeidlemowpie = go.Figure()
@@ -81,87 +98,103 @@ chargeidlemowpie.update_layout(
                     margin=dict(b=0, l=0, r=0, t=0),
                     uniformtext_minsize=6, 
                     uniformtext_mode='hide',
+                    yaxis=dict(
+                        showgrid=False,
+                        zeroline=False,
+                    ),
+                    xaxis=dict(
+                        showgrid=False,
+                        zeroline=False,
+                    ),
     )
 
 lateralerror = go.Figure()
 lateralerror.update_layout(
                 font=dict(size=7),
                 plot_bgcolor='rgba(255, 255, 255, 0.0)',
-                xaxis=dict(range=[-0.3, 0.3]),
-                yaxis=dict(showticklabels=False),
                 margin=dict(b=0, l=0, r=0, t=0),
                 showlegend=False,
                 hovermode='x unified',
                 dragmode='pan',
+                xaxis=dict(
+                    range=[-0.3, 0.3],
+                    showgrid=False,
+                    zeroline=False,
+                    showticklabels=False,
+                ),
+                yaxis=dict(
+                    showgrid=False,
+                    zeroline=False,
+                ),
     )
 
 chartcontainer = [
     # Date
-	dbc.Row([
-		daterange,
-		timerange,
-	],
+    dbc.Row([
+        daterange,
+        timerange,
+    ],
     class_name="chart-row chart-item"),
     # Battery
-	dbc.Row([ 
-		dbc.Label("Battery", class_name="chart-label"),
-		dcc.Graph(
-			id=ids.CHARTVOLTAGECURRENT, 
-			figure=voltagecurrent,
-			config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-			style={'height': '15vh'},
-		),
-	],
-	class_name="chart-row chart-item"),   
+    dbc.Row([ 
+        dbc.Label("Battery", class_name="chart-label"),
+        dcc.Graph(
+            id=ids.CHARTVOLTAGECURRENT, 
+            figure=voltagecurrent,
+            config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+            style={'height': '15vh'},
+        ),
+    ],
+    class_name="chart-row chart-item"),   
     #Saterllites and lateral error
-	dbc.Row([
-		dbc.Col([
-			dbc.Label("Satellites", class_name="chart-label"),
-			dcc.Graph(
-				id=ids.CHARTSATELLITES, 
-				figure=satellites,
-				config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-				style={'height': '15vh'},
-			),
-		],
+    dbc.Row([
+        dbc.Col([
+            dbc.Label("Satellites", class_name="chart-label"),
+            dcc.Graph(
+                id=ids.CHARTSATELLITES, 
+                figure=satellites,
+                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                style={'height': '15vh'},
+            ),
+        ],
         style={"margin-right":"0.5rem"},
-		class_name="chart-row chart-item"),
-		dbc.Col([
-			dbc.Label("Lateral Error", class_name="chart-label"),
-			dcc.Graph(
-				id=ids.CHARTLATERRORHIST, 
-				figure=lateralerror,
-				config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-				style={'height': '15vh'},
-			),
-		],
+        class_name="chart-row chart-item"),
+        dbc.Col([
+            dbc.Label("Lateral Error", class_name="chart-label"),
+            dcc.Graph(
+                id=ids.CHARTLATERRORHIST, 
+                figure=lateralerror,
+                config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                style={'height': '15vh'},
+            ),
+        ],
         style={"margin-left":"0.5rem"},
-		class_name="chart-row chart-item"),
-	],
-	class_name="chart-row"),
+        class_name="chart-row chart-item"),
+    ],
+    class_name="chart-row"),
     #Gps and state ratios
-	dbc.Row([
-		dbc.Col([
-			dbc.Label("GPS Solution Ratio", class_name="chart-label"),
-			dcc.Graph(
-					id=ids.CHARTFIXFLOATINVALIDPIE, 
-					figure=fixfloatinvalidpie,
-					config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-					style={'height': '15vh'},
-			),
-		],
+    dbc.Row([
+        dbc.Col([
+            dbc.Label("GPS Solution Ratio", class_name="chart-label"),
+            dcc.Graph(
+                    id=ids.CHARTFIXFLOATINVALIDPIE, 
+                    figure=fixfloatinvalidpie,
+                    config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                    style={'height': '15vh'},
+            ),
+        ],
         class_name="chart-item-separator"),
-		dbc.Col([
-			dbc.Label("State Ratio", class_name="chart-label"),
-			dcc.Graph(
-					id=ids.CHARTCHARGEIDLEMOWPIE, 
-					figure=chargeidlemowpie,
-					config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
-					style={'height': '15vh'},
-			),
-		]),
-	],
-	class_name="chart-row chart-item"),
+        dbc.Col([
+            dbc.Label("State Ratio", class_name="chart-label"),
+            dcc.Graph(
+                    id=ids.CHARTCHARGEIDLEMOWPIE, 
+                    figure=chargeidlemowpie,
+                    config={'displaylogo': False, 'scrollZoom': True, 'displayModeBar': False},
+                    style={'height': '15vh'},
+            ),
+        ]),
+    ],
+    class_name="chart-row chart-item"),
 ]
 
 
@@ -235,7 +268,7 @@ def update_charts(n_intervals: int,
                              name='voltage', 
                              mode='lines',
                              yaxis='y',
-                             line=dict(color='rgba(70, 145, 219, 0.75)')
+                             line=dict(color='rgba(70, 145, 219, 0.9)'),
                 )
     )
     traces.append(go.Scatter(x=state_filtered['timestamp'], 
@@ -243,7 +276,7 @@ def update_charts(n_intervals: int,
                              name='current', 
                              mode='lines',
                              yaxis='y2',
-                             line=dict(color='rgba(217, 139, 49, 0.75)'),
+                             line=dict(color='rgba(217, 139, 49, 0.9)'),
                              fillcolor="rgba(217, 139, 49, 0.25)",
                              fill='tozeroy',
                 )
@@ -266,7 +299,7 @@ def update_charts(n_intervals: int,
     traces3.append(go.Pie(
                     values=[duration_fix, duration_float, duration_invalid], 
                     labels=['Fix', 'Float', 'Invalid'], 
-					marker=dict(colors=['rgba(90, 185, 26, 0.75)', 'rgba(254, 166, 7, 0.75)', 'rgba(225, 46, 46, 0.75)'], line=dict(color='rgba(255, 255, 255, 1.0)', width=1)),
+                    marker=dict(colors=['rgba(90, 185, 26, 0.75)', 'rgba(254, 166, 7, 0.75)', 'rgba(225, 46, 46, 0.75)'], line=dict(color='rgba(255, 255, 255, 1.0)', width=1)),
                     showlegend=False,
                     textposition='inside',
                     textinfo='percent+label',
@@ -282,7 +315,7 @@ def update_charts(n_intervals: int,
     traces4.append(go.Pie(
                     values=[duration_mow, duration_idle, duration_charge], 
                     labels=['Mow', 'Idle', 'Charge'], 
-					marker=dict(colors=['rgba(15, 135, 15, 0.75)', 'rgba(255, 165, 0, 0.75)', 'rgba(118, 153, 241, 0.75)'], line=dict(color='rgba(255, 255, 255, 1.0)', width=1)),
+                    marker=dict(colors=['rgba(15, 135, 15, 0.75)', 'rgba(255, 165, 0, 0.75)', 'rgba(118, 153, 241, 0.75)'], line=dict(color='rgba(255, 255, 255, 1.0)', width=1)),
                     showlegend=False,
                     textposition='inside',
                     textinfo='percent+label',
