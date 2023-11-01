@@ -113,12 +113,6 @@ class CommCfg:
 
 #appcfg class
 @dataclass
-class RoverIMG:
-    img0deg: Image = None
-
-    def load_rover_pictures(self, absolute_path: str):
-        self.img0deg = Image.open(absolute_path+'rover0grad.png')
-@dataclass
 class AppCfg:
     datamaxage: int = 30
     time_to_offline: int = 60
@@ -126,7 +120,7 @@ class AppCfg:
     voltage_100: float = 28
     current_thd_charge: float = -0.03
     rover_picture: str = 'default/'
-    rover_pictures: RoverIMG = RoverIMG()
+    rover_pictures: Image = None
     obstacles_amount: int = 0
     file_path: str = ''
 
@@ -148,7 +142,7 @@ class AppCfg:
             self.voltage_100 = appcfg_from_file['voltage_to_soc'][1]['V']
             self.current_thd_charge = appcfg_from_file['current_thd_charge']
             self.rover_picture = appcfg_from_file['rover_picture']
-            self.rover_pictures.load_rover_pictures(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+self.rover_picture))
+            self.rover_pictures = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+self.rover_picture)+'rover0grad.png')
             self.obstacles_amount = appcfg_from_file['obstacles_amount']
         except Exception as e:
             logger.error('Could not read appcfg.json. Data are invalid. Go with standard values')

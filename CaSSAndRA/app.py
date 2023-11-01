@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.96.3 Some fixes in charts.py if state_filtered is empty
+#Version:0.96.4 Remove RoverIMG dataclass and include it to AppCfg dataclass
 # package imports
 import os
 import sys
