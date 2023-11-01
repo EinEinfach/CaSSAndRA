@@ -224,7 +224,7 @@ class RoverCfg:
 #coverage path planner config class
 @dataclass
 class PathPlannerCfg:
-    pattern: str() = 'lines'
+    pattern: str = 'lines'
     width: float = 0.18
     angle: int = 0
     distancetoborder: int = 1
