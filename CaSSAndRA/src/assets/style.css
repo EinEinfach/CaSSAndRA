@@ -496,7 +496,17 @@ html {
 {
     background-color: transparent !important;
 }
-.icon > path
+.modebar-btn .icon path
+{
+    fill: var(--bs-body-color) !important;
+    opacity: 0.3;
+}
+.modebar-btn.active .icon path
+{
+    fill: var(--bs-body-color) !important;
+    opacity: 0.8;
+}
+.modebar-btn:not(.active):hover .icon path
 {
     fill: var(--bs-body-color) !important;
     opacity: 0.5;
