@@ -42,9 +42,9 @@ class Mower:
     last_mow_status: bool = False
     cmd_move_lin: float = 0
     cmd_move_ang: float = 0
-    last_cmd: pd.DataFrame = pd.DataFrame([{'msg': 'AT+C,-1,-1,-1,-1,-1,-1,-1,-1'}])
+    last_cmd: pd.DataFrame = field(default_factory=lambda: pd.DataFrame([{'msg': 'AT+C,-1,-1,-1,-1,-1,-1,-1,-1'}]))
     last_task_name: str = 'no task'
-    current_task: pd.DataFrame = pd.DataFrame()
+    current_task: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     map_upload_started: bool = False
     map_upload_finished: bool = False
     map_upload_failed: bool = False
