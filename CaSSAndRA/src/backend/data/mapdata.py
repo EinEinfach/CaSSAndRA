@@ -20,18 +20,18 @@ from .. map import map
 @dataclass
 class Perimeter:
     name: str() = ''
-    perimeter: pd.DataFrame = pd.DataFrame()
+    perimeter: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     perimeter_polygon: Polygon = Polygon()
     selected_perimeter: Polygon = Polygon()
-    perimeter_for_plot: pd.DataFrame = pd.DataFrame()
+    perimeter_for_plot: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     perimeter_points: MultiPoint = MultiPoint()
     search_wire: LineString = LineString()
     search_wire_points: MultiPoint = MultiPoint()
-    gotopoints: pd.DataFrame = pd.DataFrame()
-    gotopoint: pd.DataFrame = pd.DataFrame()
-    mowpath: pd.DataFrame = pd.DataFrame()
-    preview: pd.DataFrame = pd.DataFrame()
-    obstacles: pd.DataFrame = pd.DataFrame()
+    gotopoints: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    gotopoint: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    mowpath: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    preview: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    obstacles: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     obstacle_img: Image = field(default_factory = lambda: 
                                 Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/obstacle.png')))
     astar_graph: nx.Graph = nx.Graph()
@@ -261,15 +261,15 @@ class Perimeter:
 class Perimeters:
     selected: str = ''
     map_old_name: str = None
-    imported: pd.DataFrame = pd.DataFrame()
-    selected_import: pd.DataFrame = pd.DataFrame()
-    saved: pd.DataFrame = pd.DataFrame()
-    selected_save: pd.DataFrame = pd.DataFrame()
-    selected_point: pd.DataFrame = pd.DataFrame()
+    imported: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    selected_import: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    saved: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    selected_save: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    selected_point: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     selected_name: str = ''
-    build: pd.DataFrame = pd.DataFrame()
-    build_cpy: pd.DataFrame = pd.DataFrame()
-    legacy_figure: pd.DataFrame = pd.DataFrame()
+    build: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    build_cpy: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    legacy_figure: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     dockpoints: pd.DataFrame = field(default_factory = lambda: pd.DataFrame(columns=['X', 'Y']))
     import_status: int = -1   
     select_imported_status: int = -1  
@@ -655,17 +655,17 @@ class Perimeters:
 
 @dataclass
 class Task:
-    name: str() = ''
-    map_name: str() = ''
+    name: str = ''
+    map_name: str = ''
     selected_perimeter: Polygon = Polygon()
-    selection_type: str() = ''
+    selection_type: str = ''
     selection: dict = field(default_factory=dict)
-    preview: pd.DataFrame = pd.DataFrame()
+    preview: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     parameters: PathPlannerCfg = field(default_factory = lambda: pathplannercfg)
-    subtasks: pd.DataFrame = pd.DataFrame()
-    subtasks_parameters: pd.DataFrame = pd.DataFrame()
-    tasks_order: pd.DataFrame = pd.DataFrame()
-    tasks_order_parameters: pd.DataFrame = pd.DataFrame()
+    subtasks: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    subtasks_parameters: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    tasks_order: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    tasks_order_parameters: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
 
     def calc_route_preview(self, route: list()) -> None:
         self.preview = pd.DataFrame(route)
@@ -738,9 +738,9 @@ class Task:
 
 @dataclass
 class Tasks:
-    selected: str() = ''
-    saved: pd.DataFrame = pd.DataFrame()
-    saved_parameters: pd.DataFrame = pd.DataFrame()
+    selected: str = ''
+    saved: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    saved_parameters: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
 
 current_map = Perimeter()
 mapping_maps = Perimeters()
