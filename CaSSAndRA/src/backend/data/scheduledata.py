@@ -18,19 +18,19 @@ class ScheduleTasks:
     job_started: bool = False
     job_finished: bool = False
     start_failed_cnt: int = 0
-    monday_task: Task = Task()
+    monday_task: Task = field(default_factory=lambda: Task())
     monday_time: list = field(default_factory=lambda: [12, 12])
-    tuesday_task: Task = Task()
+    tuesday_task: Task = field(default_factory=lambda: Task())
     tuesday_time: list = field(default_factory=lambda: [12, 12])
-    wednesday_task: Task = Task()
+    wednesday_task: Task = field(default_factory=lambda: Task())
     wednesday_time: list = field(default_factory=lambda: [12, 12])
-    thursday_task: Task = Task()
+    thursday_task: Task = field(default_factory=lambda: Task())
     thursday_time: list = field(default_factory=lambda: [12, 12])
-    friday_task: Task = Task()
+    friday_task: Task = field(default_factory=lambda: Task())
     friday_time: list = field(default_factory=lambda: [12, 12])
-    saturday_task: Task = Task()
+    saturday_task: Task = field(default_factory=lambda: Task())
     saturday_time: list = field(default_factory=lambda: [12, 12])
-    sunday_task: Task = Task()
+    sunday_task: Task = field(default_factory=lambda: Task())
     sunday_time: list = field(default_factory=lambda: [12, 12])
 
     def create(self) -> None:

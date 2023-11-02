@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 import pandas as pd
 import math
 from datetime import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 from PIL import Image
 
@@ -42,16 +42,17 @@ class Mower:
     last_mow_status: bool = False
     cmd_move_lin: float = 0
     cmd_move_ang: float = 0
-    last_cmd: pd.DataFrame = pd.DataFrame([{'msg': 'AT+C,-1,-1,-1,-1,-1,-1,-1,-1'}])
+    last_cmd: pd.DataFrame = field(default_factory=lambda: pd.DataFrame([{'msg': 'AT+C,-1,-1,-1,-1,-1,-1,-1,-1'}]))
     last_task_name: str = 'no task'
-    current_task: pd.DataFrame = pd.DataFrame()
+    current_task: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     map_upload_started: bool = False
     map_upload_finished: bool = False
     map_upload_failed: bool = False
     map_old_crc: int = None
     map_upload_cnt: int = 0
     #frontend
-    rover_image: Image = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png'))
+    rover_image: Image = field(default_factory = lambda: 
+                               Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png')))
     solution: str = 'invalid'
     status: str = 'offline'
     sensor_status: str = 'unknown'
