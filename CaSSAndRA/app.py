@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.96.4 Remove RoverIMG dataclass and include it to AppCfg dataclass
+#Version:0.97.0 Python 3.11 support
 # package imports
 import os
 import sys
