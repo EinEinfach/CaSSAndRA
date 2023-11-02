@@ -10,7 +10,7 @@ ABSOLUTE_PATH = os.path.dirname(__file__)
 
 @dataclass
 class Log():
-    lastdata: pd.DataFrame = pd.DataFrame()
+    lastdata: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     path = ABSOLUTE_PATH.replace('/src/backend/data', '/src/data/log/cassandra.log')
 
     def read(self) -> None:
