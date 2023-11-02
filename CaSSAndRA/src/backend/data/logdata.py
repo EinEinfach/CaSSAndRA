@@ -3,7 +3,7 @@ logger = logging.getLogger(__name__)
 
 import pandas as pd
 from datetime import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 
 ABSOLUTE_PATH = os.path.dirname(__file__)
