@@ -120,11 +120,11 @@ lateralerror.update_layout(
                     range=[-0.3, 0.3],
                     showgrid=False,
                     zeroline=False,
-                    showticklabels=False,
                 ),
                 yaxis=dict(
                     showgrid=False,
                     zeroline=False,
+                    showticklabels=False,
                 ),
     )
 
