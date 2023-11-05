@@ -183,10 +183,13 @@ def update_layout() -> html.Div:
 
     # Second Column
     sec_col = html.Div(
-                    charts.chartcontainer,
-                    className="d-none d-sm-none d-md-block",
-                    style={"width": "20%", "min-width":"400px", "z-index":"1", "padding-right":"1rem"},
-                )
+		html.Div(
+			charts.chartcontainer + stats.stats,
+            style={"width": "100%", "height":"100%", "display":"flex", "flex-direction":"column"},
+		),
+		className="d-none d-sm-none d-md-block",
+		style={"width": "20%", "min-width":"400px", "z-index":"1", "padding-right":"1rem", "padding-bottom":"1rem"},
+	)
 
     # Temporary control of right col
     #   Enabling the right column will show a pre-styled placeholder column that
@@ -258,6 +261,6 @@ def toggle_modal_stats(bom_nclicks: int,
                        is_open: bool,
                        ) -> list:
     if bom_nclicks:
-        content = stats.statscontainer
+        content = stats.statscontainer + stats.stats
         return True, content
     return False, []
