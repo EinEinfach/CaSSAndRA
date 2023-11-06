@@ -6,7 +6,7 @@ from datetime import datetime
 
 # local imports
 from src.components import ids, modalmowsettings
-from src.components.state import map, buttongroupcontrol, state, modal, charts
+from src.components.state import map, buttongroupcontrol, state, modal, charts, stats
 from src.backend.data.roverdata import robot
 from src.backend.data import roverdata
 
@@ -107,7 +107,6 @@ def update_layout() -> html.Div:
                                     dbc.Col(
                                         [
                                             dbc.Button(
-                                                # 'Charts',
                                                 color='info',
                                                 size='lg',
                                                 id=ids.BUTTONOPENMODALCHARTS,
@@ -127,6 +126,35 @@ def update_layout() -> html.Div:
                                                 # dbc.ModalFooter([]),
                                             ],
                                             id=ids.MODALCHARTS,
+                                            is_open=False, centered=True,
+                                        ),
+                                        ],
+                                        width=6,
+                                        md=4,
+                                        lg=3,
+                                        xxl=2,
+                                    ),
+                                    dbc.Col(
+                                        [
+                                            dbc.Button(
+                                                color='info',
+                                                size='lg',
+                                                id=ids.BUTTONOPENMODALSTATS,
+                                                n_clicks=0,
+                                                style={'width': '100%'},
+                                                class_name='bi bi-list-columns',
+                                            ),
+                                            dbc.Modal(
+                                                [
+                                                dbc.ModalHeader(
+                                                    dbc.ModalTitle('Statistic')
+                                                ),
+                                                dbc.ModalBody(
+                                                    id=ids.CONTENTMODALSTATS,
+                                                    style={"padding-top":"0"},
+												),
+                                            ],
+                                            id=ids.MODALSTATS,
                                             is_open=False, centered=True,
                                         ),
                                         ],
@@ -155,10 +183,13 @@ def update_layout() -> html.Div:
 
     # Second Column
     sec_col = html.Div(
-		charts.chartcontainer,
-        className="d-none d-sm-none d-md-block",
-        style={"width": "20%", "min-width":"400px", "z-index":"1", "padding-right":"1rem"},
-    )
+		html.Div(
+			charts.chartcontainer + stats.stats,
+            style={"width": "100%", "height":"100%", "display":"flex", "flex-direction":"column"},
+		),
+		className="d-none d-sm-none d-md-block",
+		style={"width": "20%", "min-width":"400px", "z-index":"1", "padding-right":"1rem", "padding-bottom":"1rem"},
+	)
 
     # Temporary control of right col
     #   Enabling the right column will show a pre-styled placeholder column that
@@ -212,10 +243,24 @@ def interval_enabler(fig: dict,
           [Input(ids.BUTTONOPENMODALCHARTS, 'n_clicks'),
            State(ids.MODALCHARTS, 'is_open'),
            ])
-def toggle_modal(bom_nclicks: int,
+def toggle_modal_charts(bom_nclicks: int,
                  is_open: bool,
                  ) -> list:
     if bom_nclicks:
         content = charts.chartcontainer
         return True, content 
-    return False, dbc.Col()
+    return False, []
+
+# Callback to open/close stats modal
+@callback(Output(ids.MODALSTATS, 'is_open'),
+          Output(ids.CONTENTMODALSTATS, 'children'),
+          [Input(ids.BUTTONOPENMODALSTATS, 'n_clicks'),
+           State(ids.MODALSTATS, 'is_open'),
+           ])
+def toggle_modal_stats(bom_nclicks: int,
+                       is_open: bool,
+                       ) -> list:
+    if bom_nclicks:
+        content = stats.statscontainer + stats.stats
+        return True, content
+    return False, []
