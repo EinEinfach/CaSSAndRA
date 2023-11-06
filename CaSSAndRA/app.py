@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.97.0 Python 3.11 support
+#Version:0.98.0 Added stats data to overview
 # package imports
 import os
 import sys
