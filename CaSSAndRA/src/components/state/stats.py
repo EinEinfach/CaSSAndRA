@@ -10,19 +10,125 @@ from . charts import daterange
 from icecream import ic
 
 statscontainer = [
-                    dbc.Row([daterange]),
-                    dbc.Row(id=ids.STATSDATA) 
-                ]
+    dbc.Row([
+        daterange,
+        # timerange,
+    ],
+    class_name="chart-row chart-item"),
+]
 
-@callback(Output(ids.STATSDATA, 'children'),
-          [
-            #Input(ids.CHARTSINTERVAL, 'n_intervals'),
-            Input(ids.URLUPDATE, 'pathname'),
-            Input(ids.CHARTSDATERANGE, 'start_date'),
-            Input(ids.CHARTSTIMERANGE, 'end_date'),
-            State(ids.CHARTSDATERANGE, 'start_date'),
-            State(ids.CHARTSDATERANGE, 'end_date'),
-        ])
+stats = [
+    dbc.Row([
+        dbc.Label('Common', style={"margin-top":"0.5rem", "padding":"0", "margin-left":"1.5rem", "margin-bottom":"0.25rem"}),
+        dbc.ListGroup(
+            [
+                dbc.ListGroupItem([
+                        html.P('distance', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="mow_traveled_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('obstacles', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_obstacles_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('cycle max time', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="time_max_cycle_range")
+                ]),
+            ],
+            horizontal=True,
+            className="mb-2",
+            style={"justify-content":"", "margin-left":"1rem", "margin-right":"1rem", "flex-shrink":"1"},
+        ),
+        dbc.Label('Obstacles', style={"margin-top":"0.5rem", "padding":"0", "margin-left":"1.5rem", "margin-bottom":"0.25rem"}),
+        dbc.ListGroup(
+            [
+                dbc.ListGroupItem([
+                        html.P('bumper', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_bumper_triggered_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('imu', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_imu_triggered_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('gps', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_gps_motion_timeout_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('sonar', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_sonar_triggered_range")
+                ]),
+            ],
+            horizontal=True,
+            className="mb-2",
+            style={"justify-content":"", "margin-left":"1rem", "margin-right":"1rem", "flex-shrink":"1"},
+        ),
+        dbc.Label('Recoveries', style={"margin-top":"0.5rem", "padding":"0", "margin-left":"1.5rem", "margin-bottom":"0.25rem"}),
+        dbc.ListGroup(
+            [
+                dbc.ListGroupItem([
+                        html.P('invalid', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_invalid_recoveries_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('float', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_float_recoveries_range")
+                ]),
+            ],
+            horizontal=True,
+            className="mb-2",
+            style={"justify-content":"", "margin-left":"1rem", "margin-right":"1rem", "flex-shrink":"1"},
+        ),
+        dbc.Label('GPS', style={"margin-top":"0.5rem", "padding":"0", "margin-left":"1.5rem", "margin-bottom":"0.25rem"}),
+        dbc.ListGroup(
+            [
+                dbc.ListGroupItem([
+                        html.P('jumps', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_gps_jumps_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('crc errors', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_gps_chk")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('max age', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="time_max_dgps_age_range")
+                ]),
+            ],
+            horizontal=True,
+            className="mb-2",
+            style={"justify-content":"", "margin-left":"1rem", "margin-right":"1rem", "flex-shrink":"1"},
+        ),
+    ],
+    id=ids.STATSDATA,
+    class_name="chart-row chart-item chart-stats"
+    )
+]
+
+@callback(
+    [
+        # Output(ids.STATSDATA, 'children')
+        Output("mow_traveled_range", 'children'),
+        Output("counter_obstacles_range", 'children'),
+        Output("time_max_cycle_range", 'children'),
+        Output("counter_bumper_triggered_range", 'children'),
+        Output("counter_imu_triggered_range", 'children'),
+        Output("counter_gps_motion_timeout_range", 'children'),
+        Output("counter_sonar_triggered_range", 'children'),
+        Output("counter_invalid_recoveries_range", 'children'),
+        Output("counter_float_recoveries_range", 'children'),
+        Output("counter_gps_jumps_range", 'children'),
+        Output("counter_gps_chk", 'children'),
+        Output("time_max_dgps_age_range", 'children'),
+    ],
+    [
+        #Input(ids.CHARTSINTERVAL, 'n_intervals'),
+        Input(ids.URLUPDATE, 'pathname'),
+        Input(ids.CHARTSDATERANGE, 'start_date'),
+        Input(ids.CHARTSTIMERANGE, 'end_date'),
+        State(ids.CHARTSDATERANGE, 'start_date'),
+        State(ids.CHARTSDATERANGE, 'end_date'),
+    ])
 def update_stats(#n_intervals: int,
                   calledpage: str,
                   start_date: str,
@@ -58,110 +164,5 @@ def update_stats(#n_intervals: int,
     counter_bumper_triggered_range = int(calced_stats_filtered['counter_bumper_triggered'].sum())                        
     counter_gps_motion_timeout_range = int(calced_stats_filtered['counter_gps_motion_timeout'].sum())                      
     
-    stats = html.Div(
-            [
-                html.P('Common'),
-                dbc.ListGroup(
-                    [
-                        dbc.ListGroupItem([
-                            html.Div([
-                                html.P('distance'),
-                                html.Small(f'{mow_traveled_range}km')
-                            ])
-                        ]),
-                        dbc.ListGroupItem([
-                            html.Div([
-                                html.P('obstacles'),
-                                html.Small(counter_obstacles_range)
-                            ])
-                        ]),
-                        dbc.ListGroupItem([
-                            html.Div([
-                                html.P('cycle max time'),
-                                html.Small(time_max_cycle_range)
-                            ])
-                        ]),
-                    ],
-                    horizontal=True,
-                    className="mb-2",
-                ),
-                html.P('Obstacles'),
-                    dbc.ListGroup(
-                        [
-                            dbc.ListGroupItem([
-                                html.Div([
-                                    html.P('bumper'),
-                                    html.Small(counter_bumper_triggered_range)
-                                ])
-                            ]),
-                            dbc.ListGroupItem([
-                                html.Div([
-                                    html.P('imu'),
-                                    html.Small(counter_imu_triggered_range)
-                                ])
-                            ]),
-                            dbc.ListGroupItem([
-                                html.Div([
-                                    html.P('gps'),
-                                    html.Small(counter_gps_motion_timeout_range)
-                                ])
-                            ]),
-                            dbc.ListGroupItem([
-                                html.Div([
-                                    html.P('sonar'),
-                                    html.Small(counter_sonar_triggered_range)
-                                ])
-                            ]),
-                        ],
-                        horizontal=True,
-                        className="mb-2",
-                    ),
-                html.P('Recoveries'),
-                dbc.ListGroup(
-                    [
-                        dbc.ListGroupItem([
-                            html.Div([
-                                html.P('invalid'),
-                                html.Small(counter_invalid_recoveries_range)
-                            ])
-                        ]),
-                        dbc.ListGroupItem([
-                            html.Div([
-                                html.P('float'),
-                                html.Small(counter_float_recoveries_range)
-                            ])
-                        ]),
-                    ],
-                    horizontal=True,
-                    className="mb-2",
-                ),
-                html.P('GPS'),
-                dbc.ListGroup(
-                    [
-                        dbc.ListGroupItem([
-                            html.Div([
-                                html.P('jumps'),
-                                html.Small(counter_gps_jumps_range)
-                            ])
-                        ]),
-                        dbc.ListGroupItem([
-                            html.Div([
-                                html.P('crc errors'),
-                                html.Small(f'{counter_gps_chk_sum_errors_range} gps/ {counter_dgps_chk_sum_errors_range} dgps')
-                            ])
-                        ]),
-                        dbc.ListGroupItem([
-                            html.Div([
-                                html.P('max age'),
-                                html.Small(f'{time_max_dgps_age_range}s')
-                            ])
-                        ]),
-                    ],
-                    horizontal=True,
-                    className="mb-2",
-                ),
-            ]
-        )
-    
-    return stats
-
+    return f'{mow_traveled_range} km', counter_obstacles_range, time_max_cycle_range, counter_bumper_triggered_range, counter_imu_triggered_range, counter_gps_motion_timeout_range, counter_sonar_triggered_range, \
+        counter_invalid_recoveries_range, counter_float_recoveries_range, counter_gps_jumps_range, f'{counter_gps_chk_sum_errors_range} gps / {counter_dgps_chk_sum_errors_range} dgps',f'{time_max_dgps_age_range} s'
