@@ -31,7 +31,7 @@ stats = [
                         html.Small(id="counter_obstacles_range")
                 ]),
                 dbc.ListGroupItem([
-                        html.P('cycle max time', style={"margin-bottom":"0.25rem"}),
+                        html.P('cycle time', style={"margin-bottom":"0.25rem"}),
                         html.Small(id="time_max_cycle_range")
                 ]),
             ],
@@ -122,33 +122,50 @@ stats = [
         Output("time_max_dgps_age_range", 'children'),
     ],
     [
-        #Input(ids.CHARTSINTERVAL, 'n_intervals'),
+        #Input(ids.INTERVAL, 'n_intervals'),
         Input(ids.URLUPDATE, 'pathname'),
         Input(ids.CHARTSDATERANGE, 'start_date'),
         Input(ids.CHARTSTIMERANGE, 'end_date'),
+        Input(ids.CHARTSTIMERANGE, 'value'),
         State(ids.CHARTSDATERANGE, 'start_date'),
         State(ids.CHARTSDATERANGE, 'end_date'),
+        State(ids.CHARTSTIMERANGE, 'value'),
     ])
 def update_stats(#n_intervals: int,
                   calledpage: str,
                   start_date: str,
                   end_date: str,
+                  timerange: list,
                   start_date_stats: str,
                   end_date_stats: str,
+                  timerange_state: list,
                   ) -> dbc.Container:
     context = ctx.triggered_id
-    ic(context)
     if start_date_stats == None or end_date_stats == None:
         start_date_stats = str(datetime.now().date())
         end_date_stats = str(datetime.now().date())
     end_date_stats = end_date_stats + ' 23:59:59.0'
 
     stats = roverdata.stats
+    calced_stats = roverdata.calced_from_stats
+    state_filtered = roverdata.state[(roverdata.state['timestamp'] > start_date_stats)&(roverdata.state['timestamp'] <= end_date_stats)]
+    state_filtered = state_filtered.reset_index(drop=True)
+    if timerange_state == None or context == ids.CHARTSDATERANGE:
+        timerange_state = []
+        timerange_state.append(state_filtered.index.min())
+        timerange_state.append(state_filtered.index.max())
+    state_filtered = state_filtered.loc[timerange_state[0]:timerange_state[1]]
     stats_filtered = stats[(stats['timestamp'] > start_date_stats)&(stats['timestamp'] <= end_date_stats)]
     stats_filtered = stats_filtered.reset_index(drop=True)
-    calced_stats = roverdata.calced_from_stats
     calced_stats_filtered = calced_stats[(calced_stats['timestamp'] > start_date_stats)&(calced_stats['timestamp'] <= end_date_stats)]
     calced_stats_filtered = calced_stats_filtered.reset_index(drop=True)
+
+    #calc stats time range from state time range
+    if not state_filtered.empty:
+        calced_stats_filtered = calced_stats_filtered[(calced_stats_filtered['timestamp'] >= state_filtered.iloc[0]['timestamp'])&
+                                                                (calced_stats_filtered['timestamp'] <= state_filtered.iloc[-1]['timestamp'])]
+        stats_filtered = stats_filtered[(stats_filtered['timestamp'] >= state_filtered.iloc[0]['timestamp'])&
+                                                                (stats_filtered['timestamp'] <= state_filtered.iloc[-1]['timestamp'])]
     
     counter_float_recoveries_range = int(calced_stats_filtered['counter_float_recoveries'].sum())
     mow_traveled_range = round(calced_stats_filtered['distance_mow_traveled'].sum()/1000, 2)
@@ -164,5 +181,5 @@ def update_stats(#n_intervals: int,
     counter_bumper_triggered_range = int(calced_stats_filtered['counter_bumper_triggered'].sum())                        
     counter_gps_motion_timeout_range = int(calced_stats_filtered['counter_gps_motion_timeout'].sum())                      
     
-    return f'{mow_traveled_range} km', counter_obstacles_range, time_max_cycle_range, counter_bumper_triggered_range, counter_imu_triggered_range, counter_gps_motion_timeout_range, counter_sonar_triggered_range, \
+    return f'{mow_traveled_range} km', counter_obstacles_range, f'{time_max_cycle_range} s', counter_bumper_triggered_range, counter_imu_triggered_range, counter_gps_motion_timeout_range, counter_sonar_triggered_range, \
         counter_invalid_recoveries_range, counter_float_recoveries_range, counter_gps_jumps_range, f'{counter_gps_chk_sum_errors_range} gps / {counter_dgps_chk_sum_errors_range} dgps',f'{time_max_dgps_age_range} s'

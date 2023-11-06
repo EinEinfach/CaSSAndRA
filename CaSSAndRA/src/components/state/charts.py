@@ -213,7 +213,7 @@ chartcontainer = [
             Input(ids.CHARTSINTERVAL, 'n_intervals'),
             Input(ids.URLUPDATE, 'pathname'),
             Input(ids.CHARTSDATERANGE, 'start_date'),
-            Input(ids.CHARTSTIMERANGE, 'end_date'),
+            Input(ids.CHARTSDATERANGE, 'end_date'),
             Input(ids.CHARTSTIMERANGE, 'value'),
             State(ids.CHARTSDATERANGE, 'start_date'),
             State(ids.CHARTSDATERANGE, 'end_date'),
