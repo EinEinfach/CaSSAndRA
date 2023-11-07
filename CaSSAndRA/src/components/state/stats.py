@@ -5,14 +5,14 @@ from datetime import datetime
 
 from .. import ids
 from ... backend.data import roverdata
-from . charts import daterange
+from . charts import daterange, timerange
 
 from icecream import ic
 
 statscontainer = [
     dbc.Row([
         daterange,
-        # timerange,
+        timerange,
     ],
     class_name="chart-row chart-item"),
 ]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.98.0 Added stats data to overview
+#Version:0.99.0 Added time range to stats data in modal mode, small bug fixes
 # package imports
 import os
 import sys

@@ -139,9 +139,10 @@ def border(perimeter: Polygon, distancetoborder: int, mowoffset: float) -> list(
         #border = border.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
         return perimeter, border
     else: 
-        for i in range(distancetoborder):
-            perimeter = perimeter.buffer(mowoffset, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
-        perimeter = perimeter.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
+        if distancetoborder == 0:
+            perimeter = perimeter.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
+        else:
+            perimeter = perimeter.buffer(distancetoborder*mowoffset, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
         return perimeter, border
 
 def route(points: list()) -> LineString():

@@ -48,7 +48,7 @@ def update_log_table(n_intervals: int,
     return log
 
 @callback(Output(ids.LOGINTERVAL, 'disabled'),
-          [Input(ids.URLUPDATE, 'path'),
+          [Input(ids.URLUPDATE, 'pathname'),
            Input(ids.BUTTONLOGPAUSED, 'active'),
            ])
 def interval_enabler(calledpage: str,
