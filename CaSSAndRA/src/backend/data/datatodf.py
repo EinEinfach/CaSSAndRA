@@ -52,9 +52,9 @@ def add_state_to_df_from_mqtt(data: dict()) -> None:
                     'amps':data['amps'],
                     'position_visible_satellites_dgps':data['position']['visible_satellites_dgps'],
                     'map_crc':data['map_crc'],
-                    'lateral_error': 0,
-                    'timetable_autostartstop_dayofweek': 0,
-                    'timetabel_autostartstop_hour' : 0,
+                    'lateral_error': data['lateral_error'],
+                    'timetable_autostartstop_dayofweek': data['timetable_autostartstop_dayofweek'],
+                    'timetabel_autostartstop_hour' : data['timetabel_autostartstop_hour'],
                     'timestamp': str(datetime.now())}
         state_to_df = pd.DataFrame(data=state_to_df, index=[0])
         robot.set_state(state_to_df)
