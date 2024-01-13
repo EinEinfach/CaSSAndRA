@@ -51,7 +51,7 @@ class GracefulKiller:
     backendserver.stop()
     self.kill_now = True
 
-default_data_path = os.path.join(os.path.expanduser('~'), '/RAMDisk/cassandra')
+default_data_path = os.path.join(os.path.expanduser('~'), 'RAMDisk/cassandra')
 
 
 def check_startup(data_path):
