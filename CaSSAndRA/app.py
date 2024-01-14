@@ -51,7 +51,7 @@ class GracefulKiller:
     backendserver.stop()
     self.kill_now = True
 
-default_data_path = os.path.join(os.path.expanduser('~'), 'RAMDisk/cassandra')
+default_data_path = os.path.join(os.path.expanduser('~'), 'RAMDisk/cassandra_data')
 
 
 def check_startup(data_path):
@@ -99,8 +99,8 @@ def check_startup(data_path):
 @click.option('--proxy', default=None, help='format={{input}}::{{output}} example=http://0.0.0.0:8050::https://my.domain.com')
 @click.option('--data_path', default=default_data_path, show_default=True)
 @click.option('--debug', default=False, is_flag=True, help="Enables debug mode for dash application")
-@click.option('--app_log_level', default="INFO", envvar='APPLOGLEVEL', type=logging_choices, show_default=True)
-@click.option('--app_log_file_level', default="INFO", envvar='APPLOGFILELEVEL', type=logging_choices, show_default=True)
+@click.option('--app_log_level', default="WARN", envvar='APPLOGLEVEL', type=logging_choices, show_default=True)
+@click.option('--app_log_file_level', default="WARN", envvar='APPLOGFILELEVEL', type=logging_choices, show_default=True)
 @click.option('--server_log_level', default="ERROR", envvar='SERVERLOGLEVEL', type=logging_choices, show_default=True)
 @click.option('--pil_log_level', default="WARN", envvar='PILLOGLEVEL', type=logging_choices, show_default=True)
 @click.option('--init', is_flag=True, help="Accepts defaults when initializing app for the first time")
