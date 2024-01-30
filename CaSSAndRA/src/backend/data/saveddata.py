@@ -21,6 +21,29 @@ def read(measure_file_paths) -> None:
             roverdata.state['timetable_autostartstop_dayofweek'] = 0
             roverdata.state['timetabel_autostartstop_hour'] = 0
         logger.info('Backend: State data are loaded successfully')
+        if roverdata.state.empty:
+            logger.warning('state.pickle is empty, create a default data frame')
+            state = {"battery_voltage":{"0":0},
+                 "position_x":{"0":0},
+                 "position_y":{"0":0},
+                 "position_delta":{"0":0},
+                 "position_solution":{"0":0},
+                 "job":{"0":10},
+                 "position_mow_point_index":{"0":0},
+                 "position_age":{"0":0},
+                 "sensor":{"0":0},
+                 "target_x":{"0":0},
+                 "target_y":{"0":0},
+                 "position_accuracy":{"0":0},
+                 "position_visible_satellites":{"0":0},
+                 "amps":{"0":0},
+                 "position_visible_satellites_dgps":{"0":0},
+                 "map_crc":{"0":0},
+                 "lateral_error": {"0":0},
+                 "timetable_autostartstop_dayofweek":{"0":0},
+                 "timetabel_autostartstop_hour":{"0":0}, 
+                 "timestamp":{"0":str(datetime.now())}}
+            roverdata.state = pd.DataFrame(data=state)
     except:
         logger.warning('Backend: Failed to load state data, create a default data frame')
         state = {"battery_voltage":{"0":0},
@@ -52,6 +75,35 @@ def read(measure_file_paths) -> None:
         if not 'duration_mow_motor_recovery' in roverdata.stats:
             roverdata.stats['duration_mow_motor_recovery'] = 0
         logger.info('Backend: Statistics data are loaded successfully')
+        if roverdata.stats.empty:
+            logger.warning('stats.pickle is empty, create a default data frame')
+            stats = {"duration_idle":{"0":0},
+                 "duration_charge":{"0":0},
+                 "duration_mow":{"0":0},
+                 "duration_mow_invalid":{"0":0},
+                 "duration_mow_float":{"0":0},
+                 "duration_mow_fix":{"0":0},
+                 "distance_mow_traveled":{"0":0},
+                 "counter_gps_chk_sum_errors":{"0":0},
+                 "counter_dgps_chk_sum_errors":{"0":0},
+                 "counter_invalid_recoveries":{"0":0},
+                 "counter_float_recoveries":{"0":0},
+                 "counter_gps_jumps":{"0":0},
+                 "counter_gps_motion_timeout":{"0":0},
+                 "counter_imu_triggered":{"0":0},
+                 "counter_sonar_triggered":{"0":0},
+                 "counter_bumper_triggered":{"0":0},
+                 "counter_obstacles":{"0":0},
+                 "time_max_cycle":{"0":0},
+                 "time_max_dpgs_age":{"0":0},
+                 "serial_buffer_size":{"0":0},
+                 "free_memory":{"0":0},
+                 "reset_cause":{"0":0},
+                 "temp_min":{"0":0},
+                 "temp_max":{"0":0},
+                 "duration_mow_motor_recovery":{"0":0},
+                 "timestamp":{"0":str(datetime.now())}}
+            roverdata.stats = pd.DataFrame(data=stats)
     except:
         logger.warning('Backend: Failed to load statistics data, create a default data frame')
         stats = {"duration_idle":{"0":0},
@@ -84,9 +136,16 @@ def read(measure_file_paths) -> None:
 
     #Try to read Calced from State Data from file
     try:
-        path_to_calced_from_state_data = measure_file_paths.calcedstate
         roverdata.calced_from_state = pd.read_pickle(measure_file_paths.calcedstate)
         logger.info('Backend: Calced data from state are loaded successfully')
+        if roverdata.calced_from_state.empty:
+            logger.warning('calcedstate.pickle is empty, create a default data frame')
+            calced_from_state = {"solution":{"0":"invalid"},
+                             "job":{"0":"unknown"},
+                             "sensor":{"0":"unknown"},
+                             "soc":{"0":0},
+                             "timestamp":{"0":str(datetime.now())}}
+            roverdata.calced_from_state = pd.DataFrame(data=calced_from_state)
     except:
         logger.warning('Backend: Failed to load calced data from state, create a default data frame')
         calced_from_state = {"solution":{"0":"invalid"},
@@ -100,6 +159,34 @@ def read(measure_file_paths) -> None:
     try:
         roverdata.calced_from_stats = pd.read_pickle(measure_file_paths.calcedstats)
         logger.info('Backend: Calced data from stats are loaded successfully')
+        if roverdata.calced_from_stats.empty:
+            logger.warning('calcedstats.pickle is empty, create a default data frame')
+            calced_from_stats = {"duration_idle":{"0":0},
+                            "duration_charge":{"0":0},
+                            "duration_mow":{"0":0},
+                            "duration_mow_invalid":{"0":0},
+                            "duration_mow_float":{"0":0},
+                            "duration_mow_fix":{"0":0},
+                            "distance_mow_traveled":{"0":0},
+                            "counter_gps_chk_sum_errors":{"0":0},
+                            "counter_dgps_chk_sum_errors":{"0":0},
+                            "counter_invalid_recoveries":{"0":0},
+                            "counter_float_recoveries":{"0":0},
+                            "counter_gps_jumps":{"0":0},
+                            "counter_gps_motion_timeout":{"0":0},
+                            "counter_imu_triggered":{"0":0},
+                            "counter_sonar_triggered":{"0":0},
+                            "counter_bumper_triggered":{"0":0},
+                            "counter_obstacles":{"0":0},
+                            "time_max_cycle":{"0":0},
+                            "time_max_dpgs_age":{"0":0},
+                            "serial_buffer_size":{"0":0},
+                            "free_memory":{"0":0},
+                            "reset_cause":{"0":0},
+                            "temp_min":{"0":0},
+                            "temp_max":{"0":0},
+                            "timestamp":{"0":str(datetime.now())}}
+            roverdata.calced_from_stats = pd.DataFrame(data=calced_from_stats)
     except:
         logger.warning('Backend: Failed to load calced data from stats, create a default data frame')
         calced_from_stats = {"duration_idle":{"0":0},
