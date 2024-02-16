@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.99.1 Fixed issue if dataframe of measured data contain no data       
+#Version:0.99.2 Increase timout time in http mode
 # package imports
 import os
 import sys
