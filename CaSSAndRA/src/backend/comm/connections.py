@@ -151,7 +151,7 @@ class HTTP:
         try:
             data = self.reqandchecksum('AT+V')
             logger.info('TX: '+data)
-            res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=2)
+            res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
             logger.debug('Status code: '+str(res.status_code))
             logger.info('RX: '+res.text)
             if res.status_code == 200 and 'V,' in res.text and res.text[0] == 'V':
@@ -196,7 +196,7 @@ class HTTP:
             data = ''.join(map(chr, data_encrypt))
         try:
             logger.info('TX: '+data) 
-            res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=2)
+            res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
             logger.debug('Status code: '+str(res.status_code))
             logger.info('RX: '+res.text)
             if len(res.text) == 0:
@@ -223,7 +223,7 @@ class HTTP:
             data = ''.join(map(chr, data_encrypt))
         try:
             logger.info('TX: '+data)
-            res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=2)
+            res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
             logger.debug('Status code: '+str(res.status_code))
             logger.info('RX: '+res.text)
             if len(res.text) == 0:
@@ -250,7 +250,7 @@ class HTTP:
             data = ''.join(map(chr, data_encrypt))
         try:
             logger.info('Backend: TX '+data) 
-            res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=2)
+            res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
             logger.debug('Status code: '+str(res.status_code))
             logger.info('Backend: RX '+res.text)
             if len(res.text) == 0:
@@ -282,12 +282,12 @@ class HTTP:
                 data = ''.join(map(chr, data_encrypt))  
             try:
                 logger.info('TX '+data)
-                res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=2)
+                res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
                 logger.info('RX: '+res.text)
                 self.http_status = res.status_code    
                 while self.http_status != 200:
                     rep_cnt += 1
-                    res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=2)
+                    res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
                     self.http_status = res.status_code 
                     if rep_cnt > 30:
                         logger.warning('Failed send the message to the rover')
@@ -297,13 +297,13 @@ class HTTP:
                 logger.debug(str(e))
             time.sleep(0.1)
             
-    def reqandchecksum(self, req: str()) -> str():
+    def reqandchecksum(self, req: str) -> str:
         res = hex(sum(req.encode('ascii')) % 256)
         logger.debug('Calced checksumme: '+res)
         res = req+','+res
         return res  
     
-    def checkchecksum(self, res: str()) -> bool:
+    def checkchecksum(self, res: str) -> bool:
         try:
             res_splited = res.split(',')
             check_sum = res_splited[-1]
@@ -395,13 +395,13 @@ class UART:
             logger.debug(str(e))
             self.uart_status = False
     
-    def on_state(self, data: str()) -> None:
+    def on_state(self, data: str) -> None:
         datatodf.add_state_to_df(data)
 
-    def on_stats(self, data: str()) -> None:
+    def on_stats(self, data: str) -> None:
         datatodf.add_stats_to_df(data)
 
-    def on_obstacle(self, data: str()) -> None:
+    def on_obstacle(self, data: str) -> None:
         datatodf.add_obstacles_to_df(data)
     
 #Create connection instances

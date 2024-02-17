@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.99.0 Added time range to stats data in modal mode, small bug fixes
+#Version:0.99.2 Increase timout time in http mode
 # package imports
 import os
 import sys
