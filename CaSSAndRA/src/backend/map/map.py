@@ -7,7 +7,7 @@ from shapely import affinity
 from shapely.ops import *
 import networkx as nx
 
-def selection(perimeter: Polygon, selection: dict()) -> Polygon():
+def selection(perimeter: Polygon, selection: dict) -> Polygon:
     try: 
         logger.info('Check for selection and create a new perimter if there')
         logger.debug('perimeter coords: '+str(perimeter.exterior.coords)+' selection: '+str(selection))
@@ -83,6 +83,20 @@ def turn(figure: Polygon, mowangle: int) -> Polygon:
     except Exception as e:
         logger.warning('Backend: Shapely figure turning failed')
         logger.debug(str(e))
+        if figure.geom_type == 'Polygon': #Fix failure where some users have problem with polygon turning (no closed ring)
+            logger.debug("Failed figure is polygon. Trying to turn perimeter coordinates")
+            perimeter_points = MultiPoint(list(figure.exterior.coords))
+            perimeter_points_rotated = affinity.rotate(perimeter_points, -mowangle, origin=(0, 0))
+            perimeter_points_rotated = [(pt.x, pt.y) for pt in perimeter_points_rotated.geoms]
+            perimeter_rotated = Polygon(perimeter_points_rotated)
+            for exclusion in figure.interiors:
+                exclusion_points = MultiPoint(list(exclusion.coords))
+                exclusion_points_rotated = affinity.rotate(exclusion_points, -mowangle, origin=(0, 0))
+                exclusion_points_rotated = [(pt.x, pt.y) for pt in exclusion_points_rotated.geoms]
+                exclusion_rotated = Polygon(exclusion_points_rotated)
+                perimeter_rotated = perimeter_rotated.difference(exclusion_rotated)
+            figure_rotated = perimeter_rotated
+            return figure_rotated
         return figure
 
 def linemask(perimeter: Polygon, mowoffset: float) -> MultiLineString:
@@ -126,7 +140,7 @@ def gotopoints(perimeter: Polygon, mowoffset: float) -> MultiPoint:
     points = points.intersection(perimeter)
     return points
 
-def border(perimeter: Polygon, distancetoborder: int, mowoffset: float) -> list():
+def border(perimeter: Polygon, distancetoborder: int, mowoffset: float) -> list:
     logger.info('Backend: Create map borders and area to mow')
     mowoffset = -mowoffset
     if perimeter.geom_type == 'MultiPolygon':
@@ -145,7 +159,7 @@ def border(perimeter: Polygon, distancetoborder: int, mowoffset: float) -> list(
             perimeter = perimeter.buffer(distancetoborder*mowoffset, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
         return perimeter, border
 
-def route(points: list()) -> LineString():
+def route(points: list) -> LineString:
     logger.info('Backend: Transform route to shapely figure')
     route_as_line = LineString(points)
     return route_as_line
