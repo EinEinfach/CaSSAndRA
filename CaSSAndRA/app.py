@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.99.2 Increase timout time in http mode
+#Version:0.99.3 Fixed issue with failed polygon turn
 # package imports
 import os
 import sys
