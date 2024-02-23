@@ -269,6 +269,7 @@ def update_charts(n_intervals: int,
                              mode='lines',
                              yaxis='y',
                              line=dict(color='rgba(70, 145, 219, 0.9)'),
+                             line_shape='spline',
                 )
     )
     traces.append(go.Scatter(x=state_filtered['timestamp'], 
@@ -279,6 +280,7 @@ def update_charts(n_intervals: int,
                              line=dict(color='rgba(217, 139, 49, 0.9)'),
                              fillcolor="rgba(217, 139, 49, 0.25)",
                              fill='tozeroy',
+                             line_shape='spline',
                 )
     )
     #Satellites plot

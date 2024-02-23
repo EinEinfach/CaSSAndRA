@@ -9,7 +9,7 @@ from . data import saveddata, calceddata, cleandata, cfgdata, logdata
 from . data.scheduledata import schedule_tasks
 from . comm.connections import mqttcomm, httpcomm, uartcomm, mqttapi
 from . comm.api import cassandra_api
-from . comm.messageservice import telegram
+from . comm.messageservice import messageservice
 from . data.roverdata import robot
 
 restart = threading.Event()
@@ -22,14 +22,14 @@ def message_service(restart: threading.ExceptHookArgs) -> None:
         if restart.is_set():
             logger.info('Message service thread is stopped')
             return
-        if robot.status == 'offline' and not telegram.message_sent:
-            telegram.send_offline()
-            telegram.message_sent = True
-        if robot.status == 'error' and not telegram.message_sent:
-            telegram.send_error()
-            telegram.message_sent = True
+        if robot.status == 'offline' and not messageservice.message_sent:
+            messageservice.send_offline()
+            messageservice.message_sent = True
+        if robot.status == 'error' and not messageservice.message_sent:
+            messageservice.send_error()
+            messageservice.message_sent = True
         if robot.status != 'offline' and robot.status != 'error':
-            telegram.message_sent = False
+            messageservice.message_sent = False
         time.sleep(5)
 
 def api(restart: threading.ExceptHookArgs) -> None:
@@ -262,9 +262,9 @@ def start(file_paths) -> None:
     
     if cfgdata.commcfg.message_service != None:
         if cfgdata.commcfg.message_service == 'Telegram':
-            telegram.token = cfgdata.commcfg.telegram_token
+            messageservice.telegram_token = cfgdata.commcfg.telegram_token
             logger.info('Message service is telegram, check for chat id')
-            message_service_connection = telegram.get_chat_id()
+            message_service_connection = messageservice.get_chat_id()
             if message_service_connection == 0:
                 message_servive_thread = threading.Thread(target=message_service, args=(restart,), name='message service')
                 message_servive_thread.setDaemon(True)
@@ -273,6 +273,14 @@ def start(file_paths) -> None:
             else:
                 logger.warning('Message service could not be started. Check your message service settings.')
                 logger.debug(f'Error code: {message_service_connection}')
+                
+        if cfgdata.commcfg.message_service == 'Pushover':
+            messageservice.pushover_token = cfgdata.commcfg.pushover_token
+            messageservice.pushover_user = cfgdata.commcfg.pushover_user
+            message_servive_thread = threading.Thread(target=message_service, args=(restart,), name='message service')
+            message_servive_thread.setDaemon(True)
+            message_servive_thread.start()
+            logger.info('Message service is successful started')
             
 
 

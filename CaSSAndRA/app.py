@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.99.3 Fixed issue with failed polygon turn
+#Version:0.100.0 Pushover support
 # package imports
 import os
 import sys

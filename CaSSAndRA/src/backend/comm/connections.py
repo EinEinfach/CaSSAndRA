@@ -18,7 +18,7 @@ from . import message
 
 @dataclass
 class MQTT:
-    client: mqtt.Client() = None
+    client: mqtt.Client = None
     mqtt_client_id: str = None
     mqtt_username: str = None
     mqtt_pass: int = None
