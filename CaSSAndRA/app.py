@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.100.0 Pushover support
+#Version:0.101.0 Shutdown in UART mode
 # package imports
 import os
 import sys
