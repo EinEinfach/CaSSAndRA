@@ -18,7 +18,7 @@ def checkmowmotor(msg: pd.DataFrame, oldstate: bool) -> bool:
     else:
         return oldstate
 
-def check() -> pd.DataFrame():
+def check() -> pd.DataFrame:
 
     msg_pckg = pd.DataFrame()
 

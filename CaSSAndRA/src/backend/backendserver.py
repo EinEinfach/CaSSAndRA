@@ -282,9 +282,6 @@ def start(file_paths) -> None:
             message_servive_thread.start()
             logger.info('Message service is successful started')
             
-
-
-    
     #start an own thread for data storing
     logger.info('Starting thread for data storage')
     datastorage_thread = threading.Thread(target=store_data, args=(restart, file_paths), name='data storage')
@@ -323,3 +320,8 @@ def stop() -> None:
             if th.name == 'data storage':
                 data_storage_running = True
     restart.clear()
+
+def shutdown() -> None:
+    if cfgdata.commcfg.use == 'UART':
+        logger.info('OS will shut down.')
+        os.system('sudo shutdown now')

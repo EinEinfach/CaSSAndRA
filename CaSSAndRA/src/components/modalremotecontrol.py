@@ -30,7 +30,7 @@ confirm = dbc.Modal([
 )
 def toggle_modal(n_clicks_bsoff: int, n_clicks_bsr: int, 
                  n_clicks_bgpsr: int, n_clicks_bfan: int,
-                 n_clicks_bok: int, modal_is_open: bool) -> list():
+                 n_clicks_bok: int, modal_is_open: bool) -> list:
     context = ctx.triggered_id
 
     if robot.last_mow_status:
@@ -67,6 +67,8 @@ def toggle_modal(n_clicks_bsoff: int, n_clicks_bsr: int,
         if cmdlist.cmd_standby == 'off':
             cmdlist.cmd_shutdown = True
             cmdlist.cmd_standby = ''
+            time.sleep(5)
+            backendserver.shutdown()
         elif cmdlist.cmd_standby == 'reboot':
             cmdlist.cmd_reboot = True
             cmdlist.cmd_standby = ''

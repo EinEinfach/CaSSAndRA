@@ -119,7 +119,7 @@ def toggle_offcanvas(n_clicks: int, is_open: bool) -> bool:
           Output(ids.BUTTONFASTER, 'active'),
           [Input(ids.BUTTONSLOWER, 'n_clicks'),
            Input(ids.BUTTONFASTER, 'n_clicks')])
-def update_speed_setpoint(bs_nclicks, bf_nclicks) -> str():
+def update_speed_setpoint(bs_nclicks, bf_nclicks) -> str:
     context = ctx.triggered_id
     if context == ids.BUTTONSLOWER and robot.status == 'mow':
         robot.change_speed('mow', -0.01)
