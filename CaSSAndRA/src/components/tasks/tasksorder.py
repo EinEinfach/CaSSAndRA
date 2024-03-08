@@ -24,9 +24,9 @@ tasksorder = dbc.Col([
                                     buttons.starttasksorder,
                                     buttons.loadtasksorder,
                                     buttons.renametask,
-                                    buttons.savenewtask, 
                                     buttons.removetask, 
                                     buttons.copytask,
+                                    buttons.savenewtask, 
                             ], fluid=True),                       
                         ]), 
                     ], className='text-center m-1 w-90')
