@@ -10,11 +10,11 @@ saveimportedperimeter = dbc.Button(id=ids.BUTTONSAVEIMPORTEDPERIMETER, class_nam
 okbuttonoverwriteperimter= dbc.Button('OK', id=ids.OKBUTTONOVERWRITEPERIMTER, class_name='ms-auto', n_clicks=0)
 
 #select map area
-selectperimeter = dbc.Button(id=ids.BUTTONSELECTPERIMETER, class_name='mt-1 me-1 bi bi-cloud-download', n_clicks=0, title='use selected perimeter')
-removeperimeter = dbc.Button(id=ids.BUTTONREMOVEPERIMETER, class_name='mt-1 me-1 bi bi-cloud-minus', n_clicks=0, title='remove selected perimeter')
+selectperimeter = dbc.Button(id=ids.BUTTONSELECTPERIMETER, class_name='mt-1 me-1 bi bi-cloud-download btn-info', n_clicks=0, title='use selected perimeter')
+removeperimeter = dbc.Button(id=ids.BUTTONREMOVEPERIMETER, class_name='mt-1 me-1 bi bi-trash', n_clicks=0, title='remove selected perimeter')
 addnewperimeter = dbc.Button(id=ids.BUTTONADDNEWPERIMETER, class_name='mt-1 me-1 bi-file-earmark-plus', n_clicks=0, title='add new perimeter')
-copyperimeter = dbc.Button(id=ids.BUTTONCOPYPERIMETER, class_name='mt-1 me-1 bi bi-clouds', n_clicks=0, title='copy perimeter')
-finishfigure = dbc.Button(id=ids.BUTTONFINISHFIGURE, class_name='mt-1 me-1 bi bi-cloud-plus', disabled=False, title='finish and save')
+copyperimeter = dbc.Button(id=ids.BUTTONCOPYPERIMETER, class_name='mt-1 me-1 bi bi-copy', n_clicks=0, title='copy perimeter')
+finishfigure = dbc.Button(id=ids.BUTTONFINISHFIGURE, class_name='mt-1 me-1 bi bi-floppy btn-success', disabled=False, title='finish and save')
 renameperimeter = dbc.Button(id=ids.BUTTONRENAMEPERIMETER, class_name='mt-1 me-1 bi bi-pencil-square', disabled=False, title='rename perimeter')
 okbuttonselectedperimeter = dbc.Button('OK', id=ids.OKBUTTONSELECTEDPERIMETER, class_name='ms-auto', n_clicks=0)
 
