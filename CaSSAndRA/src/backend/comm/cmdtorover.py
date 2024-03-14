@@ -9,7 +9,7 @@ from .. data.roverdata import robot
 from .. data.cfgdata import rovercfg
 from . import cmdlist
 
-def takemap(perimeter: pd.DataFrame(), way: pd.DataFrame(), dock: bool) -> pd.DataFrame():
+def takemap(perimeter: pd.DataFrame, way: pd.DataFrame, dock: bool) -> pd.DataFrame:
     perimeter = perimeter[perimeter['type'] != 'search wire']
     logger.info('Backend: Prepare map and way data for transmition')
 
@@ -62,7 +62,7 @@ def takemap(perimeter: pd.DataFrame(), way: pd.DataFrame(), dock: bool) -> pd.Da
 
     return buffer
 
-def move(movement: list()) -> pd.DataFrame():
+def move(movement: list) -> pd.DataFrame:
     if movement[0] !=0 or movement[1] != 0:
         msg = {'msg': 'AT+M,'+str(movement[0])+','+str(movement[1])}
         buffer = pd.DataFrame([msg])
@@ -75,7 +75,7 @@ def move(movement: list()) -> pd.DataFrame():
         cmdlist.cmd_move = False
         return buffer
 
-def goto() -> pd.DataFrame():
+def goto() -> pd.DataFrame:
     msg = {'msg': 'AT+C,0,1,'+str(rovercfg.gotospeed_setpoint)+',100,0,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command goto is prepared')
@@ -89,42 +89,42 @@ def stop():
     cmdlist.cmd_stop = False
     return buffer
 
-def dock() -> pd.DataFrame():
+def dock() -> pd.DataFrame:
     msg = {'msg': 'AT+C,0,4,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command dock is prepared')
     cmdlist.cmd_dock = False
     return buffer
 
-def mow() -> pd.DataFrame():
+def mow() -> pd.DataFrame:
     msg = {'msg': 'AT+C,1,1,'+str(rovercfg.mowspeed_setpoint)+',-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command start is prepared')
     cmdlist.cmd_mow = False
     return buffer
 
-def shutdown() -> pd.DataFrame():
+def shutdown() -> pd.DataFrame:
     msg = {'msg': 'AT+Y3'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command shutdown is preapred')
     cmdlist.cmd_shutdown = False
     return buffer
 
-def reboot() -> pd.DataFrame():
+def reboot() -> pd.DataFrame:
     msg = {'msg': 'AT+Y'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command reboot is prepared')
     cmdlist.cmd_reboot = False
     return buffer
 
-def gpsreboot() -> pd.DataFrame():
+def gpsreboot() -> pd.DataFrame:
     msg = {'msg': 'AT+Y2'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command GPS reboot is prepared')
     cmdlist.cmd_gps_reboot = False
     return buffer
 
-def togglemowmotor() -> pd.DataFrame():
+def togglemowmotor() -> pd.DataFrame:
     #mow motor switch on
     if not robot.last_mow_status:
         msg = {'msg': 'AT+C,1,-1,-1,-1,-1,-1,-1,-1'}
@@ -136,7 +136,7 @@ def togglemowmotor() -> pd.DataFrame():
     buffer = pd.DataFrame([msg])
     return buffer
 
-def takepositionmode() -> pd.DataFrame():
+def takepositionmode() -> pd.DataFrame:
     positionmode = rovercfg.positionmode
     if positionmode == 'absolute':
         positionmode = '1,'
@@ -147,7 +147,7 @@ def takepositionmode() -> pd.DataFrame():
     cmdlist.cmd_set_positionmode = False
     return buffer
 
-def changespeed(new_speed: float) -> pd.DataFrame():
+def changespeed(new_speed: float) -> pd.DataFrame:
     msg = {'msg': 'AT+C,-1,-1,'+str(new_speed)+',-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command change speed is prepared, new value is: '+str(new_speed))
@@ -155,14 +155,14 @@ def changespeed(new_speed: float) -> pd.DataFrame():
     cmdlist.cmd_changegotospeed = False
     return buffer
 
-def skipnextpoint() -> pd.DataFrame():
+def skipnextpoint() -> pd.DataFrame:
     msg = {'msg': 'AT+C,-1,-1,-1,-1,-1,-1,1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Command skip next point is prepared')
     cmdlist.cmd_skipnextpoint = False
     return buffer
 
-def custom() -> pd.DataFrame():
+def custom() -> pd.DataFrame:
     msg = {'msg': cmdlist.cmd_custom_str}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Custom command is prepared')

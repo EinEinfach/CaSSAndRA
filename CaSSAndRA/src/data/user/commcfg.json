@@ -61,6 +61,17 @@
     "TELEGRAM": [
         {
             "TOKEN": null
+        },
+        {
+            "CHAT_ID": null
+        }
+    ],
+    "PUSHOVER": [
+        {
+            "TOKEN": null
+        },
+        {
+            "USER": null
         }
     ]
 }

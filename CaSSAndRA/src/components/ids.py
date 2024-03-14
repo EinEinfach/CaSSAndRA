@@ -200,7 +200,11 @@ RADIOMESSAGESERVICETYPE = 'radio-message-service-type'
 MESSAGESERVICESTYLE = 'message-service-style'
 TELEGRAMSERVICESTYLE = 'telegram-service-style'
 TELEGRAMTOKEN = 'telegram-token'
+TELEGRAMCHATID = 'telegram-chatid'
 TELEGRAMTESTMESSAGE = 'telegram-test-message'
+PUSHOVERSERVICESTYLE = 'pushover-service-style'
+PUSHOVERTOKEN = 'pushover-token'
+PUSHOVERUSER = 'pushover-user'
 
 #mapping page
 BUTTONSAVEIMPORTEDPERIMETER = 'button-save-imported-perimeter'

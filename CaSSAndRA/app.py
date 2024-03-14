@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.99.3 Fixed issue with failed polygon turn
+#Version:0.101.0 Shutdown in UART mode
 # package imports
 import os
 import sys

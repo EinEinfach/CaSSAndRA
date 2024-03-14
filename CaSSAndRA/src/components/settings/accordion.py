@@ -9,7 +9,7 @@ from src.backend import backendserver
 from src.backend.data import appdata
 from src.backend.data.cfgdata import rovercfg, pathplannercfg, appcfg, commcfg
 from src.backend.comm import cmdlist
-from src.backend.comm.messageservice import telegram
+from src.backend.comm.messageservice import messageservice
 
 accordion_settings = dbc.Accordion([
                         dbc.AccordionItem(
@@ -244,6 +244,7 @@ accordion_settings = dbc.Accordion([
                                         options=[
                                             {'label': 'deactivated', 'value': 'deactivated'},
                                             {'label': 'Telegram', 'value': 'Telegram'},
+                                            {'label': 'Pushover', 'value': 'Pushover'}
                                         ],
                                         id=ids.RADIOMESSAGESERVICETYPE,
                                         inline=True
@@ -256,6 +257,8 @@ accordion_settings = dbc.Accordion([
                                     dbc.Container([
                                         dbc.FormText('API-Token'),
                                         dbc.Input(id=ids.TELEGRAMTOKEN), 
+                                        dbc.FormText('Chat ID'),
+                                        dbc.Input(id=ids.TELEGRAMCHATID), 
                                         dbc.FormText('Test message'),
                                         dbc.Row([
                                             dbc.Col([dbc.Input(id=ids.TELEGRAMTESTMESSAGE)], style={"flex" : "1 0 0%"}),
@@ -270,7 +273,27 @@ accordion_settings = dbc.Accordion([
                                     ], 
                                     id=ids.TELEGRAMSERVICESTYLE, 
                                     style={"height" : "100%", "overflow" : "hidden", "display" : "flex", "flex-direction" : "column"}), 
+                                    dbc.Container([
+                                        dbc.FormText('API-Token'),
+                                        dbc.Input(id=ids.PUSHOVERTOKEN), 
+                                        dbc.FormText('User'),
+                                        dbc.Input(id=ids.PUSHOVERUSER), 
+                                        dbc.FormText('Test message'),
+                                        dbc.Row([
+                                            dbc.Col([dbc.Input(id=ids.TELEGRAMTESTMESSAGE)], style={"flex" : "1 0 0%"}),
+                                            dbc.Col([dbc.Button(id=ids.BUTTONSENDTELEGRAMMESSAGE, 
+                                                                size='lg', 
+                                                                class_name='bi bi-send-fill', 
+                                                                title='send test message'),
+                                                    ], style={"flex" : "0 0 0%"}
+                                            )
+                                            ], justify='center', align='center',
+                                        )
+                                    ], 
+                                    id=ids.PUSHOVERSERVICESTYLE, 
+                                    style={"height" : "100%", "overflow" : "hidden", "display" : "flex", "flex-direction" : "column"}),
                                 ]),
+                                
                             ],
                             title='Message service',
                         ),
@@ -281,7 +304,7 @@ accordion_settings = dbc.Accordion([
           Output(ids.HTTPCONNECTIONSTYLE, 'style'),
           Output(ids.UARTCONNECTIONSTYLE, 'style'),
           Input(ids.RADIOCONNECTIONTYPE, 'value'))
-def update_connectioninput(radio_input: str()) -> list(dict()):
+def update_connectioninput(radio_input: str) -> list:
     if radio_input == 'MQTT':
         return {'display': 'block'}, {'display': 'none'}, {'display': 'none'}
     elif radio_input == 'HTTP':
@@ -315,31 +338,37 @@ def update_connectioninput(radio_input: str()) -> list(dict()):
            State(ids.APIMQTTCASSANDRASERVERNAME, 'value'),
            State(ids.RADIOMESSAGESERVICETYPE, 'value'),
            State(ids.TELEGRAMTOKEN, 'value'),
+           State(ids.TELEGRAMCHATID, 'value'),
+           State(ids.PUSHOVERTOKEN, 'value'),
+           State(ids.PUSHOVERUSER, 'value'),
            ])
 def update_connection_data(bsr_n_clicks: int, 
                            bok_n_clicks: int,
                            is_open: bool, 
-                           connectiontype: str(),
-                           mqttclientid: str(), 
-                           mqttusername: str(), 
-                           mqttpassword: str(), 
-                           mqttserver: str(), 
+                           connectiontype: str,
+                           mqttclientid: str, 
+                           mqttusername: str, 
+                           mqttpassword: str, 
+                           mqttserver: str, 
                            mqttport: int, 
-                           mqttrovername: str(), 
-                           ipadressrover: str(), 
-                           sunraypass: str(),
-                           serport: str(), 
+                           mqttrovername: str, 
+                           ipadressrover: str, 
+                           sunraypass: str,
+                           serport: str, 
                            baudrate: int,
-                           apiconnectiontype: str(),
-                           apimqttclientid: str(),
-                           apimqttusername: str(),
-                           apimqttpassword: str(),
-                           apimqttserver: str(),
+                           apiconnectiontype: str,
+                           apimqttclientid: str,
+                           apimqttusername: str,
+                           apimqttpassword: str,
+                           apimqttserver: str,
                            apimqttport: int,
-                           apicassandraservername: str(),
-                           messageservicetype: str(),
-                           telegramtoken: str(),
-                           ) -> bool():
+                           apicassandraservername: str,
+                           messageservicetype: str,
+                           telegramtoken: str,
+                           telegramchatid: str,
+                           pushovertoken: str,
+                           pushoveruser: str,
+                           ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOK:
         if connectiontype == 'MQTT':
@@ -371,9 +400,20 @@ def update_connection_data(bsr_n_clicks: int,
             commcfg.message_service = None
             commcfg.telegram_token = None
             commcfg.telegram_chat_id = None
+            commcfg.pushover_token = None
+            commcfg.pushover_user = None
         if messageservicetype == 'Telegram':
             commcfg.message_service = 'Telegram'
             commcfg.telegram_token = telegramtoken
+            try:
+                commcfg.telegram_chat_id = int(telegramchatid)
+            except:
+                commcfg.telegram_chat_id = None
+        if messageservicetype == 'Pushover':
+            commcfg.message_service = 'Pushover'
+            commcfg.pushover_token = pushovertoken
+            commcfg.pushover_user = pushoveruser
+        
         commcfg.save_commcfg()
         backendserver.reboot()
         return False
@@ -384,7 +424,7 @@ def update_connection_data(bsr_n_clicks: int,
 
 @callback(Output(ids.POSITIONMODESTYLE, 'style'),
           Input(ids.RADIOPOSITIONMODE, 'value'))
-def update_connectioninput(radio_input: str()) -> list(dict()):
+def update_connectioninput(radio_input: str) -> list:
     if radio_input == 'absolute':
         return {'display': 'block'}
     else:
@@ -450,7 +490,7 @@ def update_app_data(bsr_n_clicks: int,
                     roverpicture: str,
                     maxobstacles: int,
                     lightmode: str,
-                    ) -> bool():
+                    ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKAPPSETTINGS:
         if maxage != None:
@@ -492,7 +532,7 @@ def update_rover_picture_preview(preview_picture: str, preview_picture_state: st
           State(ids.POSITIONMODELAT, 'value'))
 def update_robotsettings_data(bsrs_nclicks: int, bok_nclicks: int, is_open: bool, 
                       mowspeedsetpoint: float, gotospeedsetpoint: float,
-                      positionmode: str(), positionmodelon: float, positionmodelat: float
+                      positionmode: str, positionmodelon: float, positionmodelat: float
                       ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKROBOTSETTINGS:
@@ -512,7 +552,7 @@ def update_robotsettings_data(bsrs_nclicks: int, bok_nclicks: int, is_open: bool
           [Input(ids.RADIOAPICONNECTIONTYPE, 'value'),
            ])
 def update_apiconnectioninput(radio_input: str,
-                              ) -> list(dict()):
+                              ) -> list:
     if radio_input == 'deactivated':
         return {'display': 'none'}, {'display': 'none'}
     elif radio_input == 'MQTT':
@@ -522,16 +562,19 @@ def update_apiconnectioninput(radio_input: str,
 
 @callback(Output(ids.MESSAGESERVICESTYLE, 'style'),
           Output(ids.TELEGRAMSERVICESTYLE, 'style'),
+          Output(ids.PUSHOVERSERVICESTYLE, 'style'),
           [Input(ids.RADIOMESSAGESERVICETYPE, 'value')],
           )
 def update_messageservicetype(radio_input: str,
-                              ) -> list(dict()):
+                              ) -> list:
     if radio_input == 'deactivated':
-        return {'display': 'none'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
     elif radio_input == 'Telegram':
-        return {'display': 'none'}, {'display': 'block'}
+        return {'display': 'none'}, {'display': 'block'}, {'display': 'none'}
+    elif radio_input == 'Pushover':
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'block'}
     else:
-        return {'display': 'none'}, {'display': 'none'} 
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'} 
 
 @callback(Output(ids.RADIOPOSITIONMODE, 'value'),
           Output(ids.POSITIONMODELON, 'value'),
@@ -574,5 +617,5 @@ def send_test_message(bsm_nclicks: int,
                       message: str,
                       ) -> bool:
     if bsm_nclicks:
-        telegram.send_message(message)
+        messageservice.send_message(message)
     return False

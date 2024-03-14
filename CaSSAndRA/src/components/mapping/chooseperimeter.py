@@ -16,9 +16,9 @@ chooseperimeter = dbc.Col([
                                 buttons.selectperimeter,
                                 buttons.addnewperimeter,
                                 buttons.renameperimeter,
-                                buttons.finishfigure,
                                 buttons.removeperimeter,   
                                 buttons.copyperimeter,
+                                buttons.finishfigure,
                             ], fluid=True),                      
                         ]), 
                     ], className='text-center m-1 w-90')
