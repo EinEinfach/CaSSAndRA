@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.101.1 Fixed schedule dock command behavior 
+#Version:0.102.0 Adjustable mow progress, fix timeout in settings available
 # package imports
 import os
 import sys

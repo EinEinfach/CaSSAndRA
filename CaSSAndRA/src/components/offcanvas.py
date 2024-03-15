@@ -1,5 +1,5 @@
 #package imports
-from dash import html, Input, Output, State, callback, ctx
+from dash import html, dcc, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
 import time
 
@@ -29,12 +29,26 @@ offcanvas =dbc.Offcanvas([
                         joystick.joystick
                     ])
                 ),
+                dbc.Row([
+                    dcc.Slider(id=ids.MOWPERCENTAGE, 
+                               min=0, 
+                               max=100, 
+                               step=0.1, 
+                               value=robot.mowprogress,
+                               marks={0: '0%', 50: '50%', 100: '100%'},
+                               tooltip={"always_visible": False, "template": "{value} %"}, 
+                               className="chart-slider dbc")
+                    ],
+                    class_name='mt-3'
+                ),
                 dbc.Row(
                     dbc.Col([
                        dbc.Card([
                            dbc.CardBody(id=ids.SPEEDSETPOINTOFFCANVAS),
                        ], class_name='text-center mb-2 mt-2')
-                    ])
+                    ],
+                    class_name='mt-3'
+                )
                 ),
                 dbc.Row([
                     dbc.Col([
@@ -160,6 +174,25 @@ def update_next_point(bnp_nclicks: int) -> bool:
         time.sleep(0.5)
         cmdlist.cmd_resume = True
     return False
+
+@callback(Output(ids.MOWPERCENTAGE, 'value'),
+          [Input(ids.MOWPERCENTAGE, 'value'),
+           Input(ids.OFFCANVAS, 'is_open')],
+          prevent_initial_call=True,
+          )
+def update_mowprogress(
+    mowprogress: float,
+    is_open: bool,
+) -> float:
+    context = ctx.triggered_id
+    if context == ids.MOWPERCENTAGE:
+        robot.mowprogress = round(mowprogress/100, 3)
+        cmdlist.cmd_skiptomowprogress = True
+        return mowprogress
+    elif context == ids.OFFCANVAS and is_open:
+        return round(robot.mowprogress*100, 1)
+    else:
+        return 0
 
 
     

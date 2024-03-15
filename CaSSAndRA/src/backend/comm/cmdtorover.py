@@ -76,7 +76,7 @@ def move(movement: list) -> pd.DataFrame:
         return buffer
 
 def goto() -> pd.DataFrame:
-    msg = {'msg': 'AT+C,0,1,'+str(rovercfg.gotospeed_setpoint)+',100,0,-1,-1,-1'}
+    msg = {'msg': 'AT+C,0,1,'+str(rovercfg.gotospeed_setpoint)+','+str(rovercfg.fix_timeout)+',0,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command goto is prepared')
     cmdlist.cmd_goto = False
@@ -97,7 +97,7 @@ def dock() -> pd.DataFrame:
     return buffer
 
 def mow() -> pd.DataFrame:
-    msg = {'msg': 'AT+C,1,1,'+str(rovercfg.mowspeed_setpoint)+',-1,-1,-1,-1,-1'}
+    msg = {'msg': 'AT+C,1,1,'+str(rovercfg.mowspeed_setpoint)+','+str(rovercfg.fix_timeout)+',-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command start is prepared')
     cmdlist.cmd_mow = False
@@ -168,4 +168,11 @@ def custom() -> pd.DataFrame:
     logger.debug('Backend: Custom command is prepared')
     cmdlist.cmd_custom = False
     cmdlist.cmd_custom_str = ''
+    return buffer
+
+def skiptomowprogress(progress: float) -> pd.DataFrame:
+    msg = {'msg': 'AT+C,-1,-1,-1,-1,-1,'+str(progress)+',-1,-1'}
+    buffer = pd.DataFrame([msg])
+    logger.debug('Command skip to progress is prepared')
+    cmdlist.cmd_skiptomowprogress = False
     return buffer
