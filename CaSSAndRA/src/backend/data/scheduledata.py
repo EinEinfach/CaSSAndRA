@@ -136,9 +136,8 @@ class ScheduleTasks:
     def create_dock_cmd(self) -> None:
         if robot.job == 1:
             cmdlist.cmd_dock_schedule = True
-            self.job_finished = True
+            logger.info(f'Schedule dock command is send to mower')
         else:
-            logger.info(f'Schedule dock command failed. Mower is in wrong state: {robot.status}')
             self.job_finished = True
     
     def check(self) -> None:

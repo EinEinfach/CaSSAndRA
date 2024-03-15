@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.101.0 Shutdown in UART mode
+#Version:0.101.1 Fixed schedule dock command behavior 
 # package imports
 import os
 import sys
