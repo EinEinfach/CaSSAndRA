@@ -59,8 +59,8 @@ def handle_buttons(
             buttonmowall: int, 
             tasks_order: list,
             buttongoto: int,
-            clickdata: dict(), 
-            selecteddata: dict(),
+            clickdata: dict, 
+            selecteddata: dict,
             buttoncancelclick: int,
             buttongotostate: bool, 
             fig_state: dict,
@@ -156,7 +156,7 @@ def handle_buttons(
 def update(n_intervals: int,
            calledpage: str,
            buttoncall: str,
-           ) -> Patch():
+           ) -> Patch:
      mowdata = []
      #Plots
      traces = []

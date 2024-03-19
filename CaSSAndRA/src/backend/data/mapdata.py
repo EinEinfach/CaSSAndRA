@@ -19,7 +19,8 @@ from .. map import map
 
 @dataclass
 class Perimeter:
-    name: str() = ''
+    name: str = ''
+    angle_offset: int = 0
     perimeter: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     perimeter_polygon: Polygon = Polygon()
     selected_perimeter: Polygon = Polygon()
@@ -38,7 +39,7 @@ class Perimeter:
     areatomow: float = 0
     distancetogo: float = 0
     map_crc: int = None
-    current_perimeter_file: str() = ''
+    current_perimeter_file: str = ''
     plotgotopoints: bool = False
     # Progress bar
     calculating: bool = False
@@ -205,7 +206,7 @@ class Perimeter:
         direct_way_possible = way.within(self.perimeter_polygon)
         return direct_way_possible
     
-    def create(self, name: str()) -> None:
+    def create(self, name: str) -> None:
         self.name = name
         self.preview = pd.DataFrame()
         self.mowpath = pd.DataFrame()
@@ -217,12 +218,12 @@ class Perimeter:
         self.create_networkx_graph()
         self.save_map_name()
     
-    def calc_route_preview(self, route: list()) -> None:
+    def calc_route_preview(self, route: list) -> None:
         self.preview = pd.DataFrame(route)
         self.preview.columns = ['X', 'Y']
         self.preview['type'] = 'preview route'
     
-    def read_map_name(self) -> str():
+    def read_map_name(self) -> str:
         try:
             with open(self.current_perimeter_file) as f: 
                 tmp_data = json.load(f)
@@ -284,7 +285,7 @@ class Perimeters:
         self.build_cpy = pd.DataFrame()
         self.dockpoints = pd.DataFrame(columns=['X', 'Y'])
 
-    def import_sunray(self, content: str()) -> None:
+    def import_sunray(self, content: str) -> None:
         coords_all = pd.DataFrame()
         content_type, content = content.split(',')
         decoded = base64.b64decode(content)
@@ -382,7 +383,7 @@ class Perimeters:
         abs_coords['lat'] = lat
         return abs_coords
         
-    def select_imported(self, nr: int()) -> None:
+    def select_imported(self, nr: int) -> None:
         logger.info('Backend: Changing perimeter to nr: '+str(nr))
         try:
             perimeter = self.imported[self.imported['map_nr'] == nr]
@@ -403,7 +404,7 @@ class Perimeters:
         self.build_cpy = perimeter
         self.dockpoints = self.build[self.build['type'] == 'dockpoints']
 
-    def add_point(self, create: str()) -> None:
+    def add_point(self, create: str) -> None:
         try:
             if not self.build.empty and not self.build[self.build['type'] == 'edit'].empty:
                 logger.debug('Add point to existing figure')
@@ -450,7 +451,7 @@ class Perimeters:
             logger.error('Backend: Add point not possible')
             logger.debug(str(e))
         
-    def remove_point(self, create: str()) -> None:
+    def remove_point(self, create: str) -> None:
         try: 
             logger.debug('Removing point')
             figure = self.build[self.build['type'] == create]
@@ -482,7 +483,7 @@ class Perimeters:
             logger.error('Backend: Remove point not possible')
             logger.debug(str(e))
     
-    def add_figure(self, selection: dict()) -> None:
+    def add_figure(self, selection: dict) -> None:
         try: 
             #remove unfinished figure
             if not self.build.empty:
@@ -514,7 +515,7 @@ class Perimeters:
             logger.error('Backend: Add a figure not possible')
             logger.debug(str(e))
 
-    def figure_action(self, action: str()) -> None:
+    def figure_action(self, action: str) -> None:
         self.selected_point = pd.DataFrame()
         try:
             logger.debug('Mapping finish figure as: '+action)
@@ -667,7 +668,7 @@ class Task:
     tasks_order: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     tasks_order_parameters: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
 
-    def calc_route_preview(self, route: list()) -> None:
+    def calc_route_preview(self, route: list) -> None:
         self.preview = pd.DataFrame(route)
         self.preview.columns = ['X', 'Y']
         self.preview['type'] = 'preview route'

@@ -251,7 +251,7 @@ def read_perimeter(map_file_paths) -> None:
         logger.error('Backend: Loading saved perimeter failed')
         logger.debug(str(e))
 
-def save(name: str(), file_paths) -> None:
+def save(name: str, file_paths) -> None:
     if name == 'state':
         try:
             roverdata.state.to_pickle(file_paths.measure.state)
@@ -273,7 +273,7 @@ def save(name: str(), file_paths) -> None:
             logger.error('Backend: Could not save statistics data to the file')
             logger.debug(str(e))
 
-def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimeter_name: str()) -> None:
+def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimeter_name: str) -> None:
     if perimeter_name is None:
         logger.info('Backend: Could not save perimeter. Perimeter name is not valid')
     elif perimeter_arr.empty or not (perimeter_name in perimeter_arr['name'].unique()):
@@ -301,7 +301,7 @@ def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimet
     else:
         logger.info('Backend: Could not save perimeter. Perimeter name is already exsist.')
 
-def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), tasks_arr: pd.DataFrame, tasks_parameters_arr) -> None:
+def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str, tasks_arr: pd.DataFrame, tasks_parameters_arr) -> None:
     try:
         perimeter_arr = perimeter_arr[perimeter_arr['name'] != perimeter_name]
         perimeter_arr.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
@@ -314,7 +314,7 @@ def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), tasks_a
         logger.error('Backend: Could not remove perimeter data from file')
         logger.debug(str(e))
 
-def copy_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str(), cpy_perimeter_name: str()) -> None:
+def copy_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str, cpy_perimeter_name: str) -> None:
     if cpy_perimeter_name is None:
         logger.info('Could not copy perimeter. Perimeter name is not valid')
     elif not cpy_perimeter_name in perimeter_arr['name'].unique():
@@ -373,7 +373,7 @@ def rename_perimeter(perimeter_name: str, new_perimeter_name: str) -> None:
     else:
         logger.info('Could not rename perimeter. Perimeter name is already exsist.')
 
-def save_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task: pd.DataFrame, task_parameters: pd.DataFrame, task_name: str()) -> None:
+def save_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task: pd.DataFrame, task_parameters: pd.DataFrame, task_name: str) -> None:
     if task_name is None:
         logger.info('Backend: Could not save task. Task name is not valid')
         return
@@ -408,7 +408,7 @@ def read_tasks(map_file_paths) -> None:
         logger.debug(str(e))
         return
 
-def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_name: list(), map_name: str()) -> None:
+def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_name: list, map_name: str) -> None:
     try:
         if task_name[0] == '':
             task_arr = task_arr[task_arr['map name'] != map_name]

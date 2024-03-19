@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.102.0 Adjustable mow progress, fix timeout in settings available
+#Version:0.102.1 Add some schedule messages
 # package imports
 import os
 import sys

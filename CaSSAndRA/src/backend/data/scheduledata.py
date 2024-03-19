@@ -103,7 +103,6 @@ class ScheduleTasks:
         now_seconds = (datetime.now() - self.midnight).seconds
         if self.active and self.job_started and not self.job_finished and (time_table[self.dayweek][1] - time_table[self.dayweek][0] != 0):
             if now_seconds >= stop_time_seconds:
-                logger.info('Schedule command dock')
                 self.create_dock_cmd()
     
     def create_start_cmd(self) -> None:
@@ -139,8 +138,10 @@ class ScheduleTasks:
             logger.info(f'Schedule dock command is send to mower')
         else:
             self.job_finished = True
+            logger.info(f'Schedule job finished')
     
     def check(self) -> None:
+        logger.info(f"Schedule: active: {self.active}, job started: {self.job_started}, job finished: {self.job_finished}, start failed cnt: {self.start_failed_cnt}")
         self.check_new_day()
         self.check_start_time()
         self.check_dock_time()
