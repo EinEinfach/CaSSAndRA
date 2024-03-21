@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.102.1 Add some schedule messages
+#Version:0.103.0 Random angle for pathplanner
 # package imports
 import os
 import sys

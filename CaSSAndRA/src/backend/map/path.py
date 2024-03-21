@@ -3,6 +3,7 @@ logger = logging.getLogger(__name__)
 
 import pandas as pd
 from shapely.geometry import *
+import random
 
 from . import map, cutedge, lines, rings
 from . pathfinder import pathfinder
@@ -72,26 +73,31 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
     logger.info('Backend: Route calculation from task done')
     current_map.calc_route_preview(route)
 
-def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: list()) -> list:
+def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: list) -> list:
     if selected_perimeter.is_empty:
         return
     logger.info('Backend: Planning route:')
     logger.info(parameters)
     logger.info('Rover start position: '+str(start_pos))
     start_pos = Point(start_pos)
-    
+    #check if random angle
+    if parameters.angle == None:
+        angle = random.randrange(start=359) 
+        logger.debug(f'Coverage path planner uses random angle: {angle}Deg')
+    else:
+        angle = parameters.angle
 
     if parameters.pattern == 'lines' or parameters.pattern == 'squares':
-        start_pos = map.turn(start_pos, parameters.angle)
-        selected_area_turned = map.turn(selected_perimeter, parameters.angle)
+        start_pos = map.turn(start_pos, angle)
+        selected_area_turned = map.turn(selected_perimeter, angle)
         area_to_mow, border = map.border(selected_area_turned, parameters.distancetoborder, parameters.width)
         route, edge_polygons = cutedge.calcroute(border, parameters, list(start_pos.coords))
         if parameters.mowarea == True:
             line_mask = map.linemask(area_to_mow, parameters.width)
         else:
             line_mask = MultiLineString()
-        route = lines.calcroute(area_to_mow, border, line_mask, edge_polygons, route, parameters, parameters.angle)
-        route = map.turn(route, -parameters.angle)
+        route = lines.calcroute(area_to_mow, border, line_mask, edge_polygons, route, parameters, angle)
+        route = map.turn(route, -angle)
         route = list(route.coords)
         # Clear progress bar
         if parameters.pattern == 'lines' or (parameters.pattern == 'squares' and parameters.mowarea != True):
@@ -100,12 +106,12 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
     if parameters.pattern == 'squares' and parameters.mowarea == True:
         last_coord = route[-1]
         last_coord = Point(last_coord)
-        last_coord = map.turn(last_coord, parameters.angle+90)
-        selected_area_turned = map.turn(selected_perimeter, parameters.angle+90)
+        last_coord = map.turn(last_coord, angle+90)
+        selected_area_turned = map.turn(selected_perimeter, angle+90)
         area_to_mow, border = map.border(selected_area_turned, parameters.distancetoborder, parameters.width)
         line_mask = map.linemask(area_to_mow, parameters.width)
-        route2 = lines.calcroute(area_to_mow, border, line_mask, [], list(last_coord.coords), parameters, parameters.angle+90)
-        route2 = map.turn(route2, -parameters.angle-90)
+        route2 = lines.calcroute(area_to_mow, border, line_mask, [], list(last_coord.coords), parameters, angle+90)
+        route2 = map.turn(route2, -angle-90)
         route.extend(list(route2.coords))
         # Clear progress bar
         current_map.total_progress = current_map.calculated_progress = 0

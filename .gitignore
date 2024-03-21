@@ -18,4 +18,5 @@ pip-selfcheck.json
 
 # VSCode workspace
 CaSSAndRA.code-workspace
+launch.json
 

@@ -444,19 +444,24 @@ def update_connectioninput(radio_input: str) -> list:
            State(ids.MOWAREASETTINGS, 'value'),
            State(ids.MOWEDGEEXCLUSIONSETTINGS, 'value'),
            State(ids.MOWBORDERCCWSETTINGS, 'value')])
-def update_pathplanner_settings_data(bsr_n_clicks: int, bok_n_clicks: int, 
-                                     is_open: bool, mowoffset: float, 
-                                     mowangle: int, mowedge: str, 
-                                     distancetoborder: int, pattern: str,
-                                     mowarea: bool, mowexclusion: bool,
-                                     mowborderccw: bool) -> bool:
+def update_pathplanner_settings_data(bsr_n_clicks: int, 
+                                     bok_n_clicks: int, 
+                                     is_open: bool, 
+                                     mowoffset: float, 
+                                     mowangle: int, 
+                                     mowedge: str, 
+                                     distancetoborder: int, 
+                                     pattern: str,
+                                     mowarea: bool, 
+                                     mowexclusion: bool,
+                                     mowborderccw: bool
+                                     ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKMAPSETTINGS:
         pathplannercfg.pattern = pattern
         if mowoffset != None:
             pathplannercfg.width = mowoffset
-        if mowangle != None:
-            pathplannercfg.angle = mowangle
+        pathplannercfg.angle = mowangle
         if distancetoborder != None:
             pathplannercfg.distancetoborder = distancetoborder
         pathplannercfg.mowarea = mowarea
