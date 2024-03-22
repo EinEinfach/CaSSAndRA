@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.103.1 Fix error if coverage path planner parameters are empty
+#Version:0.103.2 Bug fixing in path planner
 # package imports
 import os
 import sys

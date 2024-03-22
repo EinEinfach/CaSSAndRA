@@ -3,7 +3,7 @@ logger = logging.getLogger(__name__)
 
 import pandas as pd
 from shapely.geometry import *
-import random
+import random, math
 
 from . import map, cutedge, lines, rings
 from . pathfinder import pathfinder
@@ -83,7 +83,7 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
     logger.info('Rover start position: '+str(start_pos))
     start_pos = Point(start_pos)
     #check if random angle
-    if parameters.angle == None:
+    if parameters.angle == None or math.isnan(float(parameters.angle)):
         angle = random.randrange(start=359) 
         logger.debug(f'Coverage path planner uses random angle: {angle}Deg')
     else:
@@ -92,9 +92,10 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
     if parameters.pattern == 'lines' or parameters.pattern == 'squares':
         start_pos = map.turn(start_pos, angle)
         selected_area_turned = map.turn(selected_perimeter, angle)
-        area_to_mow, border = map.border(selected_area_turned, parameters.distancetoborder, parameters.width)
-        route, edge_polygons = cutedge.calcroute(border, parameters, list(start_pos.coords))
-        if parameters.mowarea == True:
+        border = map.turn(current_map.perimeter_polygon, angle)
+        area_to_mow = map.areatomow(selected_area_turned, parameters.distancetoborder, parameters.width)
+        route, edge_polygons = cutedge.calcroute(selected_area_turned, parameters, list(start_pos.coords))
+        if parameters.mowarea:
             line_mask = map.linemask(area_to_mow, parameters.width)
         else:
             line_mask = MultiLineString()
@@ -110,8 +111,12 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         last_coord = Point(last_coord)
         last_coord = map.turn(last_coord, angle+90)
         selected_area_turned = map.turn(selected_perimeter, angle+90)
-        area_to_mow, border = map.border(selected_area_turned, parameters.distancetoborder, parameters.width)
-        line_mask = map.linemask(area_to_mow, parameters.width)
+        border = map.turn(current_map.perimeter_polygon, angle+90)
+        area_to_mow = map.areatomow(selected_area_turned, parameters.distancetoborder, parameters.width)
+        if parameters.mowarea:
+            line_mask = map.linemask(area_to_mow, parameters.width)
+        else:
+            line_mask = MultiLineString()
         route2 = lines.calcroute(area_to_mow, border, line_mask, [], list(last_coord.coords), parameters, angle+90)
         route2 = map.turn(route2, -angle-90)
         route.extend(list(route2.coords))
@@ -119,8 +124,9 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         current_map.total_progress = current_map.calculated_progress = 0
     
     if parameters.pattern == 'rings':
-        area_to_mow, border = map.border(selected_perimeter, parameters.distancetoborder, parameters.width)
-        route, edge_polygons = cutedge.calcroute(border, parameters, list(start_pos.coords))
+        border = current_map.perimeter_polygon
+        area_to_mow = map.areatomow(selected_perimeter, parameters.distancetoborder, parameters.width)
+        route, edge_polygons = cutedge.calcroute(selected_perimeter, parameters, list(start_pos.coords))
         route = rings.calcroute(area_to_mow, border, route, parameters)
         # Clear progress bar
         current_map.total_progress = current_map.calculated_progress = 0

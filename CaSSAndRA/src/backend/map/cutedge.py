@@ -10,7 +10,7 @@ def check_direct_way(border: Polygon, start: list, end: list) -> bool:
 
 def create_route(perimeter: Polygon, mowborder: str, mowexclusion: bool, 
                  mowborderccw: bool, last_coord: list, border: Polygon,
-                 figure: str) -> list():
+                 figure: str) -> list:
     route_tmp = []
     edges_pol = []
     if mowborder == 'yes':

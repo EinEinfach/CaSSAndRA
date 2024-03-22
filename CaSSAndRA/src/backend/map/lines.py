@@ -212,7 +212,7 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
 
     if len(route) == 1:
         logger.info('Coverage path planner (lines): Route is just start point, check if the point within perimeter')
-        if not Point((route[-1])).within(border) or not Point((route[-1])).touches(border):
+        if not Point((route[-1])).within(border) and not Point((route[-1])).touches(border):
             logger.debug('Coverage path planner (lines): Rover is outside perimeter, interpolate to the border')
             route_tmp = border.exterior.coords
             route = [min(route_tmp, key=lambda coord: (coord[0]-route[-1][0])**2 + (coord[1]-route[-1][1])**2)]
@@ -224,7 +224,7 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
     tosimplify = False
     if parameters.distancetoborder == 0:
         logger.debug('Distance to border selected to 0, increase boundary')
-        border = border.buffer(0.01, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
+        border = border.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
     else:
         logger.debug('Distance to border is not equal to 0, use original boundary')
     #Extract y-coordinate and sort data

@@ -140,24 +140,14 @@ def gotopoints(perimeter: Polygon, mowoffset: float) -> MultiPoint:
     points = points.intersection(perimeter)
     return points
 
-def border(perimeter: Polygon, distancetoborder: int, mowoffset: float) -> list:
-    logger.info('Backend: Create map borders and area to mow')
+def areatomow(perimeter: Polygon, distancetoborder: int, mowoffset: float) -> Polygon:
+    logger.info('Backend: Create area to mow')
     mowoffset = -mowoffset
-    if perimeter.geom_type == 'MultiPolygon':
-        logger.warning('Backend: Current selection contains more than one closed perimeters. Continue with first one')
-        border = perimeter.geoms[0]
-        perimeter = perimeter.geoms[0]
-    else: 
-        border = perimeter
     if distancetoborder == 0:
-        #border = border.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
-        return perimeter, border
+        area_to_mow = perimeter
     else: 
-        if distancetoborder == 0:
-            perimeter = perimeter.buffer(0.05, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
-        else:
-            perimeter = perimeter.buffer(distancetoborder*mowoffset, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
-        return perimeter, border
+        area_to_mow = perimeter.buffer(distancetoborder*mowoffset, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
+    return area_to_mow
 
 def route(points: list) -> LineString:
     logger.info('Backend: Transform route to shapely figure')
