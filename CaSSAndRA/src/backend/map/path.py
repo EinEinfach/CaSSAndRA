@@ -74,8 +74,10 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
     current_map.calc_route_preview(route)
 
 def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: list) -> list:
-    if selected_perimeter.is_empty:
-        return
+    if selected_perimeter.is_empty or (not parameters.mowarea and parameters.mowborder==0 and not parameters.mowexclusion):
+        logger.info(f"Coverage path planner parameters are not valid. Calculation aborted.")
+        logger.debug(parameters)
+        return []
     logger.info('Backend: Planning route:')
     logger.info(parameters)
     logger.info('Rover start position: '+str(start_pos))

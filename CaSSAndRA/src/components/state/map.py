@@ -103,8 +103,9 @@ def handle_buttons(
           current_map.task_progress = 0
           current_map.total_tasks = 1
           route = path.calc(current_map.selected_perimeter, pathplannercfgstate, rover_position)
-          current_map.areatomow = round(current_map.selected_perimeter.area)
-          current_map.calc_route_preview(route) 
+          if route:
+               current_map.areatomow = round(current_map.selected_perimeter.area)
+               current_map.calc_route_preview(route) 
           current_map.calculating = False
           current_map.plotgotopoints = False
      elif context == ids.DROPDOWNSHORTCUTS and tasks_order != None:
