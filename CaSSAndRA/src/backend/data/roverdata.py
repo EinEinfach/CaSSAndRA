@@ -50,6 +50,7 @@ class Mower:
     map_upload_failed: bool = False
     map_old_crc: int = None
     map_upload_cnt: int = 0
+    mowprogress: float = 0
     #frontend
     rover_image: Image = field(default_factory = lambda: 
                                Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png')))
@@ -61,7 +62,7 @@ class Mower:
     dock_reason: str = None
     dock_reason_time: datetime = datetime.now()
 
-    def set_state(self, state: pd.DataFrame()) -> None:
+    def set_state(self, state: pd.DataFrame) -> None:
         state = state.iloc[-1]
         self.speed = self.calc_speed(state['position_x'], state['position_y'], self.timestamp)
         self.direction = self.calc_direction()
@@ -112,7 +113,7 @@ class Mower:
         direction_deg = round(direction_rad*(180/math.pi))
         return direction_deg
 
-    def calc_status(self) -> str():
+    def calc_status(self) -> str:
         if (datetime.now()-self.timestamp).seconds > 60:
             return 'offline'
         elif self.job == 0:
@@ -132,7 +133,7 @@ class Mower:
         else:
             return 'unknown'
     
-    def calc_sensor_status(self) -> str():
+    def calc_sensor_status(self) -> str:
         if self.job == 3:
             if self.sensor == 17:
                 return 'emergency/stop'
@@ -206,7 +207,7 @@ class Mower:
             soc = 100  
         return round(soc)  
     
-    def calc_solution(self) -> str():
+    def calc_solution(self) -> str:
         if self.position_solution == 2:
             return 'fix'
         elif self.position_solution == 1:
@@ -214,7 +215,7 @@ class Mower:
         else:
             return 'invalid'
     
-    def change_speed(self, choise: str(), speeddiff: float) -> None:
+    def change_speed(self, choise: str, speeddiff: float) -> None:
         if choise == 'mow':
             new_setpoint = round(self.mowspeed_setpoint + speeddiff, 2)
             new_setpoint = max(0, new_setpoint)

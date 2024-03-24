@@ -200,6 +200,8 @@ accordion_settings = dbc.Accordion([
                             dbc.Input(value=rovercfg.mowspeed_setpoint, type='number', min=0.1, max=1.0, step=0.01, id=ids.MOWSPEEDSETPOINTSETTINGS),
                             dbc.FormText('Default transit speed setpoint [m/s]'),
                             dbc.Input(value=rovercfg.gotospeed_setpoint, type='number', min=0.1, max=1.0, step=0.01, id=ids.GOTOSPEEDSETPOINTSETTINSGS),
+                            dbc.FormText('Fix timeout [s]'),
+                            dbc.Input(value=rovercfg.fix_timeout, type='number', min=1, step=1, id=ids.FIXTIMEOUTSETTINGS),
                         ], title='Robot'),
                         dbc.AccordionItem(
                             [
@@ -442,19 +444,24 @@ def update_connectioninput(radio_input: str) -> list:
            State(ids.MOWAREASETTINGS, 'value'),
            State(ids.MOWEDGEEXCLUSIONSETTINGS, 'value'),
            State(ids.MOWBORDERCCWSETTINGS, 'value')])
-def update_pathplanner_settings_data(bsr_n_clicks: int, bok_n_clicks: int, 
-                                     is_open: bool, mowoffset: float, 
-                                     mowangle: int, mowedge: str, 
-                                     distancetoborder: int, pattern: str,
-                                     mowarea: bool, mowexclusion: bool,
-                                     mowborderccw: bool) -> bool:
+def update_pathplanner_settings_data(bsr_n_clicks: int, 
+                                     bok_n_clicks: int, 
+                                     is_open: bool, 
+                                     mowoffset: float, 
+                                     mowangle: int, 
+                                     mowedge: str, 
+                                     distancetoborder: int, 
+                                     pattern: str,
+                                     mowarea: bool, 
+                                     mowexclusion: bool,
+                                     mowborderccw: bool
+                                     ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKMAPSETTINGS:
         pathplannercfg.pattern = pattern
         if mowoffset != None:
             pathplannercfg.width = mowoffset
-        if mowangle != None:
-            pathplannercfg.angle = mowangle
+        pathplannercfg.angle = mowangle
         if distancetoborder != None:
             pathplannercfg.distancetoborder = distancetoborder
         pathplannercfg.mowarea = mowarea
@@ -529,11 +536,20 @@ def update_rover_picture_preview(preview_picture: str, preview_picture_state: st
           State(ids.GOTOSPEEDSETPOINTSETTINSGS, 'value'),
           State(ids.RADIOPOSITIONMODE, 'value'),
           State(ids.POSITIONMODELON, 'value'),
-          State(ids.POSITIONMODELAT, 'value'))
-def update_robotsettings_data(bsrs_nclicks: int, bok_nclicks: int, is_open: bool, 
-                      mowspeedsetpoint: float, gotospeedsetpoint: float,
-                      positionmode: str, positionmodelon: float, positionmodelat: float
-                      ) -> bool:
+          State(ids.POSITIONMODELAT, 'value'),
+          State(ids.FIXTIMEOUTSETTINGS, 'value'),
+          )
+def update_robotsettings_data(
+                    bsrs_nclicks: int, 
+                    bok_nclicks: int, 
+                    is_open: bool, 
+                    mowspeedsetpoint: float, 
+                    gotospeedsetpoint: float,
+                    positionmode: str, 
+                    positionmodelon: float, 
+                    positionmodelat: float,
+                    fixtimeout: int,
+                    ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKROBOTSETTINGS:
         rovercfg.mowspeed_setpoint = mowspeedsetpoint
@@ -541,6 +557,7 @@ def update_robotsettings_data(bsrs_nclicks: int, bok_nclicks: int, is_open: bool
         rovercfg.positionmode = positionmode
         rovercfg.lon = positionmodelon
         rovercfg.lat = positionmodelat
+        rovercfg.fix_timeout = fixtimeout
         res = rovercfg.save_rovercfg()
         cmdlist.cmd_set_positionmode = True
     if bsrs_nclicks or bok_nclicks:
@@ -581,9 +598,10 @@ def update_messageservicetype(radio_input: str,
           Output(ids.POSITIONMODELAT, 'value'),
           Output(ids.MOWSPEEDSETPOINTSETTINGS, 'value'),
           Output(ids.GOTOSPEEDSETPOINTSETTINSGS, 'value'),
+          Output(ids.FIXTIMEOUTSETTINGS, 'value'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_robotsettings_on_reload(pathname: str) -> list:
-    return rovercfg.positionmode, rovercfg.lon, rovercfg.lat, rovercfg.mowspeed_setpoint, rovercfg.gotospeed_setpoint
+    return rovercfg.positionmode, rovercfg.lon, rovercfg.lat, rovercfg.mowspeed_setpoint, rovercfg.gotospeed_setpoint, rovercfg.fix_timeout
 
 @callback(Output(ids.MOWOFFSETSETTINGS, 'value'),
           Output(ids.MOWANGLESETTINGS, 'value'),

@@ -293,7 +293,11 @@ def check() -> pd.DataFrame:
                 return pd.DataFrame() 
         else:
             return pd.DataFrame()  
-          
+    
+    elif cmdlist.cmd_skiptomowprogress:
+        msg_pckg = cmdtorover.skiptomowprogress(robot.mowprogress)
+        cmdlist.cmd_skiptomowprogress = False 
+
     elif cmdlist.cmd_custom:
         msg_pckg = cmdtorover.custom()
         cmdlist.cmd_custom = False

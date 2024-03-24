@@ -59,8 +59,8 @@ def handle_buttons(
             buttonmowall: int, 
             tasks_order: list,
             buttongoto: int,
-            clickdata: dict(), 
-            selecteddata: dict(),
+            clickdata: dict, 
+            selecteddata: dict,
             buttoncancelclick: int,
             buttongotostate: bool, 
             fig_state: dict,
@@ -103,8 +103,9 @@ def handle_buttons(
           current_map.task_progress = 0
           current_map.total_tasks = 1
           route = path.calc(current_map.selected_perimeter, pathplannercfgstate, rover_position)
-          current_map.areatomow = round(current_map.selected_perimeter.area)
-          current_map.calc_route_preview(route) 
+          if route:
+               current_map.areatomow = round(current_map.selected_perimeter.area)
+               current_map.calc_route_preview(route) 
           current_map.calculating = False
           current_map.plotgotopoints = False
      elif context == ids.DROPDOWNSHORTCUTS and tasks_order != None:
@@ -156,7 +157,7 @@ def handle_buttons(
 def update(n_intervals: int,
            calledpage: str,
            buttoncall: str,
-           ) -> Patch():
+           ) -> Patch:
      mowdata = []
      #Plots
      traces = []
@@ -220,6 +221,7 @@ def update(n_intervals: int,
           mowdata = [dict(text='Distance: '+str(mow_progress[0])+'m/'+str(mow_progress[1])+'m ('+str(mow_progress[2])+'%)', showarrow=False, xref="paper", yref="paper",x=1,y=1),
                          dict(text='Index: '+str(mow_progress[3])+'/'+str(mow_progress[4])+' ('+str(mow_progress[5])+'%)', showarrow=False, xref="paper", yref="paper",x=1,y=0.95), 
                          dict(text='Area to mow: '+str(current_map.areatomow)+'sqm', showarrow=False, xref="paper", yref="paper",x=1,y=0.9)]
+          robot.mowprogress = round(mow_progress[5]/100, 3)
      elif not current_map.preview.empty:
           filtered = current_map.preview[current_map.preview['type'] == 'preview route']
           traces.append(go.Scatter(x=filtered['X'], y=filtered['Y'], mode='lines', name='preview route', opacity=0.7, line=dict(color='#7fb249')))

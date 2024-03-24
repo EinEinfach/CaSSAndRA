@@ -327,8 +327,9 @@ class API:
             current_map.task_progress = 0
             current_map.total_tasks = 1
             route = path.calc(current_map.selected_perimeter, pathplannercfgapi, [robot.position_x, robot.position_y])
-            current_map.areatomow = round(current_map.selected_perimeter.area)
-            current_map.calc_route_preview(route) 
+            if route:
+                current_map.areatomow = round(current_map.selected_perimeter.area)
+                current_map.calc_route_preview(route) 
             current_map.calculating = False
             current_map.mowpath = current_map.preview
             current_map.mowpath['type'] = 'way'
@@ -340,8 +341,9 @@ class API:
                 current_map.task_progress = 0
                 current_map.total_tasks = 1
                 route = path.calc(current_map.selected_perimeter, pathplannercfgapi, [robot.position_x, robot.position_y])
-                current_map.areatomow = round(current_map.selected_perimeter.area)
-                current_map.calc_route_preview(route) 
+                if route:
+                    current_map.calc_route_preview(route)
+                    current_map.areatomow = round(current_map.selected_perimeter.area)
                 current_map.calculating = False
                 current_map.mowpath = current_map.preview
                 current_map.mowpath['type'] = 'way'

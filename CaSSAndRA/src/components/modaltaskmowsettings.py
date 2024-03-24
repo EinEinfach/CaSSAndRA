@@ -38,12 +38,18 @@ mowsettings = dbc.Modal([
            State(ids.INPUTMOWCUTEDGEBORDERTASK, 'value'),
            State(ids.INPUTMOWCUTEDGEEXCLUSIONTASK, 'value'),
            State(ids.INPUTMOWCUTEDGEBORDERCCWTASK, 'value')])
-def toggle_modal(n_clicks_bms: int, n_clicks_bok: int,
-                 modal_is_open: bool, pattern: str(),
-                 mowoffset: float, mowangle: int,
-                 distancetoborder: int, mowarea: bool,
-                 mowborder: str, mowexclusion: bool,
-                 mowborderccw: bool) -> bool:
+def toggle_modal(n_clicks_bms: int, 
+                 n_clicks_bok: int,
+                 modal_is_open: bool, 
+                 pattern: str,
+                 mowoffset: float, 
+                 mowangle: int,
+                 distancetoborder: int, 
+                 mowarea: bool,
+                 mowborder: str, 
+                 mowexclusion: bool,
+                 mowborderccw: bool
+                 ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKINPUTMOWTASKSETTINGS:
         if pattern != 'lines' and pattern != 'squares' and pattern != 'rings':
@@ -52,8 +58,7 @@ def toggle_modal(n_clicks_bms: int, n_clicks_bok: int,
             pathplannercfgtask.pattern = pattern
         if mowoffset != None:
             pathplannercfgtask.width = mowoffset
-        if mowangle != None:
-            pathplannercfgtask.angle = mowangle
+        pathplannercfgtask.angle = mowangle
         if distancetoborder != None:
             pathplannercfgtask.distancetoborder = distancetoborder
         pathplannercfgtask.mowarea = mowarea

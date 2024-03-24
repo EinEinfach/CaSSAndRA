@@ -190,6 +190,7 @@ class RoverCfg:
     positionmode: str = 'relative'
     lon: float = 0
     lat: float = 0
+    fix_timeout = 60
 
     def read_rovercfg(self) -> None:
         try:
@@ -202,12 +203,13 @@ class RoverCfg:
             res = self.save_rovercfg()
             return
         try:
-            logger.debug('overcfg to read: '+ str(rovercfg_from_file))
+            logger.debug('rovercfg to read: '+ str(rovercfg_from_file))
             self.mowspeed_setpoint = rovercfg_from_file['mowspeed_setpoint']
             self.gotospeed_setpoint = rovercfg_from_file['gotospeed_setpoint']
             self.positionmode = rovercfg_from_file['positionmode']
             self.lon = rovercfg_from_file['lon']
             self.lat = rovercfg_from_file['lat']
+            self.fix_timeout = rovercfg_from_file['fix_timeout']
         except Exception as e:
             logger.error('Could not read rovercfg.json. Data are invalid. Go with standard values')
             res = self.save_rovercfg()
@@ -220,6 +222,7 @@ class RoverCfg:
             new_data['positionmode'] = self.positionmode
             new_data['lon'] = self.lon
             new_data['lat'] = self.lat
+            new_data['fix_timeout'] = self.fix_timeout
             with open(file_paths.user.rovercfg, 'w') as f:
                 logger.debug('New rovercfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)

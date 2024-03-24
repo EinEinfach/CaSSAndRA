@@ -18,6 +18,7 @@ cmd_changemowspeed = False
 cmd_changegotospeed = False
 cmd_skipnextpoint = False
 cmd_custom = False
+cmd_skiptomowprogress = False
 
 cmd_standby = ''
 cmd_take_map_attempt = 0
