@@ -405,6 +405,13 @@ The app will be improved in small steps. Also reported problems will be fixed. I
 2. Clone the repository again and replace all files and folders in your production directory with the new downloaded files.
 3. Replace the downloaded /src/data folder with the folder you backed up in step 1.
 4. App can be started as usual
+
+## Donation
+
+If you enjoyed CaSSAndRA project — or just feeling generous, consider buying me a beer. Cheers!
+
+[![](https://www.paypalobjects.com/en_US/DK/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=DTLYLLR45ZMPW)
+
 ## Authors
 
 - [@EinEinfach](https://www.github.com/EinEinfach)
