@@ -2,7 +2,7 @@
     "USE": "HTTP",
     "MQTT": [
         {
-            "CLIENT_ID": "Ardumower"
+            "CLIENT_ID": "CaSSAndRA"
         },
         {
             "USERNAME": null
