@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.103.3 Increased update frequency in mapping mode
+#Version:0.103.4 Fix issue with send message button
 # package imports
 import os
 import sys

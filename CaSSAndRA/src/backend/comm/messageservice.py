@@ -15,7 +15,7 @@ class MessageService:
     telegram_token: str = None
     pushover_token: str = None
     chat_id: str = None
-    message_sent: bool = False
+    message_sent: bool = True
     pushover_user: str = None
 
     def get_chat_id(self) -> int:

@@ -34,7 +34,7 @@ def create_obstacle(data: list) -> pd.DataFrame:
     return obstacle_df
 
 #Add data from MQTT conection
-def add_state_to_df_from_mqtt(data: dict()) -> None:
+def add_state_to_df_from_mqtt(data: dict) -> None:
     try: 
         state_to_df = {'battery_voltage':data['battery_voltage'],
                     'position_x':data['position']['x'],
@@ -65,7 +65,7 @@ def add_state_to_df_from_mqtt(data: dict()) -> None:
         logger.debug(str(e))
     
 
-def add_props_to_df_from_mqtt(data: dict()) -> None:
+def add_props_to_df_from_mqtt(data: dict) -> None:
     try: 
         props_to_df = {'firmware':data['firmware'],
                     'version':data['version'],
@@ -76,7 +76,7 @@ def add_props_to_df_from_mqtt(data: dict()) -> None:
     except:
         logger.warning('Backend: Received props message is not valid and will be ignored')
 
-def add_stats_to_df_from_mqtt(data: dict()) -> None:
+def add_stats_to_df_from_mqtt(data: dict) -> None:
     try: 
         stats_to_df = {'duration_idle':data['duration_idle'],
                     'duration_charge':data['duration_charge'],
@@ -111,7 +111,7 @@ def add_stats_to_df_from_mqtt(data: dict()) -> None:
         logger.error('Backend: Failed to write stats data to data frame')
         logger.debug(str(e))
 
-def add_online_to_df_from_mqtt(data: str()) -> None:
+def add_online_to_df_from_mqtt(data: str) -> None:
     if 'true' in data:
         online_to_df = {'online': True,
                             'timestamp': str(datetime.now())}
@@ -127,7 +127,7 @@ def add_online_to_df_from_mqtt(data: str()) -> None:
     
 
 #Add data from HTTP and UART conection
-def add_state_to_df(data: str()) -> None:
+def add_state_to_df(data: str) -> None:
     try: 
         data_list = data.split(',')
         del data_list[-1]
@@ -171,7 +171,7 @@ def add_state_to_df(data: str()) -> None:
         logger.error('Backend: Failed to write state data to data frame')
         logger.debug(str(e))
 
-def add_stats_to_df(data: str()) -> None:
+def add_stats_to_df(data: str) -> None:
     try: 
         data_list = data.split(',')
         del data_list[-1]
@@ -216,7 +216,7 @@ def add_stats_to_df(data: str()) -> None:
         logger.error('Backend: Failed to write stats data to data frame')
         logger.debug(str(e))
 
-def add_props_to_df_from_http(data: str()) -> None:
+def add_props_to_df_from_http(data: str) -> None:
     pass
 
 def add_online_to_df_from_http(data: bool) -> None:
