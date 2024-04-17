@@ -36,6 +36,7 @@ class API:
 
     def create_robot_payload(self) -> None:
         self.robotstate['status'] = robot.status
+        self.robotstate['dock reason'] = robot.dock_reason
         self.robotstate['battery'] = robot.soc
         self.robotstate['position'] = dict(x=robot.position_x, y=robot.position_y)
         self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
@@ -75,8 +76,10 @@ class API:
         self.mowparametersstate_json = json.dumps(self.mowparametersstate)
     
     def create_map_payload(self) -> None:
+        self.mapstate['mowprogress idx'] = robot.mowprogress
+        self.mapstate['mowprogress distance'] = robot.mowprogress_distance
         self.mapstate_json = json.dumps(self.mapstate)
-
+        
     def update_payload(self) -> None:
         self.create_api_payload()
         self.create_robot_payload()

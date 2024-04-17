@@ -98,7 +98,7 @@ def perfom_cmd(n_clicks_bgo: int,
                active_bma: bool, 
                active_bss: bool, 
                active_bgt: bool,
-               ) -> list():
+               ) -> list:
     
     context = ctx.triggered_id
     rover_state = robot.status
@@ -167,7 +167,7 @@ def update_button_disabled(n_intervals: int,
                            bss_disabled: bool,
                            bgt_disabled: bool, 
                            bc_disabled: bool,
-                           ) -> list():
+                           ) -> list:
     context = ctx.triggered_id
 
     if current_map.perimeter.empty:

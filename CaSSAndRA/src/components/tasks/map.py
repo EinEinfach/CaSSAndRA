@@ -42,21 +42,22 @@ tasksmap.update_layout(
 
 @callback(Output(ids.TASKMAP, 'figure'),
           [Input(ids.BUTTONPLANMOWALL, 'n_clicks'),
-           Input(ids.BUTTONCONFIRMSELECTION, 'n_clicks'),
            Input(ids.BUTTONPLANCANCEL, 'n_clicks'),
            Input(ids.MODALSAVECURRENTTASK, 'is_open'),
            Input(ids.MODALREMOVETASK, 'is_open'), 
            Input(ids.DROPDOWNTASKSORDER, 'value'),
            Input(ids.BUTTONREMOVETASK, 'n_clicks'),
-           State(ids.TASKMAP, 'selectedData'),])
+           State(ids.TASKMAP, 'selectedData'),
+           State(ids.TASKMAP, 'figure')
+           ])
 def update(bpma_nclicks: int, 
-           bcs_nclicks: int, 
            bpc_nclicks: int, 
            save_is_open: bool, 
            remove_is_open: bool, 
            tasks_order: list, 
            brt_nclicks: int, 
            selecteddata: dict,
+           fig_state: dict,
            ) -> list:
 
     traces = []
@@ -66,10 +67,22 @@ def update(bpma_nclicks: int,
     context = ctx.triggered_id
     context_triggered = ctx.triggered
 
-    #Create a task for whole map
+    #Create a task
     if context == ids.BUTTONPLANMOWALL:# and buttonmowall:
         current_task.preview = pd.DataFrame()
-        current_task.selected_perimeter = current_map.perimeter_polygon
+        if 'selections' in fig_state['layout'] and fig_state['layout']['selections'] != []:
+            current_task.selected_perimeter = map.selection(current_map.perimeter_polygon, selecteddata)
+            if 'lassoPoints' in selecteddata:
+                current_task.selection_type = 'lassoPoints'
+                current_task.selection = selecteddata['lassoPoints']
+            else:
+                current_task.selection_type = 'range'
+                current_task.selection = selecteddata['range']
+        else:
+            current_task.selected_perimeter = current_map.perimeter_polygon
+            current_task.selection_type = 'perimeter'
+            current_task.selection = {'X': [0], 'Y': [0]}
+        #current_task.selected_perimeter = current_map.perimeter_polygon
         current_map.task_progress = 0
         current_map.total_tasks = 1
         current_map.calculating = True
@@ -78,31 +91,6 @@ def update(bpma_nclicks: int,
             current_task.calc_route_preview(route) 
         current_map.calculating = False
         current_task.parameters = pathplannercfgtask
-        current_task.selection_type = 'perimeter'
-        current_task.selection = {'X': [0], 'Y': [0]}
-
-    #Check interactions with graph and create a task for selected zone
-    if selecteddata == {'points':[]}: #Workaround for selected data, beacause after select selected data changing to {'poonts':[]} and triggering context_id
-        selecteddata = None
-    if context == ids.BUTTONCONFIRMSELECTION and selecteddata: #context_triggered[0]['prop_id'] == ids.TASKMAP+'.selectedData' and selecteddata:
-        current_task.preview = pd.DataFrame()
-        perimeter_preview = current_map.perimeter_polygon
-        current_task.selected_perimeter = map.selection(perimeter_preview, selecteddata)
-        if not current_task.selected_perimeter.is_empty:
-            current_map.task_progress = 0
-            current_map.total_tasks = 1
-            current_map.calculating = True
-            route = path.calc(current_task.selected_perimeter, pathplannercfgtask, rover_position)
-            if route:
-                current_task.calc_route_preview(route)
-            current_map.calculating = False
-            current_task.parameters = pathplannercfgtask
-            if 'lassoPoints' in selecteddata:
-                current_task.selection_type = 'lassoPoints'
-                current_task.selection = selecteddata['lassoPoints']
-            else:
-                current_task.selection_type = 'range'
-                current_task.selection = selecteddata['range']
 
     #Remove preview if cancel button clicked
     if context == ids.BUTTONPLANCANCEL and not current_task.preview.empty:

@@ -337,12 +337,12 @@ Overview page can be called by clicking "CaSSAndRA" in the navbar. This is your 
 Click on "go home" button and confirm the action by clicking play button. 
 
 ### Mow whole area
-Click on "mow all" button. CaSSAndRA calculates the mowing paths according to your settings. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated route appear green on the map. Click on play button to start mowing
+Click on "mow all or selected area" button. CaSSAndRA calculates the mowing paths according to your settings. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated route appear green on the map. Click on play button to start mowing
 
 ![using_app_mow](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow.jpeg) 
 
 ### Mow selected area
-Click on "select zone to mow" button. Select "Lasso Select" or "Box Select" in the tool bar on top of the map. Then mark the desired area on the map. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated routes appear green on the map. You can repeat the calculation for selected area. Change your mow settings and click "select zone to mow" again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. Click on play button to start mowing
+Select "Lasso Select" or "Box Select" in the tool bar on top of the map. Then mark the desired area on the map. And select "mow all or selected area" button. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated routes appear green on the map. You can repeat the calculation for selected area. Change your mow settings and click "select zone to mow" again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. Click on play button to start mowing
 
 ![using_app_mow_zone](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow_zone.jpeg) 
 
