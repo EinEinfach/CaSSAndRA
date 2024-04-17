@@ -366,7 +366,7 @@ The play button starts created task (Mow, go to, go home) but also it is possibl
 Click on "Taskplanner" in navigation bar or if you on mobile device click on burger menu and then select "Taskplanner"
 
 ### Create a task
-Configure the coverage path planner by pressing "mow settings" button.  Confirm new settings with "ok". Use Lasso-Select or Box-Select from the toolbar on top of the map to select an area and confirm it with "confirm selection" button for calculation or click "plan mow all" button to calculate for the whole map. A preview of the task appears in red. You can adjust mow settings for selected area by changing "mow settings" and trigger calculation again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. By pressing "cancel" button the current preview will be removed. 
+Configure the coverage path planner by pressing "mow settings" button.  Confirm new settings with "ok". Use Lasso-Select or Box-Select from the toolbar on top of the map to select an area and confirm it with "confirm selectioncalc task for selected area" button for calculation on whole map leave the selection empty. A preview of the task appears in red. You can adjust mow settings for selected area by changing "mow settings" and trigger calculation again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. By pressing "cancel" button the current preview will be removed. 
 
 ![create_task](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/create_task.jpeg) 
 
