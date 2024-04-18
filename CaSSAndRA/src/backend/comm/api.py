@@ -36,7 +36,7 @@ class API:
 
     def create_robot_payload(self) -> None:
         self.robotstate['status'] = robot.status
-        self.robotstate['dock reason'] = robot.dock_reason
+        self.robotstate['dockReason'] = robot.dock_reason
         self.robotstate['battery'] = robot.soc
         self.robotstate['position'] = dict(x=robot.position_x, y=robot.position_y)
         self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
