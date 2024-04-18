@@ -41,6 +41,13 @@ class Perimeter:
     map_crc: int = None
     current_perimeter_file: str = ''
     plotgotopoints: bool = False
+    # Mow progress
+    finished_distance = 0
+    distance = 0
+    distance_perc = 0
+    finished_idx = 0
+    idx = 0
+    idx_perc = 0 
     # Progress bar
     calculating: bool = False
     calculated_progress: int = 0
@@ -257,6 +264,39 @@ class Perimeter:
         self.distancetogo = 0
         self.map_crc = None
         self.save_map_name()
+    
+    def update_map(self) -> None:
+        self.calc_mow_progress()
+    
+    def calc_mow_progress(self) -> None:
+        self.finished_idx = robot.position_mow_point_index - 1
+        if not self.mowpath.empty:
+            try: 
+                filtered = self.mowpath[self.mowpath['type'] == 'way']
+                if self.finished_idx < 0:
+                    self.finished_idx = 0
+                path_finished = filtered[filtered.index < self.finished_idx]
+                path_finished = path_finished[['X', 'Y']]
+                try:
+                    path_finished = LineString(path_finished.to_numpy())
+                    self.finished_distance = round(path_finished.length)
+                except:
+                    self.finished_distance = 0
+                path = filtered[['X', 'Y']]
+                path = LineString(path.to_numpy())
+                self.distance = round(path.length)
+                self.idx = len(filtered)
+                self.distance_perc = round((self.finished_distance/self.distance)*100)
+                self.idx_perc = round((self.finished_idx/self.idx)*100)
+            except Exception as e:
+                logger.warning('Backend: Calculation of mow progress failed')
+                logger.debug(str(e))
+                self.finished_distance = 0
+                self.distance = 0
+                self.distance_perc = 0
+                self.finished_idx = 0
+                self.idx = 0
+                self.idx_perc = 0
 
 @dataclass
 class Perimeters:

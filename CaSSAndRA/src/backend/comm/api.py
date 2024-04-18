@@ -76,8 +76,8 @@ class API:
         self.mowparametersstate_json = json.dumps(self.mowparametersstate)
     
     def create_map_payload(self) -> None:
-        self.mapstate['mowprogress idx'] = robot.mowprogress
-        self.mapstate['mowprogress distance'] = robot.mowprogress_distance
+        self.mapstate['mowprogressIdxPercent'] = current_map.idx_perc
+        self.mapstate['mowprogressDistancePercent'] = current_map.distance_perc
         self.mapstate_json = json.dumps(self.mapstate)
         
     def update_payload(self) -> None:

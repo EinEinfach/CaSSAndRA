@@ -121,28 +121,6 @@ def calc_rover_state():
             calced_from_state = pd.DataFrame(calced_from_state, index=[0])
             roverdata.calced_from_state = pd.concat([roverdata.calced_from_state, calced_from_state], ignore_index=True)
 
-def calc_mow_progress(mowpath: pd.DataFrame, idx: int) -> list:
-    try: 
-        filtered = mowpath[mowpath['type'] == 'way']
-        if idx < 0:
-            idx = 0
-        path_finished = filtered[filtered.index < idx]
-        path_finished = path_finished[['X', 'Y']]
-        try:
-            path_finished = LineString(path_finished.to_numpy())
-            path_finished = round(path_finished.length)
-        except:
-            path_finished = 0
-        path = filtered[['X', 'Y']]
-        path = LineString(path.to_numpy())
-        path = round(path.length)
-        path_finished_perc = round((path_finished/path)*100)
-        idx_finished_perc = round((idx/len(filtered))*100)
-        return path_finished, path, path_finished_perc, idx, len(filtered), idx_finished_perc
-    except Exception as e:
-        logger.warning('Backend: Calculation of mow progress failed')
-        logger.debug(str(e))
-        return 0, 0, 0, 0, 0, 0
     
 
 

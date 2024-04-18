@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.104.0 Change button behavior on task page, add new api values
+#Version:0.105.0 Added more information to api
 # package imports
 import os
 import sys
