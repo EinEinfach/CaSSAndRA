@@ -51,6 +51,7 @@ class Mower:
     map_old_crc: int = None
     map_upload_cnt: int = 0
     mowprogress: float = 0
+    mowprogress_distance: float = 0
     #frontend
     rover_image: Image = field(default_factory = lambda: 
                                Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png')))

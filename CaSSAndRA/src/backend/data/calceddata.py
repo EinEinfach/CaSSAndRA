@@ -10,7 +10,7 @@ from shapely.geometry import *
 from . import roverdata
 from . roverdata import robot
 from . cfgdata import appcfg
-from . mapdata import mapping_maps
+from . mapdata import current_map, mapping_maps
 
 def calcdata_from_state():
     logger.debug('Backend: Calc data from state data frame')
@@ -121,7 +121,7 @@ def calc_rover_state():
             calced_from_state = pd.DataFrame(calced_from_state, index=[0])
             roverdata.calced_from_state = pd.concat([roverdata.calced_from_state, calced_from_state], ignore_index=True)
 
-def calc_mow_progress(mowpath: pd.DataFrame(), idx: int) -> list():
+def calc_mow_progress(mowpath: pd.DataFrame, idx: int) -> list:
     try: 
         filtered = mowpath[mowpath['type'] == 'way']
         if idx < 0:
@@ -137,8 +137,8 @@ def calc_mow_progress(mowpath: pd.DataFrame(), idx: int) -> list():
         path = LineString(path.to_numpy())
         path = round(path.length)
         path_finished_perc = round((path_finished/path)*100)
-        idx_finished_pers = round((idx/len(filtered))*100)
-        return path_finished, path, path_finished_perc, idx, len(filtered), idx_finished_pers
+        idx_finished_perc = round((idx/len(filtered))*100)
+        return path_finished, path, path_finished_perc, idx, len(filtered), idx_finished_perc
     except Exception as e:
         logger.warning('Backend: Calculation of mow progress failed')
         logger.debug(str(e))
