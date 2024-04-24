@@ -20,7 +20,12 @@
 	
 	# copy app files to our work directory (~/app)
 	COPY ./CaSSAndRA .
-	
+
+	# bugfix some Python library
+	##RUN mkdir -p /root/.local/lib/python3.10/site-packages/dash_daq
+	##COPY ./bugfix_dash_daq_min/dash_daq.min.js /root/.local/lib/python3.10/site-packages/dash_daq
+	COPY ./bugfix_dash_daq_min/dash_daq.min.js /usr/local/lib/python3.10/site-packages/dash_daq
+
 	# define the volume where our files will be stored
 	VOLUME ["/home/cassandra/.cassandra"]
 
