@@ -30,19 +30,6 @@ after that you can go get some coffee first, because that can take a while. Plea
 If the operating system greets you with -bash: pip command not found, you still have to install pip:
 
     sudo apt install python3-pip
-Please check the library path of your pip installation with the following command:
-
-	python3 -m site --user-site
-Please switch to the library path (e.g.). Attention with the 64bit system the folder lib64 can be called:
-
-	cd ./local/lib/python3.9/site-packages
-Locate the dash_daq folder and go to it:
-
-	cd dash_daq
-
-Copy the dash_daq.min.js file from the repository you cloned into the dash_daq libraries folder and replace the existing file:
-
-	cp /home/ardumower/CaSSAndRA/bugfix_dash_daq_min/dash_daq.min.js dash_daq.min.js
 
 ## Installation issues:
 
