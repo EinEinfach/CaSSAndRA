@@ -150,6 +150,11 @@ class Perimeter:
         for i in range(len(perimeter_coords)-1):
             line = LineString(([perimeter_coords[i], perimeter_coords[i+1]]))
             G.add_edge(list(line.coords)[0], list(line.coords)[1], weight=line.length)
+            for k in range(len(perimeter_coords)-1):
+                possible_way = self.check_direct_way(perimeter_coords[i], perimeter_coords[k])
+                if possible_way:
+                    direct_way = LineString((perimeter_coords[i], perimeter_coords[k]))
+                    G.add_edge(list(direct_way.coords)[0], list(direct_way.coords)[1], weight=direct_way.length)
         logger.debug('NetworkX perimeter edges: '+str(len(G.edges)))
         
         #Create networkx edges for exclusions

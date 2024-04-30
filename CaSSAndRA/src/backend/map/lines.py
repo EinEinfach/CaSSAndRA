@@ -101,7 +101,7 @@ def check_prio_lines(ways_to_go: pd.DataFrame, border: Polygon, current_level: i
                 return route_line_way, gone_way, length_to_line, possible_start
             else:
                 return None, None, None, None
-    #If curren_level == None, then it is first call or no prio lines accessable
+    #If current_level == None, then it is first call or no prio lines accessable
     if current_level == None or gone_way == None:
         ways_area = ways_to_go[(ways_to_go['type'] == 'area') & (ways_to_go['gone'] == False) & (ways_to_go['take into account'] == True)]
         if not ways_area.empty:
@@ -203,7 +203,7 @@ def shortest_path(border: Polygon, ways_to_check: list, route: list, angle: int)
     return route_tmp, way_nr, current_shortest_way
 
 
-def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle):
+def calcroute(border, line_mask, edges_pol, route, parameters, angle):
     logger.info('Coverage path planner (lines): Start coverage path planner')
     logger.debug(parameters)
 
@@ -313,6 +313,10 @@ def calcroute(areatomow, border, line_mask, edges_pol, route, parameters, angle)
             logger.info('Coverage path planner (calc lines): No more way to calculate, ending loop')
             break
 
+        #First loop call and route just a start point (avoiding A* calculating) 
+        if gone_way == None and gone_way_edge == None and len(route) == 1:
+            first_coord = [min(ways_to_go_filtered['coords'], key=lambda coord: (coord[0][0]-route[-1][0])**2 + (coord[0][1]-route[-1][1])**2)]
+            route = [first_coord[0][0]]
         #Check for ways to lines
         logger.debug('Check for prio lines')
         route_line_way, gone_way, length_to_line, possible_start = check_prio_lines(ways_to_go, border, current_level, route, angle)

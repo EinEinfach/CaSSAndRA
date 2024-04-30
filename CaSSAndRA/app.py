@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.105.1 Fix wrong call update.map in UART mode
+#Version:0.106.0 A lot of changes and bugfixing in coverage pathplaner
 # package imports
 import os
 import sys

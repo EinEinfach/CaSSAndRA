@@ -86,7 +86,7 @@ def update(bpma_nclicks: int,
         current_map.task_progress = 0
         current_map.total_tasks = 1
         current_map.calculating = True
-        route = path.calc(current_task.selected_perimeter, pathplannercfgtask, rover_position)
+        route = path.calc(current_task.selected_perimeter, pathplannercfgtask)
         if route:
             current_task.calc_route_preview(route) 
         current_map.calculating = False

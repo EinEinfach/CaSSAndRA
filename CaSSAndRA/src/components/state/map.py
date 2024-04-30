@@ -102,7 +102,7 @@ def handle_buttons(
           current_map.calculating = True
           current_map.task_progress = 0
           current_map.total_tasks = 1
-          route = path.calc(current_map.selected_perimeter, pathplannercfgstate, rover_position)
+          route = path.calc(current_map.selected_perimeter, pathplannercfgstate)
           if route:
                current_map.areatomow = round(current_map.selected_perimeter.area)
                current_map.calc_route_preview(route) 
