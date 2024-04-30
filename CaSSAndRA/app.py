@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.105.0 Added more information to api
+#Version:0.105.1 Fix wrong call update.map in UART mode
 # package imports
 import os
 import sys

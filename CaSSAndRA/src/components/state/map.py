@@ -158,10 +158,11 @@ def update(n_intervals: int,
            calledpage: str,
            buttoncall: str,
            ) -> Patch:
-     mowdata = []
+
      #Plots
      traces = []
-     #calceddata.calcmapdata_for_plot(mapdata.perimeter) 
+     mowdata = []
+
      if not current_map.perimeter.empty:
           coords = current_map.perimeter_for_plot
           #Plot perimeter and exlusions

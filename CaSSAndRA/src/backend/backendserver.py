@@ -150,7 +150,7 @@ def connect_uart(restart: threading.Event) -> None:
         else: 
             uartcomm.check_buffer()
             if (datetime.now() - start_time_state).seconds > time_to_wait:
-                current_map.update_map
+                current_map.update_map()
                 uartcomm.get_state()
                 start_time_state = datetime.now()
             if (datetime.now() - start_time_obstacles).seconds > 10*time_to_wait:
