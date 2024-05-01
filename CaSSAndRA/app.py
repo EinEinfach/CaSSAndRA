@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.103.3 Increased update frequency in mapping mode
+#Version:0.104.0 Change button behavior on task page, add new api values
 # package imports
 import os
 import sys

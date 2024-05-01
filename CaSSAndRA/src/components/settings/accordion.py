@@ -282,8 +282,8 @@ accordion_settings = dbc.Accordion([
                                         dbc.Input(id=ids.PUSHOVERUSER), 
                                         dbc.FormText('Test message'),
                                         dbc.Row([
-                                            dbc.Col([dbc.Input(id=ids.TELEGRAMTESTMESSAGE)], style={"flex" : "1 0 0%"}),
-                                            dbc.Col([dbc.Button(id=ids.BUTTONSENDTELEGRAMMESSAGE, 
+                                            dbc.Col([dbc.Input(id=ids.PUSHOVERTESTMESSAGE)], style={"flex" : "1 0 0%"}),
+                                            dbc.Col([dbc.Button(id=ids.BUTTONSENDPUSHOVERMESSAGE, 
                                                                 size='lg', 
                                                                 class_name='bi bi-send-fill', 
                                                                 title='send test message'),
@@ -629,11 +629,18 @@ def update_appsettings_on_reload(pathname: str) -> list:
   
 @callback(Output(ids.BUTTONSENDTELEGRAMMESSAGE, 'active'),
           [Input(ids.BUTTONSENDTELEGRAMMESSAGE, 'n_clicks'),
+           Input(ids.BUTTONSENDPUSHOVERMESSAGE, 'n_clicks'),
           State(ids.TELEGRAMTESTMESSAGE, 'value'),
-          ])
-def send_test_message(bsm_nclicks: int,
-                      message: str,
-                      ) -> bool:
-    if bsm_nclicks:
-        messageservice.send_message(message)
-    return False
+          State(ids.PUSHOVERTESTMESSAGE, 'value'),
+          ],
+          prevent_initial_call = True)
+def send_test_message(bstm_nclicks: int,
+                      bspm_nclicks:int,
+                      tmessage: str,
+                      pmessage:str,
+                      ) -> None:
+    context = ctx.triggered_id
+    if context == ids.BUTTONSENDTELEGRAMMESSAGE and bstm_nclicks:
+        messageservice.send_message(tmessage)
+    if context == ids.BUTTONSENDPUSHOVERMESSAGE and bspm_nclicks:
+        messageservice.send_message(pmessage)

@@ -337,12 +337,12 @@ Overview page can be called by clicking "CaSSAndRA" in the navbar. This is your 
 Click on "go home" button and confirm the action by clicking play button. 
 
 ### Mow whole area
-Click on "mow all" button. CaSSAndRA calculates the mowing paths according to your settings. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated route appear green on the map. Click on play button to start mowing
+Click on "mow all or selected area" button. CaSSAndRA calculates the mowing paths according to your settings. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated route appear green on the map. Click on play button to start mowing
 
 ![using_app_mow](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow.jpeg) 
 
 ### Mow selected area
-Click on "select zone to mow" button. Select "Lasso Select" or "Box Select" in the tool bar on top of the map. Then mark the desired area on the map. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated routes appear green on the map. You can repeat the calculation for selected area. Change your mow settings and click "select zone to mow" again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. Click on play button to start mowing
+Select "Lasso Select" or "Box Select" in the tool bar on top of the map. Then mark the desired area on the map. And select "mow all or selected area" button. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated routes appear green on the map. You can repeat the calculation for selected area. Change your mow settings and click "select zone to mow" again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. Click on play button to start mowing
 
 ![using_app_mow_zone](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow_zone.jpeg) 
 
@@ -366,7 +366,7 @@ The play button starts created task (Mow, go to, go home) but also it is possibl
 Click on "Taskplanner" in navigation bar or if you on mobile device click on burger menu and then select "Taskplanner"
 
 ### Create a task
-Configure the coverage path planner by pressing "mow settings" button.  Confirm new settings with "ok". Use Lasso-Select or Box-Select from the toolbar on top of the map to select an area and confirm it with "confirm selection" button for calculation or click "plan mow all" button to calculate for the whole map. A preview of the task appears in red. You can adjust mow settings for selected area by changing "mow settings" and trigger calculation again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. By pressing "cancel" button the current preview will be removed. 
+Configure the coverage path planner by pressing "mow settings" button.  Confirm new settings with "ok". Use Lasso-Select or Box-Select from the toolbar on top of the map to select an area and confirm it with "confirm selectioncalc task for selected area" button for calculation on whole map leave the selection empty. A preview of the task appears in red. You can adjust mow settings for selected area by changing "mow settings" and trigger calculation again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. By pressing "cancel" button the current preview will be removed. 
 
 ![create_task](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/create_task.jpeg) 
 
@@ -405,6 +405,13 @@ The app will be improved in small steps. Also reported problems will be fixed. I
 2. Clone the repository again and replace all files and folders in your production directory with the new downloaded files.
 3. Replace the downloaded /src/data folder with the folder you backed up in step 1.
 4. App can be started as usual
+
+## Donation
+
+If you enjoyed CaSSAndRA project — or just feeling generous, consider buying me a beer. Cheers!
+
+[![](https://www.paypalobjects.com/en_US/DK/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=DTLYLLR45ZMPW)
+
 ## Authors
 
 - [@EinEinfach](https://www.github.com/EinEinfach)
