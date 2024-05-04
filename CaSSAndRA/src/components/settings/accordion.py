@@ -305,16 +305,20 @@ accordion_settings = dbc.Accordion([
 @callback(Output(ids.MQTTCONNECTIONSTYLE, 'style'),
           Output(ids.HTTPCONNECTIONSTYLE, 'style'),
           Output(ids.UARTCONNECTIONSTYLE, 'style'),
+          Output(ids.RADIOCONNECTIONTYPE, 'value'),
           Input(ids.RADIOCONNECTIONTYPE, 'value'))
 def update_connectioninput(radio_input: str) -> list:
+    context = ctx.triggered_id
+    if context == None:
+        radio_input = commcfg.use
     if radio_input == 'MQTT':
-        return {'display': 'block'}, {'display': 'none'}, {'display': 'none'}
+        return {'display': 'block'}, {'display': 'none'}, {'display': 'none'}, radio_input
     elif radio_input == 'HTTP':
-        return {'display': 'none'}, {'display': 'block'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'block'}, {'display': 'none'}, radio_input
     elif radio_input == 'UART':
-        return {'display': 'none'}, {'display': 'none'}, {'display': 'block'}
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'block'}, radio_input
     else:
-        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, radio_input
     
 @callback(Output(ids.MODALCONNECTION, 'is_open'),
           [Input(ids.BUTTONSAVEANDREBOOT, 'n_clicks'),
@@ -567,32 +571,40 @@ def update_robotsettings_data(
 
 @callback(Output(ids.APINONECONNECTIONSTYLE, 'style'),
           Output(ids.APIMQTTCONNECTIONSTYLE, 'style'),
+          Output(ids.RADIOAPICONNECTIONTYPE, 'value'),
           [Input(ids.RADIOAPICONNECTIONTYPE, 'value'),
            ])
 def update_apiconnectioninput(radio_input: str,
                               ) -> list:
+    context = ctx.triggered_id
+    if context == None:
+        radio_input = commcfg.api
     if radio_input == 'deactivated':
-        return {'display': 'none'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'none'}, radio_input
     elif radio_input == 'MQTT':
-        return {'display': 'none'}, {'display': 'block'}
+        return {'display': 'none'}, {'display': 'block'}, radio_input
     else:
-        return {'display': 'none'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'none'}, 'deactivated'
 
 @callback(Output(ids.MESSAGESERVICESTYLE, 'style'),
           Output(ids.TELEGRAMSERVICESTYLE, 'style'),
           Output(ids.PUSHOVERSERVICESTYLE, 'style'),
+          Output(ids.RADIOMESSAGESERVICETYPE, 'value'),
           [Input(ids.RADIOMESSAGESERVICETYPE, 'value')],
           )
 def update_messageservicetype(radio_input: str,
                               ) -> list:
+    context = ctx.triggered_id
+    if context == None:
+        radio_input = commcfg.message_service
     if radio_input == 'deactivated':
-        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, radio_input
     elif radio_input == 'Telegram':
-        return {'display': 'none'}, {'display': 'block'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'block'}, {'display': 'none'}, radio_input
     elif radio_input == 'Pushover':
-        return {'display': 'none'}, {'display': 'none'}, {'display': 'block'}
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'block'}, radio_input
     else:
-        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'} 
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, 'deactivated'
 
 @callback(Output(ids.RADIOPOSITIONMODE, 'value'),
           Output(ids.POSITIONMODELON, 'value'),

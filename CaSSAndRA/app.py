@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.107.0 dashed current mow line
+#Version:0.108.0 changed radio button behavior in settings (connections, api, message services)
 # package imports
 import os
 import sys
