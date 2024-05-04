@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.106.0 A lot of changes and bugfixing in coverage pathplaner
+#Version:0.106.1 AT+P command is send agter every reconnect state, bug fix in MQTT settings
 # package imports
 import os
 import sys

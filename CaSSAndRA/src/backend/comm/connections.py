@@ -14,7 +14,7 @@ from datetime import datetime
 #local imports
 from .. data import datatodf
 from .. data.cfgdata import CommCfg, commcfg
-from . import message
+from . import message, cmdlist
 
 @dataclass
 class MQTT:
@@ -61,6 +61,7 @@ class MQTT:
             logger.info('Connection to the MQTT server successful')  
             client.connection_flag = True
             self.subscribe()
+            cmdlist.cmd_set_positionmode = True
         else:
             logger.warning('Connection to the MQTT server not possible')
             client.connection_flag = False
@@ -167,11 +168,14 @@ class HTTP:
                     logger.debug('Encryption: true')
                     try:
                         self.http_encryptkey = int(self.http_pass)%int(self.http_encryptchallenge)
+                        cmdlist.cmd_set_positionmode = True
                     except Exception as e:
                         logger.warning('Password is invalid. Check your comm config')
                         logger.debug(str(e))
                         self.http_encryptkey = None
                         self.http_status = -1
+                else:
+                    cmdlist.cmd_set_positionmode = True
             else:
                 logger.warning('Http request for props delivered implausible string')
                 datatodf.add_online_to_df_from_http(False)
@@ -342,6 +346,7 @@ class UART:
             self.client.reset_input_buffer()
             self.uart_status = True
             logger.info('Connection successful')
+            cmdlist.cmd_set_positionmode = True
         except:
             self.uart_status = False
             logger.warning('Connection to the rover is not possible.')

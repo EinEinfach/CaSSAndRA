@@ -378,6 +378,7 @@ def update_connection_data(bsr_n_clicks: int,
             commcfg.mqtt_client_id = mqttclientid
             commcfg.mqtt_username = mqttusername
             commcfg.mqtt_pass = mqttpassword
+            commcfg.mqtt_server = mqttserver
             commcfg.mqtt_port = mqttport
             commcfg.mqtt_mower_name = mqttrovername
         if connectiontype == 'HTTP':
