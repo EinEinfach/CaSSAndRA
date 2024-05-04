@@ -215,9 +215,11 @@ def update(n_intervals: int,
                current_mow_idx = 0
           path_finished = filtered[filtered.index < robot.position_mow_point_index]
           path_to_go = filtered[filtered.index >= current_mow_idx]
+          current_target = filtered[(filtered.index == current_mow_idx)|(filtered.index == current_mow_idx + 1)]
           #add mow progress
           traces.append(go.Scatter(x=path_finished['X'], y=path_finished['Y'], mode='lines', name='mow finished', opacity=0.5, line=dict(color='rgba(127, 127, 127, 0.25)')))
           traces.append(go.Scatter(x=path_to_go['X'], y=path_to_go['Y'], mode='lines', name='mow to go', opacity=0.7, line=dict(color='#7fb249')))
+          traces.append(go.Scatter(x=current_target['X'], y=current_target['Y'], mode='lines', name='current target', opacity=0.8, line=dict(color='black', dash='dash', width=2)))
           mowdata = [dict(text='Distance: '+str(current_map.finished_distance)+'m/'+str(current_map.distance)+'m ('+str(current_map.distance_perc)+'%)', showarrow=False, xref="paper", yref="paper",x=1,y=1),
                          dict(text='Index: '+str(current_map.finished_idx)+'/'+str(current_map.idx)+' ('+str(current_map.idx_perc)+'%)', showarrow=False, xref="paper", yref="paper",x=1,y=0.95), 
                          dict(text='Area to mow: '+str(current_map.areatomow)+'sqm', showarrow=False, xref="paper", yref="paper",x=1,y=0.9)]

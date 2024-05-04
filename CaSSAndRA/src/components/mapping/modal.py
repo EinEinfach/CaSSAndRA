@@ -131,8 +131,8 @@ renameperimeter = dbc.Modal(
            State(ids.DROPDOWNSUNRAYIMPORT, 'value'),
            State(ids.MODALOVERWRITEPERIMETER, 'is_open'),
            State(ids.INPUTPERIMETERNAME, 'value')])
-def overwrite_perimeter(bsp_n_clicks: int, bok_n_clicks, map_nr: str(), 
-                        is_open: bool, perimeter_name: str()) -> bool:
+def overwrite_perimeter(bsp_n_clicks: int, bok_n_clicks, map_nr: str, 
+                        is_open: bool, perimeter_name: str) -> bool:
     context = ctx.triggered_id
     if context == ids.OKBUTTONOVERWRITEPERIMTER:
         mapping_maps.select_imported(map_nr)
@@ -149,7 +149,7 @@ def overwrite_perimeter(bsp_n_clicks: int, bok_n_clicks, map_nr: str(),
            State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            State(ids.MODALSELECTEDPERIMETER, 'is_open'),])
 def selected_perimeter(bsp_n_clicks: int, bok_n_clicks: int, 
-                       selected_perimeter: str(), is_open: bool) -> list:
+                       selected_perimeter: str, is_open: bool) -> list:
     context = ctx.triggered_id
     if selected_perimeter == None:
         return is_open
@@ -183,7 +183,7 @@ def new_perimeter(baddp_n_clicks: int, bok_n_clicks, is_open: bool) -> bool:
            State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            State(ids.MODALCOPYPERIMETER, 'is_open')])
 def copy_perimeter(bcp_n_clicks: int, bok_n_clicks: int, 
-                     cpy_perimeter_name: str(), selected_perimeter: str(),
+                     cpy_perimeter_name: str, selected_perimeter: str,
                      is_open: bool) -> bool:
     context = ctx.triggered_id
     if context == ids.OKBUTTONCOPYPERIMETER:
@@ -199,7 +199,7 @@ def copy_perimeter(bcp_n_clicks: int, bok_n_clicks: int,
            State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            State(ids.MODALREMOVEPERIMETER, 'is_open')])
 def remove_perimeter(brp_n_clicks: int, bok_n_clicks, 
-                     selected_perimeter: str(), is_open: bool) -> bool:
+                     selected_perimeter: str, is_open: bool) -> bool:
     context = ctx.triggered_id
     if context == ids.OKBUTTONREMOVEPERIMETER:
         saveddata.remove_perimeter(mapping_maps.saved, selected_perimeter, tasks.saved, tasks.saved_parameters)
@@ -219,7 +219,7 @@ def remove_perimeter(brp_n_clicks: int, bok_n_clicks,
            State(ids.INPUTNEWPERIMETERNAME, 'value'),
            State(ids.MODALFINISHMAPPING, 'is_open')])
 def finish_mapping(bff_n_clicks: int, bok_n_clicks: int, 
-                   perimeter_name: str(), is_open: bool) -> bool:
+                   perimeter_name: str, is_open: bool) -> bool:
     context = ctx.triggered_id
     if context == ids.OKBUTTONFINISHMAPPING:
         mapping_maps.check_dockpoints()
@@ -272,7 +272,7 @@ def nofix_solution(banp_n_clicks: int,
            State(ids.DROPDOWNCHOOSEPERIMETER, 'value'),
            State(ids.MODALRENAMEPERIMETER, 'is_open')])
 def copy_perimeter(brp_n_clicks: int, bok_n_clicks: int, 
-                     new_perimeter_name: str(), selected_perimeter: str(),
+                     new_perimeter_name: str, selected_perimeter: str,
                      is_open: bool) -> bool:
     context = ctx.triggered_id
     if context == ids.OKBUTTONRENAMEPERIMETER:

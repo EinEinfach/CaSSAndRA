@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.106.1 AT+P command is send agter every reconnect state, bug fix in MQTT settings
+#Version:0.107.0 dashed current mow line
 # package imports
 import os
 import sys
