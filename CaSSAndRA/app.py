@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.108.0 changed radio button behavior in settings (connections, api, message services)
+#Version:0.109.0 Support gejson import and export. Pls check requirements.txt
 # package imports
 import os
 import sys

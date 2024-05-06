@@ -293,6 +293,8 @@ If you are finished. Click on the cloud with plus button in "Select map" section
 
 ![save_new_perimeter](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/save_new_perimeter.jpeg) 
 
+You can also export you map in geojson format. For that just click "json file" button. For export CaSSAndRA uses your lon and lat coordinates define in settings under robot section. Unsaved changes will not be exported.
+
 ### Import map
 It is possible to import a map that was created in the Sunray app.
 
@@ -303,6 +305,10 @@ Choose your Sunray export file.
 You can now select the map you want in the drop-down menu.
 
 A preview of the map is displayed in red with the note "From upload (please save first)".
+
+It is also possible to import a map in geojson format what previosly was exported (see section above). The steps are the same like for sunray import. CaSSAndRA check first for sunray import data format if this check fail then geojson import format will be used. 
+
+ATTENTION!: For correct import of geojson data your lon and lat settings under robot section must be the same as it used during export
 
 ![upload](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/upload.jpeg) 
 

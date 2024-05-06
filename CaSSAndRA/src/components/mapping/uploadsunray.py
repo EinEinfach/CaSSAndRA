@@ -29,10 +29,10 @@ uploadsunray = dbc.Col([
           [Input(ids.UPLOADSUNRAYFILE, 'contents'),
            #Input(ids.OKBUTTONSUNRAYIMPORT, 'n_clicks'),
            State(ids.MODALSUNRAYIMPORT, 'is_open')])
-def upload_sunray_file(content: str(), 
+def upload_sunray_file(content: str, 
                        #bok_n_clicks: int, 
                        is_open: bool
-                       ) -> list():
+                       ) -> list:
     title = ''
     body = ''
     disabled = True

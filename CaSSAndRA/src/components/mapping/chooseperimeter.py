@@ -19,6 +19,7 @@ chooseperimeter = dbc.Col([
                                 buttons.removeperimeter,   
                                 buttons.copyperimeter,
                                 buttons.finishfigure,
+                                buttons.exportperimeter,
                             ], fluid=True),                      
                         ]), 
                     ], className='text-center m-1 w-90')
@@ -40,9 +41,9 @@ def update_dropdown_chooseperimeter(boknp_nclicks: int,
                                     bokfm_nclicks: int, 
                                     bokrp_nclicks: int,
                                     pathname: str,
-                                    dropdown_val_state: str(), 
-                                    dropdown_opt_state: list(),
-                                    ) -> list():
+                                    dropdown_val_state: str, 
+                                    dropdown_opt_state: list,
+                                    ) -> list:
     time.sleep(0.5)
     context = ctx.triggered_id
     try:
@@ -57,3 +58,10 @@ def update_dropdown_chooseperimeter(boknp_nclicks: int,
         value = None
     return options, value
 
+@callback(Output(ids.EXPORTPERIMETER, 'data'),
+          Input(ids.BUTTONEXPORTPERIMETER, 'n_clicks'),
+          prevent_initial_call=True,
+          )
+def export_perimeter(bep_nclicks: int
+                     ) -> dict:
+    return dict(content=mapping_maps.export_geojson(), filename=f"{mapping_maps.map_old_name}.json")
