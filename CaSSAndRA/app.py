@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.109.0 Support gejson import and export. Pls check requirements.txt
+#Version:0.109.1 Remove geopandas dependency 
 # package imports
 import os
 import sys

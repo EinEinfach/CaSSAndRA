@@ -7,7 +7,6 @@ import io
 import os
 import json
 import pandas as pd
-import geopandas 
 import math
 import networkx as nx
 from dataclasses import dataclass, field, asdict
@@ -381,7 +380,22 @@ class Perimeters:
             logger.info('Selected file is not sunray export. Trying geojson format.')
             logger.debug(str(e))
             try:
-                df = geopandas.read_file(io.StringIO(decoded.decode('utf-8')))
+                geojson_data = json.loads(decoded.decode('utf-8'))
+                df = pd.DataFrame()
+                for geometry in geojson_data['features']:
+                    if geometry['properties']['name'] == 'perimeter':
+                        perimeter = pd.DataFrame({'name': ['perimeter'], 'geometry': [Polygon(geometry['geometry']['coordinates'][0])]})
+                        df = pd.concat([df, perimeter], ignore_index=True)
+                    elif geometry['properties']['name'] == 'exclusion':
+                        exclusion = pd.DataFrame({'name': ['exclusion'], 'geometry': [Polygon(geometry['geometry']['coordinates'][0])]})
+                        df = pd.concat([df, exclusion], ignore_index=True)
+                    elif geometry['properties']['name'] == 'dockpoints':
+                        dockpoints= pd.DataFrame({'name': ['dockpoints'], 'geometry': [LineString(geometry['geometry']['coordinates'])]})
+                        df = pd.concat([df, dockpoints], ignore_index=True)
+                    elif geometry['properties']['name'] == 'search wire':
+                        search_wire = pd.DataFrame({'name': ['search wire'], 'geometry': [LineString(geometry['geometry']['coordinates'])]})
+                        df = pd.concat([df, search_wire], ignore_index=True)
+                #df = geopandas.read_file(io.StringIO(decoded.decode('utf-8')))
                 #extract perimeter data points
                 coords = pd.DataFrame(list(df[df['name'] == 'perimeter']['geometry'].iloc[0].exterior.coords))
                 if coords.empty:
