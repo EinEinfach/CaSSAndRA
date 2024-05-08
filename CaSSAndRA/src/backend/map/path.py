@@ -139,7 +139,7 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
             line_mask = map.linemask(area_to_mow, parameters.width)
         else:
             line_mask = MultiLineString()
-        route2 = lines.calcroute(area_to_mow, border, line_mask, [], list(last_coord.coords), parameters, angle+90)
+        route2 = lines.calcroute(border, line_mask, [], list(last_coord.coords), parameters, angle+90)
         route2 = map.turn(route2, -angle-90)
         route.extend(list(route2.coords))
         # Clear progress bar

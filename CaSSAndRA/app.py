@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.109.2 Fix an issue where api settings or message service setting could be removed after save and reboot
+#Version:0.109.3 Fix square pattern in pathplanner
 # package imports
 import os
 import sys
