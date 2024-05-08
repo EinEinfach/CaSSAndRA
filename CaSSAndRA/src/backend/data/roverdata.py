@@ -135,7 +135,9 @@ class Mower:
     
     def calc_sensor_status(self) -> str:
         if self.job == 3:
-            if self.sensor == 17:
+            if self.sensor == 18:
+                return 'temperature out of range'
+            elif self.sensor == 17:
                 return 'emergency/stop'
             elif self.sensor == 16:
                 return 'rain sensor'
@@ -246,6 +248,8 @@ class Mower:
         if self.job == 4: 
             if self.dock_reason_operator:
                 pass
+            elif self.sensor == 18:
+                self.dock_reason = 'temperature'
             elif self.sensor == 16:
                 self.dock_reason = 'rain'
             elif robot.position_mow_point_index == 0:
