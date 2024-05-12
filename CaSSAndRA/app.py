@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.110.0 Added new dock reason (temperature out of range)
+#Version:0.110.1 Fix issue in encrypted http mode
 # package imports
 import os
 import sys

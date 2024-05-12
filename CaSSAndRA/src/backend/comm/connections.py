@@ -151,6 +151,7 @@ class HTTP:
         logger.info('Connecting...')
         try:
             data = self.reqandchecksum('AT+V')
+            logger.debug(f'Data to be send: {data}')
             logger.info('TX: '+data)
             res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
             logger.debug('Status code: '+str(res.status_code))
@@ -193,10 +194,11 @@ class HTTP:
     def get_state(self) -> None:
         logger.info('Performing get state http-request')
         data = self.reqandchecksum('AT+S')
+        logger.debug(f'Data to be send: {data}')
         if self.http_encryption == 1:
             data_ascii = [ord(c) for c in data]
             data_encrypt = [x + self.http_encryptkey for x in data_ascii]
-            data_encrypt = [x - 126 + 31 if x>=126 else x for x in data_encrypt]
+            data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))
         try:
             logger.info('TX: '+data) 
@@ -220,10 +222,11 @@ class HTTP:
     def get_stats(self) -> None:
         logger.info('Performing get stats http-request')
         data = self.reqandchecksum('AT+T')
+        logger.debug(f'Data to be send: {data}')
         if self.http_encryption == 1:
             data_ascii = [ord(c) for c in data]
             data_encrypt = [x + self.http_encryptkey for x in data_ascii]
-            data_encrypt = [x - 126 + 31 if x>=126 else x for x in data_encrypt]
+            data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))
         try:
             logger.info('TX: '+data)
@@ -247,10 +250,11 @@ class HTTP:
     def get_obstacles(self) -> int:
         logger.info('Performing get obstacles http-request')
         data = self.reqandchecksum('AT+S2')
+        logger.debug(f'Data to be send: {data}')
         if self.http_encryption == 1:
             data_ascii = [ord(c) for c in data]
             data_encrypt = [x + self.http_encryptkey for x in data_ascii]
-            data_encrypt = [x - 126 + 31 if x>=126 else x for x in data_encrypt]
+            data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))
         try:
             logger.info('Backend: TX '+data) 
@@ -279,6 +283,7 @@ class HTTP:
             rep_cnt = 0
             logger.debug(''+msg_pckg['msg'][i]+' will be send to the rover')
             data = self.reqandchecksum(msg_pckg['msg'][i])
+            logger.debug(f'Data to be send: {data}')
             if self.http_encryption == 1:
                 data_ascii = [ord(c) for c in data]
                 data_encrypt = [x + self.http_encryptkey for x in data_ascii]
