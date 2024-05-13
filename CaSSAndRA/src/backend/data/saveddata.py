@@ -74,6 +74,18 @@ def read(measure_file_paths) -> None:
         roverdata.stats = pd.read_pickle(measure_file_paths.stats)
         if not 'duration_mow_motor_recovery' in roverdata.stats:
             roverdata.stats['duration_mow_motor_recovery'] = 0
+        if not 'counter_lift_triggered' in roverdata.stats.columns:
+            roverdata.stats['counter_lift_triggered'] = 0
+        if not 'counter_gps_no_speed_triggered' in roverdata.stats.columns:
+            roverdata.stats['counter_gps_no_speed_triggered'] = 0
+        if not 'counter_tof_triggered' in roverdata.stats.columns:
+            roverdata.stats['counter_tof_triggered'] = 0
+        if not 'counter_diff_imu_wheel_yaw_speed_triggered' in roverdata.stats.columns:
+            roverdata.stats['counter_diff_imu_wheel_yaw_speed_triggered'] = 0
+        if not 'counter_imu_no_rotation_triggered' in roverdata.stats.columns:
+            roverdata.stats['counter_imu_no_rotation_triggered'] = 0
+        if not 'counter_rotation_timeout_triggered' in roverdata.stats.columns:
+            roverdata.stats['counter_rotation_timeout_triggered'] = 0
         logger.info('Backend: Statistics data are loaded successfully')
         if roverdata.stats.empty:
             logger.warning('stats.pickle is empty, create a default data frame')
@@ -102,8 +114,15 @@ def read(measure_file_paths) -> None:
                  "temp_min":{"0":0},
                  "temp_max":{"0":0},
                  "duration_mow_motor_recovery":{"0":0},
+                 "counter_lift_triggered":{"0":0},
+                 "counter_gps_no_speed_triggered":{"0":0},
+                 "counter_tof_triggered":{"0":0},
+                 "counter_diff_imu_wheel_yaw_speed_triggered":{"0":0},
+                 "counter_imu_no_rotation_triggered":{"0":0},
+                 "counter_rotation_timeout_triggered":{"0":0},
                  "timestamp":{"0":str(datetime.now())}}
             roverdata.stats = pd.DataFrame(data=stats)
+        logger.info('Backend: Statistics data are loaded successfully')
     except:
         logger.warning('Backend: Failed to load statistics data, create a default data frame')
         stats = {"duration_idle":{"0":0},
@@ -131,6 +150,12 @@ def read(measure_file_paths) -> None:
                  "temp_min":{"0":0},
                  "temp_max":{"0":0},
                  "duration_mow_motor_recovery":{"0":0},
+                 "counter_lift_triggered":{"0":0},
+                 "counter_gps_no_speed_triggered":{"0":0},
+                 "counter_tof_triggered":{"0":0},
+                 "counter_diff_imu_wheel_yaw_speed_triggered":{"0":0},
+                 "counter_imu_no_rotation_triggered":{"0":0},
+                 "counter_rotation_timeout_triggered":{"0":0},
                  "timestamp":{"0":str(datetime.now())}}
         roverdata.stats = pd.DataFrame(data=stats)
 
@@ -158,6 +183,20 @@ def read(measure_file_paths) -> None:
     #Try to read Calced from Stats Data from file
     try:
         roverdata.calced_from_stats = pd.read_pickle(measure_file_paths.calcedstats)
+        if not 'duration_mow_motor_recovery' in roverdata.calced_from_stats.columns:
+            roverdata.calced_from_stats['duration_mow_motor_recovery'] = 0
+        if not 'counter_lift_triggered' in roverdata.calced_from_stats.columns:
+            roverdata.calced_from_stats['counter_lift_triggered'] = 0
+        if not 'counter_gps_no_speed_triggered' in roverdata.calced_from_stats.columns:
+            roverdata.calced_from_stats['counter_gps_no_speed_triggered'] = 0
+        if not 'counter_tof_triggered' in roverdata.calced_from_stats.columns:
+            roverdata.calced_from_stats['counter_tof_triggered'] = 0
+        if not 'counter_diff_imu_wheel_yaw_speed_triggered' in roverdata.calced_from_stats.columns:
+            roverdata.calced_from_stats['counter_diff_imu_wheel_yaw_speed_triggered'] = 0
+        if not 'counter_imu_no_rotation_triggered' in roverdata.calced_from_stats.columns:
+            roverdata.calced_from_stats['counter_imu_no_rotation_triggered'] = 0
+        if not 'counter_rotation_timeout_triggered' in roverdata.calced_from_stats.columns:
+            roverdata.calced_from_stats['counter_rotation_timeout_triggered'] = 0
         logger.info('Backend: Calced data from stats are loaded successfully')
         if roverdata.calced_from_stats.empty:
             logger.warning('calcedstats.pickle is empty, create a default data frame')
@@ -185,6 +224,13 @@ def read(measure_file_paths) -> None:
                             "reset_cause":{"0":0},
                             "temp_min":{"0":0},
                             "temp_max":{"0":0},
+                            "duration_mow_motor_recovery":{"0":0},
+                            "counter_lift_triggered":{"0":0},
+                            "counter_gps_no_speed_triggered":{"0":0},
+                            "counter_tof_triggered":{"0":0},
+                            "counter_diff_imu_wheel_yaw_speed_triggered":{"0":0},
+                            "counter_imu_no_rotation_triggered":{"0":0},
+                            "counter_rotation_timeout_triggered":{"0":0},
                             "timestamp":{"0":str(datetime.now())}}
             roverdata.calced_from_stats = pd.DataFrame(data=calced_from_stats)
     except:
@@ -213,6 +259,13 @@ def read(measure_file_paths) -> None:
                             "reset_cause":{"0":0},
                             "temp_min":{"0":0},
                             "temp_max":{"0":0},
+                            "duration_mow_motor_recovery":{"0":0},
+                            "counter_lift_triggered":{"0":0},
+                            "counter_gps_no_speed_triggered":{"0":0},
+                            "counter_tof_triggered":{"0":0},
+                            "counter_diff_imu_wheel_yaw_speed_triggered":{"0":0},
+                            "counter_imu_no_rotation_triggered":{"0":0},
+                            "counter_rotation_timeout_triggered":{"0":0},
                             "timestamp":{"0":str(datetime.now())}}
         roverdata.calced_from_stats = pd.DataFrame(data=calced_from_stats)
 

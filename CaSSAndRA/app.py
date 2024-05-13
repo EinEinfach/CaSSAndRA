@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.110.1 Fix issue in encrypted http mode
+#Version:0.111.0 New stats added in 1.0.321 fw
 # package imports
 import os
 import sys
