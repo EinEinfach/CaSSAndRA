@@ -15,7 +15,17 @@ def update(n_intervals: int) -> dbc.Row:
         robot.status == "docking"
         or robot.status == "mow"
         or robot.status == "transit"
+        or robot.status == "resume"
         or robot.status == "charging"
+        or robot.status == "map upload"
+        or robot.status == "move"
+        or robot.status == "stop"
+        or robot.status == "shutdown"
+        or robot.status == "reboot"
+        or robot.status == "gps reboot"
+        or robot.status == "skip point"
+        or robot.status == "skip point"
+        or "skip to" in robot.status
     ):
         colorstate = "success"
         inversestate = True

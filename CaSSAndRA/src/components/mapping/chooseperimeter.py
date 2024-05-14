@@ -64,4 +64,8 @@ def update_dropdown_chooseperimeter(boknp_nclicks: int,
           )
 def export_perimeter(bep_nclicks: int
                      ) -> dict:
-    return dict(content=mapping_maps.export_geojson(), filename=f"{mapping_maps.map_old_name}.json")
+    context = ctx.triggered_id
+    if context == ids.BUTTONEXPORTPERIMETER and bep_nclicks != None:
+        return dict(content=mapping_maps.export_geojson(), filename=f"{mapping_maps.map_old_name}.json")
+    else:
+        return None

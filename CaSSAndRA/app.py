@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.111.0 New stats added in 1.0.321 fw
+#Version:0.112.0 Better app response to user select. New api values. Buf fix in json export in mobile app
 # package imports
 import os
 import sys

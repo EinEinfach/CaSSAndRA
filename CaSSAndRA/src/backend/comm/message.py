@@ -204,7 +204,7 @@ def check() -> pd.DataFrame:
             return pd.DataFrame()    
 
     elif cmdlist.cmd_resume:
-        msg_pckg = robot.last_cmd
+        msg_pckg = cmdtorover.resume()
         robot.last_mow_status = checkmowmotor(msg_pckg, robot.last_mow_status)
         cmdlist.cmd_resume = False
     

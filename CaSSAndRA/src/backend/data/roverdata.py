@@ -56,6 +56,8 @@ class Mower:
                                Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png')))
     solution: str = 'invalid'
     status: str = 'offline'
+    status_tmp: str = 'offline'
+    status_tmp_timestamp: datetime = datetime.now()
     sensor_status: str = 'unknown'
     position_age_hr = '99+d'
     dock_reason_operator: bool = False
@@ -114,7 +116,9 @@ class Mower:
         return direction_deg
 
     def calc_status(self) -> str:
-        if (datetime.now()-self.timestamp).seconds > 60:
+        if (datetime.now() - self.status_tmp_timestamp).seconds < 10:
+            return self.status_tmp
+        elif (datetime.now()-self.timestamp).seconds > 60:
             return 'offline'
         elif self.job == 0:
             return 'idle'
