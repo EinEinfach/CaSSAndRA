@@ -31,11 +31,12 @@ def check() -> pd.DataFrame:
         msg_pckg = cmdtorover.move([robot.cmd_move_lin, robot.cmd_move_ang])  
 
     elif cmdlist.cmd_goto:
+        #first loop call or mapupload failed
         if cmdlist.cmd_take_map_attempt == 0 or robot.map_upload_failed:
             if cmdlist.cmd_take_map_attempt == 0:
                 robot.map_old_crc = robot.map_crc
             robot.map_upload_started = True 
-            robot.map_upload_finished = False
+            robot.uptoday = False
             robot.map_upload_failed = False
             perimeter_no_dockpath = current_map.perimeter[(current_map.perimeter['type'] != 'dockpoints') & (current_map.perimeter['type'] != 'search wire')]
             data = pd.concat([perimeter_no_dockpath, current_map.gotopoint], ignore_index=True)
@@ -48,7 +49,6 @@ def check() -> pd.DataFrame:
                 cmdlist.cmd_failed = True
                 cmdlist.cmd_goto = False
                 robot.map_upload_started = False
-                robot.map_upload_finished = False
                 robot.map_upload_failed = False
                 return pd.DataFrame()
             logger.debug('Map crc deivation: '+str(abs(current_map.map_crc - robot.map_crc)))    
@@ -57,14 +57,14 @@ def check() -> pd.DataFrame:
             map_msg = cmdtorover.takemap(current_map.perimeter, current_map.gotopoint, dock=False)
             msg_pckg = map_msg
             return msg_pckg
-         
-        if robot.map_upload_finished:
+        
+        #second loop call
+        if robot.uptoday:
             map_crc_dev = abs(current_map.map_crc - robot.map_crc)
             if map_crc_dev < 100:
                 robot.map_upload_started = False
-                robot.map_upload_finished = False
                 robot.map_upload_failed = False
-                logger.debug('Current map crc matches rover map crc, perform goto command. CRC deviation: '+str(map_crc_dev))
+                logger.info('Current map crc matches rover map crc, perform goto command. CRC deviation: '+str(map_crc_dev))
                 cmdlist.cmd_take_map_attempt = 0
                 goto_msg = cmdtorover.goto()
                 msg_pckg = goto_msg
@@ -76,19 +76,19 @@ def check() -> pd.DataFrame:
                 return msg_pckg
             else:
                 robot.map_upload_started = False
-                robot.map_upload_finished = False
                 robot.map_upload_failed = True
                 return pd.DataFrame() 
         else:
-            return pd.DataFrame()    
+            return pd.DataFrame()
    
     elif cmdlist.cmd_dock:
         if robot.last_task_name == 'go to':
+            #first loop call or map upload failed
             if cmdlist.cmd_take_map_attempt == 0 or robot.map_upload_failed:
                 if cmdlist.cmd_take_map_attempt == 0:
                     robot.map_old_crc = robot.map_crc
                 robot.map_upload_started = True 
-                robot.map_upload_finished = False
+                robot.uptoday = False
                 robot.map_upload_failed = False
                 data = current_map.perimeter[current_map.perimeter['type'] != 'search wire'] 
                 mapCRCx = data['X']*100 
@@ -100,7 +100,6 @@ def check() -> pd.DataFrame:
                     cmdlist.cmd_failed = True
                     cmdlist.cmd_dock = False
                     robot.map_upload_started = False
-                    robot.map_upload_finished = False
                     robot.map_upload_failed = False
                     return pd.DataFrame()
                 logger.debug('Map crc deivation: '+str(abs(current_map.map_crc - robot.map_crc)))    
@@ -110,13 +109,13 @@ def check() -> pd.DataFrame:
                 msg_pckg = map_msg
                 return msg_pckg
                 
-            if robot.map_upload_finished:
+            #second loop call
+            if robot.uptoday:
                 map_crc_dev = abs(current_map.map_crc - robot.map_crc)
                 if map_crc_dev < 100:
                     robot.map_upload_started = False
-                    robot.map_upload_finished = False
                     robot.map_upload_failed = False
-                    logger.debug('Current map crc matches rover map crc, perfom dock command. CRC deviation: '+str(map_crc_dev))
+                    logger.info('Current map crc matches rover map crc, perfom dock command. CRC deviation: '+str(map_crc_dev))
                     cmdlist.cmd_take_map_attempt = 0
                     dock_msg= cmdtorover.dock()
                     msg_pckg = dock_msg
@@ -128,9 +127,11 @@ def check() -> pd.DataFrame:
                     return msg_pckg 
                 else:
                     robot.map_upload_started = False
-                    robot.map_upload_finished = False
                     robot.map_upload_failed = True
                     return pd.DataFrame() 
+            else:
+                return pd.DataFrame()
+
         else:
             dock_msg = cmdtorover.dock()   
             msg_pckg = dock_msg
@@ -152,11 +153,12 @@ def check() -> pd.DataFrame:
         return msg_pckg
     
     elif cmdlist.cmd_mow:
+        #first loop call or map upload failed
         if cmdlist.cmd_take_map_attempt == 0 or robot.map_upload_failed:
             if cmdlist.cmd_take_map_attempt == 0:
                 robot.map_old_crc = robot.map_crc
             robot.map_upload_started = True 
-            robot.map_upload_finished = False
+            robot.uptoday = False
             robot.map_upload_failed = False
             data = current_map.perimeter[current_map.perimeter['type'] != 'search wire']
             data = pd.concat([data, current_map.mowpath], ignore_index=True)
@@ -169,7 +171,6 @@ def check() -> pd.DataFrame:
                 cmdlist.cmd_failed = True
                 cmdlist.cmd_mow = False
                 robot.map_upload_started = False
-                robot.map_upload_finished = False
                 robot.map_upload_failed = False
                 return pd.DataFrame()
             logger.debug('Map crc deivation: '+str(abs(current_map.map_crc - robot.map_crc)))    
@@ -179,13 +180,13 @@ def check() -> pd.DataFrame:
             msg_pckg = map_msg
             return msg_pckg
             
-        if robot.map_upload_finished:
+        #second loop call
+        if robot.uptoday:
             map_crc_dev = abs(current_map.map_crc - robot.map_crc)
             if map_crc_dev < 500:
                 robot.map_upload_started = False
-                robot.map_upload_finished = False
                 robot.map_upload_failed = False
-                logger.debug('Current map crc matches rover map crc, perform mow command. CRC deviation: '+str(map_crc_dev))
+                logger.info('Current map crc matches rover map crc, perform mow command. CRC deviation: '+str(map_crc_dev))
                 cmdlist.cmd_take_map_attempt = 0
                 mow_msg = cmdtorover.mow()
                 msg_pckg = mow_msg
@@ -197,11 +198,10 @@ def check() -> pd.DataFrame:
                 return msg_pckg
             else:
                 robot.map_upload_started = False
-                robot.map_upload_finished = False
                 robot.map_upload_failed = True
-                return pd.DataFrame() 
+                return pd.DataFrame()    
         else:
-            return pd.DataFrame()    
+            return pd.DataFrame()
 
     elif cmdlist.cmd_resume:
         msg_pckg = cmdtorover.resume()
@@ -245,11 +245,12 @@ def check() -> pd.DataFrame:
         cmdlist.cmd_skipnextpoint = False
     
     elif cmdlist.cmd_take_map:
+        #first loop call or map upload failed
         if cmdlist.cmd_take_map_attempt == 0 or robot.map_upload_failed:
             if cmdlist.cmd_take_map_attempt == 0:
                 robot.map_old_crc = robot.map_crc
             robot.map_upload_started = True 
-            robot.map_upload_finished = False
+            robot.uptoday = False
             robot.map_upload_failed = False
             data = current_map.perimeter[current_map.perimeter['type'] != 'search wire']
             data = pd.concat([data, current_map.mowpath], ignore_index=True)
@@ -262,7 +263,6 @@ def check() -> pd.DataFrame:
                 cmdlist.cmd_failed = True
                 cmdlist.cmd_take_map = False
                 robot.map_upload_started = False
-                robot.map_upload_finished = False
                 robot.map_upload_failed = False
                 return pd.DataFrame()
             logger.debug('Map crc deivation: '+str(abs(current_map.map_crc - robot.map_crc)))    
@@ -272,13 +272,12 @@ def check() -> pd.DataFrame:
             msg_pckg = map_msg
             return msg_pckg
             
-        if robot.map_upload_finished:
+        if robot.uptoday:
             map_crc_dev = abs(current_map.map_crc - robot.map_crc)
             if map_crc_dev < 500:
                 robot.map_upload_started = False
-                robot.map_upload_finished = False
                 robot.map_upload_failed = False
-                logger.debug('Current map crc matches rover map crc, stand by. CRC deviation: '+str(map_crc_dev))
+                logger.info('Current map crc matches rover map crc, stand by. CRC deviation: '+str(map_crc_dev))
                 cmdlist.cmd_take_map_attempt = 0
                 mow_msg = cmdtorover.mow()
                 msg_pckg = mow_msg
@@ -288,7 +287,6 @@ def check() -> pd.DataFrame:
                 return pd.DataFrame()
             else:
                 robot.map_upload_started = False
-                robot.map_upload_finished = False
                 robot.map_upload_failed = True
                 return pd.DataFrame() 
         else:

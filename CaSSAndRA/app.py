@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.112.0 Better app response to user select. New api values. Buf fix in json export in mobile app
+#Version:0.112.1 Fixed issue with map upload failed
 # package imports
 import os
 import sys
