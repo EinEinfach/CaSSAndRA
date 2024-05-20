@@ -75,6 +75,7 @@ def check() -> pd.DataFrame:
                 cmdlist.cmd_goto = False
                 return msg_pckg
             else:
+                logger.info(f'Map upload failed current map crc does not match rover crc. CRC deviation: {map_crc_dev}')
                 robot.map_upload_started = False
                 robot.map_upload_failed = True
                 return pd.DataFrame() 
@@ -126,6 +127,7 @@ def check() -> pd.DataFrame:
                     robot.dock_reason_time = datetime.now()
                     return msg_pckg 
                 else:
+                    logger.info(f'Map upload failed current map crc does not match rover crc. CRC deviation: {map_crc_dev}')
                     robot.map_upload_started = False
                     robot.map_upload_failed = True
                     return pd.DataFrame() 
@@ -197,6 +199,7 @@ def check() -> pd.DataFrame:
                 cmdlist.cmd_mow = False
                 return msg_pckg
             else:
+                logger.info(f'Map upload failed current map crc does not match rover crc. CRC deviation: {map_crc_dev}')
                 robot.map_upload_started = False
                 robot.map_upload_failed = True
                 return pd.DataFrame()    
@@ -286,6 +289,7 @@ def check() -> pd.DataFrame:
                 cmdlist.cmd_take_map = False
                 return pd.DataFrame()
             else:
+                logger.info(f'Map upload failed current map crc does not match rover crc. CRC deviation: {map_crc_dev}')
                 robot.map_upload_started = False
                 robot.map_upload_failed = True
                 return pd.DataFrame() 

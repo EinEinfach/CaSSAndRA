@@ -1,4 +1,4 @@
 import logging
 logger = logging.getLogger(__name__)
 
-version = '0.112.1'
+version = '0.113.0'

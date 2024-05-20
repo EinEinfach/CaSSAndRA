@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.112.1 Fixed issue with map upload failed
+#Version:0.113.0 Removed updating... message in browser
 # package imports
 import os
 import sys
@@ -153,7 +153,7 @@ def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level
             ],
             suppress_callback_exceptions=True,
             title='CASSANDRA',
-            update_title = 'CASSANDRA updating...',
+            update_title = None, #'CASSANDRA updating...',
             assets_folder=assets_path, 
         )
         app.layout = serve_layout   # set the layout to the serve_layout function
