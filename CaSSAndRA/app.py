@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.113.0 Removed updating... message in browser
+#Version:0.113.1 Fixed api commands stop and dock
 # package imports
 import os
 import sys

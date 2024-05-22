@@ -293,21 +293,20 @@ class API:
                 logger.debug(f'{e}')
 
     def perform_robot_cmd(self, buffer) -> None:
-        if 'value' in buffer:
-            allowed_values = ['mow', 'stop', 'dock']
-            try:
+        allowed_values = ['mow', 'stop', 'dock']
+        try:
+            if self.command == 'stop':
+                cmdlist.cmd_stop = True
+            elif self.command == 'dock':
+                cmdlist.cmd_dock = True
+            elif self.command == 'mow':
                 self.value = buffer['value'][0]
-                if self.command == 'mow':
-                    self.perform_mow_cmd()
-                elif self.command == 'stop':
-                    cmdlist.cmd_stop = True
-                elif self.command == 'dock':
-                    cmdlist.cmd_dock = True
-                else:
-                    logger.info(f'No valid command in api message found. Allowed values: {allowed_values}. Aborting')
-            except Exception as e:
-                logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
-                logger.debug(f'{e}')
+                self.perform_mow_cmd()
+            else:
+                logger.info(f'No valid command in api message found. Allowed values: {allowed_values}. Aborting')
+        except Exception as e:
+            logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
+            logger.debug(f'{e}')
 
     def perform_mow_cmd(self) -> None:
         allowed_values = ['resume', 'task', 'all', 'selection']
