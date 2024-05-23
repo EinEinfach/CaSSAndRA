@@ -103,6 +103,12 @@ def add_stats_to_df_from_mqtt(data: dict) -> None:
                     'temp_min':data['temp_min'],
                     'temp_min':data['temp_min'],
                     'duration_mow_motor_recovery': 0,
+                    'counter_lift_triggered': 0,
+                    'counter_gps_no_speed_triggered': 0,
+                    'counter_tof_triggered': 0,
+                    'counter_diff_imu_wheel_yaw_speed_triggered': 0,
+                    'counter_imu_no_rotation_triggered': 0,
+                    'counter_rotation_timeout_triggered': 0,
                     'timestamp': str(datetime.now())}
         stats_to_df = pd.DataFrame(data=stats_to_df, index=[0])
         roverdata.stats = pd.concat([roverdata.stats, stats_to_df], ignore_index=True)
@@ -179,6 +185,9 @@ def add_stats_to_df(data: str) -> None:
         #handle old AT+T strings (older then 1.0.3XX)
         if len(data_list) < 25:
             data_list.append('0')
+        #handle old AT+T strings (older then 1.0.321)
+        if len(data_list) < 31:
+            data_list.extend(['0', '0', '0', '0', '0', '0'])
         data_list = [float(x) if '.' in x else int(x) for x in data_list]
         data_list.append(str(datetime.now()))
         stats_to_df = pd.DataFrame([data_list])
@@ -208,6 +217,12 @@ def add_stats_to_df(data: str) -> None:
                                 'counter_bumper_triggered',
                                 'counter_gps_motion_timeout',
                                 'duration_mow_motor_recovery',
+                                'counter_lift_triggered',
+                                'counter_gps_no_speed_triggered',
+                                'counter_tof_triggered',
+                                'counter_diff_imu_wheel_yaw_speed_triggered',
+                                'counter_imu_no_rotation_triggered',
+                                'counter_rotation_timeout_triggered',
                                 'timestamp'
                             ]
         roverdata.stats = pd.concat([roverdata.stats, stats_to_df], ignore_index=True)

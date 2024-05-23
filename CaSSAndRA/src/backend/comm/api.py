@@ -36,8 +36,8 @@ class API:
 
     def create_robot_payload(self) -> None:
         self.robotstate['status'] = robot.status
-        self.robotstate['dock reason'] = robot.dock_reason
-        self.robotstate['battery'] = robot.soc
+        self.robotstate['dockReason'] = robot.dock_reason
+        self.robotstate['battery'] = dict(soc=robot.soc, voltage=robot.battery_voltage, electricCurrent=robot.amps)
         self.robotstate['position'] = dict(x=robot.position_x, y=robot.position_y)
         self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
         self.robotstate_json = json.dumps(self.robotstate)
@@ -76,8 +76,8 @@ class API:
         self.mowparametersstate_json = json.dumps(self.mowparametersstate)
     
     def create_map_payload(self) -> None:
-        self.mapstate['mowprogress idx'] = robot.mowprogress
-        self.mapstate['mowprogress distance'] = robot.mowprogress_distance
+        self.mapstate['mowprogressIdxPercent'] = current_map.idx_perc
+        self.mapstate['mowprogressDistancePercent'] = current_map.distance_perc
         self.mapstate_json = json.dumps(self.mapstate)
         
     def update_payload(self) -> None:
@@ -293,21 +293,20 @@ class API:
                 logger.debug(f'{e}')
 
     def perform_robot_cmd(self, buffer) -> None:
-        if 'value' in buffer:
-            allowed_values = ['mow', 'stop', 'dock']
-            try:
+        allowed_values = ['mow', 'stop', 'dock']
+        try:
+            if self.command == 'stop':
+                cmdlist.cmd_stop = True
+            elif self.command == 'dock':
+                cmdlist.cmd_dock = True
+            elif self.command == 'mow':
                 self.value = buffer['value'][0]
-                if self.command == 'mow':
-                    self.perform_mow_cmd()
-                elif self.command == 'stop':
-                    cmdlist.cmd_stop = True
-                elif self.command == 'dock':
-                    cmdlist.cmd_dock = True
-                else:
-                    logger.info(f'No valid command in api message found. Allowed values: {allowed_values}. Aborting')
-            except Exception as e:
-                logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
-                logger.debug(f'{e}')
+                self.perform_mow_cmd()
+            else:
+                logger.info(f'No valid command in api message found. Allowed values: {allowed_values}. Aborting')
+        except Exception as e:
+            logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
+            logger.debug(f'{e}')
 
     def perform_mow_cmd(self) -> None:
         allowed_values = ['resume', 'task', 'all', 'selection']
@@ -329,7 +328,7 @@ class API:
             current_map.calculating = True
             current_map.task_progress = 0
             current_map.total_tasks = 1
-            route = path.calc(current_map.selected_perimeter, pathplannercfgapi, [robot.position_x, robot.position_y])
+            route = path.calc(current_map.selected_perimeter, pathplannercfgapi)
             if route:
                 current_map.areatomow = round(current_map.selected_perimeter.area)
                 current_map.calc_route_preview(route) 
@@ -343,7 +342,7 @@ class API:
                 current_map.calculating = True
                 current_map.task_progress = 0
                 current_map.total_tasks = 1
-                route = path.calc(current_map.selected_perimeter, pathplannercfgapi, [robot.position_x, robot.position_y])
+                route = path.calc(current_map.selected_perimeter, pathplannercfgapi)
                 if route:
                     current_map.calc_route_preview(route)
                     current_map.areatomow = round(current_map.selected_perimeter.area)

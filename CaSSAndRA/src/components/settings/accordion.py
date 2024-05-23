@@ -33,9 +33,9 @@ accordion_settings = dbc.Accordion([
                                         dbc.FormText('Client-ID'),
                                         dbc.Input(value = commcfg.mqtt_client_id, id=ids.MQTTCLIENTID),
                                         dbc.FormText('Username'),
-                                        dbc.Input(placeholder='your MQTT-Server username, leave empty if not in use', id=ids.MQTTUSERNAME),
+                                        dbc.Input(value = commcfg.mqtt_username, placeholder='your MQTT-Server username, leave empty if not in use', id=ids.MQTTUSERNAME),
                                         dbc.FormText('Password'),
-                                        dbc.Input(placeholder='your MQTT-Server password, leave empty if not in use', id=ids.MQTTPASSWORD),
+                                        dbc.Input(value = commcfg.mqtt_pass, placeholder='your MQTT-Server password, leave empty if not in use', id=ids.MQTTPASSWORD),
                                         dbc.FormText('MQTT-Server'),
                                         dbc.Input(value = commcfg.mqtt_server, id=ids.MQTTSERVER),
                                         dbc.FormText('Port'),
@@ -47,7 +47,7 @@ accordion_settings = dbc.Accordion([
                                     html.Div([dbc.FormText('IP-Adress of your rover'),
                                         dbc.Input(value = commcfg.http_ip, id=ids.IPADRESSROVER),
                                         dbc.FormText('Connection password (see your config.h)'),
-                                        dbc.Input(placeholder='see config.h of sunray FW', id=ids.SUNRAYPASS),
+                                        dbc.Input(value = commcfg.http_pass, placeholder='see config.h of sunray FW', id=ids.SUNRAYPASS),
                                     ], id=ids.HTTPCONNECTIONSTYLE),
 
                                     html.Div([dbc.FormText('Serial port'),
@@ -224,9 +224,9 @@ accordion_settings = dbc.Accordion([
                                         dbc.FormText('Client-ID'),
                                         dbc.Input(value = commcfg.api_mqtt_client_id, id=ids.APIMQTTCLIENTID),
                                         dbc.FormText('Username'),
-                                        dbc.Input(placeholder='your MQTT-Server username, leave empty if not in use', id=ids.APIMQTTUSERNAME),
+                                        dbc.Input(value=commcfg.api_mqtt_username, placeholder='your MQTT-Server username, leave empty if not in use', id=ids.APIMQTTUSERNAME),
                                         dbc.FormText('Password'),
-                                        dbc.Input(placeholder='your MQTT-Server password, leave empty if not in use', id=ids.APIMQTTPASSWORD),
+                                        dbc.Input(value=commcfg.api_mqtt_pass, placeholder='your MQTT-Server password, leave empty if not in use', id=ids.APIMQTTPASSWORD),
                                         dbc.FormText('MQTT-Server'),
                                         dbc.Input(value = commcfg.api_mqtt_server, id=ids.APIMQTTSERVER),
                                         dbc.FormText('Port'),
@@ -258,9 +258,9 @@ accordion_settings = dbc.Accordion([
                                     html.Div(id=ids.MESSAGESERVICESTYLE),  
                                     dbc.Container([
                                         dbc.FormText('API-Token'),
-                                        dbc.Input(id=ids.TELEGRAMTOKEN), 
+                                        dbc.Input(value=commcfg.telegram_token, placeholder='put here the telegram token generated from botfather', id=ids.TELEGRAMTOKEN), 
                                         dbc.FormText('Chat ID'),
-                                        dbc.Input(id=ids.TELEGRAMCHATID), 
+                                        dbc.Input(value=commcfg.telegram_chat_id, placeholder='in best case you can leave it empty',id=ids.TELEGRAMCHATID), 
                                         dbc.FormText('Test message'),
                                         dbc.Row([
                                             dbc.Col([dbc.Input(id=ids.TELEGRAMTESTMESSAGE)], style={"flex" : "1 0 0%"}),
@@ -277,9 +277,9 @@ accordion_settings = dbc.Accordion([
                                     style={"height" : "100%", "overflow" : "hidden", "display" : "flex", "flex-direction" : "column"}), 
                                     dbc.Container([
                                         dbc.FormText('API-Token'),
-                                        dbc.Input(id=ids.PUSHOVERTOKEN), 
+                                        dbc.Input(value=commcfg.pushover_token, placeholder='put here generated pushover token', id=ids.PUSHOVERTOKEN), 
                                         dbc.FormText('User'),
-                                        dbc.Input(id=ids.PUSHOVERUSER), 
+                                        dbc.Input(value=commcfg.pushover_user, placeholder='app name given by you', id=ids.PUSHOVERUSER), 
                                         dbc.FormText('Test message'),
                                         dbc.Row([
                                             dbc.Col([dbc.Input(id=ids.PUSHOVERTESTMESSAGE)], style={"flex" : "1 0 0%"}),
@@ -305,16 +305,20 @@ accordion_settings = dbc.Accordion([
 @callback(Output(ids.MQTTCONNECTIONSTYLE, 'style'),
           Output(ids.HTTPCONNECTIONSTYLE, 'style'),
           Output(ids.UARTCONNECTIONSTYLE, 'style'),
+          Output(ids.RADIOCONNECTIONTYPE, 'value'),
           Input(ids.RADIOCONNECTIONTYPE, 'value'))
 def update_connectioninput(radio_input: str) -> list:
+    context = ctx.triggered_id
+    if context == None:
+        radio_input = commcfg.use
     if radio_input == 'MQTT':
-        return {'display': 'block'}, {'display': 'none'}, {'display': 'none'}
+        return {'display': 'block'}, {'display': 'none'}, {'display': 'none'}, radio_input
     elif radio_input == 'HTTP':
-        return {'display': 'none'}, {'display': 'block'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'block'}, {'display': 'none'}, radio_input
     elif radio_input == 'UART':
-        return {'display': 'none'}, {'display': 'none'}, {'display': 'block'}
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'block'}, radio_input
     else:
-        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, radio_input
     
 @callback(Output(ids.MODALCONNECTION, 'is_open'),
           [Input(ids.BUTTONSAVEANDREBOOT, 'n_clicks'),
@@ -378,6 +382,7 @@ def update_connection_data(bsr_n_clicks: int,
             commcfg.mqtt_client_id = mqttclientid
             commcfg.mqtt_username = mqttusername
             commcfg.mqtt_pass = mqttpassword
+            commcfg.mqtt_server = mqttserver
             commcfg.mqtt_port = mqttport
             commcfg.mqtt_mower_name = mqttrovername
         if connectiontype == 'HTTP':
@@ -566,32 +571,40 @@ def update_robotsettings_data(
 
 @callback(Output(ids.APINONECONNECTIONSTYLE, 'style'),
           Output(ids.APIMQTTCONNECTIONSTYLE, 'style'),
+          Output(ids.RADIOAPICONNECTIONTYPE, 'value'),
           [Input(ids.RADIOAPICONNECTIONTYPE, 'value'),
            ])
 def update_apiconnectioninput(radio_input: str,
                               ) -> list:
+    context = ctx.triggered_id
+    if context == None:
+        radio_input = commcfg.api
     if radio_input == 'deactivated':
-        return {'display': 'none'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'none'}, radio_input
     elif radio_input == 'MQTT':
-        return {'display': 'none'}, {'display': 'block'}
+        return {'display': 'none'}, {'display': 'block'}, radio_input
     else:
-        return {'display': 'none'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'none'}, 'deactivated'
 
 @callback(Output(ids.MESSAGESERVICESTYLE, 'style'),
           Output(ids.TELEGRAMSERVICESTYLE, 'style'),
           Output(ids.PUSHOVERSERVICESTYLE, 'style'),
+          Output(ids.RADIOMESSAGESERVICETYPE, 'value'),
           [Input(ids.RADIOMESSAGESERVICETYPE, 'value')],
           )
 def update_messageservicetype(radio_input: str,
                               ) -> list:
+    context = ctx.triggered_id
+    if context == None:
+        radio_input = commcfg.message_service
     if radio_input == 'deactivated':
-        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, radio_input
     elif radio_input == 'Telegram':
-        return {'display': 'none'}, {'display': 'block'}, {'display': 'none'}
+        return {'display': 'none'}, {'display': 'block'}, {'display': 'none'}, radio_input
     elif radio_input == 'Pushover':
-        return {'display': 'none'}, {'display': 'none'}, {'display': 'block'}
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'block'}, radio_input
     else:
-        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'} 
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, 'deactivated'
 
 @callback(Output(ids.RADIOPOSITIONMODE, 'value'),
           Output(ids.POSITIONMODELON, 'value'),

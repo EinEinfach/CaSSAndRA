@@ -5,8 +5,8 @@ from src.backend.data.mapdata import mapping_maps
 from .. import ids
 
 #import map area
-uploadsunrayfile = dbc.Button(class_name='mt-1 me-1 bi bi-filetype-txt', title='upload sunray file')
-saveimportedperimeter = dbc.Button(id=ids.BUTTONSAVEIMPORTEDPERIMETER, class_name='mt-1 me-1 bi bi-cloud-plus', n_clicks=0, title='save imported perimeter')
+uploadsunrayfile = dbc.Button(class_name='mt-1 me-1 bi bi-filetype-json', title='import sunray or geojson file')
+saveimportedperimeter = dbc.Button(id=ids.BUTTONSAVEIMPORTEDPERIMETER, class_name='mt-1 me-1 bi bi-floppy', n_clicks=0, title='save imported perimeter')
 okbuttonoverwriteperimter= dbc.Button('OK', id=ids.OKBUTTONOVERWRITEPERIMTER, class_name='ms-auto', n_clicks=0)
 
 #select map area
@@ -16,6 +16,7 @@ addnewperimeter = dbc.Button(id=ids.BUTTONADDNEWPERIMETER, class_name='mt-1 me-1
 copyperimeter = dbc.Button(id=ids.BUTTONCOPYPERIMETER, class_name='mt-1 me-1 bi bi-copy', n_clicks=0, title='copy perimeter')
 finishfigure = dbc.Button(id=ids.BUTTONFINISHFIGURE, class_name='mt-1 me-1 bi bi-floppy btn-success', disabled=False, title='finish and save')
 renameperimeter = dbc.Button(id=ids.BUTTONRENAMEPERIMETER, class_name='mt-1 me-1 bi bi-pencil-square', disabled=False, title='rename perimeter')
+exportperimeter = dbc.Button(id=ids.BUTTONEXPORTPERIMETER, class_name='mt-1 me-1 bi bi-filetype-json', disabled=False, title='export perimeter')
 okbuttonselectedperimeter = dbc.Button('OK', id=ids.OKBUTTONSELECTEDPERIMETER, class_name='ms-auto', n_clicks=0)
 
 okbuttonnewperimeter = dbc.Button('OK', id=ids.OKBUTTONNEWPERIMETER, class_name='ms-auto', n_clicks=0)
@@ -30,9 +31,10 @@ okbuttonrenameperimeter = dbc.Button('OK', id=ids.OKBUTTONRENAMEPERIMETER, class
           Output(ids.BUTTONREMOVEPERIMETER, 'disabled'),
           Output(ids.BUTTONCOPYPERIMETER, 'disabled'),
           Output(ids.BUTTONRENAMEPERIMETER, 'disabled'),
+          Output(ids.BUTTONEXPORTPERIMETER, 'disabled'),
           [Input(ids.DROPDOWNCHOOSEPERIMETER, 'value')])
-def update_perimeter_select_buttons_disabled(dropdown: str()) -> list():
+def update_perimeter_select_buttons_disabled(dropdown: str) -> list:
     if dropdown == None:
-        return True, True, True, True
+        return True, True, True, True, True
     else:
-        return False, False, False, False
+        return False, False, False, False, False

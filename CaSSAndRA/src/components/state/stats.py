@@ -47,22 +47,61 @@ stats = [
                         html.Small(id="counter_bumper_triggered_range")
                 ]),
                 dbc.ListGroupItem([
-                        html.P('imu', style={"margin-bottom":"0.25rem"}),
-                        html.Small(id="counter_imu_triggered_range")
-                ]),
-                dbc.ListGroupItem([
-                        html.P('gps', style={"margin-bottom":"0.25rem"}),
-                        html.Small(id="counter_gps_motion_timeout_range")
+                        html.P('lift', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_lift_triggered_range")
                 ]),
                 dbc.ListGroupItem([
                         html.P('sonar', style={"margin-bottom":"0.25rem"}),
                         html.Small(id="counter_sonar_triggered_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('tof', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_tof_triggered_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('timeout', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_rotation_timeout_triggered_range")
                 ]),
             ],
             horizontal=True,
             className="mb-2",
             style={"justify-content":"", "margin-left":"1rem", "margin-right":"1rem", "flex-shrink":"1"},
         ),
+        dbc.ListGroup(
+            [
+                dbc.ListGroupItem([
+                        html.P('imu', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_imu_triggered_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('imu yaw speed', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_diff_imu_wheel_yaw_speed_triggered_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('imu rotation', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_imu_no_rotation_triggered_range")
+                ]),
+            ],
+            horizontal=True,
+            className="mb-2",
+            style={"justify-content":"", "margin-left":"1rem", "margin-right":"1rem", "flex-shrink":"1"},
+        ),
+        dbc.ListGroup(
+            [
+                dbc.ListGroupItem([
+                        html.P('gps', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_gps_motion_timeout_range")
+                ]),
+                dbc.ListGroupItem([
+                        html.P('gps no speed', style={"margin-bottom":"0.25rem"}),
+                        html.Small(id="counter_gps_no_speed_triggered_range")
+                ]),
+            ],
+            horizontal=True,
+            className="mb-2",
+            style={"justify-content":"", "margin-left":"1rem", "margin-right":"1rem", "flex-shrink":"1"},
+        ),
+
         dbc.Label('Recoveries', style={"margin-top":"0.5rem", "padding":"0", "margin-left":"1.5rem", "margin-bottom":"0.25rem"}),
         dbc.ListGroup(
             [
@@ -120,6 +159,12 @@ stats = [
         Output("counter_gps_jumps_range", 'children'),
         Output("counter_gps_chk", 'children'),
         Output("time_max_dgps_age_range", 'children'),
+        Output("counter_lift_triggered_range", 'children'),
+        Output("counter_tof_triggered_range", 'children'),
+        Output("counter_rotation_timeout_triggered_range", 'children'),
+        Output("counter_diff_imu_wheel_yaw_speed_triggered_range", 'children'),
+        Output("counter_imu_no_rotation_triggered_range", 'children'),
+        Output("counter_gps_no_speed_triggered_range", 'children'),
     ],
     [
         #Input(ids.INTERVAL, 'n_intervals'),
@@ -170,16 +215,26 @@ def update_stats(#n_intervals: int,
     counter_float_recoveries_range = int(calced_stats_filtered['counter_float_recoveries'].sum())
     mow_traveled_range = round(calced_stats_filtered['distance_mow_traveled'].sum()/1000, 2)
     time_max_dgps_age_range = round(stats_filtered['time_max_dpgs_age'].max(), 2)
-    counter_imu_triggered_range = int(calced_stats_filtered['counter_imu_triggered'].sum())
     counter_gps_chk_sum_errors_range = int(calced_stats_filtered['counter_gps_chk_sum_errors'].sum())
     counter_dgps_chk_sum_errors_range = int(calced_stats_filtered['counter_dgps_chk_sum_errors'].sum())
     time_max_cycle_range = round(stats_filtered['time_max_cycle'].max(), 2)
     counter_invalid_recoveries_range = int(calced_stats_filtered['counter_invalid_recoveries'].sum())
-    counter_obstacles_range = int(calced_stats_filtered['counter_obstacles'].sum())
     counter_gps_jumps_range = int(calced_stats_filtered['counter_gps_jumps'].sum())                
-    counter_sonar_triggered_range = int(calced_stats_filtered['counter_sonar_triggered'].sum())                   
+
+    #Obstacles
+    counter_obstacles_range = int(calced_stats_filtered['counter_obstacles'].sum())
     counter_bumper_triggered_range = int(calced_stats_filtered['counter_bumper_triggered'].sum())                        
-    counter_gps_motion_timeout_range = int(calced_stats_filtered['counter_gps_motion_timeout'].sum())                      
-    
+    counter_lift_triggered_range = int(calced_stats_filtered['counter_lift_triggered'].sum()) 
+    counter_sonar_triggered_range = int(calced_stats_filtered['counter_sonar_triggered'].sum())                   
+    counter_tof_triggered_range = int(calced_stats_filtered['counter_tof_triggered'].sum()) 
+    counter_rotation_timeout_triggered_range= int(calced_stats_filtered['counter_rotation_timeout_triggered'].sum()) 
+    counter_imu_triggered_range = int(calced_stats_filtered['counter_imu_triggered'].sum())
+    counter_diff_imu_wheel_yaw_speed_triggered_range = int(calced_stats_filtered['counter_diff_imu_wheel_yaw_speed_triggered'].sum()) 
+    counter_imu_no_rotation_triggered_range = int(calced_stats_filtered['counter_imu_no_rotation_triggered'].sum()) 
+    counter_gps_motion_timeout_range = int(calced_stats_filtered['counter_gps_motion_timeout'].sum())
+    counter_gps_no_speed_triggered_range = int(calced_stats_filtered['counter_gps_no_speed_triggered'].sum()) 
+
+
     return f'{mow_traveled_range} km', counter_obstacles_range, f'{time_max_cycle_range} s', counter_bumper_triggered_range, counter_imu_triggered_range, counter_gps_motion_timeout_range, counter_sonar_triggered_range, \
-        counter_invalid_recoveries_range, counter_float_recoveries_range, counter_gps_jumps_range, f'{counter_gps_chk_sum_errors_range} gps / {counter_dgps_chk_sum_errors_range} dgps',f'{time_max_dgps_age_range} s'
+        counter_invalid_recoveries_range, counter_float_recoveries_range, counter_gps_jumps_range, f'{counter_gps_chk_sum_errors_range} gps / {counter_dgps_chk_sum_errors_range} dgps',f'{time_max_dgps_age_range} s', \
+        counter_lift_triggered_range, counter_tof_triggered_range, counter_rotation_timeout_triggered_range, counter_diff_imu_wheel_yaw_speed_triggered_range, counter_imu_no_rotation_triggered_range, counter_gps_no_speed_triggered_range

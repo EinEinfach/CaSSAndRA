@@ -30,19 +30,6 @@ after that you can go get some coffee first, because that can take a while. Plea
 If the operating system greets you with -bash: pip command not found, you still have to install pip:
 
     sudo apt install python3-pip
-Please check the library path of your pip installation with the following command:
-
-	python3 -m site --user-site
-Please switch to the library path (e.g.). Attention with the 64bit system the folder lib64 can be called:
-
-	cd ./local/lib/python3.9/site-packages
-Locate the dash_daq folder and go to it:
-
-	cd dash_daq
-
-Copy the dash_daq.min.js file from the repository you cloned into the dash_daq libraries folder and replace the existing file:
-
-	cp /home/ardumower/CaSSAndRA/bugfix_dash_daq_min/dash_daq.min.js dash_daq.min.js
 
 ## Installation issues:
 
@@ -65,7 +52,7 @@ Go to the folder where your app.py file is located. If you haven't moved the fol
 Start app with:
 
 	./app.py
-At first time you will get follow message:
+At first time you will get following message:
 
 	You are starting CaSSAndRA without an existing external data directory
 
@@ -154,7 +141,7 @@ Run two instances of CaSSAndRA:
 - Terminal 2: `python app.py --data_path=/Users/myusername/.cassandra2` (data in ~/.cassandra2)
 
 ## CaSSAndRA as daemon service
-To allow CaSSAndRA start each time on system boot you can create a deamon service. First you have to check is daemon service (systemd) is available on your OS:
+To allow CaSSAndRA start each time on system boot you can create a daemon service. First you have to check is daemon service (systemd) is available on your OS:
 
 	systemd --version
 
@@ -164,7 +151,7 @@ In next step we create a service file:
 
 	sudo nano /etc/systemd/system/cassandra.service
 
-Copy and paste the follow content in new file:
+Copy and paste the following content in new file:
 
 	[Unit]
 	Description=CaSSAndRA
@@ -194,7 +181,7 @@ Start cassandra.service:
 Check current status:
 
 	sudo systemctl status cassandra
-Terminal output(important is state of 'Active' it should be active (running)):
+Terminal output (important is state of 'Active' it should be active (running)):
 
 	cassandra.service - CaSSAndRA service
      Loaded: loaded (/etc/systemd/system/cassandra.service; enabled; vendor preset: enabled)
@@ -239,7 +226,7 @@ docker run -it \
 
 ## Settings
 ### Establishing communication to the rover
-Go to the "Settings" page or if you on mobile device click on burger menu and then "Settings". Go to "Connection" and choose one of possiblities. Input your specific data (please keep syntax suggestion alos for your data). At the end click on "save and reboot" and let cassandra restart backendserver:
+Go to the "Settings" page or if you on mobile device click on burger menu and then "Settings". Go to "Connection" and choose one of the possibilities. Input your specific data (please keep syntax suggestion also for your data). At the end click on "save and reboot" and let cassandra restart the backendserver:
 
 ![connection](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/connection.jpeg)
 
@@ -258,24 +245,24 @@ Distance to border: positive value [0 - 5]. Defines distance to border for area 
 
 Mow cut edge border (laps): positive value [0 - 5]. Defines which lap should be mowed (first lap: border, second lap: border - mow width, third lap: border - 2*mow width)
 
-Mow area: [on, off]. Should the area to be mowed 
+Mow area: [on, off]. Should the area be mowed? 
 
-Mow cut edge exclusion: [on, off]. Should exclusions and border to be mowed
+Mow cut edge exclusion: [on, off]. Should exclusions and border be mowed?
 
-Mow cut edge border in ccw: [on, off]. Should exclusions and border to be mowed counter clockwise
+Mow cut edge border in ccw: [on, off]. Should exclusions and border be mowed counter clockwise?
 
 ### App
 Select “App” under Settings. Here you have the option to configure some frontend settings.
 
-1. Mower picture: Select one image what should be shown in the App
+1. Mower picture: Select one image what should be shown in the App.
 
-2. Max age for measured data: Every day on 00:00 CaSSAndRA removes unneccasarry data from storage. Confugure here how long the measured data should be stored
+2. Max age for measured data: Every day on 00:00 CaSSAndRA removes unnecessary data from storage. Configure here how long the measured data should be stored.
 
-3. Time to wait before offline: Configure here how long should CaSSAndRA wait before state is changed to offline. If you using CaSSAndRA connection over HTTP or MQTT and you WiFi coverage not the best one increase the time to avoiding toggling of state message
+3. Time to wait before offline: Configure here how long should CaSSAndRA wait before state is changed to offline. If you using CaSSAndRA connection over HTTP or MQTT and your WiFi coverage is not the best one increase the time to avoiding toggling of state message.
 
-4. Min charge current: Configure here from which charge current is rover in charging state (Attention: charge current has to be negative value)
+4. Min charge current: Configure here from which charge current the rover is in charging state (Attention: charge current has to be a negative value).
 
-5. Voltage to SoC: Conversion of voltage to state of charge (simple linear interpolation). The recommended voltage min (0%) is the shutdown voltage from the config.h of your sunray FW +0.5V. The recommended voltage max (100%) is the final charging voltage from the config.h of your sunray FW -0.5V. The SoC display has no controlling function and only serves as an overview on the home page
+5. Voltage to SoC: Conversion of voltage to state of charge (simple linear interpolation). The recommended voltage min (0%) is the shutdown voltage from the config.h of your sunray FW +0.5V. The recommended voltage max (100%) is the final charging voltage from the config.h of your sunray FW -0.5V. The SoC display has no controlling function and only serves as an overview on the home page.
 
 ## Mapping
 A new map or existing map can be created/modified on the "Mapping" page.
@@ -292,19 +279,21 @@ Once the figure is finished, it can be added to the area (perimeter) or removed 
 
 ![add_remove_figure](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/add_remove_figure.jpeg) 
 
-To create a figure, you can use the well-known tools Box-Select or Lasso-Select. For example, deleting an exclusion also works by circling the exclusion with lasso select and selecting add to area. The new figure is added to the perimeter and covers over the existing exclusion. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected
+To create a figure, you can use the well-known tools Box-Select or Lasso-Select. For example, deleting an exclusion also works by circling the exclusion with Lasso-Select and selecting add to area. The new figure is added to the perimeter and covers over the existing exclusion. The Lasso-Select selection and Box-Select selection can be removed by with a double-click event if the corresponding tool is selected.
 
-To record a dock path, select the symbol with the house. The new dock path can then be recorded using the “add new point” and “remove last point” buttons. When a new dock path has been recorded or an existing one has been revised, CaSSAndRA notices it and when saving the new perimeter, CaSSAndRA automatically moves the last dock point by 10cm in the docking direction to ensure safe docking. This feauture isn't active if you modify dock path in edit or moving mode.
+To record a dock path, select the symbol with the house. The new dock path can then be recorded using the “add new point” and “remove last point” buttons. When a new dock path has been recorded or an existing one has been revised, CaSSAndRA notices it and when saving the new perimeter, CaSSAndRA automatically moves the last dock point by 10cm in the docking direction to ensure safe docking. This feature isn't active if you modify the dock path in Edit-Mode or Moving-Mode.
 
-Edit mode:
-Select a point what you want to modify. Related figure chages his color and selected point is also marked. Now you can remove the point by clicking remove point or you can add a new point to the figure. The new point is added between current point and point before or next point
+Edit-Mode:
+Select a point what you want to modify. Related figure chages his color and selected point is also marked. Now you can remove the point by clicking remove point or you can add a new point to the figure. The new point is added between current point and point before or next point.
 
-Moving mode:
-Has to be descipted...
+Moving-Mode:
+Has to be descripted...
 
-If you are finished. Click on the cloud with plus button in "Select map" section and give an unique name for new/changed map.
+If you are finished. Click on the cloud with plus button in "Select map" section and give an unique name for a new/changed map.
 
 ![save_new_perimeter](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/save_new_perimeter.jpeg) 
+
+You can also export your map in geojson format. For that just click "json file" button. For export CaSSAndRA uses your lon and lat coordinates defined in settings under robot section. Unsaved changes will not be exported.
 
 ### Import map
 It is possible to import a map that was created in the Sunray app.
@@ -317,11 +306,15 @@ You can now select the map you want in the drop-down menu.
 
 A preview of the map is displayed in red with the note "From upload (please save first)".
 
+It is also possible to import a map in geojson format what previosly was exported (see section above). The steps are the same like for sunray import. CaSSAndRA checks first for sunray import data format if this check fails then geojson import format will be used. 
+
+ATTENTION!: For correct import of geojson data your lon and lat settings under robot section must be the same as it used during export.
+
 ![upload](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/upload.jpeg) 
 
-If you want save selected upload. Click on the cloud with plus button in "Select map" section and give an unique name for imported map.
+If you want save selected upload. Click on the cloud with plus button in "Select map" section and give an unique name for the imported map.
 
-The map is now available in "Select map" section
+The map is now available in "Select map" section.
 
 The map can be activated using the cloud with the outgoing arrow.
 
@@ -329,44 +322,44 @@ Switches to the home page. The new map is displayed in the overview and can be u
 
 ## Overview
 
-Overview page can be called by clicking "CaSSAndRA" in the navbar. This is your main page where you can track status of your robot and start some tasks.
+Overview page can be called by clicking "CaSSAndRA" in the navbar. This is your main page where you can track the status of your robot and start some tasks.
 
 ![using_app_overview](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_overview.jpeg) 
 
 ### Go home
-Click on "go home" button and confirm the action by clicking play button. 
+Click on "go home" button and confirm the action by clicking the play button. 
 
 ### Mow whole area
-Click on "mow all or selected area" button. CaSSAndRA calculates the mowing paths according to your settings. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated route appear green on the map. Click on play button to start mowing
+Click on "mow all or selected area" button. CaSSAndRA calculates the mowing paths according to your settings. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated route appears green on the map. Click on the play button to start mowing.
 
 ![using_app_mow](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow.jpeg) 
 
 ### Mow selected area
-Select "Lasso Select" or "Box Select" in the tool bar on top of the map. Then mark the desired area on the map. And select "mow all or selected area" button. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated routes appear green on the map. You can repeat the calculation for selected area. Change your mow settings and click "select zone to mow" again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. Click on play button to start mowing
+Select "Lasso-Select" or "Box-Select" in the tool bar on top of the map. Then mark the desired area on the map. And select "mow all or selected area" button. Depending on the performance of your computer or the size of your map, the calculation may take some time. The calculated routes appears green on the map. You can repeat the calculation for the selected area. Change your mow settings and click "select zone to mow" again. The Lasso-Select selection and Box-Select selection can be removed by double-click event if the corresponding tool is selected. Click on the play button to start mowing.
 
 ![using_app_mow_zone](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_mow_zone.jpeg) 
 
 ### Go to selected point
-Click on "select go to". Slect a target point on the map and click play button. The rover moves to desired coordinates
+Click on "select go to". Select a target point on the map and click play button. The rover moves to the desired coordinates.
 
 ![using_app_goto](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/using_app_goto.jpeg) 
 
-Current restrictions: If the charging station is outside the perimeter and the mower is supposed to drive from the charging station to the desired point, the task will be aborted with an error
+Current restrictions: If the charging station is outside the perimeter and the mower is supposed to drive from the charging station to the desired point, the task will be aborted with an error.
 
 ### Mow settings
-Click on the gear symbol. Configure path planner for next calculation. These settings are only applied to the calculation on this page. If the server is restarted, the values ​​will be set to default values ​​from the settings
+Click on the gear symbol. Configure path planner for next calculation. These settings are only applied to the calculation on this page. If the server is restarted, the values ​​will be set to default values ​​from the settings.
 
 ### Cancel
-Click on cancel button to remove elements from the map. If there are any obstacles in the map the first cancel click will remove obstacles the second click will remove created job.
+Click on cancel button to remove elements from the map. If there are any obstacles in the map the first cancel click will remove obstacles the second click will remove the created job.
 
 ### Play button
-The play button starts created task (Mow, go to, go home) but also it is possible to resume a previous task. To do that just click play button without creating a new task even deleted lines by pressing cancel button will be restored
+The play button starts the created task (Mow, go to, go home) but also it is possible to resume a previous task. To do that just click the play button without creating a new task even deleted lines by pressing cancel button will be restored.
 
 ## Taksplanner
-Click on "Taskplanner" in navigation bar or if you on mobile device click on burger menu and then select "Taskplanner"
+Click on "Taskplanner" in navigation bar or if you on mobile device click on burger menu and then select "Taskplanner".
 
 ### Create a task
-Configure the coverage path planner by pressing "mow settings" button.  Confirm new settings with "ok". Use Lasso-Select or Box-Select from the toolbar on top of the map to select an area and confirm it with "confirm selectioncalc task for selected area" button for calculation on whole map leave the selection empty. A preview of the task appears in red. You can adjust mow settings for selected area by changing "mow settings" and trigger calculation again. The Lasso-Select selection and Box-Select selection can be removed by double click event if corespondent tool selected. By pressing "cancel" button the current preview will be removed. 
+Configure the coverage path planner by pressing the "mow settings" button.  Confirm new settings with "ok". Use Lasso-Select or Box-Select from the toolbar on top of the map to select an area and confirm it with "confirm selectioncalc task for selected area" button for calculation on whole map leave the selection empty. A preview of the task appears in red. You can adjust mow settings for selected area by changing "mow settings" and trigger calculation again. The Lasso-Select selection and Box-Select selection can be removed by double-click event if the corresponding tool is selected. By pressing "cancel" button the current preview will be removed. 
 
 ![create_task](https://raw.githubusercontent.com/EinEinfach/CaSSAndRA/master/docs/create_task.jpeg) 
 
@@ -379,17 +372,17 @@ To remove a task select a task in dropdown menu in "Tasks" section. Click on "re
 ### Extend a task
 To extend a task select wanted task in dropdown menu in "Tasks" section. Selected task is appear now. Create a new task as it described in "Create a task" section. And save extended task as it described in "Save a task" section.
 ### Start selected task
-Select one or more tasks in dropdownmenu in "Tasks" section. Click on "start selected tasks order". The processing order corresponds to the order in the drop-down menu.
+Select one or more tasks in dropdown menu in "Tasks" section. Click on "start selected tasks order". The processing order corresponds to the order in the drop-down menu.
 ### General information about the task planner
-The tasks are assigned to a currently loaded map. If this is switched, the tasks will only be available when the map is loaded again.
+The tasks are assigned to the currently loaded map. If the map is switched, the tasks will only be available when the map is loaded again.
 
-If a map is deleted, all tasks that were created with this map will also be deleted without warning
+If a map is deleted, all tasks that were created with this map will also be deleted without warning.
 
-The task planner always recalculates the mowing paths after the task has been started. No saved paths are loaded. Depending on the scope of the task and the performance of your computer, this can take some time
+The task planner always recalculates the mowing paths after the task has been started. No saved paths are loaded. Depending on the scope of the task and the performance of your computer, this can take some time.
 ## Update
 
 ### New Approach
-After you data has been moved to an external data folder, like `~/.cassandra`, you no longer need to copy your data folder when updating. 
+After your data has been moved to an external data folder, like `~/.cassandra`, you no longer need to copy your data folder when updating. 
 
 ```
 Stop the server (whatever it is in your case (e.g. strg+c, systemctl stop cassandra...))
@@ -401,10 +394,10 @@ If your data folder is still in /src/data, then do the following:
 
 ### Old Approach
 The app will be improved in small steps. Also reported problems will be fixed. In order to make the changes productive for you too, proceed as follows when updating.
-1. Back up your /src/data folder
+1. Back up your /src/data folder.
 2. Clone the repository again and replace all files and folders in your production directory with the new downloaded files.
 3. Replace the downloaded /src/data folder with the folder you backed up in step 1.
-4. App can be started as usual
+4. App can be started as usual.
 
 ## Donation
 

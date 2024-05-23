@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.104.0 Change button behavior on task page, add new api values
+#Version:0.113.1 Fixed api commands stop and dock
 # package imports
 import os
 import sys
@@ -153,7 +153,7 @@ def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level
             ],
             suppress_callback_exceptions=True,
             title='CASSANDRA',
-            update_title = 'CASSANDRA updating...',
+            update_title = None, #'CASSANDRA updating...',
             assets_folder=assets_path, 
         )
         app.layout = serve_layout   # set the layout to the serve_layout function

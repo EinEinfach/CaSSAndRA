@@ -118,6 +118,7 @@ def update_layout() -> html.Div:
                                     lg=3,
                                     xxl=2,
                                 ),
+                                dcc.Download(id=ids.EXPORTPERIMETER),
                                 dbc.Col(
                                     [
                                         dbc.Button(
@@ -222,7 +223,7 @@ layout = update_layout()
            ])
 def toggle_modal_chooseperimeter(bom_ncliks: int,
                                  is_open: bool
-                                 ) -> list():
+                                 ) -> list:
     if bom_ncliks:
         return not is_open, chooseperimeter.chooseperimeter
     return is_open, dbc.Col()
@@ -236,7 +237,7 @@ def toggle_modal_chooseperimeter(bom_ncliks: int,
            ])
 def toggle_modal_uploadfile(bom_nclicks: int, 
                             is_open: bool
-                            ) -> list():
+                            ) -> list:
     if bom_nclicks:
         return not is_open, uploadsunray.uploadsunray
     return is_open, dbc.Col()

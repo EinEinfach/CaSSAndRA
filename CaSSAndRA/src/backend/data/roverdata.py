@@ -7,6 +7,7 @@ from datetime import datetime
 from dataclasses import dataclass, field
 import os
 from PIL import Image
+from icecream import ic
 
 from . import appdata
 from .cfgdata import rovercfg, appcfg
@@ -14,6 +15,7 @@ from .cfgdata import rovercfg, appcfg
 #mower class
 @dataclass
 class Mower:
+    uptoday: bool = False
     battery_voltage: float = 0
     position_x: float = 0
     position_y: float = 0
@@ -46,7 +48,6 @@ class Mower:
     last_task_name: str = 'no task'
     current_task: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     map_upload_started: bool = False
-    map_upload_finished: bool = False
     map_upload_failed: bool = False
     map_old_crc: int = None
     map_upload_cnt: int = 0
@@ -56,6 +57,8 @@ class Mower:
                                Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png')))
     solution: str = 'invalid'
     status: str = 'offline'
+    status_tmp: str = 'offline'
+    status_tmp_timestamp: datetime = datetime.now()
     sensor_status: str = 'unknown'
     position_age_hr = '99+d'
     dock_reason_operator: bool = False
@@ -91,7 +94,7 @@ class Mower:
         self.status = self.calc_status()
         self.sensor_status = self.calc_sensor_status()
         self.position_age_hr = self.calc_position_age_hr()
-        self.check_mapupload()
+        self.uptoday = True
     
     def calc_speed(self, position_x: float, position_y: float, timestamp) -> float:
         if self.job == 1 or self.job == 4:
@@ -114,7 +117,9 @@ class Mower:
         return direction_deg
 
     def calc_status(self) -> str:
-        if (datetime.now()-self.timestamp).seconds > 60:
+        if (datetime.now() - self.status_tmp_timestamp).seconds < 10:
+            return self.status_tmp
+        elif (datetime.now()-self.timestamp).seconds > 60:
             return 'offline'
         elif self.job == 0:
             return 'idle'
@@ -135,7 +140,9 @@ class Mower:
     
     def calc_sensor_status(self) -> str:
         if self.job == 3:
-            if self.sensor == 17:
+            if self.sensor == 18:
+                return 'temperature out of range'
+            elif self.sensor == 17:
                 return 'emergency/stop'
             elif self.sensor == 16:
                 return 'rain sensor'
@@ -228,24 +235,12 @@ class Mower:
     def set_rover_image(self) -> None:
         return Image.Image.rotate(appcfg.rover_pictures, self.direction, resample=Image.BICUBIC)
             
-    def check_mapupload(self) -> None:
-        if self.map_upload_started and self.map_crc == self.map_old_crc:
-            self.map_upload_cnt += 1
-        elif self.map_upload_started and self.map_crc != self.map_old_crc:
-            self.map_upload_started = False
-            self.map_upload_finished = True
-            self.map_upload_cnt = 0
-            logger.debug('Map upload finished. CRC changed method')
-        if self.map_upload_started and self.map_upload_cnt >= 3:
-            self.map_upload_started = False
-            self.map_upload_finished = True
-            self.map_upload_cnt = 0
-            logger.debug('Map upload finished. Time to wait expired method')
-            
     def check_dock_reason(self) -> None:
         if self.job == 4: 
             if self.dock_reason_operator:
                 pass
+            elif self.sensor == 18:
+                self.dock_reason = 'temperature'
             elif self.sensor == 16:
                 self.dock_reason = 'rain'
             elif robot.position_mow_point_index == 0:

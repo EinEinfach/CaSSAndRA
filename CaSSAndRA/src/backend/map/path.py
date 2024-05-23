@@ -14,7 +14,7 @@ from ..data.roverdata import robot
 def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
     logger.info('Backend: Create route from task')
     route = []
-    start_pos = [robot.position_x, robot.position_y]
+    start_pos = calc_start_pos()
     areatomow = Polygon()
 
     current_map.total_tasks = substasks['task nr'].nunique()
@@ -73,9 +73,31 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
     logger.info('Backend: Route calculation from task done')
     current_map.calc_route_preview(route)
 
-def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: list) -> list:
+def calc_start_pos() -> list:
+    logger.info('Calc start position')
+    start_pos = []
+    current_pos = [robot.position_x, robot.position_y]
+
+    #check if rover is docked and first dock point within perimeter
+    if robot.job == 2 and not current_map.perimeter[current_map.perimeter['type'] == 'dockpoints'].empty:
+        current_pos = [current_map.perimeter[current_map.perimeter['type'] == 'dockpoints'].iloc[0]['X'], current_map.perimeter[current_map.perimeter['type'] == 'dockpoints'].iloc[0]['Y']]
+    
+    #is rover within perimeter
+    if Point(current_pos).within(current_map.perimeter_polygon) or Point(current_pos).touches(current_map.perimeter_polygon):
+        logger.info(f'Start poisition is within perimeter')
+        start_pos = current_pos
+    #interpolate to nearest point
+    else:
+        border_points = current_map.perimeter_polygon.exterior.coords
+        start_pos = [min(border_points, key=lambda coord: (coord[0]-current_pos[0])**2 + (coord[1]-current_pos[1])**2)]
+    return start_pos
+    
+
+def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: list = None) -> list:
+    if start_pos == None:
+        start_pos = calc_start_pos()
     if selected_perimeter.is_empty or (not parameters.mowarea and parameters.mowborder==0 and not parameters.mowexclusion):
-        logger.info(f"Coverage path planner parameters are not valid. Calculation aborted.")
+        logger.info('Coverage path planner parameters are not valid. Calculation aborted.')
         logger.debug(parameters)
         return []
     logger.info('Backend: Planning route:')
@@ -99,7 +121,7 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
             line_mask = map.linemask(area_to_mow, parameters.width)
         else:
             line_mask = MultiLineString()
-        route = lines.calcroute(area_to_mow, border, line_mask, edge_polygons, route, parameters, angle)
+        route = lines.calcroute(border, line_mask, edge_polygons, route, parameters, angle)
         route = map.turn(route, -angle)
         route = list(route.coords)
         # Clear progress bar
@@ -117,7 +139,7 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
             line_mask = map.linemask(area_to_mow, parameters.width)
         else:
             line_mask = MultiLineString()
-        route2 = lines.calcroute(area_to_mow, border, line_mask, [], list(last_coord.coords), parameters, angle+90)
+        route2 = lines.calcroute(border, line_mask, [], list(last_coord.coords), parameters, angle+90)
         route2 = map.turn(route2, -angle-90)
         route.extend(list(route2.coords))
         # Clear progress bar

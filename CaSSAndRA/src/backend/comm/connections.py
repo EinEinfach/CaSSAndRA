@@ -14,7 +14,7 @@ from datetime import datetime
 #local imports
 from .. data import datatodf
 from .. data.cfgdata import CommCfg, commcfg
-from . import message
+from . import message, cmdlist
 
 @dataclass
 class MQTT:
@@ -61,6 +61,7 @@ class MQTT:
             logger.info('Connection to the MQTT server successful')  
             client.connection_flag = True
             self.subscribe()
+            cmdlist.cmd_set_positionmode = True
         else:
             logger.warning('Connection to the MQTT server not possible')
             client.connection_flag = False
@@ -150,6 +151,7 @@ class HTTP:
         logger.info('Connecting...')
         try:
             data = self.reqandchecksum('AT+V')
+            logger.debug(f'Data to be send: {data}')
             logger.info('TX: '+data)
             res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
             logger.debug('Status code: '+str(res.status_code))
@@ -167,11 +169,14 @@ class HTTP:
                     logger.debug('Encryption: true')
                     try:
                         self.http_encryptkey = int(self.http_pass)%int(self.http_encryptchallenge)
+                        cmdlist.cmd_set_positionmode = True
                     except Exception as e:
                         logger.warning('Password is invalid. Check your comm config')
                         logger.debug(str(e))
                         self.http_encryptkey = None
                         self.http_status = -1
+                else:
+                    cmdlist.cmd_set_positionmode = True
             else:
                 logger.warning('Http request for props delivered implausible string')
                 datatodf.add_online_to_df_from_http(False)
@@ -189,10 +194,11 @@ class HTTP:
     def get_state(self) -> None:
         logger.info('Performing get state http-request')
         data = self.reqandchecksum('AT+S')
+        logger.debug(f'Data to be send: {data}')
         if self.http_encryption == 1:
             data_ascii = [ord(c) for c in data]
             data_encrypt = [x + self.http_encryptkey for x in data_ascii]
-            data_encrypt = [x - 126 + 31 if x>=126 else x for x in data_encrypt]
+            data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))
         try:
             logger.info('TX: '+data) 
@@ -216,10 +222,11 @@ class HTTP:
     def get_stats(self) -> None:
         logger.info('Performing get stats http-request')
         data = self.reqandchecksum('AT+T')
+        logger.debug(f'Data to be send: {data}')
         if self.http_encryption == 1:
             data_ascii = [ord(c) for c in data]
             data_encrypt = [x + self.http_encryptkey for x in data_ascii]
-            data_encrypt = [x - 126 + 31 if x>=126 else x for x in data_encrypt]
+            data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))
         try:
             logger.info('TX: '+data)
@@ -243,10 +250,11 @@ class HTTP:
     def get_obstacles(self) -> int:
         logger.info('Performing get obstacles http-request')
         data = self.reqandchecksum('AT+S2')
+        logger.debug(f'Data to be send: {data}')
         if self.http_encryption == 1:
             data_ascii = [ord(c) for c in data]
             data_encrypt = [x + self.http_encryptkey for x in data_ascii]
-            data_encrypt = [x - 126 + 31 if x>=126 else x for x in data_encrypt]
+            data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))
         try:
             logger.info('Backend: TX '+data) 
@@ -275,6 +283,7 @@ class HTTP:
             rep_cnt = 0
             logger.debug(''+msg_pckg['msg'][i]+' will be send to the rover')
             data = self.reqandchecksum(msg_pckg['msg'][i])
+            logger.debug(f'Data to be send: {data}')
             if self.http_encryption == 1:
                 data_ascii = [ord(c) for c in data]
                 data_encrypt = [x + self.http_encryptkey for x in data_ascii]
@@ -342,6 +351,7 @@ class UART:
             self.client.reset_input_buffer()
             self.uart_status = True
             logger.info('Connection successful')
+            cmdlist.cmd_set_positionmode = True
         except:
             self.uart_status = False
             logger.warning('Connection to the rover is not possible.')

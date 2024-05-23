@@ -11,6 +11,7 @@ from . comm.connections import mqttcomm, httpcomm, uartcomm, mqttapi
 from . comm.api import cassandra_api
 from . comm.messageservice import messageservice
 from . data.roverdata import robot
+from . data.mapdata import current_map
 
 restart = threading.Event()
 
@@ -100,6 +101,7 @@ def connect_http(restart: threading.Event) -> None:
             httpcomm.connect()
         else:
             if (datetime.now() - start_time_state).seconds > time_to_wait:
+                current_map.update_map()
                 httpcomm.get_state()
                 start_time_state = datetime.now()
             if (datetime.now() - start_time_obstacles).seconds > 10*time_to_wait:
@@ -122,6 +124,7 @@ def connect_mqtt(restart: threading.Event) -> None:
             mqttcomm.disconnect()
             return
         
+        current_map.update_map()
         mqttcomm.cmd_to_rover()
         calceddata.calc_rover_state()     
         data_clean_finished = cleandata.check(data_clean_finished)
@@ -147,6 +150,7 @@ def connect_uart(restart: threading.Event) -> None:
         else: 
             uartcomm.check_buffer()
             if (datetime.now() - start_time_state).seconds > time_to_wait:
+                current_map.update_map()
                 uartcomm.get_state()
                 start_time_state = datetime.now()
             if (datetime.now() - start_time_obstacles).seconds > 10*time_to_wait:

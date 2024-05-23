@@ -48,12 +48,12 @@ def calcroute(area_to_mow, parameters, start):
     mowborderccw = parameters.mowborderccw
     rounds = parameters.mowborder
     num_edge_per = min(parameters.distancetoborder, 2)
-    start_coords = start
     route = []
     route_tmp = []
     edges_pol = []
 
     area_to_mow_tmp = area_to_mow
+    area_to_mow_tmp = area_to_mow_tmp.buffer(-0.01, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
     last_coord = start[0]
     for i in range(rounds):
         if area_to_mow_tmp.is_empty:
