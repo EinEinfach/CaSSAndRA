@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.113.1 Fixed api commands stop and dock
+#Version:0.114.0 Changed http communication behavior req <-> res, lost messages will be sent again
 # package imports
 import os
 import sys

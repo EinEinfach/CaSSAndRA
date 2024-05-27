@@ -282,6 +282,7 @@ class HTTP:
         for i, msg in msg_pckg.iterrows():   
             rep_cnt = 0
             logger.debug(''+msg_pckg['msg'][i]+' will be send to the rover')
+            expected_res = msg[0].split(',')[0]
             data = self.reqandchecksum(msg_pckg['msg'][i])
             logger.debug(f'Data to be send: {data}')
             if self.http_encryption == 1:
@@ -293,13 +294,17 @@ class HTTP:
                 logger.info('TX '+data)
                 res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
                 logger.info('RX: '+res.text)
+                got_res = f"AT+{res.text.split(',')[0]}"
                 self.http_status = res.status_code    
-                while self.http_status != 200:
+                while self.http_status != 200 or expected_res != got_res:
                     rep_cnt += 1
                     res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
+                    logger.info('RX: '+res.text)
+                    got_res = f"AT+{res.text.split(',')[0]}"
                     self.http_status = res.status_code 
                     if rep_cnt > 30:
-                        logger.warning('Failed send the message to the rover')
+                        logger.error('Failed send the message to the rover')
+                        break
                     time.sleep(1) 
             except requests.exceptions.RequestException as e:
                 logger.warning('HTTP-Connection to the rover lost or not possible. Trying to reconnect')
