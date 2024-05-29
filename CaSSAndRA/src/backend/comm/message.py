@@ -282,10 +282,7 @@ def check() -> pd.DataFrame:
                 robot.map_upload_failed = False
                 logger.info('Current map crc matches rover map crc, stand by. CRC deviation: '+str(map_crc_dev))
                 cmdlist.cmd_take_map_attempt = 0
-                mow_msg = cmdtorover.mow()
-                msg_pckg = mow_msg
                 robot.current_task = current_map.mowpath
-                robot.last_cmd = mow_msg
                 cmdlist.cmd_take_map = False
                 return pd.DataFrame()
             else:

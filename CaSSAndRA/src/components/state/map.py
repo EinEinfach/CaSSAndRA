@@ -7,7 +7,7 @@ from src.backend.data import mapdata, calceddata
 from src.backend.data.mapdata import current_map, current_task, tasks, progress_color_palette, tasks_color_palette
 from src.backend.map import map, path
 from src.backend.data.roverdata import robot
-from src.backend.data.cfgdata import pathplannercfgstate
+from src.backend.data.cfgdata import pathplannercfgstate, appcfg
 
 statemap = go.Figure()
 statemap.update_layout(
@@ -102,7 +102,7 @@ def handle_buttons(
           current_map.calculating = True
           current_map.task_progress = 0
           current_map.total_tasks = 1
-          route = path.calc(current_map.selected_perimeter, pathplannercfgstate)
+          route = path.calc_simple(current_map.selected_perimeter, pathplannercfgstate)
           if route:
                current_map.areatomow = round(current_map.selected_perimeter.area)
                current_map.calc_route_preview(route) 
@@ -275,8 +275,8 @@ def update(n_intervals: int,
                     yref='y',
                     x=robot.position_x,
                     y=robot.position_y,
-                    sizex=1.3,
-                    sizey=1.3,
+                    sizex=appcfg.rover_picture_size/100,
+                    sizey=appcfg.rover_picture_size/100,
                     xanchor='center',
                     yanchor='middle',
                     sizing='contain',

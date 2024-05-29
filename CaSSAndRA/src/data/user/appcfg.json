@@ -12,5 +12,8 @@
         }
     ],
     "current_thd_charge": -0.03,
-    "rover_picture": "ardumower/"
+    "rover_picture": "ardumower/",
+    "obstacles_amount": 20,
+    "light_mode": true,
+    "rover_picture_size": 130
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.114.0 Changed http communication behavior req <-> res, lost messages will be sent again
+#Version:0.115.0 Some bugfixing in pathplanner, mower size is configureable
 # package imports
 import os
 import sys

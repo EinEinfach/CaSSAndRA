@@ -210,13 +210,13 @@ def calcroute(border, line_mask, edges_pol, route, parameters, angle):
     pathfinder.create()
     pathfinder.angle = angle
 
-    if len(route) == 1:
-        logger.info('Coverage path planner (lines): Route is just start point, check if the point within perimeter')
-        if not Point((route[-1])).within(border) and not Point((route[-1])).touches(border):
-            logger.debug('Coverage path planner (lines): Rover is outside perimeter, interpolate to the border')
-            route_tmp = border.exterior.coords
-            route = [min(route_tmp, key=lambda coord: (coord[0]-route[-1][0])**2 + (coord[1]-route[-1][1])**2)]
-            logger.info('Coverage path planner (lines): New start point: '+str(route))
+    # if len(route) == 1:
+    #     logger.info('Coverage path planner (lines): Route is just start point, check if the point within perimeter')
+    #     if not Point((route[-1])).within(border) and not Point((route[-1])).touches(border):
+    #         logger.debug('Coverage path planner (lines): Rover is outside perimeter, interpolate to the border')
+    #         route_tmp = border.exterior.coords
+    #         route = [min(route_tmp, key=lambda coord: (coord[0]-route[-1][0])**2 + (coord[1]-route[-1][1])**2)]
+    #         logger.info('Coverage path planner (lines): New start point: '+str(route))
 
     ways_to_go = pd.DataFrame()
     perimeter_points = current_map.perimeter_points

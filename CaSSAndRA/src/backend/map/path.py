@@ -44,10 +44,10 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
             logger.debug('Task'+str(subtask_nr)+' no selection detected (Calc way for whole map)')
             selected_perimeter = current_map.perimeter_polygon
         pathplannercfgtasktmp.df_to_obj(parameters_df)
-        route_tmp = calc(selected_perimeter, pathplannercfgtasktmp, start_pos)
         if subtask_nr == 0:
-            route.extend(route_tmp)
+            route = calc_simple(selected_perimeter, pathplannercfgtasktmp)
         else:
+            route_tmp = calc(selected_perimeter, pathplannercfgtasktmp, route[-1])
             direct_way = current_map.check_direct_way(route[-1], route_tmp[0])
             if direct_way:
                 logger.debug('Direct way possible. Connect tasks')
@@ -73,15 +73,39 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
     logger.info('Backend: Route calculation from task done')
     current_map.calc_route_preview(route)
 
+def calc_simple(selected_perimeter: Polygon, parameters: PathPlannerCfg) -> list:
+    route = []
+    use_cassandra_pathfinder = True
+    start_pos = calc_start_pos()
+    route_tmp = calc(selected_perimeter, parameters, start_pos)
+    if route_tmp == []:
+        return []
+    if use_cassandra_pathfinder:
+        direct_way = current_map.check_direct_way(start_pos, route_tmp[0])
+        if direct_way:
+            route.append(start_pos)
+            route.extend(route_tmp)
+        else: 
+            logger.info('Use cassandra pathfinder to connect start position to first point')  
+            pathfinder.create()
+            pathfinder.angle = 0
+            route_astar = pathfinder.find_way(start_pos, route_tmp[0])  
+            route_tmp.pop(0)
+            route.extend(route_astar)
+            route.extend(route_tmp)
+    else:
+        route = route_tmp
+    return route 
+
 def calc_start_pos() -> list:
     logger.info('Calc start position')
     start_pos = []
     current_pos = [robot.position_x, robot.position_y]
 
-    #check if rover is docked and first dock point within perimeter
+    #check if rover is docked
     if robot.job == 2 and not current_map.perimeter[current_map.perimeter['type'] == 'dockpoints'].empty:
-        current_pos = [current_map.perimeter[current_map.perimeter['type'] == 'dockpoints'].iloc[0]['X'], current_map.perimeter[current_map.perimeter['type'] == 'dockpoints'].iloc[0]['Y']]
-    
+        current_pos = current_map.perimeter[current_map.perimeter['type'] == 'dockpoints'].iloc[0][['X', 'Y']].tolist()
+
     #is rover within perimeter
     if Point(current_pos).within(current_map.perimeter_polygon) or Point(current_pos).touches(current_map.perimeter_polygon):
         logger.info(f'Start poisition is within perimeter')
@@ -121,6 +145,9 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
             line_mask = map.linemask(area_to_mow, parameters.width)
         else:
             line_mask = MultiLineString()
+        if line_mask.is_empty and edge_polygons == [] and len(route) == 1:
+            logger.info('No ways to calculate')
+            return []
         route = lines.calcroute(border, line_mask, edge_polygons, route, parameters, angle)
         route = map.turn(route, -angle)
         route = list(route.coords)
@@ -149,7 +176,12 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         border = current_map.perimeter_polygon
         area_to_mow = map.areatomow(selected_perimeter, parameters.distancetoborder, parameters.width)
         route, edge_polygons = cutedge.calcroute(selected_perimeter, parameters, list(start_pos.coords))
-        route = rings.calcroute(area_to_mow, border, route, parameters)
+        if not parameters.mowarea:
+            area_to_mow = Polygon()
+        if area_to_mow.is_empty and edge_polygons == [] and len(route) == 1:
+            logger.info('No ways to calculate')
+            return []
+        route = rings.calcroute(area_to_mow, border, edge_polygons, route, parameters)
         # Clear progress bar
         current_map.total_progress = current_map.calculated_progress = 0
 

@@ -92,19 +92,17 @@ def create_polygons(current_polygon: Polygon, width: float) -> list:
         polygons.append(Polygon((exclusion_coords)))
     return polygons
 
-def calcroute(areatomow, border, route, parameters):
+def calcroute(areatomow, border, edge_pol, route, parameters):
     logger.info('Coverage path planner (rings): Start coverage path planner')
     mowccw = parameters.mowborderccw
     logger.debug(parameters)
     pathfinder.create()
     pathfinder.angle = 0
     if len(route) == 1:
-        logger.info('Coverage path planner (rings): Route is just start point, check if the point within perimeter')
-        if not Point((route[-1])).within(border) or not Point((route[-1])).touches(border):
-            logger.debug('Coverage path planner (rings): Rover is outside perimeter, interpolate to the border')
-            route_tmp = border.exterior.coords
-            route = [min(route_tmp, key=lambda coord: (coord[0]-route[-1][0])**2 + (coord[1]-route[-1][1])**2)]
-            logger.info('Coverage path planner (rings): New start point: '+str(route))
+        # Prepare start pos for remove at the end
+        start_pos = [route[0]]
+    else:
+        start_pos = None
     
     logger.info('Coverage path planner (rings): Create polygons')
     areatomow_tmp = areatomow
@@ -122,8 +120,17 @@ def calcroute(areatomow, border, route, parameters):
             break
         areatomow_tmp = areatomow_tmp.buffer(-parameters.width, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
         areatomow_tmp = areatomow_tmp.simplify(0.02, preserve_topology=False)
-    logger.info('Coverage path planner (rings): Polygons created. Polygons to calculate: '+str(len(polygons)))
+    
+    if len(edge_pol) > 0:
+        polygons.extend(edge_pol)
+        # Remove doubles (Could be created by cutedge and rings planner)
+        polygons = list(dict.fromkeys(polygons))
 
+    if polygons == []:
+        logger.info('Coverage path planner (rings): No polygons created')
+        return route
+    
+    logger.info('Coverage path planner (rings): Polygons created. Polygons to calculate: '+str(len(polygons)))
     logger.info('Coverage path planner (calc rings): Create ways')
     ways_to_go = pd.DataFrame()
     for i, polygon in enumerate(polygons):
@@ -206,5 +213,9 @@ def calcroute(areatomow, border, route, parameters):
             if route_astar == []:
                 logger.warning('Coverage patha planner (rings): Could not finish calculation')
                 break
-           
+
+    # Remove first point from the route. Let handle route from function above
+    if start_pos != None:
+        route.pop(0)   
+
     return route
