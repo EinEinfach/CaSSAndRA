@@ -75,7 +75,7 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
 
 def calc_simple(selected_perimeter: Polygon, parameters: PathPlannerCfg) -> list:
     route = []
-    use_cassandra_pathfinder = True
+    use_cassandra_pathfinder = False
     start_pos = calc_start_pos()
     route_tmp = calc(selected_perimeter, parameters, start_pos)
     if route_tmp == []:
