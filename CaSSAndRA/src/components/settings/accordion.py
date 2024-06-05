@@ -221,7 +221,16 @@ accordion_settings = dbc.Accordion([
                             dbc.FormText('Default transit speed setpoint [m/s]'),
                             dbc.Input(value=rovercfg.gotospeed_setpoint, type='number', min=0.1, max=1.0, step=0.01, id=ids.GOTOSPEEDSETPOINTSETTINSGS),
                             dbc.FormText('Fix timeout [s]'),
-                            dbc.Input(value=rovercfg.fix_timeout, type='number', min=1, step=1, id=ids.FIXTIMEOUTSETTINGS),
+                            dbc.Input(value=rovercfg.fix_timeout, type='number', min=1, step=1, id=ids.FIXTIMEOUTSETTINGS),                # 
+                            dbc.Row([
+                                dbc.FormText(['Finish and restart']),
+                                dbc.Switch(
+                                    id=ids.SWITCHFINISHANDRESTART,
+                                    value=rovercfg.finish_and_restart,
+                                    class_name='mt-3 ms-3',
+                                    #style={'float' : 'right', "height":"100%"},
+                                ),
+                            ], style={'padding-bottom' : '0.75rem'}),
                         ], title='Robot'),
                         dbc.AccordionItem(
                             [
@@ -567,6 +576,7 @@ def update_rover_picture_preview(preview_picture: str, preview_picture_state: st
           State(ids.POSITIONMODELON, 'value'),
           State(ids.POSITIONMODELAT, 'value'),
           State(ids.FIXTIMEOUTSETTINGS, 'value'),
+          State(ids.SWITCHFINISHANDRESTART, 'value'),
           )
 def update_robotsettings_data(
                     bsrs_nclicks: int, 
@@ -578,6 +588,7 @@ def update_robotsettings_data(
                     positionmodelon: float, 
                     positionmodelat: float,
                     fixtimeout: int,
+                    finishandrestart: bool,
                     ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKROBOTSETTINGS:
@@ -587,6 +598,7 @@ def update_robotsettings_data(
         rovercfg.lon = positionmodelon
         rovercfg.lat = positionmodelat
         rovercfg.fix_timeout = fixtimeout
+        rovercfg.finish_and_restart = finishandrestart
         res = rovercfg.save_rovercfg()
         cmdlist.cmd_set_positionmode = True
     if bsrs_nclicks or bok_nclicks:
@@ -636,9 +648,10 @@ def update_messageservicetype(radio_input: str,
           Output(ids.MOWSPEEDSETPOINTSETTINGS, 'value'),
           Output(ids.GOTOSPEEDSETPOINTSETTINSGS, 'value'),
           Output(ids.FIXTIMEOUTSETTINGS, 'value'),
+          Output(ids.SWITCHFINISHANDRESTART, 'value'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_robotsettings_on_reload(pathname: str) -> list:
-    return rovercfg.positionmode, rovercfg.lon, rovercfg.lat, rovercfg.mowspeed_setpoint, rovercfg.gotospeed_setpoint, rovercfg.fix_timeout
+    return rovercfg.positionmode, rovercfg.lon, rovercfg.lat, rovercfg.mowspeed_setpoint, rovercfg.gotospeed_setpoint, rovercfg.fix_timeout, rovercfg.finish_and_restart
 
 @callback(Output(ids.MOWOFFSETSETTINGS, 'value'),
           Output(ids.MOWANGLESETTINGS, 'value'),

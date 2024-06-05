@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.115.0 Some bugfixing in pathplanner, mower size is configureable
+#Version:0.116.0 Added finish and restart button, some improvements on path planner
 # package imports
 import os
 import sys

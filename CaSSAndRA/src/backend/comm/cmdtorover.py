@@ -116,7 +116,7 @@ def mow() -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
     robot.status = 'mow'
     robot.status_tmp = 'mow'
-    msg = {'msg': 'AT+C,1,1,'+str(rovercfg.mowspeed_setpoint)+','+str(rovercfg.fix_timeout)+',-1,-1,-1,-1'}
+    msg = {'msg': 'AT+C,1,1,'+str(rovercfg.mowspeed_setpoint)+','+str(rovercfg.fix_timeout)+','+str(int(rovercfg.finish_and_restart))+',-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command start is prepared')
     cmdlist.cmd_mow = False
