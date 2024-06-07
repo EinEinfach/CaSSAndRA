@@ -42,6 +42,10 @@ If the answer is armv7l, then you have the 32-bit version. If the answer is aarc
 For the 32-bit Raspberry OS version of bullseye, the following must be additionaly installed:
 
 	sudo apt install libatlas-base-dev libgeos-dev
+
+Python 3.11 and later introduced an external managed libraries. This feauture leads to an error during execution of pip3 install. To solve this problem users have to use extenal libraries (e.g. venv) or before pip3 install command executed external managed libraries dependeciy has to be removed (here example for Pyton 3.11)
+
+  sudo mv /usr/lib/python3.11/EXTERNALLY-MANAGED /usr/lib/python3.11/EXTERNALLY-MANAGED.old
     
 ## CaSSAndRA Start
 Start CaSSAndRA for the first time (all commands except the last call (this is done in the browser) are executed in the terminal):
