@@ -153,7 +153,7 @@ def update(bpma_nclicks: int,
                 index += 1
                 
     #Put all annotations together
-    annotation.append(dict(text='Map: '+current_map.name, showarrow=False, xref="paper", yref="paper",x=1,y=0))
+    annotation.append(dict(text='Map: '+current_map.name + '  ', showarrow=False, xref="paper", yref="paper",x=1,y=0))
     
     fig = Patch()
     fig.data = traces
