@@ -9,6 +9,7 @@ from .. data.scheduledata import schedule_tasks
 from .. data.cfgdata import schedulecfg, pathplannercfgapi
 from .. map import path, map
 from .. comm import cmdlist
+from .. comm.connections import mqttapi
 from .. data.roverdata import robot
 
 from icecream import ic
@@ -21,11 +22,13 @@ class API:
     mapsstate: dict = field(default_factory=dict)
     mowparametersstate: dict = field(default_factory=dict)
     mapstate: dict = field(default_factory=dict)
+    coordsstate: dict = field(default_factory=dict)
     robotstate_json: str = '{}'
     tasksstate_json: str = '{}'
     mapsstate_json: str = '{}'
     mowparametersstate_json: str = '{}'
     mapstate_json: str ='{}'
+    coordsstate_json: str = '{}'
     loaded_tasks: list = field(default_factory=list)
     commanded_object: str = ''
     command: str = ''
@@ -40,6 +43,7 @@ class API:
         self.robotstate['battery'] = dict(soc=robot.soc, voltage=robot.battery_voltage, electricCurrent=robot.amps)
         self.robotstate['position'] = dict(x=robot.position_x, y=robot.position_y)
         self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
+        self.robotstate['angle'] = robot.position_delta
         self.robotstate_json = json.dumps(self.robotstate)
 
     def create_maps_payload(self) -> None:
@@ -76,9 +80,15 @@ class API:
         self.mowparametersstate_json = json.dumps(self.mowparametersstate)
     
     def create_map_payload(self) -> None:
+        self.mapstate['mapId'] = current_map.map_id
+        self.mapstate['previewId'] = current_map.previewId
         self.mapstate['mowprogressIdxPercent'] = current_map.idx_perc
         self.mapstate['mowprogressDistancePercent'] = current_map.distance_perc
         self.mapstate_json = json.dumps(self.mapstate)
+    
+    def create_coords_payload(self) -> None:
+        self.coordsstate = current_map.perimeter_to_geojson()
+        self.coordsstate_json = json.dumps(self.coordsstate)
         
     def update_payload(self) -> None:
         self.create_api_payload()
@@ -109,6 +119,9 @@ class API:
             self.commanded_object = 'map'
             buffer = buffer['map']
             self.check_map_cmd(buffer)
+        elif 'coords' in buffer:
+            self.create_coords_payload()
+            mqttapi.api_publish('coords', self.coordsstate_json)
         else:
             logger.info('No valid object in api message found. Aborting')
 

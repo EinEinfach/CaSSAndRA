@@ -249,7 +249,7 @@ def start(file_paths) -> None:
             cfg = cfg = dict(CLIENT_ID=cfgdata.commcfg.api_mqtt_client_id, USERNAME=cfgdata.commcfg.api_mqtt_username, PASSWORD=cfgdata.commcfg.api_mqtt_pass,
                              MQTT_SERVER=cfgdata.commcfg.api_mqtt_server, PORT=cfgdata.commcfg.api_mqtt_port, NAME=cfgdata.commcfg.api_mqtt_cassandra_server_name)
             mqttapi.create(cfg, topics)
-            mqttapi.client.will_set(mqttapi.mqtt_mower_name+'/status', payload='offline')
+            mqttapi.client.will_set(mqttapi.mqtt_mower_name+'/status', payload='offline', retain=True)
             mqttapi.connect()
             connection_start = datetime.now()
             while mqttapi.client.connection_flag != True:
