@@ -374,7 +374,7 @@ class UART:
                     self.on_obstacle(data)
         except Exception as e:
             logger.warning('Exception in communication occured, trying to reconnect')
-            logger.debug(str(e))
+            logger.warning(str(e))
             self.client.close()
             self.uart_status = False   
     
