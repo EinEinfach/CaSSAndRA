@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.117.0 Some changes on API
+#Version:0.118.0 Add move command to api
 # package imports
 import os
 import sys

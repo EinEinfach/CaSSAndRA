@@ -120,8 +120,9 @@ class API:
             buffer = buffer['map']
             self.check_map_cmd(buffer)
         elif 'coords' in buffer:
-            self.create_coords_payload()
-            mqttapi.api_publish('coords', self.coordsstate_json)
+            self.commanded_object = 'coords'
+            buffer = buffer['coords']
+            self.check_coords_cmd(buffer)
         else:
             logger.info('No valid object in api message found. Aborting')
 
@@ -154,7 +155,7 @@ class API:
         return 
 
     def check_robot_cmd(self, buffer: dict) ->  None:
-        allowed_cmds = ['mow', 'stop', 'dock']
+        allowed_cmds = ['mow', 'stop', 'dock', 'move']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -254,6 +255,17 @@ class API:
                 self.perform_map_set_selection_cmd(buffer)
         else:
             logger.info(f'No valid command in api message found. Allowed commands: {allowed_values}. Aborting')
+    
+    def check_coords_cmd(self, buffer) -> None:
+        allowed_values = ['update']
+        if 'command' in buffer:
+            command = [buffer['command']]
+            command = list(set(command).intersection(allowed_values))
+            if command == []:
+                logger.info(f'No valid value in api message found. Allowed commands: {allowed_values}. Aborting')
+            else:
+                if command[0] == 'update':
+                    self.perform_coords_cmd(buffer)
         
 
     def perform_tasks_cmd(self, buffer: dict) -> None:
@@ -306,7 +318,7 @@ class API:
                 logger.debug(f'{e}')
 
     def perform_robot_cmd(self, buffer) -> None:
-        allowed_values = ['mow', 'stop', 'dock']
+        allowed_values = ['mow', 'stop', 'dock', 'move']
         try:
             if self.command == 'stop':
                 cmdlist.cmd_stop = True
@@ -315,6 +327,10 @@ class API:
             elif self.command == 'mow':
                 self.value = buffer['value'][0]
                 self.perform_mow_cmd()
+            elif self.command == 'move':
+                robot.cmd_move_lin = buffer['value'][0]
+                robot.cmd_move_ang = buffer['value'][1]
+                cmdlist.cmd_move = True
             else:
                 logger.info(f'No valid command in api message found. Allowed values: {allowed_values}. Aborting')
         except Exception as e:
@@ -375,5 +391,17 @@ class API:
             except Exception as e:
                 logger.info('Selection invalid')
                 logger.debug(str(e)) 
+    
+    def perform_coords_cmd(self, buffer) -> None:
+        if 'value' in buffer:
+            for value in buffer['value']:
+                if value == 'currentMap':
+                    self.create_coords_payload()
+                    mqttapi.api_publish('coords', self.coordsstate_json)
+                if value == 'prview':
+                    pass
+                if value == 'mowPaht':
+                    pass
+
     
 cassandra_api = API()
