@@ -43,8 +43,7 @@ def start_selected_tasks_order(bsst_nclicks: int) -> bool:
         if len(current_task.subtasks['name'].unique()) == 1:
             saveddata.update_task_preview(tasks.saved, current_map.preview)
         current_map.calculating = False
-        current_map.mowpath = current_map.preview
-        current_map.mowpath['type'] = 'way'
+        current_map.calc_route_mowpath()
         cmdlist.cmd_mow = True
     return False
 
@@ -59,8 +58,7 @@ def load_selected_tasks_order(blsto_nclicks: int) -> bool:
         if len(current_task.subtasks['name'].unique()) == 1:
             saveddata.update_task_preview(tasks.saved, current_map.preview)
         current_map.calculating = False
-        current_map.mowpath = current_map.preview
-        current_map.mowpath['type'] = 'way'
+        current_map.calc_route_mowpath()
         cmdlist.cmd_take_map = True
     return False
 

@@ -33,6 +33,7 @@ class Perimeter:
     gotopoints: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     gotopoint: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     mowpath: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    mowpathId: str = None
     preview: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     previewId: str = None
     obstacles: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
@@ -226,19 +227,26 @@ class Perimeter:
         self.preview = pd.DataFrame()
         self.mowpath = pd.DataFrame()
         self.obstacles = pd.DataFrame()
-        self.map_id = str(uuid.uuid4())
         self.create_perimeter_polygon()
         self.create_perimeter_for_plot()
         self.create_points_from_polygon()
         self.create_go_to_points()
         self.create_networkx_graph()
         self.save_map_name()
+        self.map_id = str(uuid.uuid4())
+        self.previewId = str(uuid.uuid4())
+        self.mowpathId = str(uuid.uuid4())
     
     def calc_route_preview(self, route: list) -> None:
         self.preview = pd.DataFrame(route)
         self.preview.columns = ['X', 'Y']
         self.preview['type'] = 'preview route'
         self.previewId = str(uuid.uuid4())
+
+    def calc_route_mowpath(self) -> None:
+        self.mowpath = self.preview
+        self.mowpath['type'] = 'way'
+        self.mowpathId = str(uuid.uuid4())
     
     def read_map_name(self) -> str:
         try:

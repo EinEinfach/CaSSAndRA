@@ -43,12 +43,14 @@ class MQTT:
     
     def disconnect(self) -> None:
         logger.info('Disconnecting')
+        self.client.publish(self.mqtt_mower_name+'/status', 'offline')
         self.client.disconnect()
     
     def connect(self) -> None:
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
         try:
+            self.client.will_set(f'{self.mqtt_mower_name}/status', payload='offline', qos=0, retain=False)
             self.client.connect(self.mqtt_server, self.mqtt_port, keepalive=60)
             logger.info('Connecting...')
         except Exception as e:
@@ -67,7 +69,7 @@ class MQTT:
             client.connection_flag = False
     
     def on_disconnect(self, client, userdata, rc):
-        logger.warning('MQTT connection lost, reconnecting...')
+        logger.warning('MQTT connection disconnected')
         logger.info(f"Disconnecting reason: {rc}")
         self.client.connection_flag = False
     

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.118.0 Add move command to api
+#Version:0.119.0 Fixed Last will message in API, some preparations for new feautures
 # package imports
 import os
 import sys

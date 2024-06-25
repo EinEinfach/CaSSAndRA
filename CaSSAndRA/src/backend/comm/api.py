@@ -289,8 +289,7 @@ class API:
                         current_map.calculating = True
                         path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
                         current_map.calculating = False
-                        current_map.mowpath = current_map.preview
-                        current_map.mowpath['type'] = 'way'
+                        current_map.calc_route_mowpath()
                         cmdlist.cmd_take_map = True
             except Exception as e:
                 logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
@@ -347,8 +346,7 @@ class API:
                 current_map.calculating = True
                 path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
                 current_map.calculating = False
-                current_map.mowpath = current_map.preview
-                current_map.mowpath['type'] = 'way'
+                current_map.calc_route_mowpath()
                 cmdlist.cmd_mow = True
             else:
                 logger.info(f'No selected tasks found')
@@ -362,8 +360,7 @@ class API:
                 current_map.areatomow = round(current_map.selected_perimeter.area)
                 current_map.calc_route_preview(route) 
             current_map.calculating = False
-            current_map.mowpath = current_map.preview
-            current_map.mowpath['type'] = 'way'
+            current_map.calc_route_mowpath()
             cmdlist.cmd_mow = True
         elif self.value == 'selection':
             if 'selection' in self.mapstate:
@@ -376,8 +373,7 @@ class API:
                     current_map.calc_route_preview(route)
                     current_map.areatomow = round(current_map.selected_perimeter.area)
                 current_map.calculating = False
-                current_map.mowpath = current_map.preview
-                current_map.mowpath['type'] = 'way'
+                current_map.calc_route_mowpath()
                 cmdlist.cmd_mow = True
             else:
                 logger.info(f'No selection found')

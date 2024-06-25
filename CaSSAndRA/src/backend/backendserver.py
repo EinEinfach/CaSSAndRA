@@ -250,7 +250,6 @@ def start(file_paths) -> None:
             cfg = cfg = dict(CLIENT_ID=cfgdata.commcfg.api_mqtt_client_id, USERNAME=cfgdata.commcfg.api_mqtt_username, PASSWORD=cfgdata.commcfg.api_mqtt_pass,
                              MQTT_SERVER=cfgdata.commcfg.api_mqtt_server, PORT=cfgdata.commcfg.api_mqtt_port, NAME=cfgdata.commcfg.api_mqtt_cassandra_server_name)
             mqttapi.create(cfg, topics)
-            mqttapi.client.will_set(mqttapi.mqtt_mower_name+'/status', payload='offline', retain=True)
             mqttapi.connect()
             connection_start = datetime.now()
             while mqttapi.client.connection_flag != True:
@@ -258,13 +257,12 @@ def start(file_paths) -> None:
                 if (datetime.now()-connection_start).seconds >10:
                     break
             if mqttapi.client.connection_flag:
-                mqttapi.client.publish(cfgdata.commcfg.api_mqtt_cassandra_server_name+'/status', 'boot')
+                mqttapi.client.publish(mqttapi.mqtt_mower_name+'/status', 'boot')
                 logger.info('Starting API thread')
                 api_thread = threading.Thread(target=api, args=(restart,), name='api')
                 api_thread.setDaemon(True)
                 api_thread.start()
                 logger.info('API successful created')
-    
     if cfgdata.commcfg.message_service != None:
         if cfgdata.commcfg.message_service == 'Telegram':
             messageservice.telegram_token = cfgdata.commcfg.telegram_token

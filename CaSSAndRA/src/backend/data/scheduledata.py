@@ -118,8 +118,7 @@ class ScheduleTasks:
                 current_map.calculating = True
                 path.calc_task(tasks_order_table[self.dayweek].subtasks, tasks_order_table[self.dayweek].subtasks_parameters)
                 current_map.calculating = False
-                current_map.mowpath = current_map.preview
-                current_map.mowpath['type'] = 'way'
+                current_map.calc_route_mowpath()
                 cmdlist.cmd_mow = True
                 self.job_started = True
             else:
