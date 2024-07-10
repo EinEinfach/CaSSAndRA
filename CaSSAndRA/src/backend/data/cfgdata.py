@@ -130,6 +130,7 @@ class AppCfg:
     obstacles_amount: int = 0
     file_path: str = ''
     light_mode: bool = True
+    rover_picture_size: int = 100
 
     def read_appcfg(self) -> None:
         try:
@@ -152,6 +153,7 @@ class AppCfg:
             self.rover_pictures = Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+self.rover_picture)+'rover0grad.png')
             self.obstacles_amount = appcfg_from_file['obstacles_amount']
             self.light_mode = appcfg_from_file['light_mode']
+            self.rover_picture_size = appcfg_from_file['rover_picture_size']
         except Exception as e:
             logger.error('Could not read appcfg.json. Data are invalid. Go with standard values')
             logger.debug(str(e))
@@ -168,6 +170,7 @@ class AppCfg:
             new_data['rover_picture'] = self.rover_picture
             new_data['obstacles_amount'] = self.obstacles_amount
             new_data['light_mode'] = self.light_mode
+            new_data['rover_picture_size'] = self.rover_picture_size
             with open(file_paths.user.appcfg, 'w') as f:
                 logger.debug('New appcfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)
@@ -190,7 +193,8 @@ class RoverCfg:
     positionmode: str = 'relative'
     lon: float = 0
     lat: float = 0
-    fix_timeout = 60
+    fix_timeout: int = 60
+    finish_and_restart: bool = False
 
     def read_rovercfg(self) -> None:
         try:
@@ -210,6 +214,7 @@ class RoverCfg:
             self.lon = rovercfg_from_file['lon']
             self.lat = rovercfg_from_file['lat']
             self.fix_timeout = rovercfg_from_file['fix_timeout']
+            self.finish_and_restart = rovercfg_from_file['finish_and_restart']
         except Exception as e:
             logger.error('Could not read rovercfg.json. Data are invalid. Go with standard values')
             res = self.save_rovercfg()
@@ -223,6 +228,7 @@ class RoverCfg:
             new_data['lon'] = self.lon
             new_data['lat'] = self.lat
             new_data['fix_timeout'] = self.fix_timeout
+            new_data['finish_and_restart'] = self.finish_and_restart
             with open(file_paths.user.rovercfg, 'w') as f:
                 logger.debug('New rovercfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)

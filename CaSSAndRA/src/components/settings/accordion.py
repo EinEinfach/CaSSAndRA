@@ -73,14 +73,26 @@ accordion_settings = dbc.Accordion([
                                     ],
                                     value=pathplannercfg.pattern
                                 ),
-                                dbc.FormText('Mow width'),
-                                dbc.Input(value=pathplannercfg.width, id=ids.MOWOFFSETSETTINGS, type='number', min=0.01, max=1, step=0.01),
-                                dbc.FormText('Mow angle'),
-                                dbc.Input(value=pathplannercfg.angle, id=ids.MOWANGLESETTINGS, type='number', min=0, max=359, step=1),
-                                dbc.FormText('Distance to border'),
-                                dbc.Input(value=pathplannercfg.distancetoborder, id=ids.DISTANCETOBORDERSETTINGS, type='number', min=0, max=5, step=1),
-                                dbc.FormText('Mow cut edge border (laps)'),
-                                dbc.Input(value=pathplannercfg.mowborder, id=ids.MOWEDGESETTINGS, type='number', min=0, max=6, step=1),
+                                dbc.Row([
+                                    dbc.Col([
+                                        dbc.FormText('Mow width'),
+                                        dbc.Input(value=pathplannercfg.width, id=ids.MOWOFFSETSETTINGS, type='number', min=0.01, max=1, step=0.01),
+                                    ]),
+                                    dbc.Col([
+                                        dbc.FormText('Mow angle'),
+                                        dbc.Input(value=pathplannercfg.angle, id=ids.MOWANGLESETTINGS, type='number', min=0, max=359, step=1),
+                                    ]),
+                                ]),
+                                dbc.Row([
+                                    dbc.Col([
+                                        dbc.FormText('Distance to border'),
+                                        dbc.Input(value=pathplannercfg.distancetoborder, id=ids.DISTANCETOBORDERSETTINGS, type='number', min=0, max=5, step=1),
+                                    ]),
+                                    dbc.Col([
+                                        dbc.FormText('Mow border (laps)'),
+                                        dbc.Input(value=pathplannercfg.mowborder, id=ids.MOWEDGESETTINGS, type='number', min=0, max=6, step=1),
+                                    ]),
+                                ]),
                                 dbc.Row(
                                 [
                                     dbc.FormText('Mow area'),
@@ -128,17 +140,25 @@ accordion_settings = dbc.Accordion([
                                     html.Img(id=ids.ROVERPICTUREPREVIEWSETTINGS, height=80, width=80)
                                 ])
                             ]),
-                            dbc.FormText('Mower picture'),
-                                dbc.Select(
-                                    id=ids.ROVERPICTURESETTINGS,
-                                    options=[
-                                        {'label': 'default', 'value': 'default/'},
-                                        {'label': 'ardumower', 'value': 'ardumower/'},
-                                        {'label': 'alfred', 'value': 'alfred/'},
-                                        {'label': 'landrumower', 'value': 'landrumower/'},
-                                    ],
+                            dbc.Row([
+                                dbc.Col([
+                                    dbc.FormText('Mower picture'),
+                                    dbc.Select(
+                                        id=ids.ROVERPICTURESETTINGS,
+                                        options=[
+                                            {'label': 'default', 'value': 'default/'},
+                                            {'label': 'ardumower', 'value': 'ardumower/'},
+                                            {'label': 'alfred', 'value': 'alfred/'},
+                                            {'label': 'landrumower', 'value': 'landrumower/'},
+                                        ],
                                     value=appcfg.rover_picture
-                                ),
+                                    ),
+                                ]),
+                                dbc.Col([
+                                    dbc.FormText('Mower picture size'),
+                                    dbc.Input(value=appcfg.rover_picture_size, type='number', min=50, max=500, step=1, id=ids.ROVERPICTURESIZESETTINGS),
+                                ]),
+                            ]),
                             dbc.FormText('Max age for measured data [days]'),
                             dbc.Input(value=appcfg.datamaxage, type='number', min=1, step=1, id=ids.MAXAGESETTINGS),
                             dbc.FormText('Time to wait before offline [s]'),
@@ -201,7 +221,16 @@ accordion_settings = dbc.Accordion([
                             dbc.FormText('Default transit speed setpoint [m/s]'),
                             dbc.Input(value=rovercfg.gotospeed_setpoint, type='number', min=0.1, max=1.0, step=0.01, id=ids.GOTOSPEEDSETPOINTSETTINSGS),
                             dbc.FormText('Fix timeout [s]'),
-                            dbc.Input(value=rovercfg.fix_timeout, type='number', min=1, step=1, id=ids.FIXTIMEOUTSETTINGS),
+                            dbc.Input(value=rovercfg.fix_timeout, type='number', min=1, step=1, id=ids.FIXTIMEOUTSETTINGS),                # 
+                            dbc.Row([
+                                dbc.FormText(['Finish and restart']),
+                                dbc.Switch(
+                                    id=ids.SWITCHFINISHANDRESTART,
+                                    value=rovercfg.finish_and_restart,
+                                    class_name='mt-3 ms-3',
+                                    #style={'float' : 'right', "height":"100%"},
+                                ),
+                            ], style={'padding-bottom' : '0.75rem'}),
                         ], title='Robot'),
                         dbc.AccordionItem(
                             [
@@ -490,6 +519,7 @@ def update_pathplanner_settings_data(bsr_n_clicks: int,
            State(ids.ROVERPICTURESETTINGS, 'value'),
            State(ids.MAXAMOUNTOBSTACLESSETTINGS, 'value'),
            State(ids.LIGHTMODESETTINGS, 'value'),
+           State(ids.ROVERPICTURESIZESETTINGS, 'value'),
            ])
 def update_app_data(bsr_n_clicks: int, 
                     bok_n_clicks: int, 
@@ -502,6 +532,7 @@ def update_app_data(bsr_n_clicks: int,
                     roverpicture: str,
                     maxobstacles: int,
                     lightmode: str,
+                    roverpicturesize: int,
                     ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKAPPSETTINGS:
@@ -519,6 +550,8 @@ def update_app_data(bsr_n_clicks: int,
             appcfg.obstacles_amount = maxobstacles
         if lightmode != None:
             appcfg.light_mode = True if lightmode == "True" else False
+        if roverpicturesize != None:
+            appcfg.rover_picture_size = roverpicturesize
         appcfg.rover_picture = roverpicture
         appcfg.save_appcfg()
         appcfg.read_appcfg()
@@ -543,6 +576,7 @@ def update_rover_picture_preview(preview_picture: str, preview_picture_state: st
           State(ids.POSITIONMODELON, 'value'),
           State(ids.POSITIONMODELAT, 'value'),
           State(ids.FIXTIMEOUTSETTINGS, 'value'),
+          State(ids.SWITCHFINISHANDRESTART, 'value'),
           )
 def update_robotsettings_data(
                     bsrs_nclicks: int, 
@@ -554,6 +588,7 @@ def update_robotsettings_data(
                     positionmodelon: float, 
                     positionmodelat: float,
                     fixtimeout: int,
+                    finishandrestart: bool,
                     ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKROBOTSETTINGS:
@@ -563,6 +598,7 @@ def update_robotsettings_data(
         rovercfg.lon = positionmodelon
         rovercfg.lat = positionmodelat
         rovercfg.fix_timeout = fixtimeout
+        rovercfg.finish_and_restart = finishandrestart
         res = rovercfg.save_rovercfg()
         cmdlist.cmd_set_positionmode = True
     if bsrs_nclicks or bok_nclicks:
@@ -612,9 +648,10 @@ def update_messageservicetype(radio_input: str,
           Output(ids.MOWSPEEDSETPOINTSETTINGS, 'value'),
           Output(ids.GOTOSPEEDSETPOINTSETTINSGS, 'value'),
           Output(ids.FIXTIMEOUTSETTINGS, 'value'),
+          Output(ids.SWITCHFINISHANDRESTART, 'value'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_robotsettings_on_reload(pathname: str) -> list:
-    return rovercfg.positionmode, rovercfg.lon, rovercfg.lat, rovercfg.mowspeed_setpoint, rovercfg.gotospeed_setpoint, rovercfg.fix_timeout
+    return rovercfg.positionmode, rovercfg.lon, rovercfg.lat, rovercfg.mowspeed_setpoint, rovercfg.gotospeed_setpoint, rovercfg.fix_timeout, rovercfg.finish_and_restart
 
 @callback(Output(ids.MOWOFFSETSETTINGS, 'value'),
           Output(ids.MOWANGLESETTINGS, 'value'),
@@ -636,9 +673,10 @@ def update_pathplandersettings_on_reload(pathname: str) -> list:
           Output(ids.ROVERPICTURESETTINGS, 'value'),
           Output(ids.MAXAMOUNTOBSTACLESSETTINGS, 'value'),
           Output(ids.LIGHTMODESETTINGS, 'value'),
+          Output(ids.ROVERPICTURESIZESETTINGS, 'value'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_appsettings_on_reload(pathname: str) -> list:
-    return appcfg.datamaxage, appcfg.time_to_offline, appcfg.current_thd_charge, appcfg.voltage_0, appcfg.voltage_100, appcfg.rover_picture, appcfg.obstacles_amount, str(appcfg.light_mode)
+    return appcfg.datamaxage, appcfg.time_to_offline, appcfg.current_thd_charge, appcfg.voltage_0, appcfg.voltage_100, appcfg.rover_picture, appcfg.obstacles_amount, str(appcfg.light_mode), appcfg.rover_picture_size
   
 @callback(Output(ids.BUTTONSENDTELEGRAMMESSAGE, 'active'),
           [Input(ids.BUTTONSENDTELEGRAMMESSAGE, 'n_clicks'),

@@ -20,7 +20,7 @@
 	
 	# copy app files to our work directory (~/app)
 	COPY ./CaSSAndRA .
-	
+
 	# define the volume where our files will be stored
 	VOLUME ["/home/cassandra/.cassandra"]
 

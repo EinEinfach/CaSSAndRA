@@ -42,6 +42,10 @@ If the answer is armv7l, then you have the 32-bit version. If the answer is aarc
 For the 32-bit Raspberry OS version of bullseye, the following must be additionaly installed:
 
 	sudo apt install libatlas-base-dev libgeos-dev
+
+Python 3.11 and later introduced an external managed libraries. This feauture leads to an error during execution of pip3 install. To solve this problem users have to use extenal libraries (e.g. venv) or before pip3 install command executed external managed libraries dependeciy has to be removed (here example for Pyton 3.11):
+
+	sudo mv /usr/lib/python3.11/EXTERNALLY-MANAGED /usr/lib/python3.11/EXTERNALLY-MANAGED.old
     
 ## CaSSAndRA Start
 Start CaSSAndRA for the first time (all commands except the last call (this is done in the browser) are executed in the terminal):
@@ -263,6 +267,54 @@ Select “App” under Settings. Here you have the option to configure some fron
 4. Min charge current: Configure here from which charge current the rover is in charging state (Attention: charge current has to be a negative value).
 
 5. Voltage to SoC: Conversion of voltage to state of charge (simple linear interpolation). The recommended voltage min (0%) is the shutdown voltage from the config.h of your sunray FW +0.5V. The recommended voltage max (100%) is the final charging voltage from the config.h of your sunray FW -0.5V. The SoC display has no controlling function and only serves as an overview on the home page.
+
+### Api
+To control CaSSAndRA without UI an API can be activated. To set it up, go to Settings, then select API, click on MQTT, enter your data, save, and restart the backend server.
+If everything is entered correctly, you should see the following messages:
+    status
+    robot
+    maps
+    tasks
+    mow parameters
+    map
+    coords (only on request)
+The commands are sent to the "api_cmd" topic:
+You can find available names in the "maps" and "tasks" topics.
+1. Switch map:
+```{"maps": {"command": "load", "value": ["map name"]}}```
+
+2. Select task:
+```{"tasks": {"command": "select", "value": ["task name"]}}```
+
+3. Mow (all):
+```{"robot":{"command": "mow", "value": ["all"]}}```
+
+Mow (task):
+```{"robot":{"command": "mow", "value": ["task"9}}```
+
+Mow (selection):
+```{"robot":{"command": "mow", "value": ["selection"]}}```
+
+4. Stop:
+```{"robot":{"command": "stop"}}```
+
+5. Dock:
+```{"robot":{"command": "dock"}}```
+
+6. Change mow parameters:
+```{"mow parameters":{"pattern": "squares", "width": "0.20", "angle": 160, "distancetoborder": 5, "mowarea": true, "mowborder": 3, "mowexclusion": false, "mowborderccw": true}}```
+
+7. Set selection:
+```{"map":{"command":"set selection", "value":{"x": [0, 1, 1], "y": [0, 1, 0]}}}```
+
+8. Robot move (command should be sent continuously approx. every 0.1s):
+```{"robot":{"command":"move", "value":[value for linear speed, value for angular speed]}}```
+
+9. Get coordinates of current map:
+```{"coords":{"command":"update", "value":["current map"]}}```
+
+after that CaSSAndRA will publish coordinates of current map in GeoJSON format (coords topic)
+
 
 ## Mapping
 A new map or existing map can be created/modified on the "Mapping" page.

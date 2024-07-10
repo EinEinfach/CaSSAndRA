@@ -24,7 +24,7 @@ copytask = dbc.Button(id=ids.BUTTONCOPYTASK, class_name='mt-1 me-1 bi bi-copy', 
 @callback(Output(ids.BUTTONSAVECURRENTTASK, 'disabled'),
           [Input(ids.TASKMAP, 'figure'),
            State(ids.DROPDOWNTASKSORDER, 'value')])
-def update_saved_tasks_button_save_disabled(fig: dict, tasks_order: list()):
+def update_saved_tasks_button_save_disabled(fig: dict, tasks_order: list):
     if not current_task.preview.empty:
         return False
     elif tasks_order != None and len(tasks_order) > 1:
@@ -43,8 +43,7 @@ def start_selected_tasks_order(bsst_nclicks: int) -> bool:
         if len(current_task.subtasks['name'].unique()) == 1:
             saveddata.update_task_preview(tasks.saved, current_map.preview)
         current_map.calculating = False
-        current_map.mowpath = current_map.preview
-        current_map.mowpath['type'] = 'way'
+        current_map.calc_route_mowpath()
         cmdlist.cmd_mow = True
     return False
 
@@ -59,8 +58,7 @@ def load_selected_tasks_order(blsto_nclicks: int) -> bool:
         if len(current_task.subtasks['name'].unique()) == 1:
             saveddata.update_task_preview(tasks.saved, current_map.preview)
         current_map.calculating = False
-        current_map.mowpath = current_map.preview
-        current_map.mowpath['type'] = 'way'
+        current_map.calc_route_mowpath()
         cmdlist.cmd_take_map = True
     return False
 
@@ -70,7 +68,7 @@ def load_selected_tasks_order(blsto_nclicks: int) -> bool:
           Output(ids.BUTTONRENAMETASK, 'disabled'),
           Output(ids.BUTTONCOPYTASK, 'disabled'),
           [Input(ids.DROPDOWNTASKSORDER, 'value')])
-def update_tasks_order_butttons_disabled(tasks_order: list()) -> list:
+def update_tasks_order_butttons_disabled(tasks_order: list) -> list:
     if tasks_order == [] or tasks_order == None:
         return True, True, True, True, True
     if len(tasks_order) == 1:
@@ -82,7 +80,7 @@ def update_tasks_order_butttons_disabled(tasks_order: list()) -> list:
           [Input(ids.BUTTONPLANCANCEL, 'n_clicks'),
            Input(ids.OKBUTTONSREMOVETASK, 'n_clicks'),
            State(ids.DROPDOWNTASKSORDER, 'value')])
-def reset_tasks_order_selection(bc_nclicks: int, bok_nclicks: int, tasks_order: list()) -> list:
+def reset_tasks_order_selection(bc_nclicks: int, bok_nclicks: int, tasks_order: list) -> list:
     context = ctx.triggered_id 
     if (context == ids.BUTTONPLANCANCEL and current_task.preview.empty) or context == ids.OKBUTTONSREMOVETASK:
         return []

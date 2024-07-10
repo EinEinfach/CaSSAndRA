@@ -12,6 +12,7 @@ import networkx as nx
 from dataclasses import dataclass, field, asdict
 from shapely.geometry import *
 from PIL import Image
+import uuid
 
 from .roverdata import robot
 from .cfgdata import PathPlannerCfg, pathplannercfg, rovercfg
@@ -20,6 +21,7 @@ from .. map import map
 @dataclass
 class Perimeter:
     name: str = ''
+    map_id: str = None
     angle_offset: int = 0
     perimeter: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     perimeter_polygon: Polygon = Polygon()
@@ -31,7 +33,9 @@ class Perimeter:
     gotopoints: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     gotopoint: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     mowpath: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    mowpathId: str = None
     preview: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    previewId: str = None
     obstacles: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     obstacle_img: Image = field(default_factory = lambda: 
                                 Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/obstacle.png')))
@@ -229,11 +233,20 @@ class Perimeter:
         self.create_go_to_points()
         self.create_networkx_graph()
         self.save_map_name()
+        self.map_id = str(uuid.uuid4())
+        self.previewId = str(uuid.uuid4())
+        self.mowpathId = str(uuid.uuid4())
     
     def calc_route_preview(self, route: list) -> None:
         self.preview = pd.DataFrame(route)
         self.preview.columns = ['X', 'Y']
         self.preview['type'] = 'preview route'
+        self.previewId = str(uuid.uuid4())
+
+    def calc_route_mowpath(self) -> None:
+        self.mowpath = self.preview
+        self.mowpath['type'] = 'way'
+        self.mowpathId = str(uuid.uuid4())
     
     def read_map_name(self) -> str:
         try:
@@ -247,7 +260,7 @@ class Perimeter:
             return ''
     
     def save_map_name(self) -> None:
-        tmp_data = {'PERIMETERNAME': self.name}
+        tmp_data = {'PERIMETERNAME': self.name, 'MAPID': self.map_id}
         try:
             with open(self.current_perimeter_file, 'w') as f:
                 json.dump(tmp_data, f, indent=4)
@@ -302,6 +315,36 @@ class Perimeter:
                 self.finished_idx = 0
                 self.idx = 0
                 self.idx_perc = 0
+    
+    def perimeter_to_geojson(self) -> str:
+        try:
+            logger.info('Exporting current map to geojson')
+            perimeter_for_export = self.perimeter_for_plot
+            if not perimeter_for_export.empty:
+                geojson = dict(type="FeatureCollection", features=[])
+                #perimeter
+                coords = perimeter_for_export[perimeter_for_export['type'] == 'perimeter']
+                value = dict(type="Feature", properties=dict(name="perimeter"), geometry=dict(dict(type="Polygon", coordinates=[coords[['X', 'Y']].values.tolist()])))
+                geojson['features'].append(value)
+                #dockpoints
+                coords = perimeter_for_export[perimeter_for_export['type'] == 'dockpoints']
+                value = dict(type="Feature", properties=dict(name="dockpoints"), geometry=dict(dict(type="LineString", coordinates=coords[['X', 'Y']].values.tolist())))
+                geojson['features'].append(value)
+                #search wire
+                coords = perimeter_for_export[perimeter_for_export['type'] == 'search wire']
+                value = dict(type="Feature", properties=dict(name="search wire"), geometry=dict(dict(type="LineString", coordinates=coords[['X', 'Y']].values.tolist())))
+                geojson['features'].append(value)
+                #exclusions
+                filtered = perimeter_for_export[(perimeter_for_export['type'] != 'perimeter') & (perimeter_for_export['type'] != 'dockpoints') & (perimeter_for_export['type'] != 'search wire')]
+                for i, exclusion in enumerate(filtered['type'].unique()):
+                    coords = perimeter_for_export[perimeter_for_export['type'] == exclusion]
+                    value = dict(type="Feature", properties=dict(name="exclusion"), idx=i, geometry=dict(dict(type="Polygon", coordinates=[coords[['X', 'Y']].values.tolist()])))
+                    geojson['features'].append(value)
+                return geojson
+        except Exception as e:
+            logger.error('Could not export current map to gejson')
+            logger.debug(f'{e}')
+            return e
 
 @dataclass
 class Perimeters:

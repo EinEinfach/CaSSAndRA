@@ -114,6 +114,9 @@ def linemask(perimeter: Polygon, mowoffset: float) -> MultiLineString:
         if offs > bounds[3]:
             break
         mask_coords.append(((bounds[0]-10, offs),(bounds[2]+10, offs)))
+    # add last line to line mask to avoid to large distance between selection and last line
+    if (bounds[3] - mask_coords[-1][0][1]) > 0.01:
+        mask_coords.append(((bounds[0]-10, bounds[3]),(bounds[2]+10, bounds[3])))
     linemask = MultiLineString(mask_coords)
     lines = linemask.intersection(perimeter)
     return lines

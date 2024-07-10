@@ -8,6 +8,7 @@ from icecream import ic
 from .. import ids
 from src.backend.data.roverdata import robot
 from src.backend.data.mapdata import current_map, mapping_maps
+from src.backend.data.cfgdata import appcfg
 
 mappingmap = go.Figure()
 mappingmap.update_layout(
@@ -279,8 +280,8 @@ def update(n_intervals: int,
                     yref='y',
                     x=robot.position_x,
                     y=robot.position_y,
-                    sizex=1.3,
-                    sizey=1.3,
+                    sizex=appcfg.rover_picture_size/100,
+                    sizey=appcfg.rover_picture_size/100,
                     xanchor='center',
                     yanchor='middle',
                     sizing='contain',
@@ -291,7 +292,7 @@ def update(n_intervals: int,
     imgs = [robot_img]
 
     #Put all annotations together
-    annotation.append(dict(text='Map: '+current_map.name, showarrow=False, xref="paper", yref="paper",x=1,y=0))
+    annotation.append(dict(text='Map: '+current_map.name + '  ', showarrow=False, xref="paper", yref="paper",x=1,y=0))
     
     fig = Patch()
     fig.data = traces

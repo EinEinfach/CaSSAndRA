@@ -4,5 +4,6 @@
     "positionmode": "relative",
     "lon": 0,
     "lat": 0,
-    "fix_timeout": 60
+    "fix_timeout": 60,
+    "finish_and_restart": false
 }

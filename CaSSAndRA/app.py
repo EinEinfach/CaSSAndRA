@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.113.1 Fixed api commands stop and dock
+#Version:0.119.0 Fixed Last will message in API, some preparations for new feautures
 # package imports
 import os
 import sys

@@ -109,8 +109,7 @@ def perfom_cmd(n_clicks_bgo: int,
         if active_bh:
             cmdlist.cmd_dock = True
         elif active_bma:
-            current_map.mowpath = current_map.preview
-            current_map.mowpath['type'] = 'way'
+            current_map.calc_route_mowpath()
             cmdlist.cmd_mow = True
         elif active_bss:
             current_map.task_progress = 0
@@ -119,8 +118,7 @@ def perfom_cmd(n_clicks_bgo: int,
             if len(current_task.subtasks['name'].unique()) == 1:
                 saveddata.update_task_preview(tasks.saved, current_map.preview)
             current_map.calculating = False
-            current_map.mowpath = current_map.preview
-            current_map.mowpath['type'] = 'way'
+            current_map.calc_route_mowpath()
             cmdlist.cmd_mow = True
         elif active_bgt:
             cmdlist.cmd_goto = True

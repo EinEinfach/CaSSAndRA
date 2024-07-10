@@ -9,6 +9,7 @@ from .. data.scheduledata import schedule_tasks
 from .. data.cfgdata import schedulecfg, pathplannercfgapi
 from .. map import path, map
 from .. comm import cmdlist
+from .. comm.connections import mqttapi
 from .. data.roverdata import robot
 
 from icecream import ic
@@ -21,11 +22,13 @@ class API:
     mapsstate: dict = field(default_factory=dict)
     mowparametersstate: dict = field(default_factory=dict)
     mapstate: dict = field(default_factory=dict)
+    coordsstate: dict = field(default_factory=dict)
     robotstate_json: str = '{}'
     tasksstate_json: str = '{}'
     mapsstate_json: str = '{}'
     mowparametersstate_json: str = '{}'
     mapstate_json: str ='{}'
+    coordsstate_json: str = '{}'
     loaded_tasks: list = field(default_factory=list)
     commanded_object: str = ''
     command: str = ''
@@ -40,6 +43,7 @@ class API:
         self.robotstate['battery'] = dict(soc=robot.soc, voltage=robot.battery_voltage, electricCurrent=robot.amps)
         self.robotstate['position'] = dict(x=robot.position_x, y=robot.position_y)
         self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
+        self.robotstate['angle'] = robot.position_delta
         self.robotstate_json = json.dumps(self.robotstate)
 
     def create_maps_payload(self) -> None:
@@ -76,9 +80,15 @@ class API:
         self.mowparametersstate_json = json.dumps(self.mowparametersstate)
     
     def create_map_payload(self) -> None:
+        self.mapstate['mapId'] = current_map.map_id
+        self.mapstate['previewId'] = current_map.previewId
         self.mapstate['mowprogressIdxPercent'] = current_map.idx_perc
         self.mapstate['mowprogressDistancePercent'] = current_map.distance_perc
         self.mapstate_json = json.dumps(self.mapstate)
+    
+    def create_coords_payload(self) -> None:
+        self.coordsstate = current_map.perimeter_to_geojson()
+        self.coordsstate_json = json.dumps(self.coordsstate)
         
     def update_payload(self) -> None:
         self.create_api_payload()
@@ -109,6 +119,10 @@ class API:
             self.commanded_object = 'map'
             buffer = buffer['map']
             self.check_map_cmd(buffer)
+        elif 'coords' in buffer:
+            self.commanded_object = 'coords'
+            buffer = buffer['coords']
+            self.check_coords_cmd(buffer)
         else:
             logger.info('No valid object in api message found. Aborting')
 
@@ -141,7 +155,7 @@ class API:
         return 
 
     def check_robot_cmd(self, buffer: dict) ->  None:
-        allowed_cmds = ['mow', 'stop', 'dock']
+        allowed_cmds = ['mow', 'stop', 'dock', 'move']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -241,6 +255,17 @@ class API:
                 self.perform_map_set_selection_cmd(buffer)
         else:
             logger.info(f'No valid command in api message found. Allowed commands: {allowed_values}. Aborting')
+    
+    def check_coords_cmd(self, buffer) -> None:
+        allowed_values = ['update']
+        if 'command' in buffer:
+            command = [buffer['command']]
+            command = list(set(command).intersection(allowed_values))
+            if command == []:
+                logger.info(f'No valid value in api message found. Allowed commands: {allowed_values}. Aborting')
+            else:
+                if command[0] == 'update':
+                    self.perform_coords_cmd(buffer)
         
 
     def perform_tasks_cmd(self, buffer: dict) -> None:
@@ -264,8 +289,7 @@ class API:
                         current_map.calculating = True
                         path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
                         current_map.calculating = False
-                        current_map.mowpath = current_map.preview
-                        current_map.mowpath['type'] = 'way'
+                        current_map.calc_route_mowpath()
                         cmdlist.cmd_take_map = True
             except Exception as e:
                 logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
@@ -293,7 +317,7 @@ class API:
                 logger.debug(f'{e}')
 
     def perform_robot_cmd(self, buffer) -> None:
-        allowed_values = ['mow', 'stop', 'dock']
+        allowed_values = ['mow', 'stop', 'dock', 'move']
         try:
             if self.command == 'stop':
                 cmdlist.cmd_stop = True
@@ -302,6 +326,10 @@ class API:
             elif self.command == 'mow':
                 self.value = buffer['value'][0]
                 self.perform_mow_cmd()
+            elif self.command == 'move':
+                robot.cmd_move_lin = buffer['value'][0]
+                robot.cmd_move_ang = buffer['value'][1]
+                cmdlist.cmd_move = True
             else:
                 logger.info(f'No valid command in api message found. Allowed values: {allowed_values}. Aborting')
         except Exception as e:
@@ -318,8 +346,7 @@ class API:
                 current_map.calculating = True
                 path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
                 current_map.calculating = False
-                current_map.mowpath = current_map.preview
-                current_map.mowpath['type'] = 'way'
+                current_map.calc_route_mowpath()
                 cmdlist.cmd_mow = True
             else:
                 logger.info(f'No selected tasks found')
@@ -328,13 +355,12 @@ class API:
             current_map.calculating = True
             current_map.task_progress = 0
             current_map.total_tasks = 1
-            route = path.calc(current_map.selected_perimeter, pathplannercfgapi)
+            route = path.calc_simple(current_map.selected_perimeter, pathplannercfgapi)
             if route:
                 current_map.areatomow = round(current_map.selected_perimeter.area)
                 current_map.calc_route_preview(route) 
             current_map.calculating = False
-            current_map.mowpath = current_map.preview
-            current_map.mowpath['type'] = 'way'
+            current_map.calc_route_mowpath()
             cmdlist.cmd_mow = True
         elif self.value == 'selection':
             if 'selection' in self.mapstate:
@@ -342,13 +368,12 @@ class API:
                 current_map.calculating = True
                 current_map.task_progress = 0
                 current_map.total_tasks = 1
-                route = path.calc(current_map.selected_perimeter, pathplannercfgapi)
+                route = path.calc_simple(current_map.selected_perimeter, pathplannercfgapi)
                 if route:
                     current_map.calc_route_preview(route)
                     current_map.areatomow = round(current_map.selected_perimeter.area)
                 current_map.calculating = False
-                current_map.mowpath = current_map.preview
-                current_map.mowpath['type'] = 'way'
+                current_map.calc_route_mowpath()
                 cmdlist.cmd_mow = True
             else:
                 logger.info(f'No selection found')
@@ -362,5 +387,17 @@ class API:
             except Exception as e:
                 logger.info('Selection invalid')
                 logger.debug(str(e)) 
+    
+    def perform_coords_cmd(self, buffer) -> None:
+        if 'value' in buffer:
+            for value in buffer['value']:
+                if value == 'currentMap':
+                    self.create_coords_payload()
+                    mqttapi.api_publish('coords', self.coordsstate_json)
+                if value == 'prview':
+                    pass
+                if value == 'mowPaht':
+                    pass
+
     
 cassandra_api = API()

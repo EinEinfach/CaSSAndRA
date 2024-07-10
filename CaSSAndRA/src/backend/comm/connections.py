@@ -43,12 +43,14 @@ class MQTT:
     
     def disconnect(self) -> None:
         logger.info('Disconnecting')
+        self.client.publish(self.mqtt_mower_name+'/status', 'offline')
         self.client.disconnect()
     
     def connect(self) -> None:
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
         try:
+            self.client.will_set(f'{self.mqtt_mower_name}/status', payload='offline', qos=0, retain=False)
             self.client.connect(self.mqtt_server, self.mqtt_port, keepalive=60)
             logger.info('Connecting...')
         except Exception as e:
@@ -67,7 +69,7 @@ class MQTT:
             client.connection_flag = False
     
     def on_disconnect(self, client, userdata, rc):
-        logger.warning('MQTT connection lost, reconnecting...')
+        logger.warning('MQTT connection disconnected')
         logger.info(f"Disconnecting reason: {rc}")
         self.client.connection_flag = False
     
@@ -282,6 +284,7 @@ class HTTP:
         for i, msg in msg_pckg.iterrows():   
             rep_cnt = 0
             logger.debug(''+msg_pckg['msg'][i]+' will be send to the rover')
+            expected_res = msg[0].split(',')[0]
             data = self.reqandchecksum(msg_pckg['msg'][i])
             logger.debug(f'Data to be send: {data}')
             if self.http_encryption == 1:
@@ -293,13 +296,17 @@ class HTTP:
                 logger.info('TX '+data)
                 res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
                 logger.info('RX: '+res.text)
+                got_res = f"AT+{res.text.split(',')[0]}"
                 self.http_status = res.status_code    
-                while self.http_status != 200:
+                while self.http_status != 200 or expected_res != got_res:
                     rep_cnt += 1
                     res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
+                    logger.info('RX: '+res.text)
+                    got_res = f"AT+{res.text.split(',')[0]}"
                     self.http_status = res.status_code 
                     if rep_cnt > 30:
-                        logger.warning('Failed send the message to the rover')
+                        logger.error('Failed send the message to the rover')
+                        break
                     time.sleep(1) 
             except requests.exceptions.RequestException as e:
                 logger.warning('HTTP-Connection to the rover lost or not possible. Trying to reconnect')
@@ -369,7 +376,7 @@ class UART:
                     self.on_obstacle(data)
         except Exception as e:
             logger.warning('Exception in communication occured, trying to reconnect')
-            logger.debug(str(e))
+            logger.warning(str(e))
             self.client.close()
             self.uart_status = False   
     

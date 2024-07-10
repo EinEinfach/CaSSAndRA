@@ -55,6 +55,19 @@ def calcroute(area_to_mow, parameters, start):
     area_to_mow_tmp = area_to_mow
     area_to_mow_tmp = area_to_mow_tmp.buffer(-0.01, resolution=16, join_style=2, mitre_limit=1, single_sided=True)
     last_coord = start[0]
+
+    if rounds == 0 and mowexclusion:
+        logger.info('Coverage path planner (planning route for cut to edge): No laps set to 0 create just exclusion edges')
+        if area_to_mow_tmp.geom_type == 'MultiPolygon':
+            for single_polygon in area_to_mow_tmp.geoms:
+                for i in range(len(single_polygon.interiors)):
+                    edges_pol.append(Polygon(single_polygon.interiors[i].coords))
+        elif area_to_mow_tmp.geom_type == 'Polygon':
+            for i in range(len(area_to_mow.interiors)):
+                edges_pol.append(Polygon(area_to_mow.interiors[i].coords))
+        else:
+            logger.error('Coverage path planner (planing route for cut to edge): Unknown figure, calculation incomplete. Shapely: '+area_to_mow_tmp.geom_type)
+
     for i in range(rounds):
         if area_to_mow_tmp.is_empty:
             logger.info('Coverage path planner (planing route for cut to edge): Could not finished distancetoborderloop, please check your settings. Max value: '+str(i))
