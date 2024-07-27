@@ -86,8 +86,12 @@ class API:
         self.mapstate['mowprogressDistancePercent'] = current_map.distance_perc
         self.mapstate_json = json.dumps(self.mapstate)
     
-    def create_coords_payload(self) -> None:
+    def create_current_map_coords_payload(self) -> None:
         self.coordsstate = current_map.perimeter_to_geojson()
+        self.coordsstate_json = json.dumps(self.coordsstate)
+    
+    def create_preview_coords_payload(self) -> None:
+        self.coordsstate = current_map.preview_to_geojson()
         self.coordsstate_json = json.dumps(self.coordsstate)
         
     def update_payload(self) -> None:
@@ -392,10 +396,11 @@ class API:
         if 'value' in buffer:
             for value in buffer['value']:
                 if value == 'currentMap':
-                    self.create_coords_payload()
+                    self.create_current_map_coords_payload()
                     mqttapi.api_publish('coords', self.coordsstate_json)
-                if value == 'prview':
-                    pass
+                if value == 'preview':
+                    self.create_preview_coords_payload()
+                    mqttapi.api_publish('coords', self.coordsstate_json)
                 if value == 'mowPaht':
                     pass
 
