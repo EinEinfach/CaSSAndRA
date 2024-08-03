@@ -316,7 +316,7 @@ class Perimeter:
                 self.idx = 0
                 self.idx_perc = 0
     
-    def perimeter_to_geojson(self) -> str:
+    def perimeter_to_geojson(self) -> dict:
         try:
             logger.info('Exporting current map to geojson')
             perimeter_for_export = self.perimeter_for_plot
@@ -344,7 +344,21 @@ class Perimeter:
         except Exception as e:
             logger.error('Could not export current map to gejson')
             logger.debug(f'{e}')
-            return e
+            return dict()
+    
+    def preview_to_geojson(self) -> dict:
+        try:
+            logger.info('Exporting route preview to gejson')
+            preview_for_export = self.preview
+            if not preview_for_export.empty:
+                geojson = dict(type="FeatureCollection", features=[])
+                value = dict(type="Feature", properties=dict(name="preview"), geometry=dict(dict(type="LineString", coordinates=[preview_for_export[['X', 'Y']].values.tolist()])))
+                geojson['features'].append(value)
+                return geojson
+        except Exception as e:
+            logger.error('Could not export preview route to gejson')
+            logger.debug(f'{e}')
+            return dict()
 
 @dataclass
 class Perimeters:
