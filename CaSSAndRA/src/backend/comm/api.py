@@ -159,7 +159,7 @@ class API:
         return 
 
     def check_robot_cmd(self, buffer: dict) ->  None:
-        allowed_cmds = ['mow', 'stop', 'dock', 'move']
+        allowed_cmds = ['mow', 'stop', 'dock', 'move', 'reboot', 'shutdown']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -321,7 +321,6 @@ class API:
                 logger.debug(f'{e}')
 
     def perform_robot_cmd(self, buffer) -> None:
-        allowed_values = ['mow', 'stop', 'dock', 'move']
         try:
             if self.command == 'stop':
                 cmdlist.cmd_stop = True
@@ -334,10 +333,14 @@ class API:
                 robot.cmd_move_lin = buffer['value'][0]
                 robot.cmd_move_ang = buffer['value'][1]
                 cmdlist.cmd_move = True
+            elif self.command == 'reboot':
+                cmdlist.cmd_reboot = True
+            elif self.command == 'shutdown':
+                cmdlist.cmd_shutdown = True
             else:
-                logger.info(f'No valid command in api message found. Allowed values: {allowed_values}. Aborting')
+                logger.warning(f'No valid command in api message found. Aborting')
         except Exception as e:
-            logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
+            logger.error(f'Perform api robot command triggered exception. Aborting')
             logger.debug(f'{e}')
 
     def perform_mow_cmd(self) -> None:

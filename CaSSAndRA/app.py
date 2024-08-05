@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.120.0 Preview coordinates over api
+#Version:0.121.0 Robot shutdown and reboot over api possible
 # package imports
 import os
 import sys
