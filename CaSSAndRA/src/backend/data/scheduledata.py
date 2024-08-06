@@ -110,7 +110,7 @@ class ScheduleTasks:
             tasks_order_table = [self.monday_task, self.tuesday_task, self.wednesday_task, self.thursday_task, self.friday_task, self.saturday_task, self.sunday_task]
             if tasks_order_table[self.dayweek].subtasks.empty and robot.last_task_name == 'mow':
                 logger.info('Resume job')
-                cmdlist.cmd_mow = True
+                cmdlist.cmd_resume = True
                 self.job_started = True
             elif not tasks_order_table[self.dayweek].subtasks.empty:
                 logger.info('Create job from selected tasks')
