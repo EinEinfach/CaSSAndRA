@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.121.0 Robot shutdown and reboot over api possible
+#Version:0.122.0 Mow speed and goto speed over api
 # package imports
 import os
 import sys

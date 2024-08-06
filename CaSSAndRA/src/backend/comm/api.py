@@ -159,7 +159,7 @@ class API:
         return 
 
     def check_robot_cmd(self, buffer: dict) ->  None:
-        allowed_cmds = ['mow', 'stop', 'dock', 'move', 'reboot', 'shutdown']
+        allowed_cmds = ['mow', 'stop', 'dock', 'move', 'reboot', 'shutdown', 'set mow speed', 'set goto speed']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -337,6 +337,12 @@ class API:
                 cmdlist.cmd_reboot = True
             elif self.command == 'shutdown':
                 cmdlist.cmd_shutdown = True
+            elif self.command == 'set mow speed':
+                robot.mowspeed_setpoint = buffer['value'][0]
+                cmdlist.cmd_changemowspeed = True
+            elif self.command == 'set goto speed':
+                robot.gotospeed_setpoint = buffer['value'][0]
+                cmdlist.cmd_changegotospeed = True
             else:
                 logger.warning(f'No valid command in api message found. Aborting')
         except Exception as e:
