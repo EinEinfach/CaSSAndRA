@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.122.0 Mow speed and goto speed over api
+#Version:0.123.0 Set mow progress over api
 # package imports
 import os
 import sys

@@ -320,8 +320,8 @@ class Perimeter:
         try:
             logger.info('Exporting current map to geojson')
             perimeter_for_export = self.perimeter_for_plot
+            geojson = dict(type="FeatureCollection", features=[])
             if not perimeter_for_export.empty:
-                geojson = dict(type="FeatureCollection", features=[])
                 #perimeter
                 coords = perimeter_for_export[perimeter_for_export['type'] == 'perimeter']
                 value = dict(type="Feature", properties=dict(name="perimeter"), geometry=dict(dict(type="Polygon", coordinates=[coords[['X', 'Y']].values.tolist()])))
@@ -340,7 +340,10 @@ class Perimeter:
                     coords = perimeter_for_export[perimeter_for_export['type'] == exclusion]
                     value = dict(type="Feature", properties=dict(name="exclusion"), idx=i, geometry=dict(dict(type="Polygon", coordinates=[coords[['X', 'Y']].values.tolist()])))
                     geojson['features'].append(value)
-                return geojson
+            else:
+               value = dict(type="Feature", properties=dict(name="perimeter"), geometry=dict(dict(type="Polygon", coordinates=[]))) 
+               geojson['features'].append(value)
+            return geojson
         except Exception as e:
             logger.error('Could not export current map to gejson')
             logger.debug(f'{e}')
@@ -350,11 +353,13 @@ class Perimeter:
         try:
             logger.info('Exporting route preview to gejson')
             preview_for_export = self.preview
+            geojson = dict(type="FeatureCollection", features=[])
             if not preview_for_export.empty:
-                geojson = dict(type="FeatureCollection", features=[])
                 value = dict(type="Feature", properties=dict(name="preview"), geometry=dict(dict(type="LineString", coordinates=[preview_for_export[['X', 'Y']].values.tolist()])))
-                geojson['features'].append(value)
-                return geojson
+            else:
+                value = dict(type="Feature", properties=dict(name="preview"), geometry=dict(dict(type="LineString", coordinates=[])))
+            geojson['features'].append(value)
+            return geojson
         except Exception as e:
             logger.error('Could not export preview route to gejson')
             logger.debug(f'{e}')
