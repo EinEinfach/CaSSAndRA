@@ -101,6 +101,9 @@ class API:
         self.create_tasks_payload()
         self.create_mow_parameters_payload()
         self.create_map_payload()
+    
+    def publish(self, topic: str, message: str) -> None:
+        mqttapi.api_publish(topic, message)
 
     def check_cmd(self, buffer: dict) -> None:
         if 'tasks' in buffer:
@@ -409,10 +412,10 @@ class API:
             for value in buffer['value']:
                 if value == 'currentMap':
                     self.create_current_map_coords_payload()
-                    mqttapi.api_publish('coords', self.coordsstate_json)
+                    self.publish('coords', self.coordsstate_json)
                 if value == 'preview':
                     self.create_preview_coords_payload()
-                    mqttapi.api_publish('coords', self.coordsstate_json)
+                    self.publish('coords', self.coordsstate_json)
                 if value == 'mowPaht':
                     pass
 
