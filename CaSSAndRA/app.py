@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.124.0 mapId and previewId inside of coords topic
+#Version:0.125.0 Mow path coordinates over api
 # package imports
 import os
 import sys

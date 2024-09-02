@@ -366,6 +366,22 @@ class Perimeter:
             logger.error('Could not export preview route to gejson')
             logger.debug(f'{e}')
             return dict()
+    
+    def mowpath_to_gejson(self) -> dict:
+        try:
+            mowpath_for_export = self.mowpath
+            geojson = dict(type="FeatureCollection", features=[])
+            geojson['features'].append(dict(type='Feature', properties=dict(name='current mow path', id=self.mowpathId)))
+            if not mowpath_for_export.empty:
+                value = dict(type="Feature", properties=dict(name="mow path"), geometry=dict(dict(type="LineString", coordinates=[mowpath_for_export[['X', 'Y']].values.tolist()])))
+            else:
+                value = dict(type="Feature", properties=dict(name="mow path"), geometry=dict(dict(type="LineString", coordinates=[])))
+            geojson['features'].append(value)
+            return geojson
+        except Exception as e:
+            logger.error('Could not export mow path to geojson')
+            logger.debug(f'{e}')
+            return dict()
 
 @dataclass
 class Perimeters:

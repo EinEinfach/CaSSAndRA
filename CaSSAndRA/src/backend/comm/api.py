@@ -44,6 +44,7 @@ class API:
         self.robotstate['position'] = dict(x=robot.position_x, y=robot.position_y)
         self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
         self.robotstate['angle'] = robot.position_delta
+        self.robotstate['mowPointIdx'] = int(robot.position_mow_point_index)
         self.robotstate_json = json.dumps(self.robotstate)
 
     def create_maps_payload(self) -> None:
@@ -82,6 +83,7 @@ class API:
     def create_map_payload(self) -> None:
         self.mapstate['mapId'] = current_map.map_id
         self.mapstate['previewId'] = current_map.previewId
+        self.mapstate['mowPathId'] = current_map.mowpathId
         self.mapstate['mowprogressIdxPercent'] = current_map.idx_perc
         self.mapstate['mowprogressDistancePercent'] = current_map.distance_perc
         self.mapstate_json = json.dumps(self.mapstate)
@@ -92,6 +94,10 @@ class API:
     
     def create_preview_coords_payload(self) -> None:
         self.coordsstate = current_map.preview_to_geojson()
+        self.coordsstate_json = json.dumps(self.coordsstate)
+    
+    def create_mowpath_coords_payload(self) -> None:
+        self.coordsstate = current_map.mowpath_to_gejson()
         self.coordsstate_json = json.dumps(self.coordsstate)
         
     def update_payload(self) -> None:
@@ -416,8 +422,9 @@ class API:
                 if value == 'preview':
                     self.create_preview_coords_payload()
                     self.publish('coords', self.coordsstate_json)
-                if value == 'mowPaht':
-                    pass
+                if value == 'mowPath':
+                    self.create_mowpath_coords_payload()
+                    self.publish('coords', self.coordsstate_json)
 
     
 cassandra_api = API()
