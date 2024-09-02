@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.123.0 Set mow progress over api
+#Version:0.124.0 mapId and previewId inside of coords topic
 # package imports
 import os
 import sys
