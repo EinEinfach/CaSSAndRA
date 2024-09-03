@@ -42,7 +42,7 @@ def api(restart: threading.ExceptHookArgs) -> None:
             logger.info('API thread is stopped')
             mqttapi.disconnect()
             return
-        if (datetime.now() - start_time_api).seconds >= 5*time_to_wait:
+        if (datetime.now() - start_time_api).seconds >= 2*time_to_wait:
             logger.debug('Update api data')
             cassandra_api.update_payload()
             cassandra_api.publish('status', cassandra_api.apistate)
