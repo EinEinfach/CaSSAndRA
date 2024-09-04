@@ -44,6 +44,7 @@ class API:
         self.robotstate['position'] = dict(x=robot.position_x, y=robot.position_y)
         self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
         self.robotstate['angle'] = robot.position_delta
+        self.robotstate['mowPointIdx'] = int(robot.position_mow_point_index)
         self.robotstate_json = json.dumps(self.robotstate)
 
     def create_maps_payload(self) -> None:
@@ -82,6 +83,7 @@ class API:
     def create_map_payload(self) -> None:
         self.mapstate['mapId'] = current_map.map_id
         self.mapstate['previewId'] = current_map.previewId
+        self.mapstate['mowPathId'] = current_map.mowpathId
         self.mapstate['mowprogressIdxPercent'] = current_map.idx_perc
         self.mapstate['mowprogressDistancePercent'] = current_map.distance_perc
         self.mapstate_json = json.dumps(self.mapstate)
@@ -93,6 +95,10 @@ class API:
     def create_preview_coords_payload(self) -> None:
         self.coordsstate = current_map.preview_to_geojson()
         self.coordsstate_json = json.dumps(self.coordsstate)
+    
+    def create_mowpath_coords_payload(self) -> None:
+        self.coordsstate = current_map.mowpath_to_gejson()
+        self.coordsstate_json = json.dumps(self.coordsstate)
         
     def update_payload(self) -> None:
         self.create_api_payload()
@@ -101,6 +107,9 @@ class API:
         self.create_tasks_payload()
         self.create_mow_parameters_payload()
         self.create_map_payload()
+    
+    def publish(self, topic: str, message: str) -> None:
+        mqttapi.api_publish(topic, message)
 
     def check_cmd(self, buffer: dict) -> None:
         if 'tasks' in buffer:
@@ -159,7 +168,7 @@ class API:
         return 
 
     def check_robot_cmd(self, buffer: dict) ->  None:
-        allowed_cmds = ['mow', 'stop', 'dock', 'move']
+        allowed_cmds = ['mow', 'stop', 'dock', 'move', 'reboot', 'shutdown', 'set mow speed', 'set goto speed', 'set mow progress']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -321,7 +330,6 @@ class API:
                 logger.debug(f'{e}')
 
     def perform_robot_cmd(self, buffer) -> None:
-        allowed_values = ['mow', 'stop', 'dock', 'move']
         try:
             if self.command == 'stop':
                 cmdlist.cmd_stop = True
@@ -334,10 +342,23 @@ class API:
                 robot.cmd_move_lin = buffer['value'][0]
                 robot.cmd_move_ang = buffer['value'][1]
                 cmdlist.cmd_move = True
+            elif self.command == 'reboot':
+                cmdlist.cmd_reboot = True
+            elif self.command == 'shutdown':
+                cmdlist.cmd_shutdown = True
+            elif self.command == 'set mow speed':
+                robot.mowspeed_setpoint = buffer['value'][0]
+                cmdlist.cmd_changemowspeed = True
+            elif self.command == 'set goto speed':
+                robot.gotospeed_setpoint = buffer['value'][0]
+                cmdlist.cmd_changegotospeed = True
+            elif self.command == 'set mow progress':
+                robot.mowprogress = buffer['value'][0]
+                cmdlist.cmd_skiptomowprogress = True
             else:
-                logger.info(f'No valid command in api message found. Allowed values: {allowed_values}. Aborting')
+                logger.warning(f'No valid command in api message found. Aborting')
         except Exception as e:
-            logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
+            logger.error(f'Perform api robot command triggered exception. Aborting')
             logger.debug(f'{e}')
 
     def perform_mow_cmd(self) -> None:
@@ -397,12 +418,13 @@ class API:
             for value in buffer['value']:
                 if value == 'currentMap':
                     self.create_current_map_coords_payload()
-                    mqttapi.api_publish('coords', self.coordsstate_json)
+                    self.publish('coords', self.coordsstate_json)
                 if value == 'preview':
                     self.create_preview_coords_payload()
-                    mqttapi.api_publish('coords', self.coordsstate_json)
-                if value == 'mowPaht':
-                    pass
+                    self.publish('coords', self.coordsstate_json)
+                if value == 'mowPath':
+                    self.create_mowpath_coords_payload()
+                    self.publish('coords', self.coordsstate_json)
 
     
 cassandra_api = API()

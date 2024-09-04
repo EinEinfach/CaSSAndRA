@@ -116,7 +116,7 @@ def calc_rover_state():
         difference = difference.total_seconds()
         if difference > appcfg.time_to_offline:
             logger.warning('Backend: Could not connect to the rover. State set to offline')
-            robot.status = 'offline'
+            robot.set_robot_status('offline')
             calced_from_state = {'solution':'invalid', 'job':'offline', 'sensor': 'no error', 'timestamp': str(now)}
             calced_from_state = pd.DataFrame(calced_from_state, index=[0])
             roverdata.calced_from_state = pd.concat([roverdata.calced_from_state, calced_from_state], ignore_index=True)

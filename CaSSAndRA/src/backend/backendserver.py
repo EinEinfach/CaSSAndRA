@@ -42,19 +42,19 @@ def api(restart: threading.ExceptHookArgs) -> None:
             logger.info('API thread is stopped')
             mqttapi.disconnect()
             return
-        if (datetime.now() - start_time_api).seconds >= 5*time_to_wait:
+        if (datetime.now() - start_time_api).seconds >= 2*time_to_wait:
             logger.debug('Update api data')
             cassandra_api.update_payload()
-            mqttapi.api_publish('status', cassandra_api.apistate)
-            mqttapi.api_publish('robot', cassandra_api.robotstate_json)
-            mqttapi.api_publish('maps', cassandra_api.mapsstate_json)
-            mqttapi.api_publish('tasks', cassandra_api.tasksstate_json)
-            mqttapi.api_publish('mow parameters', cassandra_api.mowparametersstate_json)
-            mqttapi.api_publish('map', cassandra_api.mapstate_json)
+            cassandra_api.publish('status', cassandra_api.apistate)
+            cassandra_api.publish('robot', cassandra_api.robotstate_json)
+            cassandra_api.publish('maps', cassandra_api.mapsstate_json)
+            cassandra_api.publish('tasks', cassandra_api.tasksstate_json)
+            cassandra_api.publish('mow parameters', cassandra_api.mowparametersstate_json)
+            cassandra_api.publish('map', cassandra_api.mapstate_json)
             start_time_api = datetime.now()
         if mqttapi.buffer_api != []:
             cassandra_api.apistate = 'busy'
-            mqttapi.api_publish('status', cassandra_api.apistate)
+            cassandra_api.publish('status', cassandra_api.apistate)
             cassandra_api.check_cmd(mqttapi.buffer_api[0])
             del mqttapi.buffer_api[0]
         time.sleep(0.1)

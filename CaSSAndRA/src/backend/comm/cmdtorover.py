@@ -7,13 +7,14 @@ from datetime import datetime
 
 from .. data.mapdata import current_map
 from .. data.roverdata import robot
-from .. data.cfgdata import rovercfg
+from .. data.cfgdata import rovercfg, commcfg
 from . import cmdlist
+#from . api import cassandra_api
 
 def takemap(perimeter: pd.DataFrame, way: pd.DataFrame, dock: bool) -> pd.DataFrame:
     robot.status_timestamp = datetime.now()
-    robot.status = 'map upload'
-    robot.status_tmp = 'map upload'
+    robot.set_robot_status('map upload', 'map upload')
+
     perimeter = perimeter[perimeter['type'] != 'search wire']
     logger.info('Backend: Prepare map and way data for transmition')
 
@@ -68,8 +69,8 @@ def takemap(perimeter: pd.DataFrame, way: pd.DataFrame, dock: bool) -> pd.DataFr
 
 def move(movement: list) -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
-    robot.status = 'move'
-    robot.status_tmp = 'move'
+    robot.set_robot_status('move', 'move')
+
     if movement[0] !=0 or movement[1] != 0:
         msg = {'msg': 'AT+M,'+str(movement[0])+','+str(movement[1])}
         buffer = pd.DataFrame([msg])
@@ -84,8 +85,8 @@ def move(movement: list) -> pd.DataFrame:
 
 def goto() -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
-    robot.status = 'transit'
-    robot.status_tmp = 'transit'
+    robot.set_robot_status('transit', 'transit')
+
     msg = {'msg': 'AT+C,0,1,'+str(rovercfg.gotospeed_setpoint)+','+str(rovercfg.fix_timeout)+',0,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command goto is prepared')
@@ -94,8 +95,8 @@ def goto() -> pd.DataFrame:
 
 def stop():
     robot.status_tmp_timestamp = datetime.now()
-    robot.status = 'stop'
-    robot.status_tmp = 'stop'
+    robot.set_robot_status('stop', 'stop')
+
     msg = {'msg': 'AT+C,0,0,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command stop is prepared')
@@ -104,8 +105,8 @@ def stop():
 
 def dock() -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
-    robot.status = 'docking'
-    robot.status_tmp = 'docking'
+    robot.set_robot_status('docking', 'docking')
+
     msg = {'msg': 'AT+C,0,4,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command dock is prepared')
@@ -114,8 +115,8 @@ def dock() -> pd.DataFrame:
 
 def mow() -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
-    robot.status = 'mow'
-    robot.status_tmp = 'mow'
+    robot.set_robot_status('mow', 'mow')
+
     msg = {'msg': 'AT+C,1,1,'+str(rovercfg.mowspeed_setpoint)+','+str(rovercfg.fix_timeout)+','+str(int(rovercfg.finish_and_restart))+',-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command start is prepared')
@@ -124,7 +125,8 @@ def mow() -> pd.DataFrame:
 
 def resume() -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
-    robot.status_tmp = 'resume'
+    robot.set_robot_status('resume', 'resume')
+   
     buffer = robot.last_cmd
     logger.debug('Backend: Command resume is prepared')
     cmdlist.cmd_resume = False
@@ -132,8 +134,8 @@ def resume() -> pd.DataFrame:
 
 def shutdown() -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
-    robot.status = 'shutdown'
-    robot.status_tmp = 'shutdown'
+    robot.set_robot_status('shutdown', 'shutdown')
+
     msg = {'msg': 'AT+Y3'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command shutdown is preapred')
@@ -142,8 +144,8 @@ def shutdown() -> pd.DataFrame:
 
 def reboot() -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
-    robot.status = 'reboot'
-    robot.status_tmp = 'reboot'
+    robot.set_robot_status('reboot', 'reboot')
+
     msg = {'msg': 'AT+Y'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command reboot is prepared')
@@ -152,8 +154,8 @@ def reboot() -> pd.DataFrame:
 
 def gpsreboot() -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
-    robot.status = 'gps reboot'
-    robot.status_tmp = 'gps reboot'
+    robot.set_robot_status('gps reboot', 'gps reboot')
+
     msg = {'msg': 'AT+Y2'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command GPS reboot is prepared')
@@ -193,8 +195,8 @@ def changespeed(new_speed: float) -> pd.DataFrame:
 
 def skipnextpoint() -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
-    robot.status = 'skip point'
-    robot.status_tmp = 'skip point'
+    robot.set_robot_status('skip point', 'skip point')
+
     msg = {'msg': 'AT+C,-1,-1,-1,-1,-1,-1,1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Command skip next point is prepared')
@@ -211,8 +213,8 @@ def custom() -> pd.DataFrame:
 
 def skiptomowprogress(progress: float) -> pd.DataFrame:
     robot.status_tmp_timestamp = datetime.now()
-    robot.status = f'skip to {round(progress*100)}%'
-    robot.status_tmp = f'skip to {round(progress*100)}%'
+    robot.set_robot_status(f'skip to {round(progress*100)}%', f'skip to {round(progress*100)}%')
+
     msg = {'msg': 'AT+C,-1,-1,-1,-1,-1,'+str(progress)+',-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Command skip to progress is prepared')

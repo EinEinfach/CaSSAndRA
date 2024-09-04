@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.120.0 Preview coordinates over api
+#Version:0.125.1 Increase api update frequency
 # package imports
 import os
 import sys

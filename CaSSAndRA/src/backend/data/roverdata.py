@@ -10,7 +10,8 @@ from PIL import Image
 from icecream import ic
 
 from . import appdata
-from .cfgdata import rovercfg, appcfg
+from . cfgdata import rovercfg, appcfg, commcfg
+#from .. comm.api import cassandra_api
 
 #mower class
 @dataclass
@@ -91,7 +92,7 @@ class Mower:
         self.solution = self.calc_solution()
         self.timestamp = datetime.now()
         self.check_dock_reason()
-        self.status = self.calc_status()
+        self.set_robot_status(self.calc_status())
         self.sensor_status = self.calc_sensor_status()
         self.position_age_hr = self.calc_position_age_hr()
         self.uptoday = True
@@ -252,6 +253,14 @@ class Mower:
             self.dock_reason_operator = False
             self.dock_reason = None
             self.dock_reason_time = datetime.now()
+    
+    def set_robot_status(self, status: str, status_tmp = None) -> None:
+        self.status = status
+        if status_tmp != None:
+            self.status_tmp = status_tmp
+        # if commcfg.api == 'MQTT':
+        #     cassandra_api.create_api_payload()
+        #     cassandra_api.publish('robot', cassandra_api.robotstate_json)
 
 #define robot instance
 robot = Mower()
