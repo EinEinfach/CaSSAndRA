@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.125.1 Increase api update frequency
+#Version:0.125.2 Change initial float values from 0 to 0.0 in robot class
 # package imports
 import os
 import sys
