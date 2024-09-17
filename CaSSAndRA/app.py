@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.126.0 Go to command over api
+#Version:0.126.1 Chnage range of mowborder value over api
 # package imports
 import os
 import sys

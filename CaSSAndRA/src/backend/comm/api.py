@@ -236,7 +236,7 @@ class API:
         if 'mowborder' in buffer:
             try:
                 value = int(buffer['mowborder'])
-                if 0 < value <= 5:
+                if 0 <= value <= 5:
                     pathplannercfgapi.mowborder = value
                     logger.info(f'Mow parameter mow border changed to: {value}')
                 else:
