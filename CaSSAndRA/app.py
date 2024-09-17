@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.125.2 Change initial float values from 0 to 0.0 in robot class
+#Version:0.126.0 Go to command over api
 # package imports
 import os
 import sys
