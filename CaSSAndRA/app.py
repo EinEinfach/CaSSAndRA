@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.125.1 Increase api update frequency
+#Version:0.126.1 Chnage range of mowborder value over api
 # package imports
 import os
 import sys

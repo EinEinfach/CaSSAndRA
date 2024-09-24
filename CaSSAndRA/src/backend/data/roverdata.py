@@ -18,33 +18,33 @@ from . cfgdata import rovercfg, appcfg, commcfg
 class Mower:
     uptoday: bool = False
     battery_voltage: float = 0
-    position_x: float = 0
-    position_y: float = 0
-    position_delta: float = 0
+    position_x: float = 0.0
+    position_y: float = 0.0
+    position_delta: float = 0.0
     position_solution: int = 0
     job: int  = 10
     position_mow_point_index: int = 0
-    position_age: float = 0
+    position_age: float = 0.0
     sensor: int = 0
-    target_x: float = 0
-    target_y: float = 0
-    position_accuracy: float = 0
+    target_x: float = 0.0
+    target_y: float = 0.0
+    position_accuracy: float = 0.0
     position_visible_satellites: int = 0
-    amps: float = 0
+    amps: float = 0.0
     position_visible_satellites_dgps: int = 0
     map_crc: int = 0
-    lateral_error: float = 0
-    soc: float = 0
-    speed: float = 0
+    lateral_error: float = 0.0
+    soc: float = 0.0
+    speed: float = 0.0
     mowspeed_setpoint: float = rovercfg.mowspeed_setpoint
     gotospeed_setpoint: float = rovercfg.gotospeed_setpoint
-    direction: float = 0
+    direction: float = 0.0
     backwards: bool = False
     timestamp: datetime = datetime.now()
     #commanded
     last_mow_status: bool = False
-    cmd_move_lin: float = 0
-    cmd_move_ang: float = 0
+    cmd_move_lin: float = 0.0
+    cmd_move_ang: float = 0.0
     last_cmd: pd.DataFrame = field(default_factory=lambda: pd.DataFrame([{'msg': 'AT+C,-1,-1,-1,-1,-1,-1,-1,-1'}]))
     last_task_name: str = 'no task'
     current_task: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
@@ -52,7 +52,7 @@ class Mower:
     map_upload_failed: bool = False
     map_old_crc: int = None
     map_upload_cnt: int = 0
-    mowprogress: float = 0
+    mowprogress: float = 0.0
     #frontend
     rover_image: Image = field(default_factory = lambda: 
                                Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png')))

@@ -3,6 +3,7 @@ logger = logging.getLogger(__name__)
 
 from dataclasses import dataclass, field
 import json
+import pandas as pd
 
 from .. data.mapdata import current_map, current_task, mapping_maps, tasks
 from .. data.scheduledata import schedule_tasks
@@ -168,7 +169,7 @@ class API:
         return 
 
     def check_robot_cmd(self, buffer: dict) ->  None:
-        allowed_cmds = ['mow', 'stop', 'dock', 'move', 'reboot', 'shutdown', 'set mow speed', 'set goto speed', 'set mow progress']
+        allowed_cmds = ['mow', 'stop', 'dock', 'move', 'reboot', 'shutdown', 'set mow speed', 'set goto speed', 'set mow progress', 'go to']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -235,7 +236,7 @@ class API:
         if 'mowborder' in buffer:
             try:
                 value = int(buffer['mowborder'])
-                if 0 < value <= 5:
+                if 0 <= value <= 5:
                     pathplannercfgapi.mowborder = value
                     logger.info(f'Mow parameter mow border changed to: {value}')
                 else:
@@ -338,6 +339,9 @@ class API:
             elif self.command == 'mow':
                 self.value = buffer['value'][0]
                 self.perform_mow_cmd()
+            elif self.command == 'go to':
+                self.value = buffer['value']
+                self.perform_goto_cmd()
             elif self.command == 'move':
                 robot.cmd_move_lin = buffer['value'][0]
                 robot.cmd_move_ang = buffer['value'][1]
@@ -404,6 +408,17 @@ class API:
                 logger.info(f'No selection found')
         else:
             logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
+    
+    def perform_goto_cmd(self) -> None:
+        if 'x' in self.value and 'y' in self.value:
+            try:
+                current_map.gotopoint = pd.DataFrame(self.value)
+                current_map.gotopoint.columns = ['X', 'Y']
+                current_map.gotopoint['type'] = 'way'
+                cmdlist.cmd_goto = True
+            except Exception as e:
+                logger.info('Go to point invalid')
+                logger.debug(str(e))
     
     def perform_map_set_selection_cmd(self, buffer) -> None:
         if 'value' in buffer and 'x' in buffer['value'] and 'y' in buffer['value']:
