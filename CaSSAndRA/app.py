@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.127.0 Added RTK information to the api, changed data type of soc
+#Version:0.127.1 Fix issure from last commit
 # package imports
 import os
 import sys

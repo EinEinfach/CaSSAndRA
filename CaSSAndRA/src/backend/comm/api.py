@@ -46,7 +46,7 @@ class API:
         self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
         self.robotstate['angle'] = robot.position_delta
         self.robotstate['mowPointIdx'] = int(robot.position_mow_point_index)
-        self.robotstate['gps'] = dict(visible=robot.position_visible_satellites, dgps=robot.position_visible_satellites_dgps, age=robot.position_age_hr)
+        self.robotstate['gps'] = dict(visible=int(robot.position_visible_satellites), dgps=int(robot.position_visible_satellites_dgps), age=robot.position_age_hr)
         self.robotstate_json = json.dumps(self.robotstate)
 
     def create_maps_payload(self) -> None:
