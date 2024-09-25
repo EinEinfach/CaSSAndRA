@@ -17,7 +17,7 @@ from . cfgdata import rovercfg, appcfg, commcfg
 @dataclass
 class Mower:
     uptoday: bool = False
-    battery_voltage: float = 0
+    battery_voltage: float = 0.0
     position_x: float = 0.0
     position_y: float = 0.0
     position_delta: float = 0.0
@@ -34,7 +34,7 @@ class Mower:
     position_visible_satellites_dgps: int = 0
     map_crc: int = 0
     lateral_error: float = 0.0
-    soc: float = 0.0
+    soc: int = 0
     speed: float = 0.0
     mowspeed_setpoint: float = rovercfg.mowspeed_setpoint
     gotospeed_setpoint: float = rovercfg.gotospeed_setpoint

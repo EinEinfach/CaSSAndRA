@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.126.1 Chnage range of mowborder value over api
+#Version:0.127.0 Added RTK information to the api, changed data type of soc
 # package imports
 import os
 import sys
