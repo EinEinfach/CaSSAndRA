@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.127.1 Fix issure from last commit
+#Version:0.127.2 GPS solution over api
 # package imports
 import os
 import sys
