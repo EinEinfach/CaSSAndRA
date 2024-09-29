@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.127.2 GPS solution over api
+#Version:0.128.0 changes in the api for map topic
 # package imports
 import os
 import sys

@@ -126,10 +126,10 @@ class API:
             self.commanded_object = 'robot'
             buffer = buffer['robot']
             self.check_robot_cmd(buffer)
-        elif 'mow parameters' in buffer:
-            self.commanded_object = 'mow parameters'
-            buffer = buffer['mow parameters']
-            self.check_mow_parameters_cmd(buffer)
+        # elif 'mow parameters' in buffer:
+        #     self.commanded_object = 'mow parameters'
+        #     buffer = buffer['mow parameters']
+        #     self.check_mow_parameters_cmd(buffer)
         elif 'map' in buffer:
             self.commanded_object = 'map'
             buffer = buffer['map']
@@ -183,10 +183,11 @@ class API:
            logger.info('No command in api message found. Aborting')
         return 
     
-    def check_mow_parameters_cmd(self, buffer: dict) -> None:
-        if 'pattern' in buffer:
+    def perform_mow_parameters_cmd(self, buffer: dict) -> None:
+        buffer = buffer['value']
+        if 'mowPattern' in buffer:
             allowed_values = ['lines', 'squares', 'rings']
-            pattern = buffer['pattern']
+            pattern = buffer['mowPattern']
             value = list(set([pattern]).intersection(allowed_values))
             if value != []:
                 pathplannercfgapi.pattern = value[0]
@@ -215,10 +216,10 @@ class API:
             except Exception as e:
                 logger.info(f'Angle value is invalid')
                 logger.debug(str(e))
-        if 'distancetoborder' in buffer:
+        if 'distanceToBorder' in buffer:
             try:
-                value = int(buffer['distancetoborder'])
-                if 0 < value <= 5:
+                value = int(buffer['distanceToBorder'])
+                if 0 <= value <= 5:
                     pathplannercfgapi.distancetoborder = value
                     logger.info(f'Mow parameter distance to border changed to: {value}')
                 else:
@@ -226,17 +227,17 @@ class API:
             except Exception as e:
                 logger.info(f'Distance to border value is invalid')
                 logger.debug(str(e))
-        if 'mowarea' in buffer:
+        if 'mowArea' in buffer:
             try:
-                value = bool(buffer['mowarea'])
+                value = bool(buffer['mowArea'])
                 pathplannercfgapi.mowarea = value
                 logger.info(f'Mow parameter mow area changed to: {value}')
             except Exception as e:
                 logger.info(f'Mow area value is invalid')
                 logger.debug(str(e))
-        if 'mowborder' in buffer:
+        if 'borderLaps' in buffer:
             try:
-                value = int(buffer['mowborder'])
+                value = int(buffer['borderLaps'])
                 if 0 <= value <= 5:
                     pathplannercfgapi.mowborder = value
                     logger.info(f'Mow parameter mow border changed to: {value}')
@@ -245,17 +246,17 @@ class API:
             except Exception as e:
                 logger.info(f'Mow border value is invalid')
                 logger.debug(str(e))
-        if 'mowexclusion' in buffer:
+        if 'mowExclusionBorder' in buffer:
             try:
-                value = bool(buffer['mowexclusion'])
+                value = bool(buffer['mowExclusionBorder'])
                 pathplannercfgapi.mowexclusion = value
                 logger.info(f'Mow parameter mow exclusion changed to: {value}')
             except Exception as e:
                 logger.info(f'Mow exclusion value is invalid')
                 logger.debug(str(e))
-        if 'mowborderccw' in buffer:
+        if 'mowBorderCcw' in buffer:
             try:
-                value = bool(buffer['mowborderccw'])
+                value = bool(buffer['mowBorderCcw'])
                 pathplannercfgapi.mowborderccw = value
                 logger.info(f'Mow parameter mow border in ccw changed to: {value}')
             except Exception as e:
@@ -263,11 +264,13 @@ class API:
                 logger.debug(str(e))
     
     def check_map_cmd(self, buffer) -> None:
-        allowed_values = ['set selection']
+        allowed_values = ['setSelection', 'setMowParameters']
         command = list(set([buffer['command']]).intersection(allowed_values))
         if command != []:
-            if command[0] == 'set selection':
+            if command[0] == 'setSelection':
                 self.perform_map_set_selection_cmd(buffer)
+            elif command[0] == 'setMowParameters':
+                self.perform_mow_parameters_cmd(buffer)
         else:
             logger.info(f'No valid command in api message found. Allowed commands: {allowed_values}. Aborting')
     
