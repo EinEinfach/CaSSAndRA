@@ -137,7 +137,7 @@ def handle_buttons(
           current_map.plotgotopoints = True
      elif context == ids.BUTTONCANCEL:
           if not current_map.obstacles.empty:
-               current_map.obstacles = pd.DataFrame()
+               current_map.add_obstacles(pd.DataFrame())
           else:
                current_map.gotopoint = pd.DataFrame()
                current_map.preview = pd.DataFrame()

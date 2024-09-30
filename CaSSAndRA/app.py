@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.128.0 changes in the api for map topic
+#Version:0.129.0 Obstacles over api {"coords": {"command": "update", "value": ["obstacles"]}}, {"map": {"command": "resetObstacles", "value": []}}
 # package imports
 import os
 import sys

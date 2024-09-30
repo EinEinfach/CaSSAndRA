@@ -86,6 +86,7 @@ class API:
         self.mapstate['mapId'] = current_map.map_id
         self.mapstate['previewId'] = current_map.previewId
         self.mapstate['mowPathId'] = current_map.mowpathId
+        self.mapstate['obstaclesId'] = current_map.obstaclesId
         self.mapstate['mowprogressIdxPercent'] = current_map.idx_perc
         self.mapstate['mowprogressDistancePercent'] = current_map.distance_perc
         self.mapstate_json = json.dumps(self.mapstate)
@@ -100,6 +101,10 @@ class API:
     
     def create_mowpath_coords_payload(self) -> None:
         self.coordsstate = current_map.mowpath_to_gejson()
+        self.coordsstate_json = json.dumps(self.coordsstate)
+    
+    def create_obstacles_coords_payload(self) -> None:
+        self.coordsstate = current_map.obstacles_to_gejson()
         self.coordsstate_json = json.dumps(self.coordsstate)
         
     def update_payload(self) -> None:
@@ -264,13 +269,15 @@ class API:
                 logger.debug(str(e))
     
     def check_map_cmd(self, buffer) -> None:
-        allowed_values = ['setSelection', 'setMowParameters']
+        allowed_values = ['setSelection', 'setMowParameters', 'resetObstacles']
         command = list(set([buffer['command']]).intersection(allowed_values))
         if command != []:
             if command[0] == 'setSelection':
                 self.perform_map_set_selection_cmd(buffer)
             elif command[0] == 'setMowParameters':
                 self.perform_mow_parameters_cmd(buffer)
+            elif command[0] == 'resetObstacles':
+                self.perform_reset_obstacles_cmd()
         else:
             logger.info(f'No valid command in api message found. Allowed commands: {allowed_values}. Aborting')
     
@@ -432,7 +439,11 @@ class API:
                 logger.info('Selection invalid')
                 logger.debug(str(e)) 
     
+    def perform_reset_obstacles_cmd(self) -> None:
+        current_map.add_obstacles(pd.DataFrame())
+    
     def perform_coords_cmd(self, buffer) -> None:
+        allowed_values = ['currentMap', 'preview', 'mowPath', 'obstacles']
         if 'value' in buffer:
             for value in buffer['value']:
                 if value == 'currentMap':
@@ -443,6 +454,9 @@ class API:
                     self.publish('coords', self.coordsstate_json)
                 if value == 'mowPath':
                     self.create_mowpath_coords_payload()
+                    self.publish('coords', self.coordsstate_json)
+                if value == 'obstacles':
+                    self.create_obstacles_coords_payload()
                     self.publish('coords', self.coordsstate_json)
 
     

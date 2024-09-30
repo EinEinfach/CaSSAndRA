@@ -246,28 +246,31 @@ def add_online_to_df_from_http(data: bool) -> None:
     
 def add_obstacles_to_df(data: str) -> None:
     try: 
+        obstacles = current_map.obstacles
         data_list = data.split(',')
         del data_list[-1]
         del data_list[0]
         if len(data_list) == 1:
             if appcfg.obstacles_amount == 0: #Synchronize to sunray fw
-                current_map.obstacles = pd.DataFrame() 
-                return
-        obstacles_number = int(data_list[0]) 
-        del data_list[0]
-        data_list = [float(x) if '.' in x else int(x) for x in data_list]
-        for i in range(obstacles_number):
-            obstacle = create_obstacle(data_list[3:4+2*data_list[3]])
-            if current_map.obstacles.empty or current_map.obstacles[current_map.obstacles['CRC'] == obstacle['CRC'].unique()[0]].empty:
-                current_map.obstacles = pd.concat([current_map.obstacles, obstacle], ignore_index=True)
-            del data_list[0:4+2*data_list[3]]
-        #check of max amount of obstacles
-        if appcfg.obstacles_amount != 0:
-            if not current_map.obstacles.empty and len(current_map.obstacles['CRC'].unique()) > appcfg.obstacles_amount:
-                obstacles_crc = current_map.obstacles['CRC'].unique()
-                obstacles_crc = obstacles_crc[-appcfg.obstacles_amount:]
-                current_map.obstacles = current_map.obstacles[current_map.obstacles['CRC'].isin(obstacles_crc)]
-                current_map.obstacles = current_map.obstacles.reset_index(drop=True)
+                obstacles = pd.DataFrame()
+        else:     
+            obstacles_number = int(data_list[0]) 
+            del data_list[0]
+            data_list = [float(x) if '.' in x else int(x) for x in data_list]
+            for i in range(obstacles_number):
+                obstacle = create_obstacle(data_list[3:4+2*data_list[3]])
+                if obstacles.empty or obstacles[obstacles['CRC'] == obstacle['CRC'].unique()[0]].empty:
+                    obstacles = pd.concat([obstacles, obstacle], ignore_index=True)
+                del data_list[0:4+2*data_list[3]]
+            #check of max amount of obstacles
+            if appcfg.obstacles_amount != 0:
+                if not obstacles.empty and len(obstacles['CRC'].unique()) > appcfg.obstacles_amount:
+                    obstacles_crc = obstacles['CRC'].unique()
+                    obstacles_crc = obstacles_crc[-appcfg.obstacles_amount:]
+                    obstacles = obstacles[obstacles['CRC'].isin(obstacles_crc)]
+                    obstacles = obstacles.reset_index(drop=True)
+        if not obstacles.equals(current_map.obstacles):
+            current_map.add_obstacles(obstacles)
     except Exception as e:
         logger.error('Backend: Failed to write obstacles data to data frame')
         logger.debug(str(e))

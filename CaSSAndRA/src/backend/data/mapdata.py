@@ -37,6 +37,7 @@ class Perimeter:
     preview: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     previewId: str = None
     obstacles: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    obstaclesId: str = None
     obstacle_img: Image = field(default_factory = lambda: 
                                 Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/obstacle.png')))
     astar_graph: nx.Graph = nx.Graph()
@@ -236,6 +237,7 @@ class Perimeter:
         self.map_id = str(uuid.uuid4())
         self.previewId = str(uuid.uuid4())
         self.mowpathId = str(uuid.uuid4())
+        self.obstaclesId = str(uuid.uuid4())
     
     def calc_route_preview(self, route: list) -> None:
         self.preview = pd.DataFrame(route)
@@ -247,6 +249,10 @@ class Perimeter:
         self.mowpath = self.preview
         self.mowpath['type'] = 'way'
         self.mowpathId = str(uuid.uuid4())
+    
+    def add_obstacles(self, data: pd.DataFrame) -> None:
+        self.obstacles = data
+        self.obstaclesId = str(uuid.uuid4())
     
     def read_map_name(self) -> str:
         try:
@@ -380,6 +386,27 @@ class Perimeter:
             return geojson
         except Exception as e:
             logger.error('Could not export mow path to geojson')
+            logger.debug(f'{e}')
+            return dict()
+    
+    def obstacles_to_gejson(self) -> dict:
+        try:
+            obstacles_for_export = self.obstacles
+            geojson = dict(type="FeatureCollection", features=[])
+            geojson['features'].append(dict(type='Feature', properties=dict(name='obstacles', id=self.obstaclesId)))
+            if not obstacles_for_export.empty:
+                for i, obstacle in enumerate(obstacles_for_export['CRC'].unique()):
+                    coords = obstacles_for_export[obstacles_for_export['CRC'] == obstacle]
+                    coords = coords[coords['type'] == 'points']
+                    value = dict(type="Feature", properties=dict(name="obstacle"), geometry=dict(dict(type="Polygon", coordinates=[coords[['X', 'Y']].values.tolist()])))
+                    geojson['features'].append(value)
+                return geojson
+            else:
+                value = dict(type="Feature", properties=dict(name="obstacle"), geometry=dict(dict(type="Polygon", coordinates=[])))
+                geojson['features'].append(value)
+                return geojson
+        except Exception as e:
+            logger.error('Could not export obstacles to gejson')
             logger.debug(f'{e}')
             return dict()
 
