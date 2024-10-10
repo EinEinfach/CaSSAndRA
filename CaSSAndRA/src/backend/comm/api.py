@@ -106,6 +106,10 @@ class API:
     def create_obstacles_coords_payload(self) -> None:
         self.coordsstate = current_map.obstacles_to_gejson()
         self.coordsstate_json = json.dumps(self.coordsstate)
+
+    def create_tasks_coords_payload(self, task_name: str) -> None:
+        self.coordsstate = tasks.task_to_gejson(task_name)
+        self.coordsstate_json = json.dumps(self.coordsstate)
         
     def update_payload(self) -> None:
         self.create_api_payload()
@@ -213,7 +217,7 @@ class API:
         if 'angle' in buffer:
             try:
                 value = int(buffer['angle'])
-                if 0 < value <= 359:
+                if 0 <= value <= 359:
                     pathplannercfgapi.angle = value
                     logger.info(f'Mow parameter angle changed to: {value}')
                 else:
@@ -296,6 +300,10 @@ class API:
     def perform_tasks_cmd(self, buffer: dict) -> None:
         if 'value' in buffer:
             value = buffer['value']
+            if value == []:
+                current_task.subtasks = pd.DataFrame()
+                current_task.subtasks_parameters = pd.DataFrame()
+                return
             allowed_values = list(tasks.saved[tasks.saved['map name'] == current_map.name]['name'].unique())
             try:
                 tasks_to_load = []
@@ -307,6 +315,8 @@ class API:
                 else:
                     if self.command == 'select':
                         current_task.load_task_order(self.value)
+                        for value in self.value:
+                            self.perform_task_coords_cmd(value)
                     elif self.command == 'load':
                         self.loaded_tasks = self.value
                         current_task.load_task_order(self.value)
@@ -458,6 +468,10 @@ class API:
                 if value == 'obstacles':
                     self.create_obstacles_coords_payload()
                     self.publish('coords', self.coordsstate_json)
+    
+    def perform_task_coords_cmd(self, task_name: str) -> None:
+        self.create_tasks_coords_payload(task_name)
+        self.publish('coords', self.coordsstate_json)
 
     
 cassandra_api = API()

@@ -979,6 +979,24 @@ class Tasks:
     saved: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
     saved_parameters: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
 
+    def task_to_gejson(self, task_name: str) -> dict:
+        try:
+            task_for_export = self.saved[(self.saved['name'] == task_name) & (self.saved['map name'] == current_map.name) & (self.saved['type'] == 'preview route')]
+            geojson = dict(type="FeatureCollection", features=[])
+            geojson['features'].append(dict(type='Feature', properties=dict(name='task', id=task_name, mapName=current_map.name)))
+            if not task_for_export.empty:
+                for subtask in task_for_export['task nr'].unique():
+                    value = dict(type="Feature", properties=dict(name=int(subtask)), geometry=dict(dict(type="LineString", coordinates=[task_for_export[task_for_export['task nr'] == subtask][['X', 'Y']].values.tolist()])))
+                    geojson['features'].append(value)
+            else:
+                value = dict(type="Feature", properties=dict(name=task_name), geometry=dict(dict(type="LineString", coordinates=[])))
+                geojson['features'].append(value)
+            return geojson
+        except Exception as e:
+            logger.error('Could not export task to geojson')
+            logger.debug(f'{e}')
+            return dict()
+
 current_map = Perimeter()
 mapping_maps = Perimeters()
 current_task = Task()

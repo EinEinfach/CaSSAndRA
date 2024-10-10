@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.129.0 Obstacles over api {"coords": {"command": "update", "value": ["obstacles"]}}, {"map": {"command": "resetObstacles", "value": []}}
+#Version:0.130.0 Preview coordinates ove api
 # package imports
 import os
 import sys
