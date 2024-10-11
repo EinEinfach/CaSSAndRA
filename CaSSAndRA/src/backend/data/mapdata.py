@@ -41,18 +41,18 @@ class Perimeter:
     obstacle_img: Image = field(default_factory = lambda: 
                                 Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/obstacle.png')))
     astar_graph: nx.Graph = nx.Graph()
-    areatomow: float = 0
+    areatomow: int = 0
     distancetogo: float = 0
     map_crc: int = None
     current_perimeter_file: str = ''
     plotgotopoints: bool = False
     # Mow progress
-    finished_distance = 0
-    distance = 0
-    distance_perc = 0
-    finished_idx = 0
-    idx = 0
-    idx_perc = 0 
+    finished_distance: float = 0
+    distance: float = 0
+    distance_perc: int = 0
+    finished_idx: int = 0
+    idx: int = 0
+    idx_perc: int = 0 
     # Progress bar
     calculating: bool = False
     calculated_progress: int = 0

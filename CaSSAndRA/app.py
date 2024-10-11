@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.130.0 Preview coordinates ove api
+#Version:0.131.0 New values over api, calc estimation
 # package imports
 import os
 import sys

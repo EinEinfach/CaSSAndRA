@@ -46,7 +46,8 @@ class API:
         self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
         self.robotstate['angle'] = robot.position_delta
         self.robotstate['mowPointIdx'] = int(robot.position_mow_point_index)
-        self.robotstate['gps'] = dict(visible=int(robot.position_visible_satellites), dgps=int(robot.position_visible_satellites_dgps), age=robot.position_age_hr, solution= robot.solution)
+        self.robotstate['gps'] = dict(visible = int(robot.position_visible_satellites), dgps=int(robot.position_visible_satellites_dgps), age=robot.position_age_hr, solution= robot.solution)
+        self.robotstate['secondsPerIdx'] = robot.seconds_per_idx
         self.robotstate_json = json.dumps(self.robotstate)
 
     def create_maps_payload(self) -> None:
@@ -89,6 +90,11 @@ class API:
         self.mapstate['obstaclesId'] = current_map.obstaclesId
         self.mapstate['mowprogressIdxPercent'] = current_map.idx_perc
         self.mapstate['mowprogressDistancePercent'] = current_map.distance_perc
+        self.mapstate['finishedDistance'] = current_map.finished_distance
+        self.mapstate['distanceTotal'] = current_map.distancetogo
+        self.mapstate['finishedIdx'] = int(current_map.finished_idx)
+        self.mapstate['idxTotal'] = int(current_map.idx)
+        self.mapstate['areaTotal'] = int(current_map.areatomow) 
         self.mapstate_json = json.dumps(self.mapstate)
     
     def create_current_map_coords_payload(self) -> None:

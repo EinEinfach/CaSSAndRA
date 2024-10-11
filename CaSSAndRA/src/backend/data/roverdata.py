@@ -3,7 +3,7 @@ logger = logging.getLogger(__name__)
 
 import pandas as pd
 import math
-from datetime import datetime
+from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 import os
 from PIL import Image
@@ -53,6 +53,7 @@ class Mower:
     map_old_crc: int = None
     map_upload_cnt: int = 0
     mowprogress: float = 0.0
+    seconds_per_idx: float = None
     #frontend
     rover_image: Image = field(default_factory = lambda: 
                                Image.open(os.path.dirname(__file__).replace('/backend/data', '/assets/icons/'+appcfg.rover_picture+'rover0grad.png')))
@@ -96,6 +97,7 @@ class Mower:
         self.sensor_status = self.calc_sensor_status()
         self.position_age_hr = self.calc_position_age_hr()
         self.uptoday = True
+        self.calc_seconds_per_idx()
     
     def calc_speed(self, position_x: float, position_y: float, timestamp) -> float:
         if self.job == 1 or self.job == 4:
@@ -258,9 +260,30 @@ class Mower:
         self.status = status
         if status_tmp != None:
             self.status_tmp = status_tmp
-        # if commcfg.api == 'MQTT':
-        #     cassandra_api.create_api_payload()
-        #     cassandra_api.publish('robot', cassandra_api.robotstate_json)
+    
+    def calc_seconds_per_idx(self) -> None:
+        start_point = datetime.now() - timedelta(days=30)
+        try:
+            relevant_data = state
+            relevant_data['timestamp'] = pd.to_datetime(relevant_data['timestamp'])
+            relevant_data = state[(state['timestamp'] >= start_point) & (state['job'] == 1) & (state['position_solution'] == 2)]
+            relevant_data.loc[:,'position_mow_point_index'] = relevant_data['position_mow_point_index'].diff()
+            relevant_data = relevant_data[relevant_data['position_mow_point_index'] > 0]
+            relevant_data.loc[:,'timestamp'] = relevant_data['timestamp'].diff()
+            relevant_data.loc[:,'timestamp'] = relevant_data['timestamp'].dt.total_seconds()
+            relevant_data.loc[:,'timestamp'] = relevant_data['timestamp']/relevant_data['position_mow_point_index']
+            relevant_data = relevant_data[relevant_data['timestamp'] < 300]
+            if len(relevant_data) < 100:
+                self.seconds_per_idx = None
+                return
+            self.seconds_per_idx = relevant_data['timestamp'].mean()
+
+        except Exception as e:
+            self.seconds_per_idx = None
+            logger.warning('Could not create estimation time, data in state data frame are invalid')
+            logger.debug(f'{e}')
+
+        pass
 
 #define robot instance
 robot = Mower()
