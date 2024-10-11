@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.131.0 New values over api, calc estimation
+#Version:0.131.1 Added new thre for slow tasks, remove depricated warnings for threading
 # package imports
 import os
 import sys

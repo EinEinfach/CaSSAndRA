@@ -18,6 +18,17 @@ restart = threading.Event()
 #from data import saveddata
 #from comm import mqttcomm, cmdlist, cmdtorover, comcfg
 
+def slow_tasks(restart: threading.ExceptHookArgs) -> None:
+    start_time_slow_tasks = datetime.now()
+    time_to_wait = 1
+    while True:
+        if restart.is_set():
+            logger.info('Slow tasks thread is stopped')
+            return
+        if (datetime.now() - start_time_slow_tasks).seconds >= 30*time_to_wait:
+            robot.calc_seconds_per_idx()
+        time.sleep(1)
+
 def message_service(restart: threading.ExceptHookArgs) -> None:
     while True:
         if restart.is_set():
@@ -215,7 +226,7 @@ def start(file_paths) -> None:
         if mqttcomm.client.connection_flag:
             logger.info('Starting connection thread')
             connection_thread = threading.Thread(target=connect_mqtt, args=(restart,), name='connection')
-            connection_thread.setDaemon(True)
+            connection_thread.daemon = True
             connection_thread.start()
 
             logger.info('Backend is successfully started')
@@ -227,7 +238,7 @@ def start(file_paths) -> None:
         httpcomm.create()
         logger.info('Starting connection thread')
         connection_thread = threading.Thread(target=connect_http, args=(restart,), name='connection')
-        connection_thread.setDaemon(True)
+        connection_thread.daemon = True
         connection_thread.start()
         logger.info('Backend is successfully started')
     
@@ -236,7 +247,7 @@ def start(file_paths) -> None:
         uartcomm.create()
         logger.info('Starting connection thread')
         connection_thread = threading.Thread(target=connect_uart, args=(restart,), name='connection')
-        connection_thread.setDaemon(True)
+        connection_thread.daemon = True
         connection_thread.start()
         logger.info('Backend is successfully started')
     else:
@@ -260,7 +271,7 @@ def start(file_paths) -> None:
                 mqttapi.client.publish(mqttapi.mqtt_mower_name+'/status', 'boot')
                 logger.info('Starting API thread')
                 api_thread = threading.Thread(target=api, args=(restart,), name='api')
-                api_thread.setDaemon(True)
+                api_thread.daemon = True
                 api_thread.start()
                 logger.info('API successful created')
     if cfgdata.commcfg.message_service != None:
@@ -270,7 +281,7 @@ def start(file_paths) -> None:
             message_service_connection = messageservice.get_chat_id()
             if message_service_connection == 0:
                 message_servive_thread = threading.Thread(target=message_service, args=(restart,), name='message service')
-                message_servive_thread.setDaemon(True)
+                message_servive_thread.daemon = True
                 message_servive_thread.start()
                 logger.info('Message service is successful started')
             else:
@@ -281,21 +292,27 @@ def start(file_paths) -> None:
             messageservice.pushover_token = cfgdata.commcfg.pushover_token
             messageservice.pushover_user = cfgdata.commcfg.pushover_user
             message_servive_thread = threading.Thread(target=message_service, args=(restart,), name='message service')
-            message_servive_thread.setDaemon(True)
+            message_servive_thread.daemon = True
             message_servive_thread.start()
             logger.info('Message service is successful started')
             
     #start an own thread for data storing
     logger.info('Starting thread for data storage')
     datastorage_thread = threading.Thread(target=store_data, args=(restart, file_paths), name='data storage')
-    datastorage_thread.setDaemon(True)
+    datastorage_thread.daemon = True
     datastorage_thread.start()
 
     #start an own thread for schedule
     logger.info('Starting schedule thread')
     schedule_thread = threading.Thread(target=schedule_loop, args=(restart,), name='schedule_loop')
-    schedule_thread.setDaemon(True)
+    schedule_thread.daemon = True
     schedule_thread.start()
+
+    #start an own thre for slow tasks
+    logger.info('Starting thread for slow tasks')
+    slow_tasks_thread = threading.Thread(target=slow_tasks, args=(restart,), name='slow tasks')
+    slow_tasks_thread.daemon = True
+    slow_tasks_thread.start()
 
     #give some times to establish connection
     time.sleep(2)
