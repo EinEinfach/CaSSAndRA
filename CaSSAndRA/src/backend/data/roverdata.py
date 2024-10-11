@@ -97,7 +97,7 @@ class Mower:
         self.sensor_status = self.calc_sensor_status()
         self.position_age_hr = self.calc_position_age_hr()
         self.uptoday = True
-        #self.calc_seconds_per_idx()
+        self.calc_seconds_per_idx()
     
     def calc_speed(self, position_x: float, position_y: float, timestamp) -> float:
         if self.job == 1 or self.job == 4:
@@ -262,7 +262,7 @@ class Mower:
             self.status_tmp = status_tmp
     
     def calc_seconds_per_idx(self) -> None:
-        start_point = datetime.now() - timedelta(days=30)
+        start_point = datetime.now() - timedelta(days=1)
         try:
             relevant_data = state
             relevant_data['timestamp'] = pd.to_datetime(relevant_data['timestamp'])
@@ -273,13 +273,11 @@ class Mower:
             relevant_data.loc[:,'timestamp'] = relevant_data['timestamp'].dt.total_seconds()
             relevant_data.loc[:,'timestamp'] = relevant_data['timestamp']/relevant_data['position_mow_point_index']
             relevant_data = relevant_data[relevant_data['timestamp'] < 300]
-            if len(relevant_data) < 100:
-                self.seconds_per_idx = None
+            if len(relevant_data) < 50:
                 return
             self.seconds_per_idx = relevant_data['timestamp'].mean()
 
         except Exception as e:
-            self.seconds_per_idx = None
             logger.warning('Could not create estimation time, data in state data frame are invalid')
             logger.debug(f'{e}')
 
