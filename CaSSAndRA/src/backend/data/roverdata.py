@@ -97,7 +97,7 @@ class Mower:
         self.sensor_status = self.calc_sensor_status()
         self.position_age_hr = self.calc_position_age_hr()
         self.uptoday = True
-        self.calc_seconds_per_idx()
+        #self.calc_seconds_per_idx()
     
     def calc_speed(self, position_x: float, position_y: float, timestamp) -> float:
         if self.job == 1 or self.job == 4:
