@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.131.2 Seconds per idx deactivated due to problem on raspberry pi
+#Version:0.131.3 Estimation data calculation based on current data
 # package imports
 import os
 import sys

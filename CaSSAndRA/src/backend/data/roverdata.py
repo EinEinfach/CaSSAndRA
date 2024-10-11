@@ -53,6 +53,8 @@ class Mower:
     map_old_crc: int = None
     map_upload_cnt: int = 0
     mowprogress: float = 0.0
+    last_position_mow_point_index: int = None
+    measured_time_since_last_position_index_change = None
     seconds_per_idx: float = None
     #frontend
     rover_image: Image = field(default_factory = lambda: 
@@ -96,6 +98,7 @@ class Mower:
         self.set_robot_status(self.calc_status())
         self.sensor_status = self.calc_sensor_status()
         self.position_age_hr = self.calc_position_age_hr()
+        self.calc_seconds_per_idx()
         self.uptoday = True
     
     def calc_speed(self, position_x: float, position_y: float, timestamp) -> float:
@@ -261,26 +264,49 @@ class Mower:
             self.status_tmp = status_tmp
     
     def calc_seconds_per_idx(self) -> None:
-        start_point = datetime.now() - timedelta(days=1)
-        try:
-            relevant_data = state
-            relevant_data['timestamp'] = pd.to_datetime(relevant_data['timestamp'])
-            relevant_data = state[(state['timestamp'] >= start_point) & (state['job'] == 1) & (state['position_solution'] == 2)]
-            relevant_data.loc[:,'position_mow_point_index'] = relevant_data['position_mow_point_index'].diff()
-            relevant_data = relevant_data[relevant_data['position_mow_point_index'] > 0]
-            relevant_data.loc[:,'timestamp'] = relevant_data['timestamp'].diff()
-            relevant_data.loc[:,'timestamp'] = relevant_data['timestamp'].dt.total_seconds()
-            relevant_data.loc[:,'timestamp'] = relevant_data['timestamp']/relevant_data['position_mow_point_index']
-            relevant_data = relevant_data[relevant_data['timestamp'] < 300]
-            if len(relevant_data) < 50:
-                return
-            self.seconds_per_idx = relevant_data['timestamp'].mean()
+        # # based on history data, make problems on slow machines
+        # start_point = datetime.now() - timedelta(days=1)
+        # try:
+        #     relevant_data = state
+        #     relevant_data['timestamp'] = pd.to_datetime(relevant_data['timestamp'])
+        #     relevant_data = state[(state['timestamp'] >= start_point) & (state['job'] == 1) & (state['position_solution'] == 2)]
+        #     relevant_data.loc[:,'position_mow_point_index'] = relevant_data['position_mow_point_index'].diff()
+        #     relevant_data = relevant_data[relevant_data['position_mow_point_index'] > 0]
+        #     relevant_data.loc[:,'timestamp'] = relevant_data['timestamp'].diff()
+        #     relevant_data.loc[:,'timestamp'] = relevant_data['timestamp'].dt.total_seconds()
+        #     relevant_data.loc[:,'timestamp'] = relevant_data['timestamp']/relevant_data['position_mow_point_index']
+        #     relevant_data = relevant_data[relevant_data['timestamp'] < 300]
+        #     if len(relevant_data) < 50:
+        #         return
+        #     test = relevant_data['timestamp'].mean()
 
-        except Exception as e:
-            logger.warning('Could not create estimation time, data in state data frame are invalid')
-            logger.debug(f'{e}')
+        # except Exception as e:
+        #     logger.warning('Could not create estimation time, data in state data frame are invalid')
+        #     logger.debug(f'{e}')
 
-        pass
+        # based on current data
+        current_seconds_per_idx = None
+        if (self.status == 'mow' and self.last_position_mow_point_index == None and self.measured_time_since_last_position_index_change == None):
+            self.last_position_mow_point_index = self.position_mow_point_index
+            self.measured_time_since_last_position_index_change = datetime.now()
+        elif (self.status == 'mow'):
+            idx_delta =  self.position_mow_point_index - self.last_position_mow_point_index
+            time_delta = (datetime.now() - self.measured_time_since_last_position_index_change).seconds
+            if (idx_delta > 0):
+                current_seconds_per_idx = time_delta/idx_delta
+        else:
+            self.last_position_mow_point_index = None
+            self.measured_time_since_last_position_index_change = None
+
+        if (current_seconds_per_idx != None and current_seconds_per_idx < 300):
+            if (self.seconds_per_idx == None):
+                self.seconds_per_idx = current_seconds_per_idx
+            else:
+                self.seconds_per_idx = 0.9 * self.seconds_per_idx+0.1 * current_seconds_per_idx
+        if (current_seconds_per_idx != None):
+            self.last_position_mow_point_index = self.position_mow_point_index
+            self.measured_time_since_last_position_index_change = datetime.now()
+        
 
 #define robot instance
 robot = Mower()
