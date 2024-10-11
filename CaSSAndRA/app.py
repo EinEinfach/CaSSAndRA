@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.131.1 Added new thre for slow tasks, remove depricated warnings for threading
+#Version:0.131.2 Seconds per idx deactivated due to problem on raspberry pi
 # package imports
 import os
 import sys

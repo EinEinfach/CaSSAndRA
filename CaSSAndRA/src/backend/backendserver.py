@@ -18,16 +18,16 @@ restart = threading.Event()
 #from data import saveddata
 #from comm import mqttcomm, cmdlist, cmdtorover, comcfg
 
-def slow_tasks(restart: threading.ExceptHookArgs) -> None:
-    start_time_slow_tasks = datetime.now()
-    time_to_wait = 1
-    while True:
-        if restart.is_set():
-            logger.info('Slow tasks thread is stopped')
-            return
-        if (datetime.now() - start_time_slow_tasks).seconds >= 30*time_to_wait:
-            robot.calc_seconds_per_idx()
-        time.sleep(1)
+# def slow_tasks(restart: threading.ExceptHookArgs) -> None:
+#     start_time_slow_tasks = datetime.now()
+#     time_to_wait = 1
+#     while True:
+#         if restart.is_set():
+#             logger.info('Slow tasks thread is stopped')
+#             return
+#         if (datetime.now() - start_time_slow_tasks).seconds >= 30*time_to_wait:
+#             robot.calc_seconds_per_idx()
+#         time.sleep(1)
 
 def message_service(restart: threading.ExceptHookArgs) -> None:
     while True:
@@ -309,10 +309,10 @@ def start(file_paths) -> None:
     schedule_thread.start()
 
     #start an own thre for slow tasks
-    logger.info('Starting thread for slow tasks')
-    slow_tasks_thread = threading.Thread(target=slow_tasks, args=(restart,), name='slow tasks')
-    slow_tasks_thread.daemon = True
-    slow_tasks_thread.start()
+    # logger.info('Starting thread for slow tasks')
+    # slow_tasks_thread = threading.Thread(target=slow_tasks, args=(restart,), name='slow tasks')
+    # slow_tasks_thread.daemon = True
+    # slow_tasks_thread.start()
 
     #give some times to establish connection
     time.sleep(2)
