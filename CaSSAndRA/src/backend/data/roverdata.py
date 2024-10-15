@@ -36,6 +36,7 @@ class Mower:
     lateral_error: float = 0.0
     soc: int = 0
     speed: float = 0.0
+    average_speed: float = rovercfg.mowspeed_setpoint/2
     mowspeed_setpoint: float = rovercfg.mowspeed_setpoint
     gotospeed_setpoint: float = rovercfg.gotospeed_setpoint
     direction: float = 0.0
@@ -109,8 +110,9 @@ class Mower:
             timedelta = datetime.now() - timestamp
             timedelta_seconds = timedelta.total_seconds()
             speed = round(delta_distance/timedelta_seconds, 2)
+            self.average_speed = 0.99*self.average_speed + 0.01*speed
         else:
-            speed = 0
+            speed = 0.0
         return speed
     
     def calc_direction(self) -> float:
@@ -302,11 +304,10 @@ class Mower:
             if (self.seconds_per_idx == None):
                 self.seconds_per_idx = current_seconds_per_idx
             else:
-                self.seconds_per_idx = 0.9 * self.seconds_per_idx+0.1 * current_seconds_per_idx
+                self.seconds_per_idx = 0.95 * self.seconds_per_idx+0.05 * current_seconds_per_idx
         if (current_seconds_per_idx != None):
             self.last_position_mow_point_index = self.position_mow_point_index
             self.measured_time_since_last_position_index_change = datetime.now()
-        
 
 #define robot instance
 robot = Mower()
