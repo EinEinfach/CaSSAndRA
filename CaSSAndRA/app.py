@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.132.0 Estimation data calculation based on current data
+#Version:0.133.0 Settings values over api
 # package imports
 import os
 import sys

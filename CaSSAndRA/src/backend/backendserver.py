@@ -49,6 +49,12 @@ def api(restart: threading.ExceptHookArgs) -> None:
     time_to_wait = 1
     while True:
         time_start = datetime.now().microsecond
+        if cassandra_api.restart_server:
+            cassandra_api.restart_server = False
+            logger.info('API thread is stopped')
+            mqttapi.disconnect()
+            reboot()
+            return
         if restart.is_set():
             logger.info('API thread is stopped')
             mqttapi.disconnect()
@@ -63,6 +69,18 @@ def api(restart: threading.ExceptHookArgs) -> None:
             cassandra_api.publish('mow parameters', cassandra_api.mowparametersstate_json)
             cassandra_api.publish('map', cassandra_api.mapstate_json)
             start_time_api = datetime.now()
+        # if mqttapi.buffer_api != []:
+        #     cassandra_api.apistate = 'busy'
+        #     cassandra_api.publish('status', cassandra_api.apistate)
+        #     cassandra_api.check_cmd(mqttapi.buffer_api[0])
+        #     del mqttapi.buffer_api[0]
+        time.sleep(0.1)
+
+def api_cmd(restart: threading.ExceptHookArgs) -> None:
+    while True:
+        if restart.is_set():
+            logger.info('API cmd thread is stopped')
+            return
         if mqttapi.buffer_api != []:
             cassandra_api.apistate = 'busy'
             cassandra_api.publish('status', cassandra_api.apistate)
@@ -271,8 +289,11 @@ def start(file_paths) -> None:
                 mqttapi.client.publish(mqttapi.mqtt_mower_name+'/status', 'boot')
                 logger.info('Starting API thread')
                 api_thread = threading.Thread(target=api, args=(restart,), name='api')
+                api_cmd_thread = threading.Thread(target=api_cmd, args=(restart,), name='api cmd')
                 api_thread.daemon = True
+                api_cmd_thread.daemon = True
                 api_thread.start()
+                api_cmd_thread.start()
                 logger.info('API successful created')
     if cfgdata.commcfg.message_service != None:
         if cfgdata.commcfg.message_service == 'Telegram':
@@ -333,6 +354,7 @@ def reboot() -> None:
 def stop() -> None:
     logger.info('Backendserver is being shut down')
     restart.set()
+    time.sleep(1)
     data_storage_running = True
     while data_storage_running:
         data_storage_running = False

@@ -186,8 +186,8 @@ class HTTP:
                 self.http_encryption = 0
                 self.http_encryptchallenge = 0
         except requests.exceptions.RequestException as e: 
-            logger.warning('HTTP-Connection to the rover lost or not possible. Trying to reconnect')
-            logger.debug(str(e))
+            logger.error('HTTP-Connection to the rover lost or not possible. Trying to reconnect')
+            logger.error(str(e))
             datatodf.add_online_to_df_from_http(False)
             self.http_status = -1
             self.http_encryption = 0
@@ -217,8 +217,8 @@ class HTTP:
                 logger.warning('HTTP request for state delivered implausible string')
                 self.http_status = -1
         except requests.exceptions.RequestException as e: 
-            logger.warning('HTTP-Connection to the rover lost or not possible. Trying to reconnect')
-            logger.debug(str(e))
+            logger.error('HTTP-Connection to the rover lost or not possible. Trying to reconnect')
+            logger.error(str(e))
             self.http_status = -1
     
     def get_stats(self) -> None:
@@ -245,8 +245,8 @@ class HTTP:
                 logger.warning('Http request for stats delivered implausible string')
                 self.http_status = -1  
         except requests.exceptions.RequestException as e: 
-            logger.warning('Backend: HTTP-Connection to the rover lost or not possible. Trying to reconnect')
-            logger.debug(str(e))
+            logger.error('Backend: HTTP-Connection to the rover lost or not possible. Trying to reconnect')
+            logger.error(str(e))
             self.http_status = -1
         
     def get_obstacles(self) -> int:
@@ -273,8 +273,8 @@ class HTTP:
                 logger.warning('Backend: HTTP request for obstacles delivered implausible string')
                 self.http_status = -1
         except requests.exceptions.RequestException as e: 
-            logger.warning('Backend: HTTP-Connection to the rover lost or not possible. Trying to reconnect')
-            logger.debug(str(e))
+            logger.error('Backend: HTTP-Connection to the rover lost or not possible. Trying to reconnect')
+            logger.error(str(e))
             self.http_status = -1
     
     def cmd_to_rover(self) -> None:
@@ -309,8 +309,8 @@ class HTTP:
                         break
                     time.sleep(1) 
             except requests.exceptions.RequestException as e:
-                logger.warning('HTTP-Connection to the rover lost or not possible. Trying to reconnect')
-                logger.debug(str(e))
+                logger.error('HTTP-Connection to the rover lost or not possible. Trying to reconnect')
+                logger.error(str(e))
             time.sleep(0.1)
             
     def reqandchecksum(self, req: str) -> str:
@@ -332,8 +332,8 @@ class HTTP:
             else:
                 return False
         except Exception as e:
-            logger.warning('Could not calculate checksum.')
-            logger.debug(str(e))
+            logger.error('Could not calculate checksum.')
+            logger.error(str(e))
             return False
 
 @dataclass
@@ -375,8 +375,8 @@ class UART:
                 if data.find('S2,') == 0:
                     self.on_obstacle(data)
         except Exception as e:
-            logger.warning('Exception in communication occured, trying to reconnect')
-            logger.warning(str(e))
+            logger.error('Exception in communication occured, trying to reconnect')
+            logger.error(str(e))
             self.client.close()
             self.uart_status = False   
     
@@ -408,8 +408,8 @@ class UART:
                 logger.info('TX: '+str(bytes(uart_msg,'UTF-8')))
                 time.sleep(0.1)
         except Exception as e:
-            logger.warning('Could not send data to the rover')
-            logger.debug(str(e))
+            logger.error('Could not send data to the rover')
+            logger.error(str(e))
             self.uart_status = False
     
     def on_state(self, data: str) -> None:

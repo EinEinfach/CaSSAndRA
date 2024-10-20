@@ -7,7 +7,7 @@ import pandas as pd
 
 from .. data.mapdata import current_map, current_task, mapping_maps, tasks
 from .. data.scheduledata import schedule_tasks
-from .. data.cfgdata import schedulecfg, pathplannercfgapi
+from .. data.cfgdata import schedulecfg, pathplannercfgapi, commcfg
 from .. map import path, map
 from .. comm import cmdlist
 from .. comm.connections import mqttapi
@@ -24,16 +24,19 @@ class API:
     mowparametersstate: dict = field(default_factory=dict)
     mapstate: dict = field(default_factory=dict)
     coordsstate: dict = field(default_factory=dict)
+    settingsstate: dict = field(default_factory=dict)
     robotstate_json: str = '{}'
     tasksstate_json: str = '{}'
     mapsstate_json: str = '{}'
     mowparametersstate_json: str = '{}'
     mapstate_json: str ='{}'
     coordsstate_json: str = '{}'
+    settingsstate_json: str = '{}'
     loaded_tasks: list = field(default_factory=list)
     commanded_object: str = ''
     command: str = ''
     value: list = field(default_factory=list)
+    restart_server: bool = False
 
     def create_api_payload(self) -> None:
         self.apistate = 'ready'
@@ -118,6 +121,27 @@ class API:
     def create_tasks_coords_payload(self, task_name: str) -> None:
         self.coordsstate = tasks.task_to_gejson(task_name)
         self.coordsstate_json = json.dumps(self.coordsstate)
+    
+    def create_settings_payload(self) -> None:
+        self.settingsstate['robotConnectionType'] = commcfg.use
+        self.settingsstate['httpRobotIpAdress'] = commcfg.http_ip
+        self.settingsstate['httpRobotPassword'] = commcfg.http_pass
+        self.settingsstate['mqttClientId'] = commcfg.mqtt_client_id
+        self.settingsstate['mqttUser'] = commcfg.mqtt_username
+        self.settingsstate['mqttPassword'] = commcfg.mqtt_pass
+        self.settingsstate['mqttServer'] = commcfg.mqtt_server
+        self.settingsstate['mqttPort'] = commcfg.mqtt_port
+        self.settingsstate['mqttMowerNameWithPrefix'] = commcfg.mqtt_mower_name 
+        self.settingsstate['uartPort'] = commcfg.uart_port
+        self.settingsstate['uartBaudrate'] = commcfg.uart_baudrate
+        self.settingsstate['apiType'] = commcfg.api
+        self.settingsstate['apiMqttClientId'] = commcfg.api_mqtt_client_id
+        self.settingsstate['apiMqttUser'] = commcfg.api_mqtt_username
+        self.settingsstate['apiMqttPassword'] = commcfg.api_mqtt_pass
+        self.settingsstate['apiMqttServer'] = commcfg.api_mqtt_server
+        self.settingsstate['apiMqttCassandraServerName'] = commcfg.api_mqtt_cassandra_server_name
+        self.settingsstate['apiMqttPort'] = commcfg.api_mqtt_port
+        self.settingsstate_json = json.dumps(self.settingsstate)
         
     def update_payload(self) -> None:
         self.create_api_payload()
@@ -155,6 +179,14 @@ class API:
             self.commanded_object = 'coords'
             buffer = buffer['coords']
             self.check_coords_cmd(buffer)
+        elif 'settings' in buffer:
+            self.commanded_object = 'settings'
+            buffer = buffer['settings']
+            self.check_settings_cmd(buffer)
+        elif 'server' in buffer:
+            self.commanded_object = 'server'
+            buffer = buffer['server']
+            self.check_server_cmd(buffer)
         else:
             logger.info('No valid object in api message found. Aborting')
 
@@ -303,7 +335,36 @@ class API:
             else:
                 if command[0] == 'update':
                     self.perform_coords_cmd(buffer)
-        
+        else:
+            logger.info(f'No valid api message for coords command. Aborting')
+    
+    def check_settings_cmd(self, buffer) -> None:
+        allowed_values = ['update', 'setComm']
+        if 'command' in buffer:
+            command = [buffer['command']]
+            command = list(set(command).intersection(allowed_values))
+            if command == []:
+                logger.info(f'No valid value in api message found. Allowed commands: {allowed_values}. Aborting')
+            else:
+                if command[0] == 'update':
+                    self.perform_settings_update_cmd()
+                elif command [0] == 'setComm':
+                    self.perform_set_comm_settings_cmd(buffer)
+        else:
+            logger.info(f'No valid api message for settings command. Aborting')
+    
+    def check_server_cmd(self, buffer) -> None:
+        allowed_values = ['restart']
+        if 'command' in buffer:
+            command = [buffer['command']]
+            command = list(set(command).intersection(allowed_values))
+            if command == []:
+                logger.info(f'No valid value in api message found. Allowed commands: {allowed_values}. Aborting')
+            else:
+                if command[0] == 'restart':
+                    self.restart_server = True
+        else:
+            logger.info(f'No valid api message for server command. Aborting')
 
     def perform_tasks_cmd(self, buffer: dict) -> None:
         if 'value' in buffer:
@@ -480,6 +541,57 @@ class API:
     def perform_task_coords_cmd(self, task_name: str) -> None:
         self.create_tasks_coords_payload(task_name)
         self.publish('coords', self.coordsstate_json)
+    
+    def perform_settings_update_cmd(self) -> None:
+        self.create_settings_payload()
+        self.publish('settings', self.settingsstate_json)
+    
+    def perform_set_comm_settings_cmd(serlf, buffer) -> None:
+        try:
+            buffer = buffer['value'] 
+            for key in buffer:
+                if key == 'robotConnectionType':
+                    commcfg.use = buffer[key]
+                if key == 'httpRobotIpAdress':
+                    commcfg.http_ip = buffer[key]
+                if key == 'httpRobotPassword':
+                    commcfg.http_pass = buffer[key]
+                if key == 'mqttClientId':
+                    commcfg.mqtt_client_id = buffer[key]
+                if key == 'mqttUser':
+                    commcfg.mqtt_username = buffer[key]
+                if key == 'mqttPassword':
+                    commcfg.mqtt_pass = buffer[key]
+                if key == 'mqttServer':
+                    commcfg.mqtt_server = buffer[key]
+                if key == 'mqttPort':
+                    commcfg.mqtt_port = buffer[key]
+                if key == 'mqttMowerNameWithPrefix':
+                    commcfg.mqtt_mower_name = buffer[key]
+                if key == 'uartPort':
+                    commcfg.uart_port = buffer[key]
+                if key == 'uartBaudrate':
+                    commcfg.uart_baudrate = buffer[key]
+                if key == 'apiType':
+                    commcfg.api = buffer[key]
+                if key == 'apiMqttClientId':
+                    commcfg.api_mqtt_client_id = buffer[key]
+                if key == 'apiMqttUser':
+                    commcfg.api_mqtt_username = buffer[key]
+                if key == 'apiMqttPassword':
+                    commcfg.api_mqtt_pass = buffer[key]
+                if key == 'apiMqttServer':
+                    commcfg.api_mqtt_server = buffer[key]
+                if key == 'apiMqttCassandraServerName':
+                    commcfg.api_mqtt_cassandra_server_name = buffer[key]
+                if key == 'apiMqttPort':
+                    commcfg.api_mqtt_port = buffer[key]
+            commcfg.save_commcfg()
+
+        except Exception as e:
+            logger.error('Perform set comm settings command triggered an error. Aborrting')
+            logger.debug(f'{e}')
+
 
     
 cassandra_api = API()

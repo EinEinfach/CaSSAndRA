@@ -16,16 +16,24 @@ def check(data_clean_finished: bool) -> bool:
         delta_time = str(datetime.now() - timedelta(appcfg.datamaxage))
 
         #Clean state data 
-        state = roverdata.state[(roverdata.state['timestamp'] > delta_time)]
-        logger.debug('state data: '+str(len(roverdata.state[(roverdata.state['timestamp'] <= delta_time)]))+' rows will be droped')
-        state = state.reset_index(drop=True)
-        roverdata.state = state
+        try:
+            state = roverdata.state[(roverdata.state['timestamp'] > delta_time)]
+            logger.debug('state data: '+str(len(roverdata.state[(roverdata.state['timestamp'] <= delta_time)]))+' rows will be droped')
+            state = state.reset_index(drop=True)
+            roverdata.state = state
+        except Exception as e:
+            logger.error('Clean state data call failed!')
+            logger.error(f'{e}')
 
         #Clean stats data 
-        stats = roverdata.stats[(roverdata.stats['timestamp'] > delta_time)]
-        logger.debug('stats data: '+str(len(roverdata.stats[(roverdata.stats['timestamp'] <= delta_time)]))+' rows will be droped')
-        stats = stats.reset_index(drop=True)
-        roverdata.stats = stats
+        try:
+            stats = roverdata.stats[(roverdata.stats['timestamp'] > delta_time)]
+            logger.debug('stats data: '+str(len(roverdata.stats[(roverdata.stats['timestamp'] <= delta_time)]))+' rows will be droped')
+            stats = stats.reset_index(drop=True)
+            roverdata.stats = stats
+        except Exception as e:
+            logger.error('Clean stats data call failed!')
+            logger.error(f'{e}')
 
         #Clean props data 
         try:
@@ -72,3 +80,5 @@ def check(data_clean_finished: bool) -> bool:
 
 
 
+
+# %%
