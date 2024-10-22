@@ -134,6 +134,7 @@ class RobotInterface:
             return
         elif (abs(robot.map_crc - current_map.map_crc) < 200) and self.pendingRequestCnt > 1:
             self.robotCmds = sunraycommstack.goto()
+            robot.last_cmd = self.robotCmds
             robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
             robot.current_task = current_map.gotopoint
             self.lastLoadWithDockPath = False
@@ -181,6 +182,7 @@ class RobotInterface:
             return
         elif (abs(robot.map_crc - current_map.map_crc) < 200) and self.pendingRequestCnt > 1:
             self.robotCmds = sunraycommstack.mow()
+            robot.last_cmd = self.robotCmds
             robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
             robot.current_task = current_map.mowpath
             self.lastLoadWithDockPath = True
