@@ -8,7 +8,7 @@ from . import buttons
 from src.backend import backendserver
 from src.backend.data import appdata
 from src.backend.data.cfgdata import rovercfg, pathplannercfg, appcfg, commcfg
-from src.backend.data.serverdata import server
+from src.backend.comm.robotinterface import robotInterface
 from src.backend.comm import cmdlist
 from src.backend.comm.messageservice import messageservice
 
@@ -602,7 +602,7 @@ def update_robotsettings_data(
         rovercfg.finish_and_restart = finishandrestart
         res = rovercfg.save_rovercfg()
         # cmdlist.cmd_set_positionmode = True
-        server.performCmd('setPositionMode')
+        robotInterface.performCmd('setPositionMode')
     if bsrs_nclicks or bok_nclicks:
         return not is_open
     return is_open

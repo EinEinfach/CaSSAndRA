@@ -12,7 +12,7 @@ from .. map import path, map
 # from .. comm import cmdlist
 from .. comm.connections import mqttapi
 from .. data.roverdata import robot
-from .. data.serverdata import server
+from .robotinterface import robotInterface
 
 from icecream import ic
 
@@ -396,7 +396,7 @@ class API:
                         current_map.calculating = False
                         current_map.calc_route_mowpath()
                         #cmdlist.cmd_take_map = True
-                        server.performCmd('sendMap')
+                        robotInterface.performCmd('sendMap')
             except Exception as e:
                 logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
                 logger.debug(f'{e}')
@@ -418,7 +418,7 @@ class API:
                         schedule_tasks.create()
                         schedulecfg.reset_schedulecfg()
                         #cmdlist.cmd_take_map = True
-                        server.performCmd('sendMap')
+                        robotInterface.performCmd('sendMap')
             except Exception as e:
                 logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
                 logger.debug(f'{e}')
@@ -427,10 +427,10 @@ class API:
         try:
             if self.command == 'stop':
                 # cmdlist.cmd_stop = True
-                server.performCmd('stop')
+                robotInterface.performCmd('stop')
             elif self.command == 'dock':
                 # cmdlist.cmd_dock = True
-                server.performCmd('dock')
+                robotInterface.performCmd('dock')
             elif self.command == 'mow':
                 self.value = buffer['value'][0]
                 self.perform_mow_cmd()
@@ -441,25 +441,25 @@ class API:
                 robot.cmd_move_lin = buffer['value'][0]
                 robot.cmd_move_ang = buffer['value'][1]
                 # cmdlist.cmd_move = True
-                server.performCmd('move')
+                robotInterface.performCmd('move')
             elif self.command == 'reboot':
                 # cmdlist.cmd_reboot = True
-                server.performCmd('reboot')
+                robotInterface.performCmd('reboot')
             elif self.command == 'shutdown':
                 # cmdlist.cmd_shutdown = True
-                server.performCmd('shutdown')
+                robotInterface.performCmd('shutdown')
             elif self.command == 'set mow speed':
                 robot.mowspeed_setpoint = buffer['value'][0]
                 # cmdlist.cmd_changemowspeed = True
-                server.performCmd('changeMowSpeed')
+                robotInterface.performCmd('changeMowSpeed')
             elif self.command == 'set goto speed':
                 robot.gotospeed_setpoint = buffer['value'][0]
                 # cmdlist.cmd_changegotospeed = True
-                server.performCmd('changeGoToSpeed')
+                robotInterface.performCmd('changeGoToSpeed')
             elif self.command == 'set mow progress':
                 robot.mowprogress = buffer['value'][0]
                 # cmdlist.cmd_skiptomowprogress = True
-                server.performCmd('skipToMowProgress')
+                robotInterface.performCmd('skipToMowProgress')
             else:
                 logger.warning(f'No valid command in api message found. Aborting')
         except Exception as e:
@@ -470,7 +470,7 @@ class API:
         allowed_values = ['resume', 'task', 'all', 'selection']
         if self.value == 'resume':
             #cmdlist.cmd_resume = True
-            server.performCmd('resume')
+            robotInterface.performCmd('resume')
         elif self.value == 'task':
             if self.tasksstate['selected'] != []:
                 current_map.task_progress = 0
@@ -478,7 +478,7 @@ class API:
                 path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
                 current_map.calculating = False
                 current_map.calc_route_mowpath()
-                server.performCmd('mow')
+                robotInterface.performCmd('mow')
                 # cmdlist.cmd_mow = True
             else:
                 logger.info(f'No selected tasks found')
@@ -493,7 +493,7 @@ class API:
                 current_map.calc_route_preview(route) 
             current_map.calculating = False
             current_map.calc_route_mowpath()
-            server.performCmd('mow')
+            robotInterface.performCmd('mow')
             # cmdlist.cmd_mow = True
         elif self.value == 'selection':
             if 'selection' in self.mapstate:
@@ -507,7 +507,7 @@ class API:
                     current_map.areatomow = round(current_map.selected_perimeter.area)
                 current_map.calculating = False
                 current_map.calc_route_mowpath()
-                server.performCmd('mow')
+                robotInterface.performCmd('mow')
                 # cmdlist.cmd_mow = True
             else:
                 logger.info(f'No selection found')
@@ -521,7 +521,7 @@ class API:
                 current_map.gotopoint.columns = ['X', 'Y']
                 current_map.gotopoint['type'] = 'way'
                 #cmdlist.cmd_goto = True
-                server.performCmd('goTo')
+                robotInterface.performCmd('goTo')
             except Exception as e:
                 logger.info('Go to point invalid')
                 logger.debug(str(e))

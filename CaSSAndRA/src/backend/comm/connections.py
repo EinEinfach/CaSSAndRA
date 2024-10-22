@@ -14,8 +14,7 @@ from datetime import datetime
 #local imports
 from ..data import datatodf
 from ..data.cfgdata import CommCfg, commcfg
-from ..data.serverdata import server
-from . import message, cmdlist
+from .robotinterface import robotInterface
 
 @dataclass
 class MQTT:
@@ -65,7 +64,7 @@ class MQTT:
             client.connection_flag = True
             self.subscribe()
             # cmdlist.cmd_set_positionmode = True
-            server.performCmd('setPositionMode')
+            robotInterface.performCmd('setPositionMode')
         else:
             logger.warning('Connection to the MQTT server not possible')
             client.connection_flag = False
@@ -120,8 +119,8 @@ class MQTT:
     def cmd_to_rover(self) -> None:
         topic = self.mqtt_mower_name+'/command'
         # msg_pckg = message.check() 
-        msg_pckg = server.robotCmds
-        server.resetRobotCmds()
+        msg_pckg = robotInterface.robotCmds
+        robotInterface.resetRobotCmds()
         for i, msg in msg_pckg.iterrows():   
             result = self.client.publish(topic, msg_pckg['msg'][i]) 
             status = result[0]
@@ -130,7 +129,7 @@ class MQTT:
             else:
                 logger.warning('Failed to publish: '+topic+' with message: '+msg_pckg['msg'][i])   
             time.sleep(0.1)
-        server.mapDataInBuffer = False
+        robotInterface.mapDataInBuffer = False
     
     def api_publish(self, topic, payload) -> None:
         topic = self.mqtt_mower_name+'/'+topic
@@ -177,7 +176,7 @@ class HTTP:
                     try:
                         self.http_encryptkey = int(self.http_pass)%int(self.http_encryptchallenge)
                         # cmdlist.cmd_set_positionmode = True
-                        server.performCmd('setPositionMode')
+                        robotInterface.performCmd('setPositionMode')
                     except Exception as e:
                         logger.warning('Password is invalid. Check your comm config')
                         logger.debug(str(e))
@@ -185,7 +184,7 @@ class HTTP:
                         self.http_status = -1
                 else:
                     # cmdlist.cmd_set_positionmode = True
-                    server.performCmd('setPositionMode')
+                    robotInterface.performCmd('setPositionMode')
             else:
                 logger.warning('Http request for props delivered implausible string')
                 datatodf.add_online_to_df_from_http(False)
@@ -288,8 +287,8 @@ class HTTP:
         if self.http_status != 200:
             return
         #msg_pckg = message.check()
-        msg_pckg = server.robotCmds
-        server.resetRobotCmds()
+        msg_pckg = robotInterface.robotCmds
+        robotInterface.resetRobotCmds()
         for i, msg in msg_pckg.iterrows():   
             rep_cnt = 0
             logger.debug(''+msg_pckg['msg'][i]+' will be send to the rover')
@@ -321,7 +320,7 @@ class HTTP:
                 logger.error('HTTP-Connection to the rover lost or not possible. Trying to reconnect')
                 logger.error(str(e))
             time.sleep(0.1)
-            server.mapDataInBuffer = False
+            robotInterface.mapDataInBuffer = False
             
     def reqandchecksum(self, req: str) -> str:
         res = hex(sum(req.encode('ascii')) % 256)
@@ -369,7 +368,7 @@ class UART:
             self.uart_status = True
             logger.info('Connection successful')
             # cmdlist.cmd_set_positionmode = True
-            server.performCmd('setPositionMode')
+            robotInterface.performCmd('setPositionMode')
         except:
             self.uart_status = False
             logger.warning('Connection to the rover is not possible.')
@@ -411,8 +410,8 @@ class UART:
     
     def cmd_to_rover(self) -> None:
         # msg_pckg = message.check()
-        msg_pckg = server.robotCmds
-        server.resetRobotCmds()
+        msg_pckg = robotInterface.robotCmds
+        robotInterface.resetRobotCmds()
         try:
             for i, msg in msg_pckg.iterrows(): 
                 uart_msg = msg_pckg['msg'][i] + ',\n'
@@ -420,7 +419,7 @@ class UART:
                 self.client.write(bytes(uart_msg,'UTF-8'))  
                 logger.info('TX: '+str(bytes(uart_msg,'UTF-8')))
                 time.sleep(0.1)
-            server.mapDataInBuffer = False
+            robotInterface.mapDataInBuffer = False
         except Exception as e:
             logger.error('Could not send data to the rover')
             logger.error(str(e))

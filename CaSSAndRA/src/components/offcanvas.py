@@ -6,7 +6,7 @@ import time
 #locale imports
 from . import joystick, ids
 from ..backend.data.roverdata import robot
-from ..backend.data.serverdata import server
+from ..backend.comm.robotinterface import robotInterface
 from ..backend.data.cfgdata import rovercfg
 from ..backend.comm import cmdlist
 
@@ -139,19 +139,19 @@ def update_speed_setpoint(bs_nclicks, bf_nclicks) -> str:
     if context == ids.BUTTONSLOWER and robot.status == 'mow':
         robot.change_speed('mow', -0.01)
         # cmdlist.cmd_changemowspeed = True
-        server.performCmd('changeMowSpeed')
+        robotInterface.performCmd('changeMowSpeed')
     elif context == ids.BUTTONSLOWER and robot.status == 'transit':
         robot.change_speed('goto', -0.01)
         # cmdlist.cmd_changegotospeed = True
-        server.performCmd('changeGoToSpeed')
+        robotInterface.performCmd('changeGoToSpeed')
     elif context == ids.BUTTONFASTER and robot.status == 'mow':
         robot.change_speed('mow', 0.01)
         # cmdlist.cmd_changemowspeed = True
-        server.performCmd('changeMowSpeed')
+        robotInterface.performCmd('changeMowSpeed')
     elif context == ids.BUTTONFASTER and robot.status == 'transit':
         robot.change_speed('goto', 0.01)
         #cmdlist.cmd_changegotospeed = True
-        server.performCmd('changeGoToSpeed')
+        robotInterface.performCmd('changeGoToSpeed')
     
     return False, False
 
@@ -174,13 +174,13 @@ def update_next_point(bnp_nclicks: int) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONNEXTPOINT:
         # cmdlist.cmd_stop = True
-        server.performCmd('stop')
+        robotInterface.performCmd('stop')
         time.sleep(1)
         # cmdlist.cmd_skipnextpoint = True
-        server.performCmd('skipNextPoint')
+        robotInterface.performCmd('skipNextPoint')
         time.sleep(0.5)
         # cmdlist.cmd_resume = True
-        server.performCmd('resume')
+        robotInterface.performCmd('resume')
     return False
 
 @callback(Output(ids.MOWPERCENTAGE, 'value'),
@@ -196,7 +196,7 @@ def update_mowprogress(
     if context == ids.MOWPERCENTAGE:
         robot.mowprogress = round(mowprogress/100, 3)
         # cmdlist.cmd_skiptomowprogress = True
-        server.performCmd('skipToMowProgress')
+        robotInterface.performCmd('skipToMowProgress')
         return mowprogress
     elif context == ids.OFFCANVAS and is_open:
         return round(robot.mowprogress*100, 1)

@@ -5,7 +5,7 @@ import time
 from . import ids
 from src.backend.comm import cmdlist
 from src.backend.data.roverdata import robot
-from src.backend.data.serverdata import server
+from src.backend.comm.robotinterface import robotInterface
 from src.backend import backendserver
 
 
@@ -67,23 +67,23 @@ def toggle_modal(n_clicks_bsoff: int, n_clicks_bsr: int,
     if context == ids.BUTTONREMOTECONTROLOK:
         if cmdlist.cmd_standby == 'off':
             # cmdlist.cmd_shutdown = True
-            server.performCmd('shutdown')
+            robotInterface.performCmd('shutdown')
             cmdlist.cmd_standby = ''
             time.sleep(5)
             backendserver.shutdown()
         elif cmdlist.cmd_standby == 'reboot':
             # cmdlist.cmd_reboot = True
-            server.performCmd('reboot')
+            robotInterface.performCmd('reboot')
             cmdlist.cmd_standby = ''
             time.sleep(5)
             backendserver.reboot()
         elif cmdlist.cmd_standby == 'gps-reboot':
             # cmdlist.cmd_gps_reboot = True
-            server.performCmd('gpsReboot')
+            robotInterface.performCmd('gpsReboot')
             cmdlist.cmd_standby = ''
         elif cmdlist.cmd_standby == 'toggle-mow':
             # cmdlist.cmd_toggle_mow_motor = True
-            server.performCmd('toggleMowMotor')
+            robotInterface.performCmd('toggleMowMotor')
             cmdlist.cmd_standby = ''
         else:
             cmdlist.cmd_standby = ''

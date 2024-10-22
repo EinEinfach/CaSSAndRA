@@ -7,7 +7,7 @@ from datetime import datetime
 from .. comm import cmdlist
 from . roverdata import robot
 from . mapdata import Task, current_map
-from . serverdata import server
+from ..comm.robotinterface import robotInterface
 from . cfgdata import ScheduleCfg, schedulecfg
 from .. map import path
 
@@ -112,7 +112,7 @@ class ScheduleTasks:
             if tasks_order_table[self.dayweek].subtasks.empty and robot.last_task_name == 'mow':
                 logger.info('Resume job')
                 # cmdlist.cmd_resume = True
-                server.performCmd('resume')
+                robotInterface.performCmd('resume')
                 self.job_started = True
             elif not tasks_order_table[self.dayweek].subtasks.empty:
                 logger.info('Create job from selected tasks')
@@ -122,7 +122,7 @@ class ScheduleTasks:
                 current_map.calculating = False
                 current_map.calc_route_mowpath()
                 # cmdlist.cmd_mow = True
-                server.performCmd('mow')
+                robotInterface.performCmd('mow')
                 self.job_started = True
             else:
                 logger.info(f'Schedule start not possible. Last command: {robot.last_task_name}')
@@ -137,7 +137,7 @@ class ScheduleTasks:
     def create_dock_cmd(self) -> None:
         if robot.job == 1:
             # cmdlist.cmd_dock_schedule = True
-            server.performCmd('dockSchedule')
+            robotInterface.performCmd('dockSchedule')
             logger.info(f'Schedule dock command is send to mower')
         else:
             self.job_finished = True

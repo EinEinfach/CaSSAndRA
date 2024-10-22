@@ -8,7 +8,7 @@ from shapely import Polygon
 
 #local imports
 from . import roverdata, calceddata
-from . serverdata import server
+from ..comm.robotinterface import robotInterface
 # from . roverdata import robot
 from . mapdata import current_map
 from . cfgdata import appcfg
@@ -58,7 +58,7 @@ def add_state_to_df_from_mqtt(data: dict) -> None:
                     'timetabel_autostartstop_hour' : 0,
                     'timestamp': str(datetime.now())}
         state_to_df = pd.DataFrame(data=state_to_df, index=[0])
-        server.onRobotMessageReceived(state_to_df)
+        robotInterface.onRobotMessageReceived(state_to_df)
         # robot.set_state(state_to_df)
         roverdata.state = pd.concat([roverdata.state, state_to_df], ignore_index=True)
         calceddata.calcdata_from_state()
@@ -172,7 +172,7 @@ def add_state_to_df(data: str) -> None:
                             'timetable_autostartstop_dayofweek',
                             'timetabel_autostartstop_hour',
                             'timestamp']
-        server.onRobotMessageReceived(state_to_df)
+        robotInterface.onRobotMessageReceived(state_to_df)
         # robot.set_state(state_to_df)
         roverdata.state = pd.concat([roverdata.state, state_to_df], ignore_index=True)
         calceddata.calcdata_from_state()

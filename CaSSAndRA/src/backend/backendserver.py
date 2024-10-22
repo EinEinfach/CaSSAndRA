@@ -15,9 +15,6 @@ from . data.mapdata import current_map
 
 restart = threading.Event()
 
-#from data import saveddata
-#from comm import mqttcomm, cmdlist, cmdtorover, comcfg
-
 # def slow_tasks(restart: threading.ExceptHookArgs) -> None:
 #     start_time_slow_tasks = datetime.now()
 #     time_to_wait = 1

@@ -5,7 +5,7 @@ import time
 #local imports
 from .. import ids
 from src.backend.comm import cmdlist
-from src.backend.data.serverdata import server
+from src.backend.comm.robotinterface import robotInterface
 
 cmdinput = dbc.Input(id=ids.INPUTCUSTOMCMD, placeholder='every AT+ command supported by your comm.cpp', value='AT+', class_name='mt-2')
 cmdsend = dbc.Button(id=ids.BUTTONSENDCUSTOMCMD, size='lg', class_name='me-1 mt-1 mb-1 bi bi-send-fill', disabled=False, title='send command to rover')
@@ -22,7 +22,7 @@ def send_custom_cmd(bscc_nclicks: int,
     if context == ids.BUTTONSENDCUSTOMCMD and bscc_nclicks:
         cmdlist.cmd_custom_str = customcmd
         # cmdlist.cmd_custom = True
-        server.performCmd('custom')
+        robotInterface.performCmd('custom')
         time.sleep(0.5)
     return False, ''
 

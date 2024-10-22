@@ -6,7 +6,7 @@ from src.backend.data.mapdata import current_map, current_task, tasks
 from src.backend.data import saveddata
 from src.backend.map import path
 from src.backend.comm import cmdlist
-from src.backend.data.serverdata import server
+from src.backend.comm.robotinterface import robotInterface
 
 #modalbuttons
 okbuttonsavecurrenttask = dbc.Button('OK', id=ids.OKBUTTONSAVECURRENTTASK, class_name='ms-auto', n_clicks=0)
@@ -46,7 +46,7 @@ def start_selected_tasks_order(bsst_nclicks: int) -> bool:
         current_map.calculating = False
         current_map.calc_route_mowpath()
         # cmdlist.cmd_mow = True
-        server.performCmd('mow')
+        robotInterface.performCmd('mow')
     return False
 
 @callback(Output(ids.BUTTONLOADSELECTEDTASKSORDER, 'active'),
@@ -62,7 +62,7 @@ def load_selected_tasks_order(blsto_nclicks: int) -> bool:
         current_map.calculating = False
         current_map.calc_route_mowpath()
         # cmdlist.cmd_take_map = True
-        server.performCmd('sendMap')
+        robotInterface.performCmd('sendMap')
     return False
 
 @callback(Output(ids.BUTTONSTARTSELECTEDTASKSORDER, 'disabled'),
