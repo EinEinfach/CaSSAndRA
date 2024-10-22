@@ -8,7 +8,8 @@ from shapely import Polygon
 
 #local imports
 from . import roverdata, calceddata
-from . roverdata import robot
+from . serverdata import server
+# from . roverdata import robot
 from . mapdata import current_map
 from . cfgdata import appcfg
 
@@ -57,12 +58,13 @@ def add_state_to_df_from_mqtt(data: dict) -> None:
                     'timetabel_autostartstop_hour' : 0,
                     'timestamp': str(datetime.now())}
         state_to_df = pd.DataFrame(data=state_to_df, index=[0])
-        robot.set_state(state_to_df)
+        server.onRobotMessageReceived(state_to_df)
+        # robot.set_state(state_to_df)
         roverdata.state = pd.concat([roverdata.state, state_to_df], ignore_index=True)
         calceddata.calcdata_from_state()
     except Exception as e:
         logger.error('Backend: Failed to write state data to data frame')
-        logger.debug(str(e))
+        logger.error(str(e))
     
 
 def add_props_to_df_from_mqtt(data: dict) -> None:
@@ -115,7 +117,7 @@ def add_stats_to_df_from_mqtt(data: dict) -> None:
         calceddata.calcdata_from_stats()
     except Exception as e:
         logger.error('Backend: Failed to write stats data to data frame')
-        logger.debug(str(e))
+        logger.error(str(e))
 
 def add_online_to_df_from_mqtt(data: str) -> None:
     if 'true' in data:
@@ -170,12 +172,13 @@ def add_state_to_df(data: str) -> None:
                             'timetable_autostartstop_dayofweek',
                             'timetabel_autostartstop_hour',
                             'timestamp']
-        robot.set_state(state_to_df)
+        server.onRobotMessageReceived(state_to_df)
+        # robot.set_state(state_to_df)
         roverdata.state = pd.concat([roverdata.state, state_to_df], ignore_index=True)
         calceddata.calcdata_from_state()
     except Exception as e:
         logger.error('Backend: Failed to write state data to data frame')
-        logger.debug(str(e))
+        logger.error(str(e))
 
 def add_stats_to_df(data: str) -> None:
     try: 
@@ -229,7 +232,7 @@ def add_stats_to_df(data: str) -> None:
         calceddata.calcdata_from_stats()
     except Exception as e:
         logger.error('Backend: Failed to write stats data to data frame')
-        logger.debug(str(e))
+        logger.error(str(e))
 
 def add_props_to_df_from_http(data: str) -> None:
     pass
@@ -273,4 +276,4 @@ def add_obstacles_to_df(data: str) -> None:
             current_map.add_obstacles(obstacles)
     except Exception as e:
         logger.error('Backend: Failed to write obstacles data to data frame')
-        logger.debug(str(e))
+        logger.error(str(e))

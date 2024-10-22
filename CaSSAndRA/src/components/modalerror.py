@@ -3,7 +3,6 @@ import dash_bootstrap_components as dbc
 
 from . import ids
 from src.backend.comm import cmdlist
-from src.backend.utils import debuglogger
 
 okbuttonmapuploadfailed = dbc.Button('OK', id=ids.OKBUTTONMAPUPLOADFAILED, class_name='ms-auto', n_clicks=0)
 

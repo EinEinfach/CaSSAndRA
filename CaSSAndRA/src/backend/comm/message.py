@@ -6,7 +6,6 @@ from datetime import datetime
 
 from src.backend.data.mapdata import current_map
 from src.backend.data.roverdata import robot
-from src.backend.data.mapdata import current_map
 from . import cmdtorover, cmdlist
 
 def checkmowmotor(msg: pd.DataFrame, oldstate: bool) -> bool:

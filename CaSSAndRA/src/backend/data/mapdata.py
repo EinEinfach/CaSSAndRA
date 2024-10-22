@@ -218,6 +218,12 @@ class Perimeter:
             logger.info('No search wire found.')
         self.astar_graph = G
     
+    def create_map_crc(self) -> None:
+        dataForCrc = current_map.perimeter[current_map.perimeter['type'] != 'search wire']
+        mapCRCx = dataForCrc['X']*100 
+        mapCRCy = dataForCrc['Y']*100
+        self.map_crc = int(mapCRCx.sum() + mapCRCy.sum())
+    
     def check_direct_way(self, start, end) -> bool:
         way = LineString([start, end])
         direct_way_possible = way.within(self.perimeter_polygon)
@@ -228,6 +234,7 @@ class Perimeter:
         self.preview = pd.DataFrame()
         self.mowpath = pd.DataFrame()
         self.obstacles = pd.DataFrame()
+        self.create_map_crc()
         self.create_perimeter_polygon()
         self.create_perimeter_for_plot()
         self.create_points_from_polygon()

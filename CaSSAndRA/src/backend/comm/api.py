@@ -9,9 +9,10 @@ from .. data.mapdata import current_map, current_task, mapping_maps, tasks
 from .. data.scheduledata import schedule_tasks
 from .. data.cfgdata import schedulecfg, pathplannercfgapi, commcfg
 from .. map import path, map
-from .. comm import cmdlist
+# from .. comm import cmdlist
 from .. comm.connections import mqttapi
 from .. data.roverdata import robot
+from .. data.serverdata import server
 
 from icecream import ic
 
@@ -394,7 +395,8 @@ class API:
                         path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
                         current_map.calculating = False
                         current_map.calc_route_mowpath()
-                        cmdlist.cmd_take_map = True
+                        #cmdlist.cmd_take_map = True
+                        server.performCmd('sendMap')
             except Exception as e:
                 logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
                 logger.debug(f'{e}')
@@ -415,7 +417,8 @@ class API:
                         current_task.create()
                         schedule_tasks.create()
                         schedulecfg.reset_schedulecfg()
-                        cmdlist.cmd_take_map = True
+                        #cmdlist.cmd_take_map = True
+                        server.performCmd('sendMap')
             except Exception as e:
                 logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
                 logger.debug(f'{e}')
@@ -423,9 +426,11 @@ class API:
     def perform_robot_cmd(self, buffer) -> None:
         try:
             if self.command == 'stop':
-                cmdlist.cmd_stop = True
+                # cmdlist.cmd_stop = True
+                server.performCmd('stop')
             elif self.command == 'dock':
-                cmdlist.cmd_dock = True
+                # cmdlist.cmd_dock = True
+                server.performCmd('dock')
             elif self.command == 'mow':
                 self.value = buffer['value'][0]
                 self.perform_mow_cmd()
@@ -435,20 +440,26 @@ class API:
             elif self.command == 'move':
                 robot.cmd_move_lin = buffer['value'][0]
                 robot.cmd_move_ang = buffer['value'][1]
-                cmdlist.cmd_move = True
+                # cmdlist.cmd_move = True
+                server.performCmd('move')
             elif self.command == 'reboot':
-                cmdlist.cmd_reboot = True
+                # cmdlist.cmd_reboot = True
+                server.performCmd('reboot')
             elif self.command == 'shutdown':
-                cmdlist.cmd_shutdown = True
+                # cmdlist.cmd_shutdown = True
+                server.performCmd('shutdown')
             elif self.command == 'set mow speed':
                 robot.mowspeed_setpoint = buffer['value'][0]
-                cmdlist.cmd_changemowspeed = True
+                # cmdlist.cmd_changemowspeed = True
+                server.performCmd('changeMowSpeed')
             elif self.command == 'set goto speed':
                 robot.gotospeed_setpoint = buffer['value'][0]
-                cmdlist.cmd_changegotospeed = True
+                # cmdlist.cmd_changegotospeed = True
+                server.performCmd('changeGoToSpeed')
             elif self.command == 'set mow progress':
                 robot.mowprogress = buffer['value'][0]
-                cmdlist.cmd_skiptomowprogress = True
+                # cmdlist.cmd_skiptomowprogress = True
+                server.performCmd('skipToMowProgress')
             else:
                 logger.warning(f'No valid command in api message found. Aborting')
         except Exception as e:
@@ -458,7 +469,8 @@ class API:
     def perform_mow_cmd(self) -> None:
         allowed_values = ['resume', 'task', 'all', 'selection']
         if self.value == 'resume':
-            cmdlist.cmd_resume = True
+            #cmdlist.cmd_resume = True
+            server.performCmd('resume')
         elif self.value == 'task':
             if self.tasksstate['selected'] != []:
                 current_map.task_progress = 0
@@ -466,7 +478,8 @@ class API:
                 path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
                 current_map.calculating = False
                 current_map.calc_route_mowpath()
-                cmdlist.cmd_mow = True
+                server.performCmd('mow')
+                # cmdlist.cmd_mow = True
             else:
                 logger.info(f'No selected tasks found')
         elif self.value == 'all':
@@ -480,7 +493,8 @@ class API:
                 current_map.calc_route_preview(route) 
             current_map.calculating = False
             current_map.calc_route_mowpath()
-            cmdlist.cmd_mow = True
+            server.performCmd('mow')
+            # cmdlist.cmd_mow = True
         elif self.value == 'selection':
             if 'selection' in self.mapstate:
                 current_map.selected_perimeter = map.selection(current_map.perimeter_polygon, self.mapstate['selection'])
@@ -493,7 +507,8 @@ class API:
                     current_map.areatomow = round(current_map.selected_perimeter.area)
                 current_map.calculating = False
                 current_map.calc_route_mowpath()
-                cmdlist.cmd_mow = True
+                server.performCmd('mow')
+                # cmdlist.cmd_mow = True
             else:
                 logger.info(f'No selection found')
         else:
@@ -505,7 +520,8 @@ class API:
                 current_map.gotopoint = pd.DataFrame(self.value)
                 current_map.gotopoint.columns = ['X', 'Y']
                 current_map.gotopoint['type'] = 'way'
-                cmdlist.cmd_goto = True
+                #cmdlist.cmd_goto = True
+                server.performCmd('goTo')
             except Exception as e:
                 logger.info('Go to point invalid')
                 logger.debug(str(e))
