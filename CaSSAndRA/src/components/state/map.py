@@ -251,9 +251,9 @@ def update(n_intervals: int,
                                         line=dict(color='#FF6600'), 
                                         fill='toself',
                                         hoverinfo='skip')) 
-               obstacle_center_coords = obstacles[(obstacles['CRC']==obstacle)&(obstacles['type']=='center')]
-               obstacle_x = obstacle_center_coords.iloc[0]['X']
-               obstacle_y = obstacle_center_coords.iloc[0]['Y']
+               # obstacle_center_coords = obstacles[(obstacles['CRC']==obstacle)&(obstacles['type']=='center')]
+               # obstacle_x = obstacle_center_coords.iloc[0]['X']
+               # obstacle_y = obstacle_center_coords.iloc[0]['Y']
 
      #Plot target point
      if robot.job == 4 or robot.job == 1:
