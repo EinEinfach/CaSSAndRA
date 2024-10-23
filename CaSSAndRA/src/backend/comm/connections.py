@@ -55,8 +55,8 @@ class MQTT:
             self.client.connect(self.mqtt_server, self.mqtt_port, keepalive=60)
             logger.info('Connecting...')
         except Exception as e:
-            logger.warning('Connection to the MQTT server failed')
-            logger.debug(str(e))
+            logger.error('Connection to the MQTT server failed')
+            logger.error(str(e))
         self.client.loop_start()
     
     def on_connect(self, client, userdata, flags, rc):
@@ -71,12 +71,12 @@ class MQTT:
             client.connection_flag = False
     
     def on_disconnect(self, client, userdata, rc):
-        logger.warning('MQTT connection disconnected')
+        logger.info('MQTT connection disconnected')
         logger.info(f"Disconnecting reason: {rc}")
         self.client.connection_flag = False
     
     def on_message(self, client, userdata, msg):
-        logger.info('RX:'+msg.topic+' message:'+str(msg.payload))
+        logger.debug('RX:'+msg.topic+' message:'+str(msg.payload))
         if 'TOPIC_STATE' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_STATE']:
             decoded_message = str(msg.payload.decode('utf-8'))
             data = json.loads(decoded_message)
@@ -95,12 +95,12 @@ class MQTT:
         elif 'TOPIC_API_CMD' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_API_CMD']:
             data = msg.payload.decode('utf-8')
             try:
-                logger.info(f'Got message over api: {data}')
+                logger.debug(f'Got message over api: {data}')
                 data = json.loads(data)
                 self.buffer_api.append(data)
             except Exception as e:
-                logger.warning('Message content is not valid json format')
-                logger.debug(str(e))
+                logger.error('Message content is not valid json format')
+                logger.error(str(e))
     
     def on_subscribe(self, client, userdata, mid, granted_qos):
         if mid in self.sub_ids.keys():
@@ -126,9 +126,9 @@ class MQTT:
             result = self.client.publish(topic, msg_pckg['msg'][i]) 
             status = result[0]
             if status == 0:
-                logger.info('TX: '+topic+' with message: '+msg_pckg['msg'][i])
+                logger.debug('TX: '+topic+' with message: '+msg_pckg['msg'][i])
             else:
-                logger.warning('Failed to publish: '+topic+' with message: '+msg_pckg['msg'][i])   
+                logger.debug('Failed to publish: '+topic+' with message: '+msg_pckg['msg'][i])   
             time.sleep(0.1)
         robotInterface.mapDataInBuffer = False
     
@@ -158,11 +158,10 @@ class HTTP:
         logger.info('Connecting...')
         try:
             data = self.reqandchecksum('AT+V')
-            logger.debug(f'Data to be send: {data}')
-            logger.info('TX: '+data)
+            logger.debug('TX: '+data)
             res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
-            logger.debug('Status code: '+str(res.status_code))
-            logger.info('RX: '+res.text)
+            logger.info('Status code: '+str(res.status_code))
+            logger.debug('RX: '+res.text)
             if res.status_code == 200 and 'V,' in res.text and res.text[0] == 'V':
                 reslist = res.text.split(',')
                 encrypt = int(reslist[3])
@@ -179,8 +178,8 @@ class HTTP:
                         # cmdlist.cmd_set_positionmode = True
                         robotInterface.performCmd('setPositionMode')
                     except Exception as e:
-                        logger.warning('Password is invalid. Check your comm config')
-                        logger.debug(str(e))
+                        logger.error('Password is invalid. Check your comm config')
+                        logger.error(str(e))
                         self.http_encryptkey = None
                         self.http_status = -1
                 else:
@@ -201,7 +200,7 @@ class HTTP:
             self.http_encryptchallenge = 0
     
     def get_state(self) -> None:
-        logger.info('Performing get state http-request')
+        logger.debug('Performing get state http-request')
         data = self.reqandchecksum('AT+S')
         logger.debug(f'Data to be send: {data}')
         if self.http_encryption == 1:
@@ -210,10 +209,10 @@ class HTTP:
             data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))
         try:
-            logger.info('TX: '+data) 
+            logger.debug('TX: '+data) 
             res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
             logger.debug('Status code: '+str(res.status_code))
-            logger.info('RX: '+res.text)
+            logger.debug('RX: '+res.text)
             if len(res.text) == 0:
                 logger.warning('HTTP request for state delivered implausible string')
                 self.http_status = -1
@@ -229,7 +228,7 @@ class HTTP:
             self.http_status = -1
     
     def get_stats(self) -> None:
-        logger.info('Performing get stats http-request')
+        logger.debug('Performing get stats http-request')
         data = self.reqandchecksum('AT+T')
         logger.debug(f'Data to be send: {data}')
         if self.http_encryption == 1:
@@ -238,10 +237,10 @@ class HTTP:
             data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))
         try:
-            logger.info('TX: '+data)
+            logger.debug('TX: '+data)
             res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
             logger.debug('Status code: '+str(res.status_code))
-            logger.info('RX: '+res.text)
+            logger.debug('RX: '+res.text)
             if len(res.text) == 0:
                 logger.warning('HTTP request for state delivered implausible string')
                 self.http_status = -1
@@ -257,7 +256,7 @@ class HTTP:
             self.http_status = -1
         
     def get_obstacles(self) -> int:
-        logger.info('Performing get obstacles http-request')
+        logger.debug('Performing get obstacles http-request')
         data = self.reqandchecksum('AT+S2')
         logger.debug(f'Data to be send: {data}')
         if self.http_encryption == 1:
@@ -266,10 +265,10 @@ class HTTP:
             data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
             data = ''.join(map(chr, data_encrypt))
         try:
-            logger.info('Backend: TX '+data) 
+            logger.debug('Backend: TX '+data) 
             res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
             logger.debug('Status code: '+str(res.status_code))
-            logger.info('Backend: RX '+res.text)
+            logger.debug('Backend: RX '+res.text)
             if len(res.text) == 0:
                 logger.warning('Backend: HTTP request for obstacles delivered implausible string')
                 self.http_status = -1
@@ -303,15 +302,15 @@ class HTTP:
                 data_encrypt = [x - 126 + 31 if x>126 else x for x in data_encrypt]
                 data = ''.join(map(chr, data_encrypt))  
             try:
-                logger.info('TX '+data)
+                logger.debug('TX '+data)
                 res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
-                logger.info('RX: '+res.text)
+                logger.debug('RX: '+res.text)
                 got_res = f"AT+{res.text.split(',')[0]}"
                 self.http_status = res.status_code    
                 while self.http_status != 200 or expected_res != got_res:
                     rep_cnt += 1
                     res = requests.post(url=self.http_ip, headers=self.header, data=data+'\n', timeout=6)
-                    logger.info('RX: '+res.text)
+                    logger.debug('RX: '+res.text)
                     got_res = f"AT+{res.text.split(',')[0]}"
                     self.http_status = res.status_code 
                     if rep_cnt > 30:
@@ -371,9 +370,10 @@ class UART:
             logger.info('Connection successful')
             # cmdlist.cmd_set_positionmode = True
             robotInterface.performCmd('setPositionMode')
-        except:
+        except Exception as e:
             self.uart_status = False
-            logger.warning('Connection to the rover is not possible.')
+            logger.error('Connection to the rover is not possible.')
+            logger.error(str(e))
     
     def check_buffer(self) -> None:
         try: 
@@ -396,19 +396,19 @@ class UART:
         if self.uart_status:
             msg_pckg = 'AT+S\n'
             self.client.write(bytes(msg_pckg, 'UTF-8'))
-            logger.info('TX: '+str(bytes(msg_pckg, 'UTF-8')))
+            logger.debug('TX: '+str(bytes(msg_pckg, 'UTF-8')))
 
     def get_stats(self) -> None:
         if self.uart_status:
             msg_pckg = 'AT+T\n'
             self.client.write(bytes(msg_pckg, 'UTF-8'))
-            logger.info('TX: '+str(bytes(msg_pckg, 'UTF-8'))) 
+            logger.debug('TX: '+str(bytes(msg_pckg, 'UTF-8'))) 
                   
     def get_obstacles(self) -> None:
         if self.uart_status:
             msg_pckg = 'AT+S2\n'
             self.client.write(bytes(msg_pckg, 'UTF-8'))
-            logger.info('TX: '+str(bytes(msg_pckg, 'UTF-8')))
+            logger.debug('TX: '+str(bytes(msg_pckg, 'UTF-8')))
     
     def cmd_to_rover(self) -> None:
         # msg_pckg = message.check()
@@ -419,7 +419,7 @@ class UART:
                 uart_msg = msg_pckg['msg'][i] + ',\n'
                 logger.debug(msg_pckg['msg'][i]+' will be send to rover')
                 self.client.write(bytes(uart_msg,'UTF-8'))  
-                logger.info('TX: '+str(bytes(uart_msg,'UTF-8')))
+                logger.debug('TX: '+str(bytes(uart_msg,'UTF-8')))
                 time.sleep(0.1)
             robotInterface.mapDataInBuffer = False
         except Exception as e:

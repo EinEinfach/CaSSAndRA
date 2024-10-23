@@ -16,7 +16,7 @@ from icecream import ic
 
 @dataclass
 class RobotInterface:
-    status: str = 'ready'
+    activeCmd: str = None
     pendingRequest: str = None
     pendingRequestCnt: int = 0
     mapDataInBuffer: bool = False
@@ -127,6 +127,8 @@ class RobotInterface:
             logger.warning('Unknown message type')
     
     def performCmd(self, cmd: str) -> None:
+        self.activeCmd = cmd
+        logger.info(f'Send command to robot: {cmd}')
         if cmd == 'stop':
             self._cmdStop()
         elif cmd == 'move':
@@ -169,6 +171,8 @@ class RobotInterface:
     def resetRobotCmds(self) -> None:
         if self.robotCmds != []:
             del self.robotCmds[0]
+        else:
+            self.activeCmd = None
     
     def setRobotCmds(self, data: pd.DataFrame) -> None:
         self.robotCmds.append(data)
