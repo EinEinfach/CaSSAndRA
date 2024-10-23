@@ -7,8 +7,10 @@ import pandas as pd
 
 from ..data.mapdata import current_map
 from ..data.roverdata import robot
+from ..data import roverdata, calceddata
 from . import sunraycommstack
 from ..data import appdata
+from ..data.cfgdata import appcfg
 
 from icecream import ic
 
@@ -18,7 +20,7 @@ class RobotInterface:
     pendingRequest: str = None
     pendingRequestCnt: int = 0
     mapDataInBuffer: bool = False
-    robotCmds: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
+    robotCmds: list = field(default_factory=lambda: list())
     cmdFailed: bool = False
     lastLoadWithDockPath: bool = False
 
@@ -59,11 +61,70 @@ class RobotInterface:
         mapCRCy = dataForCrc['Y']*100
         current_map.map_crc = int(mapCRCx.sum() + mapCRCy.sum())
         logger.debug('Map crc deivation: '+str(abs(current_map.map_crc - robot.map_crc)))
-        
     
-    def onRobotMessageReceived(self, message: pd.DataFrame) -> None:
-        robot.set_state(message)
-        self._checkPendingRequest()
+    def _onStateMessage(self, state_df: pd.DataFrame) -> None:
+        if not state_df.empty:
+            robot.set_state(state_df)
+            roverdata.state = pd.concat([roverdata.state, state_df], ignore_index=True)
+            calceddata.calcdata_from_state()
+            self._checkPendingRequest()
+            return
+        logger.warning('State data frame is empty')
+    
+    def _onStatsMessage(self, stats_df: pd.DataFrame) -> None:
+        if not stats_df.empty:
+            roverdata.stats = pd.concat([roverdata.stats, stats_df], ignore_index=True)
+            calceddata.calcdata_from_stats() 
+    
+    def _onObstacleMessage(self, obstacles_df: pd.DataFrame) -> None:
+        obstacles = current_map.obstacles
+        if obstacles_df.empty:
+           pass 
+        elif not obstacles.empty:
+            for obstacle in obstacles_df['CRC'].unique():
+                if obstacles[obstacles['CRC'] == obstacle].empty:
+                    obstacles = pd.concat([obstacles, obstacles_df[obstacles_df['CRC'] == obstacle]], ignore_index=True)
+        else:
+            obstacles = obstacles_df
+        
+        obstacles = self._cleanObstacles(obstacles_df, obstacles)
+
+        if not obstacles.equals(current_map.obstacles):
+            current_map.add_obstacles(obstacles)
+            
+    def _cleanObstacles(self, obstacles_df: pd.DataFrame, obstacles: pd.DataFrame) -> pd.DataFrame:
+        if appcfg.obstacles_amount != 0 and not obstacles.empty:
+                if len(obstacles['CRC'].unique()) > appcfg.obstacles_amount:
+                    obstacles_crc = obstacles['CRC'].unique()
+                    obstacles_crc = obstacles_crc[-appcfg.obstacles_amount:]
+                    obstacles = obstacles[obstacles['CRC'].isin(obstacles_crc)]
+                    obstacles = obstacles.reset_index(drop=True)
+
+        elif appcfg.obstacles_amount == 0 and obstacles_df.empty: #Synchronize to sunray fw
+            obstacles = pd.DataFrame()
+        
+        return obstacles
+
+        
+        
+    def onRobotMessageReceived(self, type: str, message) -> None:
+        if type == 'state':
+            state_df = sunraycommstack.onstatemessage(message)
+            self._onStateMessage(state_df)
+        elif type == 'stateMqtt':
+            state_df = sunraycommstack.onstatemqttmessage(message)
+            self._onStateMessage(state_df)
+        elif type == 'stats':
+            stats_df = sunraycommstack.onstatsmessage(message)
+            self._onStatsMessage(stats_df)
+        elif type == 'statsMqtt':
+            stats_df = sunraycommstack.onstatsmqttmessage(message)
+            self._onStatsMessage(stats_df)
+        elif type == 'obstacles':
+            obstacles_df = sunraycommstack.onobstaclemessage(message)
+            self._onObstacleMessage(obstacles_df)
+        else:
+            logger.warning('Unknown message type')
     
     def performCmd(self, cmd: str) -> None:
         if cmd == 'stop':
@@ -100,27 +161,40 @@ class RobotInterface:
             self._cmdToggleMowMowtor()
         elif cmd == 'resume':
             self._cmdResume()
+        elif cmd == 'custom':
+            self._cmdCustom()
         else:
             logger.warning('Server instance got unknown command')
     
     def resetRobotCmds(self) -> None:
-        self.robotCmds = pd.DataFrame()
+        if self.robotCmds != []:
+            del self.robotCmds[0]
+    
+    def setRobotCmds(self, data: pd.DataFrame) -> None:
+        self.robotCmds.append(data)
+    
+    def getRobotCmds(self) -> pd.DataFrame:
+        if self.robotCmds != []:
+            return self.robotCmds[0]
+        else:
+            return pd.DataFrame()
 
     def _cmdStop(self) -> None:
         self.status = 'stop'
-        self.robotCmds = sunraycommstack.stop()
-        robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
+        cmd = sunraycommstack.stop()
+        self.setRobotCmds(cmd)
+        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
     
     def _cmdMove(self) -> None:
         self.status = 'move'
         if robot.cmd_move_lin == 0 and robot.cmd_move_ang == 0:
-            self.robotCmds = pd.DataFrame()
+            self.setRobotCmds(pd.DataFrame())
         else:
-            self.robotCmds = sunraycommstack.move([robot.cmd_move_lin, robot.cmd_move_ang]) 
+            self.setRobotCmds(sunraycommstack.move([robot.cmd_move_lin, robot.cmd_move_ang]) )
     
     def _cmdTakeMap(self, way: pd.DataFrame, dockpath: bool) -> None:
         self._calcMapCrc(way, dockpath)
-        self.robotCmds = sunraycommstack.takemap(current_map.perimeter, way, dockpath)
+        self.setRobotCmds(sunraycommstack.takemap(current_map.perimeter, way, dockpath))
         self.mapDataInBuffer = True
     
     def _cmdGoTo(self) -> None:
@@ -133,9 +207,10 @@ class RobotInterface:
             logger.error(f'Map upload failed current map crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
             return
         elif (abs(robot.map_crc - current_map.map_crc) < 200) and self.pendingRequestCnt > 1:
-            self.robotCmds = sunraycommstack.goto()
-            robot.last_cmd = self.robotCmds
-            robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
+            cmd = sunraycommstack.goto()
+            self.setRobotCmds(cmd)
+            robot.last_cmd = cmd
+            robot.last_mow_status = self._checkMowMotorState(robot.last_cmd, robot.last_mow_status)
             robot.current_task = current_map.gotopoint
             self.lastLoadWithDockPath = False
             self.pendingRequest = None
@@ -154,8 +229,9 @@ class RobotInterface:
             logger.error(f'Map upload failed current map crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
             return
         elif self.lastLoadWithDockPath or ((abs(robot.map_crc - current_map.map_crc) < 200) and self.pendingRequestCnt > 1):
-            self.robotCmds = sunraycommstack.dock()
-            robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
+            cmd = sunraycommstack.dock()
+            self.setRobotCmds(cmd)
+            robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
             robot.dock_reason = 'operator'
             robot.dock_reason_time = datetime.now()
             self.lastLoadWithDockPath = True
@@ -166,8 +242,9 @@ class RobotInterface:
             self._cmdTakeMap(way=current_map.gotopoint, dockpath=True)
     
     def _cmdDockSchedule(self) -> None:
-        self.robotCmds = sunraycommstack.dock()
-        robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
+        cmd = sunraycommstack.dock()
+        self.setRobotCmds(cmd)
+        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
         robot.dock_reason = 'schedule'
         robot.dock_reason_time = datetime.now()
     
@@ -181,9 +258,10 @@ class RobotInterface:
             logger.error(f'Map upload failed current map crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
             return
         elif (abs(robot.map_crc - current_map.map_crc) < 200) and self.pendingRequestCnt > 1:
-            self.robotCmds = sunraycommstack.mow()
-            robot.last_cmd = self.robotCmds
-            robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
+            cmd = sunraycommstack.mow()
+            self.setRobotCmds(cmd)
+            robot.last_cmd = cmd
+            robot.last_mow_status = self._checkMowMotorState(robot.last_cmd, robot.last_mow_status)
             robot.current_task = current_map.mowpath
             self.lastLoadWithDockPath = True
             self.pendingRequest = None
@@ -210,41 +288,46 @@ class RobotInterface:
                          
 
     def _cmdResume(self) -> None:
-        self.robotCmds = sunraycommstack.resume()
-        robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
+        cmd = sunraycommstack.resume()
+        self.setRobotCmds(cmd)
+        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
     
     def _cmdShutdown(self) -> None:
-        self.robotCmds = sunraycommstack.shutdown()
+        self.setRobotCmds(sunraycommstack.shutdown())
 
     def _cmdReboot(self) -> None:
-        self.robotCmds = sunraycommstack.reboot()
+        self.setRobotCmds(sunraycommstack.reboot())
 
     def _cmdGpsReboot(self) -> None:
-        self.robotCmds = sunraycommstack.gpsreboot()
+        self.setRobotCmds(sunraycommstack.gpsreboot())
 
     def _cmdToggleMowMowtor(self) -> None:
-        self.robotCmds = sunraycommstack.togglemowmotor()
-        robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
+        cmd = sunraycommstack.togglemowmotor()
+        self.setRobotCmds(cmd)
+        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
 
     def _cmdSetPositionMode(self) -> None:
-        self.robotCmds = sunraycommstack.takepositionmode()
+        self.setRobotCmds(sunraycommstack.takepositionmode())
     
     def _cmdChangeMowspeed(self) -> None:
-        self.robotCmds = sunraycommstack.changespeed(robot.mowspeed_setpoint)
-        robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
+        cmd = sunraycommstack.changespeed(robot.mowspeed_setpoint)
+        self.setRobotCmds(cmd)
+        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
     
     def _cmdChangeGotoSpeed(self) -> None:
-        self.robotCmds = sunraycommstack.changespeed(robot.gotospeed_setpoint)
-        robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
+        cmd = sunraycommstack.changespeed(robot.gotospeed_setpoint)
+        self.setRobotCmds(cmd)
+        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
     
     def _cmdSkipNextPoint(self) -> None:
-        self.robotCmds = sunraycommstack.skipnextpoint()
-        robot.last_mow_status = self._checkMowMotorState(self.robotCmds, robot.last_mow_status)
+        cmd = sunraycommstack.skipnextpoint()
+        self.setRobotCmds(cmd)
+        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
     
     def _cmdSkipToMowProgress(self) -> None:
-        self.robotCmds = sunraycommstack.skiptomowprogress(robot.mowprogress)
+        self.setRobotCmds(sunraycommstack.skiptomowprogress(robot.mowprogress))
 
     def _cmdCustom(self) -> None:
-        self.robotCmds = sunraycommstack.custom()
+        self.setRobotCmds(sunraycommstack.custom())
 
 robotInterface = RobotInterface()

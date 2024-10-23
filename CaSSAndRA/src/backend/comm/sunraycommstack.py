@@ -416,9 +416,37 @@ def onstatsmqttmessage(data: dict) -> pd.DataFrame:
         logger.error(str(e))
         return pd.DataFrame()
 
+def create_obstacle(data: list) -> pd.DataFrame:
+    list_for_df = []
+    number_of_points = data[0]
+    del data[0]
+    for i in range(number_of_points):
+        list_for_df.append([data[2*i], data[2*i+1]])
+    list_for_df.append([data[0], data[1]])
+    obstacle_df = pd.DataFrame(list_for_df)
+    obstacle_df.columns = ['X', 'Y']
+    obstacle_df['type'] = 'points'
+    obstacleCRCx = obstacle_df['X']*100 
+    obstacleCRCy = obstacle_df['Y']*100 
+    obstacle_CRC = int(obstacleCRCx.sum() + obstacleCRCy.sum())
+    obstacle_df['CRC'] = obstacle_CRC
+    return obstacle_df
+
 def onobstaclemessage(data: str) -> pd.DataFrame:
-    data_list = data.split(',')
-    del data_list[-1]
-    del data_list[0]
-
-
+    try: 
+        obstacles = pd.DataFrame()
+        data_list = data.split(',')
+        del data_list[-1]
+        del data_list[0]
+        obstacles_amount = int(data_list[0]) 
+        del data_list[0]
+        data_list = [float(x) if '.' in x else int(x) for x in data_list]
+        for i in range(obstacles_amount):
+            obstacle = create_obstacle(data_list[3:4+2*data_list[3]])
+            obstacles = pd.concat([obstacles, obstacle], ignore_index=True)
+            del data_list[0:4+2*data_list[3]]
+        return obstacles
+    except Exception as e:
+        logger.error('Could not decode received obstacle string')
+        logger.error(str(e))
+        return pd.DataFrame()

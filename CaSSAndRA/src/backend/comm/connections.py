@@ -10,6 +10,7 @@ import serial
 import random
 from dataclasses import dataclass, field
 from datetime import datetime
+from icecream import ic
 
 #local imports
 from ..data import datatodf
@@ -79,7 +80,7 @@ class MQTT:
         if 'TOPIC_STATE' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_STATE']:
             decoded_message = str(msg.payload.decode('utf-8'))
             data = json.loads(decoded_message)
-            datatodf.add_state_to_df_from_mqtt(data)
+            robotInterface.onRobotMessageReceived('stateMqtt', data)
         elif 'TOPIC_PROPS' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_PROPS']:
             decoded_message = str(msg.payload.decode('utf-8'))
             data = json.loads(decoded_message)
@@ -87,7 +88,7 @@ class MQTT:
         elif 'TOPIC_STATS' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_STATS']:
             decoded_message = str(msg.payload.decode('utf-8'))
             data = json.loads(decoded_message)
-            datatodf.add_stats_to_df_from_mqtt(data)
+            robotInterface.onRobotMessageReceived('statsMqtt', data)
         elif 'TOPIC_ONLINE' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_ONLINE']:
             data = msg.payload.decode('utf-8')
             datatodf.add_online_to_df_from_mqtt(data)
@@ -119,7 +120,7 @@ class MQTT:
     def cmd_to_rover(self) -> None:
         topic = self.mqtt_mower_name+'/command'
         # msg_pckg = message.check() 
-        msg_pckg = robotInterface.robotCmds
+        msg_pckg = robotInterface.getRobotCmds()
         robotInterface.resetRobotCmds()
         for i, msg in msg_pckg.iterrows():   
             result = self.client.publish(topic, msg_pckg['msg'][i]) 
@@ -217,7 +218,7 @@ class HTTP:
                 logger.warning('HTTP request for state delivered implausible string')
                 self.http_status = -1
             elif res.status_code == 200 and self.checkchecksum(res.text) and len(res.text) > 20:
-                datatodf.add_state_to_df(res.text)
+                robotInterface.onRobotMessageReceived('state', res.text)
                 self.http_status = res.status_code
             else:
                 logger.warning('HTTP request for state delivered implausible string')
@@ -245,7 +246,7 @@ class HTTP:
                 logger.warning('HTTP request for state delivered implausible string')
                 self.http_status = -1
             elif res.status_code == 200 and self.checkchecksum(res.text) and len(res.text) > 20:
-                datatodf.add_stats_to_df(res.text)
+                robotInterface.onRobotMessageReceived('stats', res.text)
                 self.http_status = res.status_code
             else:
                 logger.warning('Http request for stats delivered implausible string')
@@ -273,7 +274,8 @@ class HTTP:
                 logger.warning('Backend: HTTP request for obstacles delivered implausible string')
                 self.http_status = -1
             elif res.status_code == 200 and self.checkchecksum(res.text) and len(res.text) > 8:
-                datatodf.add_obstacles_to_df(res.text)
+                # datatodf.add_obstacles_to_df(res.text)
+                robotInterface.onRobotMessageReceived('obstacles', res.text)
                 self.http_status = res.status_code
             else:
                 logger.warning('Backend: HTTP request for obstacles delivered implausible string')
@@ -287,7 +289,7 @@ class HTTP:
         if self.http_status != 200:
             return
         #msg_pckg = message.check()
-        msg_pckg = robotInterface.robotCmds
+        msg_pckg = robotInterface.getRobotCmds()
         robotInterface.resetRobotCmds()
         for i, msg in msg_pckg.iterrows():   
             rep_cnt = 0
@@ -410,7 +412,7 @@ class UART:
     
     def cmd_to_rover(self) -> None:
         # msg_pckg = message.check()
-        msg_pckg = robotInterface.robotCmds
+        msg_pckg = robotInterface.getRobotCmds()
         robotInterface.resetRobotCmds()
         try:
             for i, msg in msg_pckg.iterrows(): 
@@ -426,13 +428,14 @@ class UART:
             self.uart_status = False
     
     def on_state(self, data: str) -> None:
-        datatodf.add_state_to_df(data)
+        robotInterface.onRobotMessageReceived('state', data)
 
     def on_stats(self, data: str) -> None:
-        datatodf.add_stats_to_df(data)
+        robotInterface.onRobotMessageReceived('stats', data)
 
     def on_obstacle(self, data: str) -> None:
-        datatodf.add_obstacles_to_df(data)
+        # datatodf.add_obstacles_to_df(data)
+        robotInterface.onRobotMessageReceived('obstacles', data)
     
 #Create connection instances
 mqttcomm = MQTT()
