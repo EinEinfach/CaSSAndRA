@@ -110,7 +110,7 @@ class Mower:
             timedelta = datetime.now() - timestamp
             timedelta_seconds = timedelta.total_seconds()
             speed = round(delta_distance/timedelta_seconds, 2)
-            self.average_speed = 0.99*self.average_speed + 0.01*speed
+            self.average_speed = 0.999*self.average_speed + 0.001*speed
         else:
             speed = 0.0
         return speed
@@ -304,7 +304,7 @@ class Mower:
             if (self.seconds_per_idx == None):
                 self.seconds_per_idx = current_seconds_per_idx
             else:
-                self.seconds_per_idx = 0.95 * self.seconds_per_idx+0.05 * current_seconds_per_idx
+                self.seconds_per_idx = 0.999 * self.seconds_per_idx+0.001 * current_seconds_per_idx
         if (current_seconds_per_idx != None):
             self.last_position_mow_point_index = self.position_mow_point_index
             self.measured_time_since_last_position_index_change = datetime.now()

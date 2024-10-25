@@ -7,10 +7,11 @@ import pandas as pd
 
 from .. data.mapdata import current_map, current_task, mapping_maps, tasks
 from .. data.scheduledata import schedule_tasks
-from .. data.cfgdata import schedulecfg, pathplannercfgapi, commcfg
+from .. data.cfgdata import schedulecfg, pathplannercfgapi, commcfg, rovercfg
 from .. map import path, map
 # from .. comm import cmdlist
 from .. comm.connections import mqttapi
+from .. comm.messageservice import messageservice
 from .. data.roverdata import robot
 from .robotinterface import robotInterface
 
@@ -142,6 +143,14 @@ class API:
         self.settingsstate['apiMqttServer'] = commcfg.api_mqtt_server
         self.settingsstate['apiMqttCassandraServerName'] = commcfg.api_mqtt_cassandra_server_name
         self.settingsstate['apiMqttPort'] = commcfg.api_mqtt_port
+        self.settingsstate['messageServiceType'] = commcfg.message_service
+        self.settingsstate['telegramApiToken'] = commcfg.telegram_token
+        self.settingsstate['telegramChatId'] = commcfg.telegram_chat_id
+        self.settingsstate['pushoverApiToken'] = commcfg.pushover_token
+        self.settingsstate['pushoverAppName'] = commcfg.pushover_user
+        self.settingsstate['robotPositionMode'] = rovercfg.positionmode
+        self.settingsstate['longtitude'] = rovercfg.lon
+        self.settingsstate['latitude'] = rovercfg.lat
         self.settingsstate_json = json.dumps(self.settingsstate)
         
     def update_payload(self) -> None:
@@ -340,7 +349,7 @@ class API:
             logger.info(f'No valid api message for coords command. Aborting')
     
     def check_settings_cmd(self, buffer) -> None:
-        allowed_values = ['update', 'setComm']
+        allowed_values = ['update', 'setComm', 'setRover']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_values))
@@ -351,11 +360,13 @@ class API:
                     self.perform_settings_update_cmd()
                 elif command [0] == 'setComm':
                     self.perform_set_comm_settings_cmd(buffer)
+                elif command[0] == 'setRover':
+                    self.perform_set_rover_settings_cmd(buffer)
         else:
             logger.info(f'No valid api message for settings command. Aborting')
     
     def check_server_cmd(self, buffer) -> None:
-        allowed_values = ['restart']
+        allowed_values = ['restart', 'sendMessage']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_values))
@@ -364,6 +375,8 @@ class API:
             else:
                 if command[0] == 'restart':
                     self.restart_server = True
+                elif command[0] == 'sendMessage' and 'value' in buffer:
+                    messageservice.send_message(buffer['value'][0])
         else:
             logger.info(f'No valid api message for server command. Aborting')
 
@@ -602,12 +615,44 @@ class API:
                     commcfg.api_mqtt_cassandra_server_name = buffer[key]
                 if key == 'apiMqttPort':
                     commcfg.api_mqtt_port = buffer[key]
+                if key == 'messageServiceType':
+                    if buffer[key] == 'telegram':
+                        commcfg.message_service = 'Telegram'
+                    elif buffer[key] == 'pushover':
+                        commcfg.message_service = 'Pushover'
+                    else:
+                        commcfg.message_service = None
+                if key == 'telegramApiToken':
+                    commcfg.telegram_token = buffer[key]
+                if key == 'telegramChatId':
+                    commcfg.telegram_chat_id = buffer[key]
+                if key == 'pushoverApiToken':
+                    commcfg.pushover_token = buffer[key]
+                if key == 'pushoverAppName':
+                    commcfg.pushover_user = buffer[key]
             commcfg.save_commcfg()
 
         except Exception as e:
             logger.error('Perform set comm settings command triggered an error. Aborrting')
             logger.debug(f'{e}')
 
+    def perform_set_rover_settings_cmd(serlf, buffer) -> None:
+        try:
+            buffer = buffer['value'] 
+            for key in buffer:
+                if key == 'robotPositionMode':
+                    rovercfg.positionmode = buffer[key]
+                if key == 'longtitude':
+                    rovercfg.lon = buffer[key]
+                if key == 'latitude':
+                    rovercfg.lat = buffer[key]
+            rovercfg.save_rovercfg()
+            robotInterface.performCmd('setPositionMode')
 
-    
+        except Exception as e:
+            logger.error('Perform set rover settings command triggered an error. Aborrting')
+            logger.debug(f'{e}')
+
+
+
 cassandra_api = API()

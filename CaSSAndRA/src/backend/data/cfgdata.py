@@ -191,8 +191,8 @@ class RoverCfg:
     mowspeed_setpoint: float = 0.3
     gotospeed_setpoint: float = 0.5
     positionmode: str = 'relative'
-    lon: float = 0
-    lat: float = 0
+    lon: float = 0.0
+    lat: float = 0.0
     fix_timeout: int = 60
     finish_and_restart: bool = False
 

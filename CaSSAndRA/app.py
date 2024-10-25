@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.133.0 Settings values over api
+#Version:0.134.0 New settings over api
 # package imports
 import os
 import sys
