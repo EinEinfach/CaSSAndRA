@@ -432,6 +432,7 @@ class UART:
             self.uart_status = False
 
     def on_props(self, data: str) -> None:
+        data = data.split(',')
         robotInterface.onRobotMessageReceived('props', data)
 
     def on_state(self, data: str) -> None:
