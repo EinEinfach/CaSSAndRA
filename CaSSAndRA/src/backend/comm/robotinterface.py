@@ -62,6 +62,11 @@ class RobotInterface:
         current_map.map_crc = int(mapCRCx.sum() + mapCRCy.sum())
         logger.debug('Map crc deivation: '+str(abs(current_map.map_crc - robot.map_crc)))
     
+    def _onPropsMessage(self, props_df: pd.DataFrame) -> None:
+        if not props_df.empty:
+            robot.set_props(props_df)
+            roverdata.props = pd.concat([roverdata.props, props_df], ignore_index=True)
+    
     def _onStateMessage(self, state_df: pd.DataFrame) -> None:
         if not state_df.empty:
             robot.set_state(state_df)
@@ -108,7 +113,13 @@ class RobotInterface:
         
         
     def onRobotMessageReceived(self, type: str, message) -> None:
-        if type == 'state':
+        if type == 'props':
+            props_df = sunraycommstack.onpropsmessage(message)
+            self._onPropsMessage(props_df)
+        elif type == 'propsMqtt':
+            props_df = sunraycommstack.onpropsmqttmessage(message)
+            self._onPropsMessage(props_df)
+        elif type == 'state':
             state_df = sunraycommstack.onstatemessage(message)
             self._onStateMessage(state_df)
         elif type == 'stateMqtt':

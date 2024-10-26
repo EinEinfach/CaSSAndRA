@@ -44,6 +44,8 @@ class API:
         self.apistate = 'ready'
 
     def create_robot_payload(self) -> None:
+        self.robotstate['firmware'] = robot.fw
+        self.robotstate['version'] = robot.fw_version
         self.robotstate['status'] = robot.status
         self.robotstate['dockReason'] = robot.dock_reason
         self.robotstate['battery'] = dict(soc=robot.soc, voltage=robot.battery_voltage, electricCurrent=robot.amps)

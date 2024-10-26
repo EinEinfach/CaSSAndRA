@@ -16,6 +16,8 @@ from . cfgdata import rovercfg, appcfg, commcfg
 #mower class
 @dataclass
 class Mower:
+    fw: str = None
+    fw_version: str = None
     uptoday: bool = False
     battery_voltage: float = 0.0
     position_x: float = 0.0
@@ -69,6 +71,11 @@ class Mower:
     dock_reason_operator: bool = False
     dock_reason: str = None
     dock_reason_time: datetime = datetime.now()
+
+    def set_props(self, props: pd.DataFrame) -> None:
+        props = props.iloc[-1]
+        self.fw = props['firmware']
+        self.fw_version = props['version']
 
     def set_state(self, state: pd.DataFrame) -> None:
         state = state.iloc[-1]

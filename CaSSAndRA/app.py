@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.134.0 New settings over api
+#Version:0.135.0 Sunray version over api
 # package imports
 import os
 import sys

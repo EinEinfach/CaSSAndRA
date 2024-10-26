@@ -84,7 +84,7 @@ class MQTT:
         elif 'TOPIC_PROPS' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_PROPS']:
             decoded_message = str(msg.payload.decode('utf-8'))
             data = json.loads(decoded_message)
-            datatodf.add_props_to_df_from_mqtt(data)
+            robotInterface.onRobotMessageReceived('propsMqtt', data)
         elif 'TOPIC_STATS' in self.mqtt_topics and msg.topic == self.mqtt_mower_name+'/'+self.mqtt_topics['TOPIC_STATS']:
             decoded_message = str(msg.payload.decode('utf-8'))
             data = json.loads(decoded_message)
@@ -166,7 +166,7 @@ class HTTP:
                 reslist = res.text.split(',')
                 encrypt = int(reslist[3])
                 encryptchallenge = int(reslist[4])
-                datatodf.add_props_to_df_from_http(res.text)
+                robotInterface.onRobotMessageReceived('props', reslist)
                 datatodf.add_online_to_df_from_http(True)
                 self.http_status = res.status_code
                 self.http_encryption = encrypt
@@ -368,7 +368,9 @@ class UART:
             self.client.reset_input_buffer()
             self.uart_status = True
             logger.info('Connection successful')
-            # cmdlist.cmd_set_positionmode = True
+            msg_pckg = 'AT+V\n'
+            self.client.write(bytes(msg_pckg, 'UTF-8'))
+            logger.debug('TX: '+str(bytes(msg_pckg, 'UTF-8')))
             robotInterface.performCmd('setPositionMode')
         except Exception as e:
             self.uart_status = False
@@ -380,6 +382,8 @@ class UART:
             if self.client.in_waiting > 0:
                 data = self.client.readline().decode('utf-8').rstrip()
                 logger.info('RX: '+data)
+                if data.find('V,') == 0:
+                    self.on_props(data)
                 if data.find('S,') == 0:
                     self.on_state(data)
                 if data.find('T,') == 0:
@@ -426,7 +430,10 @@ class UART:
             logger.error('Could not send data to the rover')
             logger.error(str(e))
             self.uart_status = False
-    
+
+    def on_props(self, data: str) -> None:
+        robotInterface.onRobotMessageReceived('props', data)
+
     def on_state(self, data: str) -> None:
         robotInterface.onRobotMessageReceived('state', data)
 

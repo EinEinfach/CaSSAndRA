@@ -235,7 +235,17 @@ def ononlinemessage(data: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 def onpropsmessage(data: str) -> pd.DataFrame:
-    return pd.DataFrame()
+    try:
+        props = {'firmware': [data[1]], 
+                 'version': [data[2]], 
+                 'timestamp': str(datetime.now())
+                 }
+        props_df = pd.DataFrame(props)
+        return props_df
+    except Exception as e:
+        logger.error('Could not decode props string')
+        logger.error(str(e))
+        return pd.DataFrame()
 
 def onpropsmqttmessage(data: dict) -> pd.DataFrame:
     try: 
@@ -248,6 +258,7 @@ def onpropsmqttmessage(data: dict) -> pd.DataFrame:
     except Exception as e:
         logger.error('Could not decode props string')
         logger.error(str(e))
+        return pd.DataFrame()
 
 def onstatemessage(data: str) -> pd.DataFrame:
     try: 
