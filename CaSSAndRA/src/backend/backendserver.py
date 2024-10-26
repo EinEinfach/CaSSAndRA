@@ -5,6 +5,7 @@ from datetime import datetime
 import time
 import os
 
+from src.pathdata import paths
 from . data import saveddata, calceddata, cleandata, cfgdata, logdata
 from . data.scheduledata import schedule_tasks
 from . comm.connections import mqttcomm, httpcomm, uartcomm, mqttapi
@@ -14,17 +15,6 @@ from . data.roverdata import robot
 from . data.mapdata import current_map
 
 restart = threading.Event()
-
-# def slow_tasks(restart: threading.ExceptHookArgs) -> None:
-#     start_time_slow_tasks = datetime.now()
-#     time_to_wait = 1
-#     while True:
-#         if restart.is_set():
-#             logger.info('Slow tasks thread is stopped')
-#             return
-#         if (datetime.now() - start_time_slow_tasks).seconds >= 30*time_to_wait:
-#             robot.calc_seconds_per_idx()
-#         time.sleep(1)
 
 def message_service(restart: threading.ExceptHookArgs) -> None:
     while True:
@@ -193,12 +183,7 @@ def start(file_paths) -> None:
 
     logger.info('Backend: Read communication config file')
     
-    # todo: this should be refactored so the class is initialized with correct data immediately
-    logdata.commlog.path = file_paths.log
-    
     # initialize config data
-    # todo: this should be a class or refactored in some way to avoid circular dependencies
-    cfgdata.file_paths = file_paths
     connect_data = cfgdata.commcfg.read_commcfg()
     cfgdata.rovercfg.read_rovercfg()
     cfgdata.pathplannercfg.read_pathplannercfg()
@@ -210,13 +195,13 @@ def start(file_paths) -> None:
     cfgdata.schedulecfg.read_schedulecfg()
    
     # todo: saveddata should probably be a class instead
-    saveddata.file_paths = file_paths
+    saveddata.file_paths = paths.file_paths
     logger.info('Backend: Read saved data')
-    saveddata.read(file_paths.measure)
+    saveddata.read(paths.file_paths.measure)
     logger.info('Backend: Read map data file')
-    saveddata.read_perimeter(file_paths.map)
+    saveddata.read_perimeter(paths.file_paths.map)
     logger.info('Backend: Read tasks data file')
-    saveddata.read_tasks(file_paths.map)
+    saveddata.read_tasks(paths.file_paths.map)
 
     #read schedule tasks
     schedule_tasks.load_task_order(cfgdata.schedulecfg)
@@ -321,12 +306,6 @@ def start(file_paths) -> None:
     schedule_thread.daemon = True
     schedule_thread.start()
 
-    #start an own thre for slow tasks
-    # logger.info('Starting thread for slow tasks')
-    # slow_tasks_thread = threading.Thread(target=slow_tasks, args=(restart,), name='slow tasks')
-    # slow_tasks_thread.daemon = True
-    # slow_tasks_thread.start()
-
     #give some times to establish connection
     time.sleep(2)
 
@@ -341,7 +320,7 @@ def reboot() -> None:
                 data_storage_running = True
     time.sleep(5)
     restart.clear()
-    start(cfgdata.file_paths)
+    start(paths.file_paths)
 
 def stop() -> None:
     logger.info('Backendserver is being shut down')

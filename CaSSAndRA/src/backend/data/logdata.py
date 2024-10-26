@@ -1,17 +1,22 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# imports
 import pandas as pd
 from datetime import datetime
 from dataclasses import dataclass, field
 import os
+
+# local imports
+from src.pathdata import paths
 
 ABSOLUTE_PATH = os.path.dirname(__file__)
 
 @dataclass
 class Log():
     lastdata: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
-    path = ABSOLUTE_PATH.replace('/src/backend/data', '/src/data/log/cassandra.log')
+    #path = ABSOLUTE_PATH.replace('/src/backend/data', '/src/data/log/cassandra.log')
+    path: str = paths.log
 
     def read(self) -> None:
         try:

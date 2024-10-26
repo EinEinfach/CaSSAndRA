@@ -42,6 +42,9 @@ class API:
 
     def create_api_payload(self) -> None:
         self.apistate = 'ready'
+    
+    def create_server_payload(self) -> None:
+        pass
 
     def create_robot_payload(self) -> None:
         self.robotstate['firmware'] = robot.fw

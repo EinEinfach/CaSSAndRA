@@ -51,10 +51,7 @@ class Mower:
     last_cmd: pd.DataFrame = field(default_factory=lambda: pd.DataFrame([{'msg': 'AT+C,-1,-1,-1,-1,-1,-1,-1,-1'}]))
     last_task_name: str = 'no task'
     current_task: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
-    map_upload_started: bool = False
-    map_upload_failed: bool = False
     map_old_crc: int = None
-    map_upload_cnt: int = 0
     mowprogress: float = 0.0
     last_position_mow_point_index: int = None
     measured_time_since_last_position_index_change = None
@@ -68,7 +65,6 @@ class Mower:
     status_tmp_timestamp: datetime = datetime.now()
     sensor_status: str = 'unknown'
     position_age_hr = '99+d'
-    dock_reason_operator: bool = False
     dock_reason: str = None
     dock_reason_time: datetime = datetime.now()
 
@@ -251,7 +247,7 @@ class Mower:
             
     def check_dock_reason(self) -> None:
         if self.job == 4: 
-            if self.dock_reason_operator:
+            if self.dock_reason != None:
                 pass
             elif self.sensor == 18:
                 self.dock_reason = 'temperature'
@@ -263,7 +259,6 @@ class Mower:
                 self.dock_reason = 'low battery'
             self.dock_reason_time = datetime.now()
         elif (self.job == 2 and (datetime.now() - self.dock_reason_time).seconds >= 3600) or (self.job != 4 and self.job != 2):
-            self.dock_reason_operator = False
             self.dock_reason = None
             self.dock_reason_time = datetime.now()
     
