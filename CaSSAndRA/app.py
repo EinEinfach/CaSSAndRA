@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.135.0 Sunray version over api
+#Version:0.136.0 Server version over api, mow speed set point, transit set point and fix timeout settings over api
 # package imports
 import os
 import sys

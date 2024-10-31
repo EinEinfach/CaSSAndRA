@@ -9,7 +9,6 @@ from .. data.mapdata import current_map, current_task, mapping_maps, tasks
 from .. data.scheduledata import schedule_tasks
 from .. data.cfgdata import schedulecfg, pathplannercfgapi, commcfg, rovercfg
 from .. map import path, map
-# from .. comm import cmdlist
 from .. comm.connections import mqttapi
 from .. comm.messageservice import messageservice
 from .. data.roverdata import robot
@@ -43,9 +42,6 @@ class API:
     def create_api_payload(self) -> None:
         self.apistate = 'ready'
     
-    def create_server_payload(self) -> None:
-        pass
-
     def create_robot_payload(self) -> None:
         self.robotstate['firmware'] = robot.fw
         self.robotstate['version'] = robot.fw_version
@@ -156,6 +152,9 @@ class API:
         self.settingsstate['robotPositionMode'] = rovercfg.positionmode
         self.settingsstate['longtitude'] = rovercfg.lon
         self.settingsstate['latitude'] = rovercfg.lat
+        self.settingsstate['transitSpeedSetPoint'] = rovercfg.gotospeed_setpoint
+        self.settingsstate['mowSpeedSetPoint'] = rovercfg.mowspeed_setpoint
+        self.settingsstate['fixTimeout'] = rovercfg.fix_timeout
         self.settingsstate_json = json.dumps(self.settingsstate)
         
     def update_payload(self) -> None:

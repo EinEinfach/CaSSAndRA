@@ -7,6 +7,7 @@ from datetime import datetime
 import time
 import threading
 import os
+import json
 
 # local imports
 from src.pathdata import paths
@@ -92,6 +93,7 @@ class Server:
                 logger.debug('Update api data')
                 cassandra_api.update_payload()
                 cassandra_api.publish('status', cassandra_api.apistate)
+                cassandra_api.publish('server', json.dumps(dict(software=self.sw, version=self.version)))
                 cassandra_api.publish('robot', cassandra_api.robotstate_json)
                 cassandra_api.publish('maps', cassandra_api.mapsstate_json)
                 cassandra_api.publish('tasks', cassandra_api.tasksstate_json)
@@ -172,7 +174,7 @@ class Server:
                 time.sleep(10)
                 return
             if not uartcomm.uart_status:
-                time.sleep(1)
+                time.sleep(10)
                 uartcomm.connect()
             else: 
                 uartcomm.check_buffer()
