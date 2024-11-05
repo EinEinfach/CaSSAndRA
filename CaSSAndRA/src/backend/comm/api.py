@@ -125,6 +125,10 @@ class API:
         self.coordsstate = tasks.task_to_gejson(task_name)
         self.coordsstate_json = json.dumps(self.coordsstate)
     
+    def create_maps_coords_payload(self) -> None:
+        self.coordsstate = mapping_maps.maps_to_geojson()
+        self.coordsstate_json = json.dumps(self.coordsstate)
+    
     def create_settings_payload(self) -> None:
         self.settingsstate['robotConnectionType'] = commcfg.use
         self.settingsstate['httpRobotIpAdress'] = commcfg.http_ip
@@ -421,24 +425,27 @@ class API:
     def perform_maps_cmd(self, buffer: dict) -> None:
         if 'value' in buffer:
             value = buffer['value']
-            allowed_values = list(mapping_maps.saved['name'].unique())
             try:
                 self.value = list(set(value).intersection(list(mapping_maps.saved['name'].unique())))
-                if self.value == []:
-                    logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
-                else:
-                    if self.command == 'load':
-                        selected = mapping_maps.saved[mapping_maps.saved['name'] == self.value[0]] 
-                        current_map.perimeter = selected
-                        current_map.create(self.value[0])
-                        current_task.create()
-                        schedule_tasks.create()
-                        schedulecfg.reset_schedulecfg()
-                        #cmdlist.cmd_take_map = True
-                        robotInterface.performCmd('sendMap')
+                if self.command == 'load' and self.value != []:
+                    selected = mapping_maps.saved[mapping_maps.saved['name'] == self.value[0]] 
+                    current_map.perimeter = selected
+                    current_map.create(self.value[0])
+                    current_task.create()
+                    schedule_tasks.create()
+                    schedulecfg.reset_schedulecfg()
+                    #cmdlist.cmd_take_map = True
+                    robotInterface.performCmd('sendMap')
+                if self.command == 'select' and self.value != []:
+                    mapping_maps.select_saved(mapping_maps.saved[mapping_maps.saved['name'] == self.value[0]])
+                    self.create_maps_coords_payload()
+                    self.publish('mapsCoords', self.coordsstate_json)
+                if self.command == 'select' and self.value == []:
+                    mapping_maps.init()
+                    self.publish('mapsCoords', json.dumps(dict()))
             except Exception as e:
-                logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
-                logger.debug(f'{e}')
+                logger.error(f'Geojson maps export failed. Aborting')
+                logger.error(f'{e}')
 
     def perform_robot_cmd(self, buffer) -> None:
         try:

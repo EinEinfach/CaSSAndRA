@@ -579,6 +579,39 @@ class Perimeters:
                 perimeter_df = pd.concat([perimeter_df, coords], ignore_index=True)
         return perimeter_df
     
+    def maps_to_geojson(self) -> dict:
+        try:
+            logger.info('Exporting map to geojson')
+            perimeter_for_export = self.create_perimeter_for_plot(self.build_cpy)
+            geojson = dict(type="FeatureCollection", features=[])
+            if not perimeter_for_export.empty:
+                #perimeter
+                coords = perimeter_for_export[perimeter_for_export['type'] == 'perimeter']
+                value = dict(type="Feature", properties=dict(name="perimeter"), geometry=dict(dict(type="Polygon", coordinates=[coords[['X', 'Y']].values.tolist()])))
+                geojson['features'].append(value)
+                #dockpoints
+                coords = perimeter_for_export[perimeter_for_export['type'] == 'dockpoints']
+                value = dict(type="Feature", properties=dict(name="dockpoints"), geometry=dict(dict(type="LineString", coordinates=coords[['X', 'Y']].values.tolist())))
+                geojson['features'].append(value)
+                #search wire
+                coords = perimeter_for_export[perimeter_for_export['type'] == 'search wire']
+                value = dict(type="Feature", properties=dict(name="search wire"), geometry=dict(dict(type="LineString", coordinates=coords[['X', 'Y']].values.tolist())))
+                geojson['features'].append(value)
+                #exclusions
+                filtered = perimeter_for_export[(perimeter_for_export['type'] != 'perimeter') & (perimeter_for_export['type'] != 'dockpoints') & (perimeter_for_export['type'] != 'search wire')]
+                for i, exclusion in enumerate(filtered['type'].unique()):
+                    coords = perimeter_for_export[perimeter_for_export['type'] == exclusion]
+                    value = dict(type="Feature", properties=dict(name="exclusion"), idx=i, geometry=dict(dict(type="Polygon", coordinates=[coords[['X', 'Y']].values.tolist()])))
+                    geojson['features'].append(value)
+            else:
+               value = dict(type="Feature", properties=dict(name="perimeter"), geometry=dict(dict(type="Polygon", coordinates=[]))) 
+               geojson['features'].append(value)
+            return geojson
+        except Exception as e:
+            logger.error('Could not export map coords to gejson')
+            logger.error(f'{e}')
+            return dict()
+    
     def export_geojson(self) -> str:
         try:
             logger.info('Exporting selected map to geojson')

@@ -37,11 +37,11 @@ def create_figure(bdlp_n_clicks: int,
                   bswa_n_clicks: int,
                   bpa_n_clicks: int, 
                   bpd_n_clicks: int, 
-                  map_figure: dict(), 
+                  map_figure: dict, 
                   bha_state: bool,
                   bswa_state: bool,
                   bmp_state: bool
-                  ) -> list():
+                  ) -> list:
     context = ctx.triggered_id
     #Check if map is loaded
     if mapping_maps.selected == 'from upload' or bmp_state:
