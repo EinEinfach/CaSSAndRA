@@ -561,6 +561,48 @@ class Perimeters:
                 self.imported = pd.DataFrame()
                 return
     
+    def import_api_map(self, content: dict) -> list:
+        logger.info(f'Received new map data over api')
+        try:
+            perimeter = pd.DataFrame()
+            map_name =  content['features'][0]['properties']['name']
+            exclusion_nr = 0
+            for feature in content['features']:
+                if feature['properties']['name'] == 'perimeter':
+                    df = pd.DataFrame(feature['geometry']['coordinates'])
+                    df.columns = ['X', 'Y']
+                    df['type'] = 'perimeter'
+                    #df = df.head(-1)
+                    perimeter = pd.concat([perimeter, df], ignore_index=True)
+                if feature['properties']['name'] == 'exclusion':
+                    df = pd.DataFrame(feature['geometry']['coordinates'])
+                    df.columns = ['X', 'Y']
+                    df['type'] = f'exclusion_{exclusion_nr}'
+                    #df = df.head(-1)
+                    perimeter = pd.concat([perimeter, df], ignore_index=True)
+                    exclusion_nr += 1
+                if feature['properties']['name'] == 'dockPath':
+                    df = pd.DataFrame(feature['geometry']['coordinates'])
+                    df.columns = ['X', 'Y']
+                    df['type'] = 'dockpoints'
+                    perimeter = pd.concat([perimeter, df], ignore_index=True)
+                if feature['properties']['name'] == 'searchWire':
+                    df = pd.DataFrame(feature['geometry']['coordinates'])
+                    df.columns = ['X', 'Y']
+                    df['type'] = 'search wire'
+                    perimeter = pd.concat([perimeter, df], ignore_index=True)
+            if self.saved[self.saved['name'] == map_name].empty:
+                res = [0, perimeter, map_name]
+                return res
+            else:
+                logger.warning('The map name is already exist. Aborting')
+                return [1, pd.DataFrame(), map_name]
+        except Exception as e:
+            logger.error('Received mapd data is invalid. Aborting')
+            logger.error(str(e))
+            return [-1, pd.DataFrame(), None]
+
+    
     def create_perimeter_for_plot(self, data_to_plot: pd.DataFrame) -> pd.DataFrame:
         perimeter_df = pd.DataFrame()
         #Add first value to the end, if perimeter or exclusion
@@ -582,7 +624,7 @@ class Perimeters:
     def maps_to_geojson(self) -> dict:
         try:
             logger.info('Exporting map to geojson')
-            perimeter_for_export = self.create_perimeter_for_plot(self.build_cpy)
+            perimeter_for_export = self.build_cpy
             geojson = dict(type="FeatureCollection", features=[])
             if not perimeter_for_export.empty:
                 #perimeter

@@ -8,6 +8,7 @@ import pandas as pd
 from .. data.mapdata import current_map, current_task, mapping_maps, tasks
 from .. data.scheduledata import schedule_tasks
 from .. data.cfgdata import schedulecfg, pathplannercfgapi, commcfg, rovercfg
+from .. data import saveddata
 from .. map import path, map
 from .. comm.connections import mqttapi
 from .. comm.messageservice import messageservice
@@ -223,7 +224,7 @@ class API:
         return 
     
     def check_maps_cmd(self, buffer: dict) -> None:
-        allowed_cmds = ['select', 'load']
+        allowed_cmds = ['select', 'load', 'save', 'remove', 'rename']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -443,6 +444,19 @@ class API:
                 if self.command == 'select' and self.value == []:
                     mapping_maps.init()
                     self.publish('mapsCoords', json.dumps(dict()))
+                if self.command == 'remove':
+                    saveddata.remove_perimeter(mapping_maps.saved, value[0], tasks.saved, tasks.saved_parameters)
+                    if value[0] == current_map.name:
+                        current_map.clear_map()
+                        schedule_tasks.create()
+                        schedulecfg.reset_schedulecfg()
+                if self.command == 'save':
+                    res = mapping_maps.import_api_map(value)
+                    if res[0] == 0:
+                        saveddata.save_perimeter(mapping_maps.saved, res[1], res[2])
+                if self.command == 'rename':
+                    saveddata.rename_perimeter(value[0], value[1])
+                        
             except Exception as e:
                 logger.error(f'Geojson maps export failed. Aborting')
                 logger.error(f'{e}')
