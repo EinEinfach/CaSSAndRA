@@ -2,7 +2,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from dataclasses import dataclass, field
-import json
+import json, time
 import pandas as pd
 
 from .. data.mapdata import current_map, current_task, mapping_maps, tasks
@@ -39,6 +39,8 @@ class API:
     command: str = ''
     value: list = field(default_factory=list)
     restart_server: bool = False
+    shutdown_server: bool = False
+    check_auto_shutdown: bool = False
 
     def create_api_payload(self) -> None:
         self.apistate = 'ready'
@@ -57,6 +59,7 @@ class API:
         self.robotstate['secondsPerIdx'] = robot.seconds_per_idx
         self.robotstate['speed'] = robot.speed
         self.robotstate['averageSpeed'] = robot.average_speed
+        self.robotstate['mowMotorActive'] = robot.last_mow_status
         self.robotstate_json = json.dumps(self.robotstate)
 
     def create_maps_payload(self) -> None:
@@ -238,7 +241,11 @@ class API:
         return 
 
     def check_robot_cmd(self, buffer: dict) ->  None:
-        allowed_cmds = ['mow', 'stop', 'dock', 'move', 'reboot', 'shutdown', 'set mow speed', 'set goto speed', 'set mow progress', 'go to']
+        allowed_cmds = ['mow', 'stop', 'dock', 
+                        'move', 'reboot', 'rebootGps', 
+                        'shutdown', 'setMowSpeed', 'setGoToSpeed', 
+                        'setMowProgress', 'goTo', 'toggleMowMotor',
+                        'skipNextPoint']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -332,7 +339,7 @@ class API:
                 logger.debug(str(e))
     
     def check_map_cmd(self, buffer) -> None:
-        allowed_values = ['setSelection', 'setMowParameters', 'resetObstacles']
+        allowed_values = ['setSelection', 'setMowParameters', 'resetObstacles', 'resetRoute']
         command = list(set([buffer['command']]).intersection(allowed_values))
         if command != []:
             if command[0] == 'setSelection':
@@ -341,6 +348,8 @@ class API:
                 self.perform_mow_parameters_cmd(buffer)
             elif command[0] == 'resetObstacles':
                 self.perform_reset_obstacles_cmd()
+            elif command[0] == 'resetRoute':
+                current_map.clear_route_mowpath()
         else:
             logger.info(f'No valid command in api message found. Allowed commands: {allowed_values}. Aborting')
     
@@ -375,14 +384,20 @@ class API:
             logger.info(f'No valid api message for settings command. Aborting')
     
     def check_server_cmd(self, buffer) -> None:
-        allowed_values = ['restart', 'sendMessage']
+        allowed_values = ['shutdown', 'restart', 'sendMessage']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_values))
             if command == []:
                 logger.info(f'No valid value in api message found. Allowed commands: {allowed_values}. Aborting')
             else:
-                if command[0] == 'restart':
+                if command[0] == 'shutdown':
+                    if commcfg.use == 'UART':
+                        robotInterface.performCmd('shutdown')
+                        self.check_auto_shutdown = True
+                    else:
+                        self.shutdown_server = True
+                elif command[0] == 'restart':
                     self.restart_server = True
                 elif command[0] == 'sendMessage' and 'value' in buffer:
                     messageservice.send_message(buffer['value'][0])
@@ -464,40 +479,42 @@ class API:
     def perform_robot_cmd(self, buffer) -> None:
         try:
             if self.command == 'stop':
-                # cmdlist.cmd_stop = True
                 robotInterface.performCmd('stop')
             elif self.command == 'dock':
-                # cmdlist.cmd_dock = True
                 robotInterface.performCmd('dock')
             elif self.command == 'mow':
                 self.value = buffer['value'][0]
                 self.perform_mow_cmd()
-            elif self.command == 'go to':
+            elif self.command == 'goTo':
                 self.value = buffer['value']
                 self.perform_goto_cmd()
             elif self.command == 'move':
                 robot.cmd_move_lin = buffer['value'][0]
                 robot.cmd_move_ang = buffer['value'][1]
-                # cmdlist.cmd_move = True
                 robotInterface.performCmd('move')
             elif self.command == 'reboot':
-                # cmdlist.cmd_reboot = True
                 robotInterface.performCmd('reboot')
+            elif self.command == 'rebootGps':
+                robotInterface.performCmd('gpsReboot')
             elif self.command == 'shutdown':
-                # cmdlist.cmd_shutdown = True
                 robotInterface.performCmd('shutdown')
-            elif self.command == 'set mow speed':
+                self.check_auto_shutdown = True
+            elif self.command == 'setMowSpeed':
                 robot.mowspeed_setpoint = buffer['value'][0]
-                # cmdlist.cmd_changemowspeed = True
                 robotInterface.performCmd('changeMowSpeed')
-            elif self.command == 'set goto speed':
+            elif self.command == 'setGoToSpeed':
                 robot.gotospeed_setpoint = buffer['value'][0]
-                # cmdlist.cmd_changegotospeed = True
                 robotInterface.performCmd('changeGoToSpeed')
-            elif self.command == 'set mow progress':
+            elif self.command == 'setMowProgress':
                 robot.mowprogress = buffer['value'][0]
-                # cmdlist.cmd_skiptomowprogress = True
                 robotInterface.performCmd('skipToMowProgress')
+            elif self.command == 'toggleMowMotor':
+                robotInterface.performCmd('toggleMowMotor')
+            elif self.command == 'skipNextPoint':
+                robotInterface.performCmd('stop')
+                robotInterface.performCmd('skipNextPoint')
+                time.sleep(3)
+                robotInterface.performCmd('resume')
             else:
                 logger.warning(f'No valid command in api message found. Aborting')
         except Exception as e:
@@ -508,6 +525,7 @@ class API:
         allowed_values = ['resume', 'task', 'all', 'selection']
         if self.value == 'resume':
             #cmdlist.cmd_resume = True
+            current_map.reset_route_mowpath()
             robotInterface.performCmd('resume')
         elif self.value == 'task':
             if self.tasksstate['selected'] != []:
@@ -558,6 +576,7 @@ class API:
                 current_map.gotopoint = pd.DataFrame(self.value)
                 current_map.gotopoint.columns = ['X', 'Y']
                 current_map.gotopoint['type'] = 'way'
+                current_map.clear_route_mowpath()
                 #cmdlist.cmd_goto = True
                 robotInterface.performCmd('goTo')
             except Exception as e:

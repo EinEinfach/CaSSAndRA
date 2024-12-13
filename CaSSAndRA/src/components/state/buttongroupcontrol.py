@@ -128,7 +128,7 @@ def perfom_cmd(n_clicks_bgo: int,
             # cmdlist.cmd_goto = True
             robotInterface.performCmd('goTo')
         else:
-            current_map.mowpath = robot.current_task
+            current_map.reset_route_mowpath()
             # cmdlist.cmd_resume = True
             robotInterface.performCmd('resume')
     

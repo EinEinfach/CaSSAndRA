@@ -167,7 +167,7 @@ class RobotInterface:
         elif cmd == 'skipNextPoint':
             self._cmdSkipNextPoint()
         elif cmd == 'skipToMowProgress':
-            self._cmdSkipToMowProgress
+            self._cmdSkipToMowProgress()
         elif cmd == 'setPositionMode':
             self._cmdSetPositionMode()
         elif cmd == 'toggleMowMotor':
@@ -340,7 +340,9 @@ class RobotInterface:
         robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
     
     def _cmdSkipToMowProgress(self) -> None:
-        self.setRobotCmds(sunraycommstack.skiptomowprogress(robot.mowprogress))
+        cmd = sunraycommstack.skiptomowprogress(robot.mowprogress)
+        self.setRobotCmds(cmd)
+        robot.last_mow_status = False
 
     def _cmdCustom(self) -> None:
         self.setRobotCmds(sunraycommstack.custom())

@@ -263,6 +263,10 @@ class Mower:
             self.dock_reason_time = datetime.now()
     
     def set_robot_status(self, status: str, status_tmp = None) -> None:
+        # set mow status to false if docking triggered (avoid wrong state if docking triggered from sunray fw)
+        if self.status != 'docking' and status == 'docking':
+            self.last_mow_status = False
+        # set status and tmp status
         self.status = status
         if status_tmp != None:
             self.status_tmp = status_tmp

@@ -14,7 +14,6 @@ from logging.handlers import RotatingFileHandler
 
 # local imports
 from src.pathdata import paths
-from src.backend import backendserver
 from src.backend.server import cassandra
 
 # logging setup

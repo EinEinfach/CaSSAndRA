@@ -85,6 +85,12 @@ class Server:
                 mqttapi.disconnect()
                 self.reboot()
                 return
+            if cassandra_api.check_auto_shutdown:
+                cassandra_api.check_auto_shutdown = False
+                self.autoShutdown()
+            if cassandra_api.shutdown_server:
+                cassandra_api.shutdown_server = False
+                self.shutdown()
             if self.restart.is_set():
                 logger.info('API thread is stopped')
                 mqttapi.disconnect()
@@ -262,6 +268,7 @@ class Server:
         time.sleep(5)
         self.restart.clear()
         self.setup(paths.file_paths)
+        self.run()
 
     def stop(self) -> None:
         logger.info('Server is being shut down')
@@ -275,10 +282,13 @@ class Server:
                     data_storage_running = True
         self.restart.clear()
 
-    def shutdown() -> None:
+    def autoShutdown(self) -> None:
         if cfgdata.commcfg.use == 'UART':
-            logger.info('OS will shut down.')
-            os.system('sudo shutdown now') 
+            self.shutdown()
+    
+    def shutdown(self) -> None:
+        logger.info('OS will shutdown.')
+        os.system('sudo shutdown -h now')
         
     def _setupRobotConnection(self) -> None:
         if cfgdata.commcfg.use == 'MQTT':

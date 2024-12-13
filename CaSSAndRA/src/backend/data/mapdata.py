@@ -61,6 +61,7 @@ class Perimeter:
     total_tasks: int = 0
 
     def set_gotopoint(self, clickdata: dict) -> None:
+        self.clear_route_mowpath()
         goto = {'X':[clickdata['points'][0]['x']], 'Y':[clickdata['points'][0]['y']], 'type': ['way']}
         self.gotopoint = pd.DataFrame(goto)
 
@@ -257,6 +258,16 @@ class Perimeter:
         self.mowpath['type'] = 'way'
         self.mowpathId = str(uuid.uuid4())
     
+    def reset_route_mowpath(self) -> None:
+        self.mowpath = robot.current_task
+        self.mowpathId = str(uuid.uuid4())
+    
+    def clear_route_mowpath(self) -> None:
+        self.mowpath = pd.DataFrame()
+        self.preview = pd.DataFrame()
+        self.mowpathId = str(uuid.uuid4())
+        self.previewId = str(uuid.uuid4())
+    
     def add_obstacles(self, data: pd.DataFrame) -> None:
         self.obstacles = data
         self.obstaclesId = str(uuid.uuid4())
@@ -320,8 +331,8 @@ class Perimeter:
                 self.distance_perc = round((self.finished_distance/self.distance)*100)
                 self.idx_perc = round((self.finished_idx/self.idx)*100)
             except Exception as e:
-                logger.warning('Backend: Calculation of mow progress failed')
-                logger.debug(str(e))
+                logger.error('Backend: Calculation of mow progress failed')
+                logger.error(str(e))
                 self.finished_distance = 0
                 self.distance = 0
                 self.distance_perc = 0

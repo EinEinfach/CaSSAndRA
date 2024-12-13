@@ -5,7 +5,7 @@ import time
 
 from .. import ids
 from . import buttons
-from src.backend import backendserver
+from src.backend.server import cassandra
 from src.backend.data import appdata
 from src.backend.data.cfgdata import rovercfg, pathplannercfg, appcfg, commcfg
 from src.backend.comm.robotinterface import robotInterface
@@ -452,7 +452,7 @@ def update_connection_data(bsr_n_clicks: int,
             commcfg.pushover_user = pushoveruser
         
         commcfg.save_commcfg()
-        backendserver.reboot()
+        cassandra.reboot()
         return False
 
     if context == ids.BUTTONSAVEANDREBOOT:

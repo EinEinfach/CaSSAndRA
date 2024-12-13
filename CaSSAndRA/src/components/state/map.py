@@ -140,8 +140,7 @@ def handle_buttons(
                current_map.add_obstacles(pd.DataFrame())
           else:
                current_map.gotopoint = pd.DataFrame()
-               current_map.preview = pd.DataFrame()
-               current_map.mowpath = pd.DataFrame()
+               current_map.clear_route_mowpath()
                current_task.subtasks = pd.DataFrame()
                current_task.subtasks_parameters = pd.DataFrame()
                current_map.plotgotopoints = False
