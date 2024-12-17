@@ -5,6 +5,7 @@ import math
 from . import ids
 from src.backend.comm import cmdlist
 from src.backend.data.roverdata import robot
+from src.backend.comm.robotinterface import robotInterface
 
 
 @callback(Output(ids.LINEAR_SPEED, 'children'),
@@ -18,9 +19,10 @@ def update_output(angle, force):
     force_x = round(math.sin(math.radians(angle))*force, 2)
     force_y = -1*round(math.cos(math.radians(angle))*force, 2)
     if context == ids.JOYSTICK:
-        cmdlist.cmd_move = True
         robot.cmd_move_lin = force_x
         robot.cmd_move_ang = force_y
+        # cmdlist.cmd_move = True
+        robotInterface.performCmd('move')
     return f'{force_x}', f'{force_y}'
     
 joystick = Joystick(id=ids.JOYSTICK, size=230, angle=0, force=0)

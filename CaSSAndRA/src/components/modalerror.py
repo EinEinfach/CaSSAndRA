@@ -2,8 +2,7 @@ from dash import html, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
 
 from . import ids
-from src.backend.comm import cmdlist
-from src.backend.utils import debuglogger
+from src.backend.data import appdata
 
 okbuttonmapuploadfailed = dbc.Button('OK', id=ids.OKBUTTONMAPUPLOADFAILED, class_name='ms-auto', n_clicks=0)
 
@@ -24,8 +23,8 @@ mapuploadfailed = dbc.Modal(
 def check_mapupload(n_intervals: int, bok_n_clicks: int, is_open: bool) -> bool:
     context = ctx.triggered_id
     if context == ids.INTERVAL:
-        return cmdlist.cmd_failed
+        return appdata.cmdTransmissionFailed
     if bok_n_clicks:
-        cmdlist.cmd_failed = False
+        appdata.cmdTransmissionFailed = False
         return not is_open
     return is_open

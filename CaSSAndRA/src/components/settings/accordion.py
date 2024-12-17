@@ -5,9 +5,10 @@ import time
 
 from .. import ids
 from . import buttons
-from src.backend import backendserver
+from src.backend.server import cassandra
 from src.backend.data import appdata
 from src.backend.data.cfgdata import rovercfg, pathplannercfg, appcfg, commcfg
+from src.backend.comm.robotinterface import robotInterface
 from src.backend.comm import cmdlist
 from src.backend.comm.messageservice import messageservice
 
@@ -451,7 +452,7 @@ def update_connection_data(bsr_n_clicks: int,
             commcfg.pushover_user = pushoveruser
         
         commcfg.save_commcfg()
-        backendserver.reboot()
+        cassandra.reboot()
         return False
 
     if context == ids.BUTTONSAVEANDREBOOT:
@@ -600,7 +601,8 @@ def update_robotsettings_data(
         rovercfg.fix_timeout = fixtimeout
         rovercfg.finish_and_restart = finishandrestart
         res = rovercfg.save_rovercfg()
-        cmdlist.cmd_set_positionmode = True
+        # cmdlist.cmd_set_positionmode = True
+        robotInterface.performCmd('setPositionMode')
     if bsrs_nclicks or bok_nclicks:
         return not is_open
     return is_open

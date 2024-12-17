@@ -6,6 +6,7 @@ import time
 #locale imports
 from . import joystick, ids
 from ..backend.data.roverdata import robot
+from ..backend.comm.robotinterface import robotInterface
 from ..backend.data.cfgdata import rovercfg
 from ..backend.comm import cmdlist
 
@@ -137,16 +138,20 @@ def update_speed_setpoint(bs_nclicks, bf_nclicks) -> str:
     context = ctx.triggered_id
     if context == ids.BUTTONSLOWER and robot.status == 'mow':
         robot.change_speed('mow', -0.01)
-        cmdlist.cmd_changemowspeed = True
+        # cmdlist.cmd_changemowspeed = True
+        robotInterface.performCmd('changeMowSpeed')
     elif context == ids.BUTTONSLOWER and robot.status == 'transit':
         robot.change_speed('goto', -0.01)
-        cmdlist.cmd_changegotospeed = True
+        # cmdlist.cmd_changegotospeed = True
+        robotInterface.performCmd('changeGoToSpeed')
     elif context == ids.BUTTONFASTER and robot.status == 'mow':
         robot.change_speed('mow', 0.01)
-        cmdlist.cmd_changemowspeed = True
+        # cmdlist.cmd_changemowspeed = True
+        robotInterface.performCmd('changeMowSpeed')
     elif context == ids.BUTTONFASTER and robot.status == 'transit':
         robot.change_speed('goto', 0.01)
-        cmdlist.cmd_changegotospeed = True
+        #cmdlist.cmd_changegotospeed = True
+        robotInterface.performCmd('changeGoToSpeed')
     
     return False, False
 
@@ -168,11 +173,14 @@ def update_display_speed_setpoint(bs_active: bool, bf_active: bool, nintervals: 
 def update_next_point(bnp_nclicks: int) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONNEXTPOINT:
-        cmdlist.cmd_stop = True
+        # cmdlist.cmd_stop = True
+        robotInterface.performCmd('stop')
         time.sleep(1)
-        cmdlist.cmd_skipnextpoint = True
+        # cmdlist.cmd_skipnextpoint = True
+        robotInterface.performCmd('skipNextPoint')
         time.sleep(0.5)
-        cmdlist.cmd_resume = True
+        # cmdlist.cmd_resume = True
+        robotInterface.performCmd('resume')
     return False
 
 @callback(Output(ids.MOWPERCENTAGE, 'value'),
@@ -187,7 +195,8 @@ def update_mowprogress(
     context = ctx.triggered_id
     if context == ids.MOWPERCENTAGE:
         robot.mowprogress = round(mowprogress/100, 3)
-        cmdlist.cmd_skiptomowprogress = True
+        # cmdlist.cmd_skiptomowprogress = True
+        robotInterface.performCmd('skipToMowProgress')
         return mowprogress
     elif context == ids.OFFCANVAS and is_open:
         return round(robot.mowprogress*100, 1)

@@ -2,16 +2,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 from dataclasses import dataclass, field
-import json
+import json, time
 import pandas as pd
 
 from .. data.mapdata import current_map, current_task, mapping_maps, tasks
 from .. data.scheduledata import schedule_tasks
-from .. data.cfgdata import schedulecfg, pathplannercfgapi, commcfg
+from .. data.cfgdata import schedulecfg, pathplannercfgapi, commcfg, rovercfg
+from .. data import saveddata
 from .. map import path, map
-from .. comm import cmdlist
 from .. comm.connections import mqttapi
+from .. comm.messageservice import messageservice
 from .. data.roverdata import robot
+from .robotinterface import robotInterface
 
 from icecream import ic
 
@@ -37,11 +39,15 @@ class API:
     command: str = ''
     value: list = field(default_factory=list)
     restart_server: bool = False
+    shutdown_server: bool = False
+    check_auto_shutdown: bool = False
 
     def create_api_payload(self) -> None:
         self.apistate = 'ready'
-
+    
     def create_robot_payload(self) -> None:
+        self.robotstate['firmware'] = robot.fw
+        self.robotstate['version'] = robot.fw_version
         self.robotstate['status'] = robot.status
         self.robotstate['dockReason'] = robot.dock_reason
         self.robotstate['battery'] = dict(soc=robot.soc, voltage=robot.battery_voltage, electricCurrent=robot.amps)
@@ -53,6 +59,7 @@ class API:
         self.robotstate['secondsPerIdx'] = robot.seconds_per_idx
         self.robotstate['speed'] = robot.speed
         self.robotstate['averageSpeed'] = robot.average_speed
+        self.robotstate['mowMotorActive'] = robot.last_mow_status
         self.robotstate_json = json.dumps(self.robotstate)
 
     def create_maps_payload(self) -> None:
@@ -122,6 +129,10 @@ class API:
         self.coordsstate = tasks.task_to_gejson(task_name)
         self.coordsstate_json = json.dumps(self.coordsstate)
     
+    def create_maps_coords_payload(self) -> None:
+        self.coordsstate = mapping_maps.maps_to_geojson()
+        self.coordsstate_json = json.dumps(self.coordsstate)
+    
     def create_settings_payload(self) -> None:
         self.settingsstate['robotConnectionType'] = commcfg.use
         self.settingsstate['httpRobotIpAdress'] = commcfg.http_ip
@@ -141,6 +152,17 @@ class API:
         self.settingsstate['apiMqttServer'] = commcfg.api_mqtt_server
         self.settingsstate['apiMqttCassandraServerName'] = commcfg.api_mqtt_cassandra_server_name
         self.settingsstate['apiMqttPort'] = commcfg.api_mqtt_port
+        self.settingsstate['messageServiceType'] = commcfg.message_service
+        self.settingsstate['telegramApiToken'] = commcfg.telegram_token
+        self.settingsstate['telegramChatId'] = commcfg.telegram_chat_id
+        self.settingsstate['pushoverApiToken'] = commcfg.pushover_token
+        self.settingsstate['pushoverAppName'] = commcfg.pushover_user
+        self.settingsstate['robotPositionMode'] = rovercfg.positionmode
+        self.settingsstate['longtitude'] = rovercfg.lon
+        self.settingsstate['latitude'] = rovercfg.lat
+        self.settingsstate['transitSpeedSetPoint'] = rovercfg.gotospeed_setpoint
+        self.settingsstate['mowSpeedSetPoint'] = rovercfg.mowspeed_setpoint
+        self.settingsstate['fixTimeout'] = rovercfg.fix_timeout
         self.settingsstate_json = json.dumps(self.settingsstate)
         
     def update_payload(self) -> None:
@@ -205,7 +227,7 @@ class API:
         return 
     
     def check_maps_cmd(self, buffer: dict) -> None:
-        allowed_cmds = ['select', 'load']
+        allowed_cmds = ['select', 'load', 'save', 'remove', 'rename']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -219,7 +241,11 @@ class API:
         return 
 
     def check_robot_cmd(self, buffer: dict) ->  None:
-        allowed_cmds = ['mow', 'stop', 'dock', 'move', 'reboot', 'shutdown', 'set mow speed', 'set goto speed', 'set mow progress', 'go to']
+        allowed_cmds = ['mow', 'stop', 'dock', 
+                        'move', 'reboot', 'rebootGps', 
+                        'shutdown', 'setMowSpeed', 'setGoToSpeed', 
+                        'setMowProgress', 'goTo', 'toggleMowMotor',
+                        'skipNextPoint']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -313,7 +339,7 @@ class API:
                 logger.debug(str(e))
     
     def check_map_cmd(self, buffer) -> None:
-        allowed_values = ['setSelection', 'setMowParameters', 'resetObstacles']
+        allowed_values = ['setSelection', 'setMowParameters', 'resetObstacles', 'resetRoute']
         command = list(set([buffer['command']]).intersection(allowed_values))
         if command != []:
             if command[0] == 'setSelection':
@@ -322,6 +348,8 @@ class API:
                 self.perform_mow_parameters_cmd(buffer)
             elif command[0] == 'resetObstacles':
                 self.perform_reset_obstacles_cmd()
+            elif command[0] == 'resetRoute':
+                current_map.clear_route_mowpath()
         else:
             logger.info(f'No valid command in api message found. Allowed commands: {allowed_values}. Aborting')
     
@@ -339,7 +367,7 @@ class API:
             logger.info(f'No valid api message for coords command. Aborting')
     
     def check_settings_cmd(self, buffer) -> None:
-        allowed_values = ['update', 'setComm']
+        allowed_values = ['update', 'setComm', 'setRover']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_values))
@@ -350,19 +378,29 @@ class API:
                     self.perform_settings_update_cmd()
                 elif command [0] == 'setComm':
                     self.perform_set_comm_settings_cmd(buffer)
+                elif command[0] == 'setRover':
+                    self.perform_set_rover_settings_cmd(buffer)
         else:
             logger.info(f'No valid api message for settings command. Aborting')
     
     def check_server_cmd(self, buffer) -> None:
-        allowed_values = ['restart']
+        allowed_values = ['shutdown', 'restart', 'sendMessage']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_values))
             if command == []:
                 logger.info(f'No valid value in api message found. Allowed commands: {allowed_values}. Aborting')
             else:
-                if command[0] == 'restart':
+                if command[0] == 'shutdown':
+                    if commcfg.use == 'UART':
+                        robotInterface.performCmd('shutdown')
+                        self.check_auto_shutdown = True
+                    else:
+                        self.shutdown_server = True
+                elif command[0] == 'restart':
                     self.restart_server = True
+                elif command[0] == 'sendMessage' and 'value' in buffer:
+                    messageservice.send_message(buffer['value'][0])
         else:
             logger.info(f'No valid api message for server command. Aborting')
 
@@ -394,7 +432,8 @@ class API:
                         path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
                         current_map.calculating = False
                         current_map.calc_route_mowpath()
-                        cmdlist.cmd_take_map = True
+                        #cmdlist.cmd_take_map = True
+                        robotInterface.performCmd('sendMap')
             except Exception as e:
                 logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
                 logger.debug(f'{e}')
@@ -402,53 +441,80 @@ class API:
     def perform_maps_cmd(self, buffer: dict) -> None:
         if 'value' in buffer:
             value = buffer['value']
-            allowed_values = list(mapping_maps.saved['name'].unique())
             try:
                 self.value = list(set(value).intersection(list(mapping_maps.saved['name'].unique())))
-                if self.value == []:
-                    logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
-                else:
-                    if self.command == 'load':
-                        selected = mapping_maps.saved[mapping_maps.saved['name'] == self.value[0]] 
-                        current_map.perimeter = selected
-                        current_map.create(self.value[0])
-                        current_task.create()
+                if self.command == 'load' and self.value != []:
+                    selected = mapping_maps.saved[mapping_maps.saved['name'] == self.value[0]] 
+                    current_map.perimeter = selected
+                    current_map.create(self.value[0])
+                    current_task.create()
+                    schedule_tasks.create()
+                    schedulecfg.reset_schedulecfg()
+                    #cmdlist.cmd_take_map = True
+                    robotInterface.performCmd('sendMap')
+                if self.command == 'select' and self.value != []:
+                    mapping_maps.select_saved(mapping_maps.saved[mapping_maps.saved['name'] == self.value[0]])
+                    self.create_maps_coords_payload()
+                    self.publish('mapsCoords', self.coordsstate_json)
+                if self.command == 'select' and self.value == []:
+                    mapping_maps.init()
+                    self.publish('mapsCoords', json.dumps(dict()))
+                if self.command == 'remove':
+                    saveddata.remove_perimeter(mapping_maps.saved, value[0], tasks.saved, tasks.saved_parameters)
+                    if value[0] == current_map.name:
+                        current_map.clear_map()
                         schedule_tasks.create()
                         schedulecfg.reset_schedulecfg()
-                        cmdlist.cmd_take_map = True
+                if self.command == 'save':
+                    res = mapping_maps.import_api_map(value)
+                    if res[0] == 0:
+                        saveddata.save_perimeter(mapping_maps.saved, res[1], res[2])
+                if self.command == 'rename':
+                    saveddata.rename_perimeter(value[0], value[1])
+                        
             except Exception as e:
-                logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
-                logger.debug(f'{e}')
+                logger.error(f'Geojson maps export failed. Aborting')
+                logger.error(f'{e}')
 
     def perform_robot_cmd(self, buffer) -> None:
         try:
             if self.command == 'stop':
-                cmdlist.cmd_stop = True
+                robotInterface.performCmd('stop')
             elif self.command == 'dock':
-                cmdlist.cmd_dock = True
+                robotInterface.performCmd('dock')
             elif self.command == 'mow':
                 self.value = buffer['value'][0]
                 self.perform_mow_cmd()
-            elif self.command == 'go to':
+            elif self.command == 'goTo':
                 self.value = buffer['value']
                 self.perform_goto_cmd()
             elif self.command == 'move':
                 robot.cmd_move_lin = buffer['value'][0]
                 robot.cmd_move_ang = buffer['value'][1]
-                cmdlist.cmd_move = True
+                robotInterface.performCmd('move')
             elif self.command == 'reboot':
-                cmdlist.cmd_reboot = True
+                robotInterface.performCmd('reboot')
+            elif self.command == 'rebootGps':
+                robotInterface.performCmd('gpsReboot')
             elif self.command == 'shutdown':
-                cmdlist.cmd_shutdown = True
-            elif self.command == 'set mow speed':
+                robotInterface.performCmd('shutdown')
+                self.check_auto_shutdown = True
+            elif self.command == 'setMowSpeed':
                 robot.mowspeed_setpoint = buffer['value'][0]
-                cmdlist.cmd_changemowspeed = True
-            elif self.command == 'set goto speed':
+                robotInterface.performCmd('changeMowSpeed')
+            elif self.command == 'setGoToSpeed':
                 robot.gotospeed_setpoint = buffer['value'][0]
-                cmdlist.cmd_changegotospeed = True
-            elif self.command == 'set mow progress':
+                robotInterface.performCmd('changeGoToSpeed')
+            elif self.command == 'setMowProgress':
                 robot.mowprogress = buffer['value'][0]
-                cmdlist.cmd_skiptomowprogress = True
+                robotInterface.performCmd('skipToMowProgress')
+            elif self.command == 'toggleMowMotor':
+                robotInterface.performCmd('toggleMowMotor')
+            elif self.command == 'skipNextPoint':
+                robotInterface.performCmd('stop')
+                robotInterface.performCmd('skipNextPoint')
+                time.sleep(3)
+                robotInterface.performCmd('resume')
             else:
                 logger.warning(f'No valid command in api message found. Aborting')
         except Exception as e:
@@ -458,7 +524,9 @@ class API:
     def perform_mow_cmd(self) -> None:
         allowed_values = ['resume', 'task', 'all', 'selection']
         if self.value == 'resume':
-            cmdlist.cmd_resume = True
+            #cmdlist.cmd_resume = True
+            current_map.reset_route_mowpath()
+            robotInterface.performCmd('resume')
         elif self.value == 'task':
             if self.tasksstate['selected'] != []:
                 current_map.task_progress = 0
@@ -466,7 +534,8 @@ class API:
                 path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
                 current_map.calculating = False
                 current_map.calc_route_mowpath()
-                cmdlist.cmd_mow = True
+                robotInterface.performCmd('mow')
+                # cmdlist.cmd_mow = True
             else:
                 logger.info(f'No selected tasks found')
         elif self.value == 'all':
@@ -480,7 +549,8 @@ class API:
                 current_map.calc_route_preview(route) 
             current_map.calculating = False
             current_map.calc_route_mowpath()
-            cmdlist.cmd_mow = True
+            robotInterface.performCmd('mow')
+            # cmdlist.cmd_mow = True
         elif self.value == 'selection':
             if 'selection' in self.mapstate:
                 current_map.selected_perimeter = map.selection(current_map.perimeter_polygon, self.mapstate['selection'])
@@ -493,7 +563,8 @@ class API:
                     current_map.areatomow = round(current_map.selected_perimeter.area)
                 current_map.calculating = False
                 current_map.calc_route_mowpath()
-                cmdlist.cmd_mow = True
+                robotInterface.performCmd('mow')
+                # cmdlist.cmd_mow = True
             else:
                 logger.info(f'No selection found')
         else:
@@ -505,7 +576,9 @@ class API:
                 current_map.gotopoint = pd.DataFrame(self.value)
                 current_map.gotopoint.columns = ['X', 'Y']
                 current_map.gotopoint['type'] = 'way'
-                cmdlist.cmd_goto = True
+                current_map.clear_route_mowpath()
+                #cmdlist.cmd_goto = True
+                robotInterface.performCmd('goTo')
             except Exception as e:
                 logger.info('Go to point invalid')
                 logger.debug(str(e))
@@ -586,12 +659,44 @@ class API:
                     commcfg.api_mqtt_cassandra_server_name = buffer[key]
                 if key == 'apiMqttPort':
                     commcfg.api_mqtt_port = buffer[key]
+                if key == 'messageServiceType':
+                    if buffer[key] == 'telegram':
+                        commcfg.message_service = 'Telegram'
+                    elif buffer[key] == 'pushover':
+                        commcfg.message_service = 'Pushover'
+                    else:
+                        commcfg.message_service = None
+                if key == 'telegramApiToken':
+                    commcfg.telegram_token = buffer[key]
+                if key == 'telegramChatId':
+                    commcfg.telegram_chat_id = buffer[key]
+                if key == 'pushoverApiToken':
+                    commcfg.pushover_token = buffer[key]
+                if key == 'pushoverAppName':
+                    commcfg.pushover_user = buffer[key]
             commcfg.save_commcfg()
 
         except Exception as e:
             logger.error('Perform set comm settings command triggered an error. Aborrting')
             logger.debug(f'{e}')
 
+    def perform_set_rover_settings_cmd(serlf, buffer) -> None:
+        try:
+            buffer = buffer['value'] 
+            for key in buffer:
+                if key == 'robotPositionMode':
+                    rovercfg.positionmode = buffer[key]
+                if key == 'longtitude':
+                    rovercfg.lon = buffer[key]
+                if key == 'latitude':
+                    rovercfg.lat = buffer[key]
+            rovercfg.save_rovercfg()
+            robotInterface.performCmd('setPositionMode')
 
-    
+        except Exception as e:
+            logger.error('Perform set rover settings command triggered an error. Aborrting')
+            logger.debug(f'{e}')
+
+
+
 cassandra_api = API()

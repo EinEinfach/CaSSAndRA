@@ -277,7 +277,7 @@ def read_perimeter(map_file_paths) -> None:
         current_map.current_perimeter_file = map_file_paths.tmp
         current_map.name = current_map.read_map_name()
     except Exception as e:
-        logger.warning('Backend: Could not read perimeter name from tmp.json')
+        logger.warning('Could not read perimeter name from tmp.json')
         logger.debug(str(e))
         current_map.name = ''
 
@@ -290,12 +290,17 @@ def read_perimeter(map_file_paths) -> None:
         return
     try:
         if mapping_maps.saved.empty:
-            logger.info('Backend: perimeter.json contains no map data')
+            logger.info('Perimeter.json contains no map data')
+            current_map.name = ''
             return
         if current_map.name == '':
-            logger.info('Backend: No perimeter selected, go ahead without selection')
+            logger.info('No perimeter selected, go ahead without selection')
             return
         current_map.perimeter = mapping_maps.saved[mapping_maps.saved['name'] == current_map.name]
+        if current_map.perimeter.empty:
+            logger.warning('No map data to the saved name found')
+            current_map.name = ''
+            return
         current_map.perimeter = current_map.perimeter.reset_index(drop=True)
         current_map.create(current_map.name)
         current_task.create()
@@ -482,7 +487,7 @@ def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_n
         current_task.create()
     except Exception as e:
         logger.error('Backend: Could not remove task data from file')
-        logger.debug(str(e))
+        logger.error(str(e))
 
 def update_task_preview(task_arr: pd.DataFrame, new_preview: pd.DataFrame) -> None:
     new_preview['map name'] = current_map.name

@@ -5,6 +5,7 @@ from .. import ids
 from src.backend.comm import cmdlist
 from src.backend.data import saveddata
 from src.backend.data.roverdata import robot
+from src.backend.comm.robotinterface import robotInterface
 from src.backend.data.mapdata import current_map, current_task, tasks
 from src.backend.map import path
 
@@ -107,10 +108,12 @@ def perfom_cmd(n_clicks_bgo: int,
         buttongostate = True
         buttonstopstate = False
         if active_bh:
-            cmdlist.cmd_dock = True
+            # cmdlist.cmd_dock = True
+            robotInterface.performCmd('dock')
         elif active_bma:
             current_map.calc_route_mowpath()
-            cmdlist.cmd_mow = True
+            # cmdlist.cmd_mow = True
+            robotInterface.performCmd('mow')
         elif active_bss:
             current_map.task_progress = 0
             current_map.calculating = True
@@ -119,17 +122,21 @@ def perfom_cmd(n_clicks_bgo: int,
                 saveddata.update_task_preview(tasks.saved, current_map.preview)
             current_map.calculating = False
             current_map.calc_route_mowpath()
-            cmdlist.cmd_mow = True
+            # cmdlist.cmd_mow = True
+            robotInterface.performCmd('mow')
         elif active_bgt:
-            cmdlist.cmd_goto = True
+            # cmdlist.cmd_goto = True
+            robotInterface.performCmd('goTo')
         else:
-            current_map.mowpath = robot.current_task
-            cmdlist.cmd_resume = True
+            current_map.reset_route_mowpath()
+            # cmdlist.cmd_resume = True
+            robotInterface.performCmd('resume')
     
     if context == ids.BUTTONSTOP:
         buttongostate = False
         buttonstopstate = True
-        cmdlist.cmd_stop = True
+        # cmdlist.cmd_stop = True
+        robotInterface.performCmd('stop')
     
     if context == ids.INTERVAL:
         if rover_state == 'mow' or rover_state == 'docking':

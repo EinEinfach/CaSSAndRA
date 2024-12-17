@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:1.0.0 Last version with old communivcation architicture. Release version
+#Version:0.200.0 new comm architicture merges to master branch
 # package imports
 import os
 import sys
@@ -13,7 +13,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 # local imports
-from src.backend import backendserver
+from src.pathdata import paths
+from src.backend.server import cassandra
 
 # logging setup
 logger = logging.getLogger(__name__)
@@ -48,7 +49,8 @@ class GracefulKiller:
     signal.signal(signal.SIGTERM, self.exit_gracefully)
 
   def exit_gracefully(self, *args):
-    backendserver.stop()
+    #backendserver.stop()
+    cassandra.stop()
     self.kill_now = True
 
 default_data_path = os.path.join(os.path.expanduser('~'), '.cassandra')
@@ -121,12 +123,16 @@ def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level
         
         # initialize data files
         file_paths = init_data(data_path)
+        paths.set(file_paths)
         
         # logging config
         config_logging(file_paths.log, app_log_level, app_log_file_level, server_log_level, pil_log_level)
 
         # start backend server
-        backendserver.start(file_paths)
+        cassandra.setup(file_paths)
+        cassandra.run()
+        #backendserver.start(file_paths)
+
 
         assets_path = os.path.abspath(os.path.dirname(__file__)) +'/src/assets'
         app = dash.Dash(

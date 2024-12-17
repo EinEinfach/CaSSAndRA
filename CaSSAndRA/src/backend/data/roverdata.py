@@ -16,6 +16,8 @@ from . cfgdata import rovercfg, appcfg, commcfg
 #mower class
 @dataclass
 class Mower:
+    fw: str = None
+    fw_version: str = None
     uptoday: bool = False
     battery_voltage: float = 0.0
     position_x: float = 0.0
@@ -49,10 +51,7 @@ class Mower:
     last_cmd: pd.DataFrame = field(default_factory=lambda: pd.DataFrame([{'msg': 'AT+C,-1,-1,-1,-1,-1,-1,-1,-1'}]))
     last_task_name: str = 'no task'
     current_task: pd.DataFrame = field(default_factory=lambda: pd.DataFrame())
-    map_upload_started: bool = False
-    map_upload_failed: bool = False
     map_old_crc: int = None
-    map_upload_cnt: int = 0
     mowprogress: float = 0.0
     last_position_mow_point_index: int = None
     measured_time_since_last_position_index_change = None
@@ -66,9 +65,13 @@ class Mower:
     status_tmp_timestamp: datetime = datetime.now()
     sensor_status: str = 'unknown'
     position_age_hr = '99+d'
-    dock_reason_operator: bool = False
     dock_reason: str = None
     dock_reason_time: datetime = datetime.now()
+
+    def set_props(self, props: pd.DataFrame) -> None:
+        props = props.iloc[-1]
+        self.fw = props['firmware']
+        self.fw_version = props['version']
 
     def set_state(self, state: pd.DataFrame) -> None:
         state = state.iloc[-1]
@@ -110,7 +113,7 @@ class Mower:
             timedelta = datetime.now() - timestamp
             timedelta_seconds = timedelta.total_seconds()
             speed = round(delta_distance/timedelta_seconds, 2)
-            self.average_speed = 0.99*self.average_speed + 0.01*speed
+            self.average_speed = 0.999*self.average_speed + 0.001*speed
         else:
             speed = 0.0
         return speed
@@ -244,7 +247,7 @@ class Mower:
             
     def check_dock_reason(self) -> None:
         if self.job == 4: 
-            if self.dock_reason_operator:
+            if self.dock_reason != None:
                 pass
             elif self.sensor == 18:
                 self.dock_reason = 'temperature'
@@ -256,11 +259,14 @@ class Mower:
                 self.dock_reason = 'low battery'
             self.dock_reason_time = datetime.now()
         elif (self.job == 2 and (datetime.now() - self.dock_reason_time).seconds >= 3600) or (self.job != 4 and self.job != 2):
-            self.dock_reason_operator = False
             self.dock_reason = None
             self.dock_reason_time = datetime.now()
     
     def set_robot_status(self, status: str, status_tmp = None) -> None:
+        # set mow status to false if docking triggered (avoid wrong state if docking triggered from sunray fw)
+        if self.status != 'docking' and status == 'docking':
+            self.last_mow_status = False
+        # set status and tmp status
         self.status = status
         if status_tmp != None:
             self.status_tmp = status_tmp
@@ -304,7 +310,7 @@ class Mower:
             if (self.seconds_per_idx == None):
                 self.seconds_per_idx = current_seconds_per_idx
             else:
-                self.seconds_per_idx = 0.95 * self.seconds_per_idx+0.05 * current_seconds_per_idx
+                self.seconds_per_idx = 0.999 * self.seconds_per_idx+0.001 * current_seconds_per_idx
         if (current_seconds_per_idx != None):
             self.last_position_mow_point_index = self.position_mow_point_index
             self.measured_time_since_last_position_index_change = datetime.now()
