@@ -602,14 +602,10 @@ class Perimeters:
                     df.columns = ['X', 'Y']
                     df['type'] = 'search wire'
                     perimeter = pd.concat([perimeter, df], ignore_index=True)
-            if self.saved[self.saved['name'] == map_name].empty:
-                res = [0, perimeter, map_name]
-                return res
-            else:
-                logger.warning('The map name is already exist. Aborting')
-                return [1, pd.DataFrame(), map_name]
+            res = [0, perimeter, map_name]
+            return res
         except Exception as e:
-            logger.error('Received mapd data is invalid. Aborting')
+            logger.error('Received map data is invalid. Aborting')
             logger.error(str(e))
             return [-1, pd.DataFrame(), None]
 

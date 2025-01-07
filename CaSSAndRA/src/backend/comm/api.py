@@ -442,21 +442,20 @@ class API:
         if 'value' in buffer:
             value = buffer['value']
             try:
-                self.value = list(set(value).intersection(list(mapping_maps.saved['name'].unique())))
-                if self.command == 'load' and self.value != []:
-                    selected = mapping_maps.saved[mapping_maps.saved['name'] == self.value[0]] 
+                if self.command == 'load' and value != []:
+                    selected = mapping_maps.saved[mapping_maps.saved['name'] == value[0]] 
                     current_map.perimeter = selected
-                    current_map.create(self.value[0])
+                    current_map.create(value[0])
                     current_task.create()
                     schedule_tasks.create()
                     schedulecfg.reset_schedulecfg()
                     #cmdlist.cmd_take_map = True
                     robotInterface.performCmd('sendMap')
-                if self.command == 'select' and self.value != []:
-                    mapping_maps.select_saved(mapping_maps.saved[mapping_maps.saved['name'] == self.value[0]])
+                if self.command == 'select' and value != []:
+                    mapping_maps.select_saved(mapping_maps.saved[mapping_maps.saved['name'] == value[0]])
                     self.create_maps_coords_payload()
                     self.publish('mapsCoords', self.coordsstate_json)
-                if self.command == 'select' and self.value == []:
+                if self.command == 'select' and value == []:
                     mapping_maps.init()
                     self.publish('mapsCoords', json.dumps(dict()))
                 if self.command == 'remove':

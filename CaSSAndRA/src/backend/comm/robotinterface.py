@@ -231,7 +231,7 @@ class RobotInterface:
             self.pendingRequest = None
             return
         else:
-            logger.debug(f'Current map crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
+            logger.info(f'Current map crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
             self._cmdTakeMap(way=current_map.gotopoint, dockpath=False)
     
     def _cmdDock(self) -> None:
@@ -253,7 +253,7 @@ class RobotInterface:
             self.pendingRequest = None
             return
         else:
-            logger.debug(f'Current map does not contain dock path or crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
+            logger.info(f'Current map does not contain dock path or crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
             self._cmdTakeMap(way=current_map.gotopoint, dockpath=True)
     
     def _cmdDockSchedule(self) -> None:
@@ -282,7 +282,7 @@ class RobotInterface:
             self.pendingRequest = None
             return
         else:
-            logger.debug(f'Current map crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
+            logger.info(f'Current map crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
             self._cmdTakeMap(way=current_map.mowpath, dockpath=True)
     
     def _cmdSendMap(self) -> None:
@@ -298,7 +298,7 @@ class RobotInterface:
             self.lastLoadWithDockPath = True
             self.pendingRequest = None
         else:
-            logger.debug(f'Current map crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
+            logger.info(f'Current map crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
             self._cmdTakeMap(way=current_map.mowpath, dockpath=True)
                          
 

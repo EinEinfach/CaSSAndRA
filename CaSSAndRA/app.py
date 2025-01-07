@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.200.0 new comm architicture merges to master branch
+#Version:0.200.1 bug fixing in mapdata over api
 # package imports
 import os
 import sys
