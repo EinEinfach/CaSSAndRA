@@ -451,6 +451,9 @@ The app will be improved in small steps. Also reported problems will be fixed. I
 3. Replace the downloaded /src/data folder with the folder you backed up in step 1.
 4. App can be started as usual.
 
+## CaSSAndRA native
+You can also use an alternative UI (CaSSAndRA native) specifically developed for Cassandra. For more information, follow this [link](https://github.com/EinEinfach/CaSSAndRA_native).
+
 ## Donation
 
 If you enjoyed CaSSAndRA project — or just feeling generous, consider buying me a beer. Cheers!
