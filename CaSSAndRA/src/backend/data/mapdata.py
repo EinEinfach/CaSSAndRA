@@ -1070,21 +1070,77 @@ class Tasks:
 
     def task_to_gejson(self, task_name: str) -> dict:
         try:
-            task_for_export = self.saved[(self.saved['name'] == task_name) & (self.saved['map name'] == current_map.name) & (self.saved['type'] == 'preview route')]
+            preview_for_export = self.saved[(self.saved['name'] == task_name) & (self.saved['map name'] == current_map.name) & (self.saved['type'] == 'preview route')]
+            selection_for_export = self.saved[(self.saved['name'] == task_name) & (self.saved['map name'] == current_map.name) & ((self.saved['type'] == 'lassoPoints') | (self.saved['type'] == 'range'))]
             geojson = dict(type="FeatureCollection", features=[])
             geojson['features'].append(dict(type='Feature', properties=dict(name='task', id=task_name, mapName=current_map.name)))
-            if not task_for_export.empty:
-                for subtask in task_for_export['task nr'].unique():
-                    value = dict(type="Feature", properties=dict(name=int(subtask)), geometry=dict(dict(type="LineString", coordinates=[task_for_export[task_for_export['task nr'] == subtask][['X', 'Y']].values.tolist()])))
-                    geojson['features'].append(value)
+            if not preview_for_export.empty:
+                for subtask in preview_for_export['task nr'].unique():
+                    preview_coords = self.preview_to_geojson(preview_for_export[preview_for_export['task nr'] == subtask], int(subtask))
+                    selection_coords = self.selection_to_geojson(selection_for_export[selection_for_export['task nr'] == subtask], int(subtask))
+                    task_parameters = self.parameteres_to_gejson(self.saved_parameters[(self.saved_parameters['task nr'] == subtask) & (self.saved_parameters['name'] == task_name)], int(subtask))
+                    selection_coords['properties'].update(task_parameters)
+                    geojson['features'].append(preview_coords)
+                    geojson['features'].append(selection_coords)
             else:
-                value = dict(type="Feature", properties=dict(name=task_name), geometry=dict(dict(type="LineString", coordinates=[])))
-                geojson['features'].append(value)
+                preview_coords = dict(type="Feature", properties=dict(name=task_name), geometry=dict(dict(type="LineString", coordinates=[])))
+                selection_coords = dict(type="Feature", properties=dict(name=task_name), geometry=dict(dict(type="Polygon", coordinates=[])))
+                geojson['features'].append(preview_coords)
+                geojson['features'].append(selection_coords)
             return geojson
         except Exception as e:
             logger.error('Could not export task to geojson')
             logger.debug(f'{e}')
             return dict()
+    
+    def preview_to_geojson(self, preview: pd.DataFrame, name: int) -> dict:
+        try:
+            preview_coords = dict(type="Feature", properties=dict(name=name), geometry=dict(dict(type="LineString", coordinates=[preview[['X', 'Y']].values.tolist()])))
+            return preview_coords
+        except Exception as e:
+            logger.error('Could not create preview for task')
+            logger.error(f'{e}')
+            return dict()
+
+    def selection_to_geojson(self, selection: pd.DataFrame, name: int) -> dict:
+        try:
+            if not selection.empty:
+                if selection.iloc[0]['type'] == 'range':
+                    calced_selection = self.range_to_lasso_points(selection)
+                    calced_selection = pd.concat([calced_selection, calced_selection.iloc[[0]]], ignore_index=True)
+                    selection_coords = dict(type="Feature", properties=dict(name=name), geometry=dict(dict(type="Polygon", coordinates=[calced_selection[['X', 'Y']].values.tolist()])))
+                else:
+                    selection = pd.concat([selection, selection.iloc[[0]]], ignore_index=True)
+                    selection_coords = dict(type="Feature", properties=dict(name=name), geometry=dict(dict(type="Polygon", coordinates=[selection[['X', 'Y']].values.tolist()])))
+            else:
+                selection_coords = dict(type="Feature", properties=dict(name=name), geometry=dict(dict(type="Polygon", coordinates=[])))
+            return selection_coords
+        except Exception as e:
+            logger.error('Could not create selection for task')
+            logger.error(f'{e}')
+            return dict()
+    
+    def parameteres_to_gejson(self, parameters: pd.DataFrame, name: int) -> dict:
+        try:
+            return dict(pattern=str(parameters.iloc[0]['pattern']), width=float(parameters.iloc[0]['width']), 
+                        angle=int(parameters.iloc[0]['angle']), distanceToBorder=int(parameters.iloc[0]['distancetoborder']), 
+                        mowArea=bool(parameters.iloc[0]['mowarea']), mowBorder=int(parameters.iloc[0]['mowborder']), 
+                        mowExclusions=bool(parameters.iloc[0]['mowexclusion']), mowBorderCcw=bool(parameters.iloc[0]['mowborderccw']))
+        except Exception as e:
+            logger.error('Could not create parameters for task')
+            logger.error(f'{e}')
+            return dict()
+
+    def range_to_lasso_points(self, range: pd.DataFrame) -> pd.DataFrame:
+        try:
+            tmp_dict = {'X': [range.iloc[0]['X'], range.iloc[1]['X'], range.iloc[1]['X'], range.iloc[0]['X']], 'Y': [range.iloc[0]['Y'], range.iloc[0]['Y'], range.iloc[1]['Y'], range.iloc[1]['Y']]}
+            lasso_points = pd.DataFrame(tmp_dict)
+            lasso_points['type'] = 'lassoPoints'
+            return lasso_points
+        except Exception as e:
+            logger.error('Could not create lasso points')
+            logger.error(f'{e}')
+            return pd.DataFrame()
 
 current_map = Perimeter()
 mapping_maps = Perimeters()

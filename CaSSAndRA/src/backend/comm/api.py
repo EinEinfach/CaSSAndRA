@@ -435,8 +435,8 @@ class API:
                         #cmdlist.cmd_take_map = True
                         robotInterface.performCmd('sendMap')
             except Exception as e:
-                logger.info(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
-                logger.debug(f'{e}')
+                logger.error(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
+                logger.error(f'{e}')
 
     def perform_maps_cmd(self, buffer: dict) -> None:
         if 'value' in buffer:

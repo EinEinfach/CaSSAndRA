@@ -20,3 +20,4 @@ pip-selfcheck.json
 CaSSAndRA.code-workspace
 launch.json
 
+.DS_Store

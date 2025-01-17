@@ -2,7 +2,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-version = '0.200.1'
+version = '0.201.0'
 
 # global ui messages
 cmdTransmissionFailed: bool = False
