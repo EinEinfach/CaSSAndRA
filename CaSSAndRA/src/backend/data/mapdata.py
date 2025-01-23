@@ -1108,12 +1108,12 @@ class Tasks:
                 if selection.iloc[0]['type'] == 'range':
                     calced_selection = self.range_to_lasso_points(selection)
                     calced_selection = pd.concat([calced_selection, calced_selection.iloc[[0]]], ignore_index=True)
-                    selection_coords = dict(type="Feature", properties=dict(name=name), geometry=dict(dict(type="Polygon", coordinates=[calced_selection[['X', 'Y']].values.tolist()])))
+                    selection_coords = dict(type="Feature", properties=dict(name=name, type='range'), geometry=dict(dict(type="Polygon", coordinates=[calced_selection[['X', 'Y']].values.tolist()])))
                 else:
                     selection = pd.concat([selection, selection.iloc[[0]]], ignore_index=True)
-                    selection_coords = dict(type="Feature", properties=dict(name=name), geometry=dict(dict(type="Polygon", coordinates=[selection[['X', 'Y']].values.tolist()])))
+                    selection_coords = dict(type="Feature", properties=dict(name=name, type='lasso'), geometry=dict(dict(type="Polygon", coordinates=[selection[['X', 'Y']].values.tolist()])))
             else:
-                selection_coords = dict(type="Feature", properties=dict(name=name), geometry=dict(dict(type="Polygon", coordinates=[])))
+                selection_coords = dict(type="Feature", properties=dict(name=name, type='map'), geometry=dict(dict(type="Polygon", coordinates=[current_map.perimeter[current_map.perimeter['type'] == 'perimeter'][['X', 'Y']].values.tolist()])))
             return selection_coords
         except Exception as e:
             logger.error('Could not create selection for task')
@@ -1122,10 +1122,10 @@ class Tasks:
     
     def parameteres_to_gejson(self, parameters: pd.DataFrame, name: int) -> dict:
         try:
-            return dict(pattern=str(parameters.iloc[0]['pattern']), width=float(parameters.iloc[0]['width']), 
+            return dict(mowPattern=str(parameters.iloc[0]['pattern']), width=float(parameters.iloc[0]['width']), 
                         angle=int(parameters.iloc[0]['angle']), distanceToBorder=int(parameters.iloc[0]['distancetoborder']), 
-                        mowArea=bool(parameters.iloc[0]['mowarea']), mowBorder=int(parameters.iloc[0]['mowborder']), 
-                        mowExclusions=bool(parameters.iloc[0]['mowexclusion']), mowBorderCcw=bool(parameters.iloc[0]['mowborderccw']))
+                        mowArea=bool(parameters.iloc[0]['mowarea']), borderLaps=int(parameters.iloc[0]['mowborder']), 
+                        mowExclusionBorder=bool(parameters.iloc[0]['mowexclusion']), mowBorderCcw=bool(parameters.iloc[0]['mowborderccw']))
         except Exception as e:
             logger.error('Could not create parameters for task')
             logger.error(f'{e}')

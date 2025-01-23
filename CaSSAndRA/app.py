@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.201.0 Tasks parameters over api
+#Version:0.202.0 "Tasks for whole map" add selection property for api data
 # package imports
 import os
 import sys
