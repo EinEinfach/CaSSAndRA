@@ -1003,11 +1003,10 @@ class Task:
             task_nr = len(self.subtasks['task nr'].unique())
             filtered_df = self.subtasks[(self.subtasks['type'] == 'preview route') & (self.subtasks['task nr'] == task_nr-1)]
             start_position = {'X': [filtered_df.iloc[-1]['X']], 'Y': [filtered_df.iloc[-1]['Y']], 'type': ['start position']}
-            position_df = pd.DataFrame(start_position)
         else:
             task_nr = 0
             start_position = {'X': [robot.position_x], 'Y': [robot.position_y], 'type': ['start position']}
-            position_df = pd.DataFrame(start_position)
+        position_df = pd.DataFrame(start_position)
         subtask = self.preview
         selection = pd.DataFrame(self.selection)
         selection.columns = ['X', 'Y']
@@ -1021,11 +1020,54 @@ class Task:
         self.subtasks_parameters = pd.concat([self.subtasks_parameters, pd.DataFrame(parameters)], ignore_index= True)
         self.preview = pd.DataFrame()
     
+    def create_subtask_api(self, subtask_data: dict) -> list:
+        received_task = pd.DataFrame()
+        received_task_parameters = pd.DataFrame()
+        for feature in subtask_data['features']:
+            if 'taskName' in feature['properties']:
+                task_name = feature['properties']['taskName']
+            else:
+                task_nr = feature['properties']['subtaskNr']
+                if not received_task.empty:
+                    filtered_df = received_task[(received_task['type'] == 'preview route') & (received_task['task nr'] == task_nr-1)]
+                    start_position = {'X': [filtered_df.iloc[-1]['X']], 'Y': [filtered_df.iloc[-1]['Y']], 'type': ['start position']}
+                else:
+                    start_position = {'X': [robot.position_x], 'Y': [robot.position_y], 'type': ['start position']}
+                position_df = pd.DataFrame(start_position)
+                subtask = pd.DataFrame(feature['geometry'][1]['coordinates'][0], columns=['X', 'Y'])
+                subtask['type'] = 'preview route'
+                selection = pd.DataFrame(feature['geometry'][0]['coordinates'][0], columns=['X', 'Y'])
+                selection['type'] = 'lassoPoints'
+                selection = selection.iloc[:-1]
+                subtask = pd.concat([subtask, selection], ignore_index=True)
+                subtask = pd.concat([subtask, position_df], ignore_index=True)
+                subtask['map name'] = self.map_name
+                subtask['task nr'] = task_nr
+                received_task = pd.concat([received_task, subtask], ignore_index=True) 
+                parameters = self.pathplannercfg_rename_api_keys(feature['properties'])
+                received_task_parameters = pd.concat([received_task_parameters, pd.DataFrame(parameters)], ignore_index=True)
+        return [received_task, received_task_parameters, task_name]
+
     def pathplanenrcfg_to_dict(self, task_nr: int) -> dict:
         parameters = {'map name': self.map_name, 'task nr': task_nr, 'pattern': [self.parameters.pattern], 'width': [self.parameters.width], 'angle': [self.parameters.angle], 
                       'distancetoborder': [self.parameters.distancetoborder], 'mowarea': [self.parameters.mowarea], 'mowborder': [self.parameters.mowborder], 
                       'mowexclusion': [self.parameters.mowexclusion], 'mowborderccw': [self.parameters.mowborderccw]}
         return parameters
+    
+    def pathplannercfg_rename_api_keys(self, parameters: dict) -> dict:
+        key_mapping = {'mowPattern': 'pattern', 
+                       'width': 'width', 
+                       'angle': 'angle', 
+                       'distanceToBorder': 'distancetoborder', 
+                       'borderLaps': 'mowborder',
+                       'mowArea': 'mowarea',
+                       'mowExclusionBorder': 'mowexclusion',
+                       'mowBorderCcw': 'mowborderccw'}
+        parameters_new_keys = {key_mapping.get(k, k): v for k, v in parameters['mowParameters'].items()}
+        parameters_new_keys = {k: [v] for k, v in parameters_new_keys.items()}
+        parameters_new_keys['map name'] = self.map_name
+        parameters_new_keys['task nr'] = parameters['subtaskNr']
+        return parameters_new_keys
     
     def load_task_order(self, tasks_order: list) -> None:
         if tasks_order is not None and tasks_order != []:

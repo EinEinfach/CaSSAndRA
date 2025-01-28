@@ -53,8 +53,9 @@ def selection(perimeter: Polygon, selection: dict) -> Polygon:
             logger.warning('Backend: Map selection failed. Selection dict() is an unknown value')
             return Polygon()
     except Exception as e:
-        logger.warning('Backend: Map selection failed')
-        logger.debug(str(e))
+        logger.error('Backend: Map selection failed')
+        logger.error(str(e))
+        return Polygon()
 
 def create(map: pd.DataFrame) -> Polygon:
     logger.info('Backend: Create a shapely figure from data frame')

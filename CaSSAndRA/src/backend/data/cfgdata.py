@@ -306,6 +306,22 @@ class PathPlannerCfg:
         self.mowborder = parameters.iloc[0]['mowborder']
         self.mowexclusion = parameters.iloc[0]['mowexclusion']
         self.mowborderccw = parameters.iloc[0]['mowborderccw']
+    
+    def read_pathplannercfg_from_api(self, parameters: dict) -> None:
+        try:
+            logger.debug('pahtplannercfg to read: '+ str(parameters['value']['features'][1]['properties']['mowParameters']))
+            parameters = parameters['value']['features'][1]['properties']['mowParameters']
+            self.pattern = parameters['mowPattern']
+            self.width = parameters['width']
+            self.angle = parameters['angle']
+            self.distancetoborder = parameters['distanceToBorder']
+            self.mowarea = parameters['mowArea']
+            self.mowborder = parameters['borderLaps']
+            self.mowexclusion = parameters['mowExclusionBorder']
+            self.mowborderccw = parameters['mowBorderCCW']
+        except Exception as e:
+            logger.error('Could not read pathplannercfg from API. Data are invalid')
+            logger.error(str(e))
 
 @dataclass
 class ScheduleCfg:

@@ -7,6 +7,7 @@ import pandas as pd
 
 from .. data.mapdata import current_map, current_task, mapping_maps, tasks
 from .. data.scheduledata import schedule_tasks
+from .. data import cfgdata
 from .. data.cfgdata import schedulecfg, pathplannercfgapi, commcfg, rovercfg
 from .. data import saveddata
 from .. map import path, map
@@ -129,6 +130,10 @@ class API:
         self.coordsstate = tasks.task_to_gejson(task_name)
         self.coordsstate_json = json.dumps(self.coordsstate)
     
+    def create_task_preview_coords_payload(self, coordsstate: dict) -> None:
+        self.coordsstate = coordsstate
+        self.coordsstate_json = json.dumps(self.coordsstate)
+    
     def create_maps_coords_payload(self) -> None:
         self.coordsstate = mapping_maps.maps_to_geojson()
         self.coordsstate_json = json.dumps(self.coordsstate)
@@ -213,15 +218,21 @@ class API:
             logger.info('No valid object in api message found. Aborting')
 
     def check_tasks_cmd(self, buffer: dict) -> None:
-        allowed_cmds = ['select', 'load']
+        allowed_cmds = ['select', 'load', 'save', 'calculate']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
             if command == []:
                 logger.info(f'No valid command in api message found. Allowed commands: {allowed_cmds}. Aborting')
+            elif command[0] == 'calculate':
+                self.command = command[0]
+                self.perform_tasks_calc_cmd(buffer)
+            elif command[0] == 'save':
+                self.command = command[0]
+                self.perform_tasks_save_cmd(buffer)
             else:
                 self.command = command[0]
-                self.perform_tasks_cmd(buffer)
+                self.perform_tasks_load_cmd(buffer)
         else:
            logger.info('No command in api message found. Aborting')
         return 
@@ -403,8 +414,18 @@ class API:
                     messageservice.send_message(buffer['value'][0])
         else:
             logger.info(f'No valid api message for server command. Aborting')
+    
+    def perform_tasks_save_cmd(self, buffer: dict) -> None:
+        try:
+            value = buffer['value']
+            received_task, received_task_parameters, task_name = current_task.create_subtask_api(value)
+            saveddata.save_task(tasks.saved, tasks.saved_parameters, received_task, received_task_parameters, task_name)
 
-    def perform_tasks_cmd(self, buffer: dict) -> None:
+        except Exception as e:
+            logger.error('Task save over api failed.')
+            logger.error(str(e))
+
+    def perform_tasks_load_cmd(self, buffer: dict) -> None:
         if 'value' in buffer:
             value = buffer['value']
             if value == []:
@@ -437,6 +458,29 @@ class API:
             except Exception as e:
                 logger.error(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
                 logger.error(f'{e}')
+    
+    def perform_tasks_calc_cmd(self, buffer: dict) -> None:
+        try:
+            self.apistate = 'busy'
+            mow_parameters = cfgdata.PathPlannerCfg()
+            mow_parameters.read_pathplannercfg_from_api(buffer)
+            x_values = [coord[0] for coord in buffer['value']['features'][1]['geometry']['coordinates'][0]]
+            y_values = [coord[1] for coord in buffer['value']['features'][1]['geometry']['coordinates'][0]]
+            selection = dict(lassoPoints=dict(x=x_values, y=y_values))
+            perimeter = map.selection(current_map.perimeter_polygon, selection)
+            preview = path.calc_simple(perimeter, mow_parameters)
+            preview = pd.DataFrame(preview, columns=['X', 'Y'],)
+            preview_geojson = tasks.preview_to_geojson(preview, 0)
+            geojson = buffer['value']
+            geojson['features'][0]['properties']['name'] = 'taskPreview'
+            geojson['features'][1]['geometry'] = preview_geojson['geometry']
+            self.create_task_preview_coords_payload(geojson)
+            self.publish('coords', self.coordsstate_json)
+            self.apistate = 'ready'
+        except Exception as e:
+            logger.error(f'Calculation of task preview failed. Aborting')
+            logger.error(f'{e}')
+            self.apistate = 'ready'
 
     def perform_maps_cmd(self, buffer: dict) -> None:
         if 'value' in buffer:

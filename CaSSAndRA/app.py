@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.202.0 "Tasks for whole map" add selection property for api data
+#Version:0.203.0 Taskspreviw update over api, task save over api
 # package imports
 import os
 import sys

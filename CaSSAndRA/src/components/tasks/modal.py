@@ -69,7 +69,7 @@ copytask = dbc.Modal(
 def save_current_task(bsct_nclicks: int, 
                       bok_nclicks,  
                       is_open: bool, 
-                      task_name: str(),
+                      task_name: str,
                       ) -> bool:
     context = ctx.triggered_id
     if context == ids.OKBUTTONSAVECURRENTTASK:
@@ -89,7 +89,7 @@ def save_current_task(bsct_nclicks: int,
 def remove_selected_task(brt_nclicks: int, 
                          bok_nclicks,  
                          is_open: bool, 
-                         task_name: list(),
+                         task_name: list,
                          ) -> bool:
     context = ctx.triggered_id
     if context == ids.OKBUTTONSREMOVETASK and task_name is not None:
@@ -108,8 +108,8 @@ def remove_selected_task(brt_nclicks: int,
 def rename_selected_task(brt_nclicks: int, 
                          bok_nclicks,  
                          is_open: bool, 
-                         task_name: list(), 
-                         task_old_name: list()
+                         task_name: list, 
+                         task_old_name: list
                          ) -> bool:
     context = ctx.triggered_id
     if context == ids.OKBUTTONSRRENAMETASK and task_name is not None:
@@ -128,7 +128,7 @@ def rename_selected_task(brt_nclicks: int,
 def copy_selected_task(bct_nclicks: int, 
                        bok_nclicks,  
                        is_open: bool, 
-                       task_name: list()
+                       task_name: list
                        ) -> bool:
     context = ctx.triggered_id
     if context == ids.OKBUTTONCOPYTASK and task_name is not None:
