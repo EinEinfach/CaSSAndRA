@@ -20,7 +20,7 @@ def read(measure_file_paths) -> None:
         if not 'timetable_autostartstop_dayofweek' in roverdata.state.columns:
             roverdata.state['timetable_autostartstop_dayofweek'] = 0
             roverdata.state['timetabel_autostartstop_hour'] = 0
-        logger.info('Backend: State data are loaded successfully')
+        logger.info('gState data are loaded successfully')
         if roverdata.state.empty:
             logger.warning('state.pickle is empty, create a default data frame')
             state = {"battery_voltage":{"0":0},
@@ -45,7 +45,7 @@ def read(measure_file_paths) -> None:
                  "timestamp":{"0":str(datetime.now())}}
             roverdata.state = pd.DataFrame(data=state)
     except:
-        logger.warning('Backend: Failed to load state data, create a default data frame')
+        logger.warning('gFailed to load state data, create a default data frame')
         state = {"battery_voltage":{"0":0},
                  "position_x":{"0":0},
                  "position_y":{"0":0},
@@ -86,7 +86,7 @@ def read(measure_file_paths) -> None:
             roverdata.stats['counter_imu_no_rotation_triggered'] = 0
         if not 'counter_rotation_timeout_triggered' in roverdata.stats.columns:
             roverdata.stats['counter_rotation_timeout_triggered'] = 0
-        logger.info('Backend: Statistics data are loaded successfully')
+        logger.info('gStatistics data are loaded successfully')
         if roverdata.stats.empty:
             logger.warning('stats.pickle is empty, create a default data frame')
             stats = {"duration_idle":{"0":0},
@@ -122,9 +122,9 @@ def read(measure_file_paths) -> None:
                  "counter_rotation_timeout_triggered":{"0":0},
                  "timestamp":{"0":str(datetime.now())}}
             roverdata.stats = pd.DataFrame(data=stats)
-        logger.info('Backend: Statistics data are loaded successfully')
+        logger.info('gStatistics data are loaded successfully')
     except:
-        logger.warning('Backend: Failed to load statistics data, create a default data frame')
+        logger.warning('gFailed to load statistics data, create a default data frame')
         stats = {"duration_idle":{"0":0},
                  "duration_charge":{"0":0},
                  "duration_mow":{"0":0},
@@ -162,7 +162,7 @@ def read(measure_file_paths) -> None:
     #Try to read Calced from State Data from file
     try:
         roverdata.calced_from_state = pd.read_pickle(measure_file_paths.calcedstate)
-        logger.info('Backend: Calced data from state are loaded successfully')
+        logger.info('gCalced data from state are loaded successfully')
         if roverdata.calced_from_state.empty:
             logger.warning('calcedstate.pickle is empty, create a default data frame')
             calced_from_state = {"solution":{"0":"invalid"},
@@ -172,7 +172,7 @@ def read(measure_file_paths) -> None:
                              "timestamp":{"0":str(datetime.now())}}
             roverdata.calced_from_state = pd.DataFrame(data=calced_from_state)
     except:
-        logger.warning('Backend: Failed to load calced data from state, create a default data frame')
+        logger.warning('gFailed to load calced data from state, create a default data frame')
         calced_from_state = {"solution":{"0":"invalid"},
                              "job":{"0":"unknown"},
                              "sensor":{"0":"unknown"},
@@ -197,7 +197,7 @@ def read(measure_file_paths) -> None:
             roverdata.calced_from_stats['counter_imu_no_rotation_triggered'] = 0
         if not 'counter_rotation_timeout_triggered' in roverdata.calced_from_stats.columns:
             roverdata.calced_from_stats['counter_rotation_timeout_triggered'] = 0
-        logger.info('Backend: Calced data from stats are loaded successfully')
+        logger.info('gCalced data from stats are loaded successfully')
         if roverdata.calced_from_stats.empty:
             logger.warning('calcedstats.pickle is empty, create a default data frame')
             calced_from_stats = {"duration_idle":{"0":0},
@@ -234,7 +234,7 @@ def read(measure_file_paths) -> None:
                             "timestamp":{"0":str(datetime.now())}}
             roverdata.calced_from_stats = pd.DataFrame(data=calced_from_stats)
     except:
-        logger.warning('Backend: Failed to load calced data from stats, create a default data frame')
+        logger.warning('gFailed to load calced data from stats, create a default data frame')
         calced_from_stats = {"duration_idle":{"0":0},
                             "duration_charge":{"0":0},
                             "duration_mow":{"0":0},
@@ -283,9 +283,9 @@ def read_perimeter(map_file_paths) -> None:
 
     try:
         mapping_maps.saved = pd.read_json(map_file_paths.perimeter)
-        logger.info('Backend: Saved perimeters are loaded successfully')
+        logger.info('gSaved perimeters are loaded successfully')
     except Exception as e:
-        logger.warning('Backend: Failed to load saved perimeters from file')
+        logger.warning('gFailed to load saved perimeters from file')
         logger.debug(str(e))
         return
     try:
@@ -304,42 +304,42 @@ def read_perimeter(map_file_paths) -> None:
         current_map.perimeter = current_map.perimeter.reset_index(drop=True)
         current_map.create(current_map.name)
         current_task.create()
-        logger.info('Backend: Selected perimeter: '+current_map.name)
+        logger.info('gSelected perimeter: '+current_map.name)
     except Exception as e:
-        logger.error('Backend: Loading saved perimeter failed')
+        logger.error('gLoading saved perimeter failed')
         logger.debug(str(e))
 
 def save(name: str, file_paths) -> None:
     if name == 'state':
         try:
             roverdata.state.to_pickle(file_paths.measure.state)
-            logger.info('Backend: State data are saved successfully in state.pickle')
+            logger.info('gState data are saved successfully in state.pickle')
 
             roverdata.calced_from_state.to_pickle(file_paths.measure.calcedstate)
-            logger.info('Backend: Calced state data are saved successfully in calcstate.pickle')
+            logger.info('gCalced state data are saved successfully in calcstate.pickle')
         except Exception as e:
-            logger.error('Backend: Could not save state data to the file')
+            logger.error('gCould not save state data to the file')
             logger.debug(str(e))
     elif name == 'stats':
         try:
             roverdata.stats.to_pickle(file_paths.measure.stats)
-            logger.info('Backend: Statistics data are saved successfully in stats.pickle')
+            logger.info('gStatistics data are saved successfully in stats.pickle')
 
             roverdata.calced_from_stats.to_pickle(file_paths.measure.calcedstats)
-            logger.info('Backend: Calced statistics data are saved successfully in calcstats.pickle')
+            logger.info('gCalced statistics data are saved successfully in calcstats.pickle')
         except Exception as e:
-            logger.error('Backend: Could not save statistics data to the file')
+            logger.error('gCould not save statistics data to the file')
             logger.debug(str(e))
 
 def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimeter_name: str) -> None:
     if perimeter_name is None:
-        logger.info('Backend: Could not save perimeter. Perimeter name is not valid')
+        logger.info('gCould not save perimeter. Perimeter name is not valid')
     elif perimeter_arr.empty or not (perimeter_name in perimeter_arr['name'].unique()):
         try:
             perimeter['name'] = perimeter_name
             perimeter_arr = pd.concat([perimeter_arr, perimeter], ignore_index=True)
             perimeter_arr.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
-            logger.info('Backend: Perimeter data are successfully saved in perimeter.json')
+            logger.info('gPerimeter data are successfully saved in perimeter.json')
             mapping_maps.saved = perimeter_arr
             #check for tasks what have to be copied
             if mapping_maps.map_old_name != None:
@@ -354,10 +354,10 @@ def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimet
                 tasks.saved_parameters.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
                 logger.info('Tasks parameters data are successfully saved in tasks_parameters.json')
         except Exception as e:
-            logger.warning('Backend: Could not save perimeter data to the file')
+            logger.warning('gCould not save perimeter data to the file')
             logger.debug(str(e))
     else:
-        logger.info('Backend: Could not save perimeter. Perimeter name is already exsist.')
+        logger.info('gCould not save perimeter. Perimeter name is already exsist.')
 
 def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str, tasks_arr: pd.DataFrame, tasks_parameters_arr) -> None:
     try:
@@ -365,11 +365,11 @@ def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str, tasks_arr
         perimeter_arr.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
         #remove also tasks belong to this map
         remove_task(tasks_arr, tasks_parameters_arr, [''], perimeter_name)
-        logger.info('Backend: Perimeter is successfully removed from perimeter.json')
+        logger.info('gPerimeter is successfully removed from perimeter.json')
         mapping_maps.saved = perimeter_arr
         mapping_maps.select_saved(pd.DataFrame(columns=['X', 'Y', 'type', 'name']))
     except Exception as e:
-        logger.error('Backend: Could not remove perimeter data from file')
+        logger.error('gCould not remove perimeter data from file')
         logger.debug(str(e))
 
 def copy_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str, cpy_perimeter_name: str) -> None:
@@ -419,9 +419,9 @@ def rename_perimeter(perimeter_name: str, new_perimeter_name: str) -> None:
             tasks.saved = pd.concat([other_tasks, map_tasks], ignore_index=True)
             tasks.saved_parameters = pd.concat([other_tasks_parameters, map_tasks_parameters], ignore_index=True)
             tasks.saved.to_json(file_paths.map.tasks, indent=2, date_format='iso')
-            logger.info('Backend: Task data are successfully saved in tasks.json')
+            logger.info('gTask data are successfully saved in tasks.json')
             tasks.saved_parameters.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
-            logger.info('Backend: Tasks parameters data are successfully saved in tasks_parameters.json')
+            logger.info('gTasks parameters data are successfully saved in tasks_parameters.json')
             #remove also perimeter in current map, if matched
             if perimeter_name == current_map.name:
                 current_map.clear_map()
@@ -433,7 +433,7 @@ def rename_perimeter(perimeter_name: str, new_perimeter_name: str) -> None:
 
 def save_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task: pd.DataFrame, task_parameters: pd.DataFrame, task_name: str) -> None:
     if task_name is None:
-        logger.info('Backend: Could not save task. Task name is not valid')
+        logger.info('gCould not save task. Task name is not valid')
         return
     if not task_arr.empty:
         task_names_to_check = task_arr[task_arr['map name'] == current_map.name]
@@ -442,27 +442,46 @@ def save_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task: pd
             task['name'] = task_name
             task_arr = pd.concat([task_arr, task], ignore_index=True)
             task_arr.to_json(file_paths.map.tasks, indent=2, date_format='iso')
-            logger.info('Backend: Task data are successfully saved in tasks.json')
+            logger.info('Task data are successfully saved in tasks.json')
             tasks.saved = task_arr
             task_parameters['name'] = task_name
             task_parameter_arr = pd.concat([task_parameter_arr, task_parameters], ignore_index=True)
             task_parameter_arr.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
-            logger.info('Backend: Tasks parameters data are successfully saved in tasks_parameters.json')
+            logger.info('Tasks parameters data are successfully saved in tasks_parameters.json')
             tasks.saved_parameters = task_parameter_arr
         except Exception as e:
-            logger.warning('Backend: Could not save task data to the file')
+            logger.warning('Could not save task data to the file')
             logger.debug(str(e))
     else:
-        logger.info('Backend: Could not save task. Task name is already exsist.')    
+        logger.info('Could not save task. Task name is already exsist.')    
+
+def rename_task(task_name: str, task_old_name: str) -> None:
+    task_arr = tasks.saved
+    task_parameters_arr = tasks.saved_parameters
+    try:
+        if not task_arr.empty and not task_parameters_arr.empty:
+            task_arr.loc[(task_arr['map name'] == current_map.name) & (task_arr['name'] == task_old_name), 'name'] = task_name
+            task_parameters_arr.loc[(task_parameters_arr['map name'] == current_map.name) & (task_parameters_arr['name'] == task_old_name), 'name'] = task_name
+            task_arr.to_json(file_paths.map.tasks, indent=2, date_format='iso')
+            logger.info('Task data are successfully saved in tasks.json')
+            tasks.saved = task_arr
+            task_parameters_arr.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
+            logger.info('Tasks parameters data are successfully saved in tasks_parameters.json')
+            tasks.saved_parameters = task_parameters_arr
+        else:
+            logger.error('Renaming not possible task array is empty')
+    except Exception as e:
+        logger.error('Could not rename task')
+        logger.erron(str(e))
 
 def read_tasks(map_file_paths) -> None:
     try:
         tasks.saved = pd.read_json(map_file_paths.tasks)
-        logger.info('Backend: Saved tasks are loaded successfully')
+        logger.info('Saved tasks are loaded successfully')
         tasks.saved_parameters = pd.read_json(map_file_paths.tasks_parameters)
-        logger.info('Backend: Saved tasks parameters are loaded successfully')
+        logger.info('Saved tasks parameters are loaded successfully')
     except Exception as e:
-        logger.info('Backend: Failed to load saved tasks from file')
+        logger.info('Failed to load saved tasks from file')
         logger.debug(str(e))
         return
 
@@ -471,22 +490,22 @@ def remove_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task_n
         if task_name[0] == '':
             task_arr = task_arr[task_arr['map name'] != map_name]
             task_arr.to_json(file_paths.map.tasks, indent=2, date_format='iso')
-            logger.info('Backend: Tasks are successfully removed from tasks.json')
+            logger.info('Tasks are successfully removed from tasks.json')
             task_parameter_arr = task_parameter_arr[task_parameter_arr['map name'] != map_name]
             task_parameter_arr.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
-            logger.info('Backend: Tasks parameters are successfully removed from tasks_parameters.json')
+            logger.info('Tasks parameters are successfully removed from tasks_parameters.json')
         else:
             task_arr = task_arr[(task_arr['name'] != task_name[0]) & (task_arr['map name'] == map_name) | (task_arr['map name'] != map_name)]
             task_arr.to_json(file_paths.map.tasks, indent=2, date_format='iso')
-            logger.info('Backend: Task is successfully removed from tasks.json')
+            logger.info('Task is successfully removed from tasks.json')
             task_parameter_arr = task_parameter_arr[(task_parameter_arr['name'] != task_name[0]) & (task_parameter_arr['map name'] == map_name) | (task_parameter_arr['map name'] != map_name)]
             task_parameter_arr.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
-            logger.info('Backend: Task parameters are successfully removed from tasks_parameters.json')
+            logger.info('Task parameters are successfully removed from tasks_parameters.json')
         tasks.saved = task_arr
         tasks.saved_parameters = task_parameter_arr
         current_task.create()
     except Exception as e:
-        logger.error('Backend: Could not remove task data from file')
+        logger.error('Could not remove task data from file')
         logger.error(str(e))
 
 def update_task_preview(task_arr: pd.DataFrame, new_preview: pd.DataFrame) -> None:
