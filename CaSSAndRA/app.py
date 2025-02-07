@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.205.0 Rename task over api
+#Version:0.206.0 Copy task over api
 # package imports
 import os
 import sys

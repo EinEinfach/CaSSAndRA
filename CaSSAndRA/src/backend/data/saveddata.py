@@ -459,7 +459,7 @@ def rename_task(task_name: str, task_old_name: str) -> None:
     task_arr = tasks.saved
     task_parameters_arr = tasks.saved_parameters
     try:
-        if not task_arr.empty and not task_parameters_arr.empty:
+        if not task_arr.empty and not task_parameters_arr.empty and task_name != task_old_name:
             task_arr.loc[(task_arr['map name'] == current_map.name) & (task_arr['name'] == task_old_name), 'name'] = task_name
             task_parameters_arr.loc[(task_parameters_arr['map name'] == current_map.name) & (task_parameters_arr['name'] == task_old_name), 'name'] = task_name
             task_arr.to_json(file_paths.map.tasks, indent=2, date_format='iso')
@@ -469,10 +469,31 @@ def rename_task(task_name: str, task_old_name: str) -> None:
             logger.info('Tasks parameters data are successfully saved in tasks_parameters.json')
             tasks.saved_parameters = task_parameters_arr
         else:
-            logger.error('Renaming not possible task array is empty')
+            logger.error('Renaming not possible new name is equal to legacy name')
     except Exception as e:
         logger.error('Could not rename task')
         logger.erron(str(e))
+
+def copy_task(task_name: str) -> None:
+    task_arr = tasks.saved
+    task_parameters_arr = tasks.saved_parameters
+    try:
+        if not task_arr.empty and not task_parameters_arr.empty:
+            copied_task = task_arr[(task_arr['map name'] == current_map.name) & (task_arr['name'] == task_name)]
+            copied_task.loc[copied_task['name'] == task_name, 'name'] = f'{task_name}_copy'
+            copied_parameters = task_parameters_arr[(task_parameters_arr['map name'] == current_map.name) & (task_parameters_arr['name'] == task_name)]
+            copied_parameters.loc[copied_parameters['name'] == task_name, 'name'] = f'{task_name}_copy'
+            task_arr = pd.concat([task_arr, copied_task], ignore_index=True)
+            task_arr.to_json(file_paths.map.tasks, indent=2, date_format='iso')
+            logger.info('Task data are successfully copied')
+            tasks.saved = task_arr
+            task_parameters_arr = pd.concat([task_parameters_arr, copied_parameters], ignore_index=True)
+            task_parameters_arr.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
+            logger.info('Task parameters data are successfully copied')
+            tasks.saved_parameters = task_parameters_arr 
+    except Exception as e:
+        logger.error('Could not copy task')
+        logger.error(str(e))
 
 def read_tasks(map_file_paths) -> None:
     try:
