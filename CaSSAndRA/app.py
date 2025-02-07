@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.203.0 Taskspreviw update over api, task save over api
+#Version:0.203.1 Bug fix in resume action if a task is pre-loaded
 # package imports
 import os
 import sys

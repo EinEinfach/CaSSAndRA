@@ -453,7 +453,6 @@ class API:
                         path.calc_task(current_task.subtasks, current_task.subtasks_parameters)
                         current_map.calculating = False
                         current_map.calc_route_mowpath()
-                        #cmdlist.cmd_take_map = True
                         robotInterface.performCmd('sendMap')
             except Exception as e:
                 logger.error(f'No valid value in api message found. Allowed values: {allowed_values}. Aborting')
