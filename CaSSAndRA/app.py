@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.203.1 Bug fix in resume action if a task is pre-loaded
+#Version:0.204.0 Remove task over api
 # package imports
 import os
 import sys

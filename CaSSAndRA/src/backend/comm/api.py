@@ -218,7 +218,7 @@ class API:
             logger.info('No valid object in api message found. Aborting')
 
     def check_tasks_cmd(self, buffer: dict) -> None:
-        allowed_cmds = ['select', 'load', 'save', 'calculate']
+        allowed_cmds = ['select', 'load', 'save', 'calculate', 'remove']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -230,6 +230,9 @@ class API:
             elif command[0] == 'save':
                 self.command = command[0]
                 self.perform_tasks_save_cmd(buffer)
+            elif command[0] == 'remove':
+                self.command = command[0]
+                self.perform_tasks_remove_cmd(buffer)
             else:
                 self.command = command[0]
                 self.perform_tasks_load_cmd(buffer)
@@ -423,6 +426,14 @@ class API:
 
         except Exception as e:
             logger.error('Task save over api failed.')
+            logger.error(str(e))
+    
+    def perform_tasks_remove_cmd(self, buffer: dict) -> None:
+        try:
+            value = buffer['value']
+            saveddata.remove_task(tasks.saved, tasks.saved_parameters, value, current_map.name)
+        except Exception as e:
+            logger.error('Task remove over api failed')
             logger.error(str(e))
 
     def perform_tasks_load_cmd(self, buffer: dict) -> None:
