@@ -247,7 +247,7 @@ class API:
         return 
     
     def check_maps_cmd(self, buffer: dict) -> None:
-        allowed_cmds = ['select', 'load', 'save', 'remove', 'rename']
+        allowed_cmds = ['select', 'load', 'save', 'remove', 'rename', 'copy']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_cmds))
@@ -546,6 +546,8 @@ class API:
                         saveddata.save_perimeter(mapping_maps.saved, res[1], res[2])
                 if self.command == 'rename':
                     saveddata.rename_perimeter(value[0], value[1])
+                if self.command == 'copy':
+                    saveddata.copy_perimeter(mapping_maps.saved, value[0], f'{value[0]}_copy')
                         
             except Exception as e:
                 logger.error(f'Geojson maps export failed. Aborting')
