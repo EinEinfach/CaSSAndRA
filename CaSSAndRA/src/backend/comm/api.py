@@ -35,6 +35,7 @@ class API:
     mapstate_json: str ='{}'
     coordsstate_json: str = '{}'
     settingsstate_json: str = '{}'
+    schedulecfgstate_json: str = '{}'
     loaded_tasks: list = field(default_factory=list)
     commanded_object: str = ''
     command: str = ''
@@ -84,6 +85,9 @@ class API:
         else:
             self.tasksstate['available'] = []
         self.tasksstate_json = json.dumps(self.tasksstate)
+    
+    def create_schedule_payload(self) -> None:
+        self.schedulecfgstate_json = json.dumps(schedulecfg.to_json())
     
     def create_mow_parameters_payload(self) -> None:
         self.mowparametersstate['pattern'] = pathplannercfgapi.pattern
@@ -214,6 +218,10 @@ class API:
             self.commanded_object = 'server'
             buffer = buffer['server']
             self.check_server_cmd(buffer)
+        elif 'schedule' in buffer:
+            self.commanded_object = 'schedule'
+            buffer = buffer['schedule']
+            self.check_schedule_cmd(buffer)
         else:
             logger.info('No valid object in api message found. Aborting')
 
@@ -423,6 +431,20 @@ class API:
                     messageservice.send_message(buffer['value'][0])
         else:
             logger.info(f'No valid api message for server command. Aborting')
+    
+    def check_schedule_cmd(self, buffer) -> None:
+        allowed_values = ['update', 'save']
+        if 'command' in buffer:
+            command = [buffer['command']]
+            command = list(set(command).intersection(allowed_values))
+            if command == []:
+                logger.info(f'No valid value in api message found. Allowed commands: {allowed_values}. Aborting')
+            elif command[0] == 'update':
+                self.create_schedule_payload()
+                self.publish('schedule', self.schedulecfgstate_json)
+    
+        else:
+            logger.info('No valid api message for schedule command. Aborting')
     
     def perform_tasks_save_cmd(self, buffer: dict) -> None:
         try:

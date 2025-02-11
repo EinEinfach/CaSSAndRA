@@ -417,9 +417,34 @@ class ScheduleCfg:
             return 0
         except Exception as e:
             logger.error('Could not save schedulecfg.json. Unexpected behaivor')
-            logger.debug(str(e))
+            logger.error(str(e))
             return -1
-
+    
+    def to_json(self) -> dict:
+        try:
+            schedule_json = dict()
+            schedule_json['scheduleActive'] = self.active
+            schedule_json['timeRange'] = [{'monday': self.monday_time},
+                                      {'tuesday': self.tuesday_time},
+                                      {'wednesday': self.wednesday_time},
+                                      {'thursday': self.thursday_time},
+                                      {'friday': self.friday_time},
+                                      {'saturday': self.saturday_time},
+                                      {'sunday': self.sunday_time}
+                                    ]
+            schedule_json['tasks'] = [{'monday': self.monday_tasks},
+                                 {'tuesday': self.tuesday_tasks},
+                                 {'wednesday': self.wednesday_tasks},
+                                 {'thursday': self.thursday_tasks},
+                                 {'friday': self.friday_tasks},
+                                 {'saturday': self.saturday_tasks},
+                                 {'sunday': self.sunday_tasks}
+                                ]
+            return schedule_json
+        except Exception as e:
+            logger.error('Could not convert schedule data to json')
+            logger.error(str(e))
+            return dict()
 
 commcfg = CommCfg()
 rovercfg = RoverCfg()
