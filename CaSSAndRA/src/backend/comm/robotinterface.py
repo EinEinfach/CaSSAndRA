@@ -196,12 +196,15 @@ class RobotInterface:
 
     def _cmdStop(self) -> None:
         self.status = 'stop'
+        robot.dock_reason = None
         cmd = sunraycommstack.stop()
         self.setRobotCmds(cmd)
-        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
+        robot.last_mow_cmd= self._checkMowMotorState(cmd, robot.last_mow_cmd)
+        robot.last_mow_status = robot.last_mow_cmd
     
     def _cmdMove(self) -> None:
         self.status = 'move'
+        robot.dock_reason = None
         if robot.cmd_move_lin == 0 and robot.cmd_move_ang == 0:
             self.setRobotCmds(pd.DataFrame())
         else:
@@ -228,10 +231,12 @@ class RobotInterface:
         elif (abs(robot.map_crc - current_map.map_crc) < 200) and self.pendingRequestCnt > 1:
             robot.status_tmp_timestamp = datetime.now()
             robot.set_robot_status('transit', 'transit')
+            robot.dock_reason = None
             cmd = sunraycommstack.goto()
             self.setRobotCmds(cmd)
             robot.last_cmd = cmd
-            robot.last_mow_status = self._checkMowMotorState(robot.last_cmd, robot.last_mow_status)
+            robot.last_mow_cmd = self._checkMowMotorState(robot.last_cmd, robot.last_mow_cmd)
+            robot.last_mow_status = robot.last_mow_cmd
             robot.current_task = current_map.gotopoint
             self.lastLoadWithDockPath = False
             self.pendingRequest = None
@@ -254,7 +259,8 @@ class RobotInterface:
             robot.set_robot_status('docking', 'docking')
             cmd = sunraycommstack.dock()
             self.setRobotCmds(cmd)
-            robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
+            robot.last_mow_cmd = self._checkMowMotorState(cmd, robot.last_mow_cmd)
+            robot.last_mow_status = robot.last_mow_cmd
             robot.dock_reason = 'operator'
             robot.dock_reason_time = datetime.now()
             self.lastLoadWithDockPath = True
@@ -267,11 +273,13 @@ class RobotInterface:
     def _cmdDockSchedule(self) -> None:
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status('docking', 'docking')
-        cmd = sunraycommstack.dock()
-        self.setRobotCmds(cmd)
-        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
         robot.dock_reason = 'schedule'
         robot.dock_reason_time = datetime.now()
+        cmd = sunraycommstack.dock()
+        self.setRobotCmds(cmd)
+        robot.last_mow_cmd = self._checkMowMotorState(cmd, robot.last_mow_cmd)
+        robot.last_mow_status = robot.last_mow_cmd
+        
     
     def _cmdMow(self) -> None:
         self.pendingRequest = 'mow'
@@ -285,10 +293,12 @@ class RobotInterface:
         elif (abs(robot.map_crc - current_map.map_crc) < 200) and self.pendingRequestCnt > 1:
             robot.status_tmp_timestamp = datetime.now()
             robot.set_robot_status('mow', 'mow')
+            robot.dock_reason = None
             cmd = sunraycommstack.mow()
             self.setRobotCmds(cmd)
             robot.last_cmd = cmd
-            robot.last_mow_status = self._checkMowMotorState(robot.last_cmd, robot.last_mow_status)
+            robot.last_mow_cmd = self._checkMowMotorState(robot.last_cmd, robot.last_mow_cmd)
+            robot.last_mow_status = robot.last_mow_cmd
             robot.current_task = current_map.mowpath
             self.lastLoadWithDockPath = True
             self.pendingRequest = None
@@ -310,7 +320,7 @@ class RobotInterface:
             cmd = sunraycommstack.mow()
             # self.setRobotCmds(cmd)
             robot.last_cmd = cmd
-            robot.last_mow_status = self._checkMowMotorState(robot.last_cmd, robot.last_mow_status)
+            robot.last_mow_cmd = self._checkMowMotorState(robot.last_cmd, robot.last_mow_cmd)
             robot.current_task = current_map.mowpath
             self.lastLoadWithDockPath = True
             self.pendingRequest = None
@@ -322,9 +332,11 @@ class RobotInterface:
     def _cmdResume(self) -> None:
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status('resume', 'resume')
+        robot.dock_reason = None
         cmd = sunraycommstack.resume()
         self.setRobotCmds(cmd)
-        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
+        robot.last_mow_cmd = self._checkMowMotorState(cmd, robot.last_mow_cmd)
+        robot.last_mow_status = robot.last_mow_cmd
     
     def _cmdShutdown(self) -> None:
         robot.status_tmp_timestamp = datetime.now()
@@ -344,7 +356,8 @@ class RobotInterface:
     def _cmdToggleMowMowtor(self) -> None:
         cmd = sunraycommstack.togglemowmotor()
         self.setRobotCmds(cmd)
-        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
+        robot.last_mow_cmd = self._checkMowMotorState(cmd, robot.last_mow_cmd)
+        robot.last_mow_status = robot.last_mow_cmd
 
     def _cmdSetPositionMode(self) -> None:
         self.setRobotCmds(sunraycommstack.takepositionmode())
@@ -352,25 +365,29 @@ class RobotInterface:
     def _cmdChangeMowspeed(self) -> None:
         cmd = sunraycommstack.changespeed(robot.mowspeed_setpoint)
         self.setRobotCmds(cmd)
-        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
+        robot.last_mow_cmd = self._checkMowMotorState(cmd, robot.last_mow_cmd)
+        robot.last_mow_status = robot.last_mow_cmd
     
     def _cmdChangeGotoSpeed(self) -> None:
         cmd = sunraycommstack.changespeed(robot.gotospeed_setpoint)
         self.setRobotCmds(cmd)
-        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
+        robot.last_mow_cmd = self._checkMowMotorState(cmd, robot.last_mow_cmd)
+        robot.last_mow_status = robot.last_mow_cmd
     
     def _cmdSkipNextPoint(self) -> None:
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status('skip point', 'skip point')
         cmd = sunraycommstack.skipnextpoint()
         self.setRobotCmds(cmd)
-        robot.last_mow_status = self._checkMowMotorState(cmd, robot.last_mow_status)
+        robot.last_mow_cmd = self._checkMowMotorState(cmd, robot.last_mow_cmd)
+        robot.last_mow_status = robot.last_mow_cmd
     
     def _cmdSkipToMowProgress(self) -> None:
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status(f'skip to {round(robot.mowprogress*100)}%', f'skip to {round(robot.mowprogress*100)}%')
         cmd = sunraycommstack.skiptomowprogress(robot.mowprogress)
         self.setRobotCmds(cmd)
+        robot.last_mow_cmd = False
         robot.last_mow_status = False
 
     def _cmdCustom(self) -> None:

@@ -45,6 +45,7 @@ class Mower:
     backwards: bool = False
     timestamp: datetime = datetime.now()
     #commanded
+    last_mow_cmd: bool = False
     last_mow_status: bool = False
     cmd_move_lin: float = 0.0
     cmd_move_ang: float = 0.0

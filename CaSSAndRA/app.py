@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.208.0 Copy map over api 
+#Version:0.209.0 Schedule over api + some new values for robot
 # package imports
 import os
 import sys

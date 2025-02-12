@@ -52,6 +52,7 @@ class API:
         self.robotstate['version'] = robot.fw_version
         self.robotstate['status'] = robot.status
         self.robotstate['dockReason'] = robot.dock_reason
+        self.robotstate['sensorState'] = robot.sensor_status
         self.robotstate['battery'] = dict(soc=robot.soc, voltage=robot.battery_voltage, electricCurrent=robot.amps)
         self.robotstate['position'] = dict(x=robot.position_x, y=robot.position_y)
         self.robotstate['target'] = dict(x=robot.target_x, y=robot.target_y) 
@@ -181,6 +182,7 @@ class API:
         self.create_tasks_payload()
         self.create_mow_parameters_payload()
         self.create_map_payload()
+        self.create_schedule_payload()
     
     def publish(self, topic: str, message: str) -> None:
         mqttapi.api_publish(topic, message)
@@ -433,16 +435,16 @@ class API:
             logger.info(f'No valid api message for server command. Aborting')
     
     def check_schedule_cmd(self, buffer) -> None:
-        allowed_values = ['update', 'save']
+        allowed_values = ['save']
         if 'command' in buffer:
             command = [buffer['command']]
             command = list(set(command).intersection(allowed_values))
             if command == []:
                 logger.info(f'No valid value in api message found. Allowed commands: {allowed_values}. Aborting')
-            elif command[0] == 'update':
-                self.create_schedule_payload()
-                self.publish('schedule', self.schedulecfgstate_json)
-    
+            elif command[0] == 'save':
+                if schedulecfg.save_schedulecfg_api(buffer['value']) == 0:
+                   self.create_schedule_payload()
+                   self.publish('schedule', self.schedulecfgstate_json) 
         else:
             logger.info('No valid api message for schedule command. Aborting')
     

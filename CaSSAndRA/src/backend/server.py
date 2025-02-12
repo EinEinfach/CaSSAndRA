@@ -105,6 +105,7 @@ class Server:
                 cassandra_api.publish('tasks', cassandra_api.tasksstate_json)
                 cassandra_api.publish('mow parameters', cassandra_api.mowparametersstate_json)
                 cassandra_api.publish('map', cassandra_api.mapstate_json)
+                cassandra_api.publish('schedule', cassandra_api.schedulecfgstate_json)
                 start_time_api = datetime.now()
             time.sleep(0.1)
 

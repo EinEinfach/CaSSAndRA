@@ -420,6 +420,29 @@ class ScheduleCfg:
             logger.error(str(e))
             return -1
     
+    def save_schedulecfg_api(self, schedule_data: dict) -> int:
+        try:
+            self.active = schedule_data['scheduleActive']
+            self.monday_time = schedule_data['timeRange'][0]['monday']
+            self.tuesday_time = schedule_data['timeRange'][1]['tuesday']
+            self.wednesday_time = schedule_data['timeRange'][2]['wednesday']
+            self.thursday_time = schedule_data['timeRange'][3]['thursday']
+            self.friday_time = schedule_data['timeRange'][4]['friday']
+            self.saturday_time= schedule_data['timeRange'][5]['saturday']
+            self.sunday_time = schedule_data['timeRange'][6]['sunday']
+            self.monday_tasks = schedule_data['tasks'][0]['monday']
+            self.tuesday_tasks = schedule_data['tasks'][1]['tuesday']
+            self.wednesday_tasks = schedule_data['tasks'][2]['wednesday']
+            self.thursday_tasks = schedule_data['tasks'][3]['thursday']
+            self.friday_tasks = schedule_data['tasks'][4]['friday']
+            self.saturday_tasks = schedule_data['tasks'][5]['saturday']
+            self.sunday_tasks = schedule_data['tasks'][6]['sunday']
+            return self.save_schedulecfg()
+        except Exception as e:
+            logger.error('Could not save schedulecfg.json. Unexpected behaivor')
+            logger.error(str(e))
+            return -1
+    
     def to_json(self) -> dict:
         try:
             schedule_json = dict()

@@ -12,7 +12,8 @@ from ..data.cfgdata import PathPlannerCfg, pathplannercfgtasktmp
 from ..data.roverdata import robot
 
 def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
-    logger.info('Backend: Create route from task')
+    tasks_order = list(substasks['name'].unique())
+    logger.info(f'Create route from task. Tasks order: {tasks_order}')
     route = []
     start_pos = calc_start_pos()
     areatomow = Polygon()
@@ -70,7 +71,7 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
         else:
             areatomow = areatomow.union(selected_perimeter)
     current_map.areatomow = round(areatomow.area)
-    logger.info('Backend: Route calculation from task done')
+    logger.info('Route calculation from task done')
     current_map.calc_route_preview(route)
 
 def calc_simple(selected_perimeter: Polygon, parameters: PathPlannerCfg) -> list:
