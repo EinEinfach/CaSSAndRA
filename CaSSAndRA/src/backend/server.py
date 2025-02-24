@@ -97,7 +97,7 @@ class Server:
                 return
             if (datetime.now() - start_time_api).seconds >= 2*time_to_wait:
                 logger.debug('Update api data')
-                cassandra_api.update_payload()
+                cassandra_api.updatePayload()
                 cassandra_api.publish('status', cassandra_api.apistate)
                 cassandra_api.publish('server', json.dumps(dict(software=self.sw, version=self.version)))
                 cassandra_api.publish('robot', cassandra_api.robotstate_json)
@@ -117,7 +117,7 @@ class Server:
             if mqttapi.buffer_api != []:
                 cassandra_api.apistate = 'busy'
                 cassandra_api.publish('status', cassandra_api.apistate)
-                cassandra_api.check_cmd(mqttapi.buffer_api[0])
+                cassandra_api.checkCmd(mqttapi.buffer_api[0])
                 del mqttapi.buffer_api[0]
             time.sleep(0.1)
 

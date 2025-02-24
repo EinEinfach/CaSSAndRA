@@ -20,7 +20,7 @@ def read(measure_file_paths) -> None:
         if not 'timetable_autostartstop_dayofweek' in roverdata.state.columns:
             roverdata.state['timetable_autostartstop_dayofweek'] = 0
             roverdata.state['timetabel_autostartstop_hour'] = 0
-        logger.info('gState data are loaded successfully')
+        logger.info('State data are loaded successfully')
         if roverdata.state.empty:
             logger.warning('state.pickle is empty, create a default data frame')
             state = {"battery_voltage":{"0":0},
@@ -86,7 +86,7 @@ def read(measure_file_paths) -> None:
             roverdata.stats['counter_imu_no_rotation_triggered'] = 0
         if not 'counter_rotation_timeout_triggered' in roverdata.stats.columns:
             roverdata.stats['counter_rotation_timeout_triggered'] = 0
-        logger.info('gStatistics data are loaded successfully')
+        logger.info('Statistics data are loaded successfully')
         if roverdata.stats.empty:
             logger.warning('stats.pickle is empty, create a default data frame')
             stats = {"duration_idle":{"0":0},
@@ -122,7 +122,7 @@ def read(measure_file_paths) -> None:
                  "counter_rotation_timeout_triggered":{"0":0},
                  "timestamp":{"0":str(datetime.now())}}
             roverdata.stats = pd.DataFrame(data=stats)
-        logger.info('gStatistics data are loaded successfully')
+        logger.info('Statistics data are loaded successfully')
     except:
         logger.warning('gFailed to load statistics data, create a default data frame')
         stats = {"duration_idle":{"0":0},
@@ -162,7 +162,7 @@ def read(measure_file_paths) -> None:
     #Try to read Calced from State Data from file
     try:
         roverdata.calced_from_state = pd.read_pickle(measure_file_paths.calcedstate)
-        logger.info('gCalced data from state are loaded successfully')
+        logger.info('Calced data from state are loaded successfully')
         if roverdata.calced_from_state.empty:
             logger.warning('calcedstate.pickle is empty, create a default data frame')
             calced_from_state = {"solution":{"0":"invalid"},
@@ -197,7 +197,7 @@ def read(measure_file_paths) -> None:
             roverdata.calced_from_stats['counter_imu_no_rotation_triggered'] = 0
         if not 'counter_rotation_timeout_triggered' in roverdata.calced_from_stats.columns:
             roverdata.calced_from_stats['counter_rotation_timeout_triggered'] = 0
-        logger.info('gCalced data from stats are loaded successfully')
+        logger.info('Calced data from stats are loaded successfully')
         if roverdata.calced_from_stats.empty:
             logger.warning('calcedstats.pickle is empty, create a default data frame')
             calced_from_stats = {"duration_idle":{"0":0},
@@ -313,20 +313,20 @@ def save(name: str, file_paths) -> None:
     if name == 'state':
         try:
             roverdata.state.to_pickle(file_paths.measure.state)
-            logger.info('gState data are saved successfully in state.pickle')
+            logger.info('State data are saved successfully in state.pickle')
 
             roverdata.calced_from_state.to_pickle(file_paths.measure.calcedstate)
-            logger.info('gCalced state data are saved successfully in calcstate.pickle')
+            logger.info('Calced state data are saved successfully in calcstate.pickle')
         except Exception as e:
             logger.error('gCould not save state data to the file')
             logger.debug(str(e))
     elif name == 'stats':
         try:
             roverdata.stats.to_pickle(file_paths.measure.stats)
-            logger.info('gStatistics data are saved successfully in stats.pickle')
+            logger.info('Statistics data are saved successfully in stats.pickle')
 
             roverdata.calced_from_stats.to_pickle(file_paths.measure.calcedstats)
-            logger.info('gCalced statistics data are saved successfully in calcstats.pickle')
+            logger.info('Calced statistics data are saved successfully in calcstats.pickle')
         except Exception as e:
             logger.error('gCould not save statistics data to the file')
             logger.debug(str(e))
@@ -339,7 +339,7 @@ def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimet
             perimeter['name'] = perimeter_name
             perimeter_arr = pd.concat([perimeter_arr, perimeter], ignore_index=True)
             perimeter_arr.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
-            logger.info('gPerimeter data are successfully saved in perimeter.json')
+            logger.info('Perimeter data are successfully saved in perimeter.json')
             mapping_maps.saved = perimeter_arr
             #check for tasks what have to be copied
             if mapping_maps.map_old_name != None:
@@ -365,7 +365,7 @@ def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str, tasks_arr
         perimeter_arr.to_json(file_paths.map.perimeter, indent=2, date_format='iso')
         #remove also tasks belong to this map
         remove_task(tasks_arr, tasks_parameters_arr, [''], perimeter_name)
-        logger.info('gPerimeter is successfully removed from perimeter.json')
+        logger.info('Perimeter is successfully removed from perimeter.json')
         mapping_maps.saved = perimeter_arr
         mapping_maps.select_saved(pd.DataFrame(columns=['X', 'Y', 'type', 'name']))
     except Exception as e:
@@ -419,9 +419,9 @@ def rename_perimeter(perimeter_name: str, new_perimeter_name: str) -> None:
             tasks.saved = pd.concat([other_tasks, map_tasks], ignore_index=True)
             tasks.saved_parameters = pd.concat([other_tasks_parameters, map_tasks_parameters], ignore_index=True)
             tasks.saved.to_json(file_paths.map.tasks, indent=2, date_format='iso')
-            logger.info('gTask data are successfully saved in tasks.json')
+            logger.info('Task data are successfully saved in tasks.json')
             tasks.saved_parameters.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
-            logger.info('gTasks parameters data are successfully saved in tasks_parameters.json')
+            logger.info('Tasks parameters data are successfully saved in tasks_parameters.json')
             #remove also perimeter in current map, if matched
             if perimeter_name == current_map.name:
                 current_map.clear_map()
