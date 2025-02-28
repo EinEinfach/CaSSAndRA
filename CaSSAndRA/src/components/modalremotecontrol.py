@@ -79,7 +79,7 @@ def toggle_modal(n_clicks_bsoff: int, n_clicks_bsr: int,
             cassandra.reboot()
         elif cmdlist.cmd_standby == 'gps-reboot':
             # cmdlist.cmd_gps_reboot = True
-            robotInterface.performCmd('gpsReboot')
+            robotInterface.performCmd('rebootGps')
             cmdlist.cmd_standby = ''
         elif cmdlist.cmd_standby == 'toggle-mow':
             # cmdlist.cmd_toggle_mow_motor = True

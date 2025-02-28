@@ -103,7 +103,7 @@ class Server:
                 cassandra_api.publish('robot', cassandra_api.robotstate_json)
                 cassandra_api.publish('maps', cassandra_api.mapsstate_json)
                 cassandra_api.publish('tasks', cassandra_api.tasksstate_json)
-                cassandra_api.publish('mow parameters', cassandra_api.mowparametersstate_json)
+                cassandra_api.publish('mowParameters', cassandra_api.mowparametersstate_json)
                 cassandra_api.publish('map', cassandra_api.mapstate_json)
                 cassandra_api.publish('schedule', cassandra_api.schedulecfgstate_json)
                 start_time_api = datetime.now()
@@ -115,8 +115,8 @@ class Server:
                 logger.info('API cmd thread is stopped')
                 return
             if mqttapi.buffer_api != []:
-                cassandra_api.apistate = 'busy'
-                cassandra_api.publish('status', cassandra_api.apistate)
+                # cassandra_api.apistate = 'busy'
+                # cassandra_api.publish('status', cassandra_api.apistate)
                 cassandra_api.checkCmd(mqttapi.buffer_api[0])
                 del mqttapi.buffer_api[0]
             time.sleep(0.1)

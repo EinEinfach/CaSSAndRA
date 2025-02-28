@@ -158,7 +158,7 @@ class RobotInterface:
             self._cmdReboot()
         elif cmd == 'shutdown':
             self._cmdShutdown()
-        elif cmd == 'gpsReboot':
+        elif cmd == 'rebootGps':
             self._cmdGpsReboot()
         elif cmd == 'changeMowSpeed':
             self._cmdChangeMowspeed()

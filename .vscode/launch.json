@@ -5,7 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Current File",
+            "name": "Pytest",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest"
+        },
+        {
+            "name": "Project",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceRoot}/CaSSAndRA/app.py",

@@ -72,7 +72,7 @@ class RobotTopic:
             elif command == 'reboot':
                 robotInterface.performCmd('reboot')
             elif command == 'rebootGps':
-                robotInterface.performCmd('gpsReboot')
+                robotInterface.performCmd('rebootGps')
             elif command == 'shutdown':
                 robotInterface.performCmd('shutdown')
                 self.check_auto_shutdown = True
@@ -104,9 +104,9 @@ class RobotTopic:
                 logger.info(f'No valid value in api message for robot mow command found. Allowed values: {self.allowedMowCmdVal}. Aborting')
                 return
             if value[0] == 'resume':
-                current_map.reset_rout_mowpath()
+                current_map.reset_route_mowpath()
                 robotInterface.performCmd('resume')
-            elif value [0] == 'task' and not current_task.subtasks.empty: 
+            elif value [0] == 'task': 
                 current_map.task_progress = 0
                 current_map.calculating = True
                 path.calc_task(current_task.subtasks, current_task.subtasks_parameters)

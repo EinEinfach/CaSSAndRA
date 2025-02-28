@@ -39,7 +39,6 @@ class API:
         mqttapi.api_publish(topic, message)
         
     def updatePayload(self) -> None:
-        self._createApiPayload()
         self.robotstate_json = robotTopic.createPayload()
         self.mapsstate_json = mapsTopic.createPayload()
         self.tasksstate_json = tasksTopic.createPayload()
@@ -48,6 +47,8 @@ class API:
         self.schedulecfgstate_json = tasksTopic.createSchedulePayload()
 
     def checkCmd(self, buffer: dict) -> None:
+        self.apistate = 'busy'
+        self.publish('status', self.apistate)
         if 'tasks' in buffer:
             self.commanded_object = 'tasks'
             buffer = buffer['tasks']
@@ -96,9 +97,8 @@ class API:
             tasksTopic.checkScheduleCmd(buffer)
         else:
             logger.info('No valid object in api message found. Aborting')
-    
-    def _createApiPayload(self) -> None:
         self.apistate = 'ready'
+        self.publish('status', self.apistate)
 
     def _checkServerCmd(self, buffer) -> None:
         if 'command' in buffer:
