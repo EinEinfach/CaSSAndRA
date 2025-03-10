@@ -21,7 +21,6 @@ class TasksTopic:
     schedulecfgstateJson: str = '{}'
     loadedTasks: list = field(default_factory=list)
     allowedCmds: list = field(default_factory=lambda:['select', 'load', 'save', 'calculate', 'remove', 'rename', 'copy'])
-    allowedValues: list = field(default_factory=list)
     allowedScheduleCmds: list = field(default_factory=lambda:['save'])
 
 
@@ -55,7 +54,6 @@ class TasksTopic:
 
     def checkCmd(self, buffer: dict) -> None:
         try:
-            self.allowedValues = list(tasks.saved[tasks.saved['map name'] == current_map.name]['name'].unique())
             command = [buffer['command']]
             command = list(set(command).intersection(self.allowedCmds))
             if command == []:

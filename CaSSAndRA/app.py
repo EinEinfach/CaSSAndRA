@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.211.0 Bugfixing on api due to last changes, added first unittest for api
+#Version:0.212.0 Bugfixing in tasks commands in case if no tasks are available
 # package imports
 import os
 import sys

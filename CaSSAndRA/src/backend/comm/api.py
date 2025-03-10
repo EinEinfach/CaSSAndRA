@@ -2,7 +2,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 from dataclasses import dataclass, field
-import json
 
 from .. data.cfgdata import commcfg
 from .. comm.connections import mqttapi
