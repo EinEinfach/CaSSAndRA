@@ -283,7 +283,7 @@ def read_perimeter(map_file_paths) -> None:
 
     try:
         mapping_maps.saved = pd.read_json(map_file_paths.perimeter)
-        logger.info('gSaved perimeters are loaded successfully')
+        logger.info('Saved perimeters are loaded successfully')
     except Exception as e:
         logger.warning('gFailed to load saved perimeters from file')
         logger.debug(str(e))
@@ -304,7 +304,7 @@ def read_perimeter(map_file_paths) -> None:
         current_map.perimeter = current_map.perimeter.reset_index(drop=True)
         current_map.create(current_map.name)
         current_task.create()
-        logger.info('gSelected perimeter: '+current_map.name)
+        logger.info('Selected perimeter: '+current_map.name)
     except Exception as e:
         logger.error('gLoading saved perimeter failed')
         logger.debug(str(e))
@@ -333,7 +333,7 @@ def save(name: str, file_paths) -> None:
 
 def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimeter_name: str) -> None:
     if perimeter_name is None:
-        logger.info('gCould not save perimeter. Perimeter name is not valid')
+        logger.info('Could not save perimeter. Perimeter name is not valid')
     elif perimeter_arr.empty or not (perimeter_name in perimeter_arr['name'].unique()):
         try:
             perimeter['name'] = perimeter_name
@@ -357,7 +357,7 @@ def save_perimeter(perimeter_arr: pd.DataFrame, perimeter: pd.DataFrame, perimet
             logger.warning('gCould not save perimeter data to the file')
             logger.debug(str(e))
     else:
-        logger.info('gCould not save perimeter. Perimeter name is already exsist.')
+        logger.info('Could not save perimeter. Perimeter name is already exsist.')
 
 def remove_perimeter(perimeter_arr: pd.DataFrame, perimeter_name: str, tasks_arr: pd.DataFrame, tasks_parameters_arr) -> None:
     try:
@@ -433,7 +433,7 @@ def rename_perimeter(perimeter_name: str, new_perimeter_name: str) -> None:
 
 def save_task(task_arr: pd.DataFrame, task_parameter_arr: pd.DataFrame, task: pd.DataFrame, task_parameters: pd.DataFrame, task_name: str) -> None:
     if task_name is None:
-        logger.info('gCould not save task. Task name is not valid')
+        logger.info('Could not save task. Task name is not valid')
         return
     if not task_arr.empty:
         task_names_to_check = task_arr[task_arr['map name'] == current_map.name]

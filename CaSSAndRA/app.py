@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.213.0 Added CPU temperature to server topic, Attention new requirements.txt
+#Version:0.213.1 Added CPU temperature to server topic, Attention new requirements.txt
 # package imports
 import os
 import sys

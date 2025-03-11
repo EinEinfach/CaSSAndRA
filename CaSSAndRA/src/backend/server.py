@@ -38,7 +38,7 @@ class Server:
                 return
             try:
                 self.cpu_temp = psutil.sensors_temperatures()['cpu_thermal'][0].current
-            except AttributeError:
+            except:
                 self.cpu_temp = None
             time.sleep(1)
 
