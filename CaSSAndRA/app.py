@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.212.0 Bugfixing in tasks commands in case if no tasks are available
+#Version:0.213.0 Added CPU temperature to server topic, Attention new requirements.txt
 # package imports
 import os
 import sys

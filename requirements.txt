@@ -9,6 +9,7 @@ paho_mqtt==1.6.1
 pandas==2.0.1
 Pillow==10.0.1
 plotly==5.18.0
+psutil==6.0.0
 pyserial==3.5
 Requests==2.31.0
 Shapely==2.0.1

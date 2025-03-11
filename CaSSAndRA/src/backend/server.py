@@ -4,10 +4,7 @@ logger = logging.getLogger(__name__)
 # imports
 from dataclasses import dataclass, field
 from datetime import datetime
-import time
-import threading
-import os
-import json
+import time, threading, os, json, psutil
 
 # local imports
 from src.pathdata import paths
@@ -31,6 +28,19 @@ class Server:
     message_servive_thread = None
     datastorage_thread = None
     schedule_thread = None
+    server_info_thread = None
+    cpu_temp: float = None
+
+    def _runServerInfoLoop(self) -> None:
+        while True:
+            if self.restart.is_set():
+                logger.info('Server info thread is stopped')
+                return
+            try:
+                self.cpu_temp = psutil.sensors_temperatures()['cpu_thermal'][0].current
+            except AttributeError:
+                self.cpu_temp = None
+            time.sleep(1)
 
     def _runScheduleLoop(self) -> None:
         while True:
@@ -99,7 +109,7 @@ class Server:
                 logger.debug('Update api data')
                 cassandra_api.updatePayload()
                 cassandra_api.publish('status', cassandra_api.apistate)
-                cassandra_api.publish('server', json.dumps(dict(software=self.sw, version=self.version)))
+                cassandra_api.publish('server', json.dumps(dict(software=self.sw, version=self.version, cpuTemp=self.cpu_temp)))
                 cassandra_api.publish('robot', cassandra_api.robotstate_json)
                 cassandra_api.publish('maps', cassandra_api.mapsstate_json)
                 cassandra_api.publish('tasks', cassandra_api.tasksstate_json)
@@ -202,6 +212,7 @@ class Server:
             time.sleep(0.1)
 
     def setup(self, file_paths) -> None:
+        logger.info(f'{self.sw} {self.version}')
         logger.info('Starting server')
         logger.debug(f'Using {file_paths.data} for config and data storage')
 
@@ -238,8 +249,12 @@ class Server:
         self._setupDataStorageLoop()
         #setup schedule loop
         self._setupScheduleLoop()
+        #setup server info loop
+        self._setupServerInfoLoop()
     
     def run(self) -> None:
+        logger.info('Starting server info thread')
+        self.server_info_thread.start()
         logger.info('Starting robot connection thread')
         self.connection_thread.start()
         logger.info('Starting data storage thread')
@@ -361,5 +376,9 @@ class Server:
     def _setupScheduleLoop(self) -> None:
         self.schedule_thread = threading.Thread(target=self._runScheduleLoop, name='schedule_loop')
         self.schedule_thread.daemon = True
+    
+    def _setupServerInfoLoop(self) -> None:
+        self.server_info_thread = threading.Thread(target=self._runServerInfoLoop, name='server_info_loop')
+        self.server_info_thread.daemon = True
 
 cassandra = Server()
