@@ -31,6 +31,7 @@ class Server:
     server_info_thread = None
     cpu_load: float = None
     cpu_temp: float = None
+    mem_usage: float = None
 
     def _runServerInfoLoop(self) -> None:
         while True:
@@ -39,6 +40,7 @@ class Server:
                 return
             try:
                 self.cpu_load = psutil.cpu_percent(interval=2)
+                self.mem_usage = psutil.virtual_memory().percent
                 self.cpu_temp = psutil.sensors_temperatures()['cpu_thermal'][0].current
             except:
                 self.cpu_temp = None
@@ -110,7 +112,7 @@ class Server:
                 logger.debug('Update api data')
                 cassandra_api.updatePayload()
                 cassandra_api.publish('status', cassandra_api.apistate)
-                cassandra_api.publish('server', json.dumps(dict(software=self.sw, version=self.version, cpuLoad=self.cpu_load, cpuTemp=self.cpu_temp)))
+                cassandra_api.publish('server', json.dumps(dict(software=self.sw, version=self.version, cpuLoad=self.cpu_load, cpuTemp=self.cpu_temp, memUsage=self.mem_usage)))
                 cassandra_api.publish('robot', cassandra_api.robotstate_json)
                 cassandra_api.publish('maps', cassandra_api.mapsstate_json)
                 cassandra_api.publish('tasks', cassandra_api.tasksstate_json)
