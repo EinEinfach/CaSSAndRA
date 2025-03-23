@@ -106,7 +106,8 @@ def check_startup(data_path):
 @click.option('--server_log_level', default="ERROR", envvar='SERVERLOGLEVEL', type=logging_choices, show_default=True)
 @click.option('--pil_log_level', default="WARN", envvar='PILLOGLEVEL', type=logging_choices, show_default=True)
 @click.option('--init', is_flag=True, help="Accepts defaults when initializing app for the first time")
-def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level, server_log_level, pil_log_level, init) -> None:
+@click.option('--mowername', help="Set mower name for UI display")
+def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level, server_log_level, pil_log_level, init, mowername) -> None:
     """ Start the CaSSAndRA Server
 
         Only some Dash server options are handled as command-line options.
@@ -114,6 +115,12 @@ def start(host, port, proxy, data_path, debug, app_log_level, app_log_file_level
         Find supported environment variables here: https://dash.plotly.com/reference#app.run
         
     """
+    # Mowername
+    display_name = "CaSSAndRA"
+    if mowername:  # if mowername is given
+        display_name += f" -- {mowername}"
+    os.environ["MOWERNAME"] = display_name
+
     if init or check_startup(data_path):
         # server and app imports
         import dash
