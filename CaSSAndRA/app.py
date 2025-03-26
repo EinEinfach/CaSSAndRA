@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.217.0 Go to over new feature in sunray (do not dock after mowing)
+#Version:0.218.0 Added Api message if sending command fails
 # package imports
 import os
 import sys

@@ -138,7 +138,8 @@ class MQTT:
         if result[0] == 0:
             logger.debug('API TX: '+topic+' '+payload)
         else:
-            logger.warning('API failed to publish: '+topic+'with message: '+payload)
+            logger.warning('API failed to publish: '+topic+' with message: '+payload)
+            logger.warning(str(result[0]))
 @dataclass
 class HTTP:
     http_ip: str = None
