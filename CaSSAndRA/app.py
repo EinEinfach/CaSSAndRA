@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.216.0 Added hdd usage to server topic, Attention new requirements.txt
+#Version:0.217.0 Go to over new feature in sunray (do not dock after mowing)
 # package imports
 import os
 import sys
