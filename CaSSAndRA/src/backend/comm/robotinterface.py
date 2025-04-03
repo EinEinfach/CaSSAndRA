@@ -14,6 +14,8 @@ from ..data.cfgdata import appcfg
 
 from icecream import ic
 
+NEW_GOTO_APPROACH = True
+
 @dataclass
 class RobotInterface:
     activeCmd: str = None
@@ -243,7 +245,7 @@ class RobotInterface:
             return
         else:
             logger.info(f'Current map crc does not match rover crc. CRC deviation: {robot.map_crc - current_map.map_crc}')
-            self._cmdTakeMap(way=current_map.gotopoint, dockpath=False)
+            self._cmdTakeMap(way=current_map.gotopoint, dockpath=NEW_GOTO_APPROACH)
     
     def _cmdDock(self) -> None:
         self.pendingRequest = 'dock'

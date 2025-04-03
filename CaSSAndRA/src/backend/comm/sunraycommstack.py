@@ -78,7 +78,7 @@ def move(movement: list) -> pd.DataFrame:
         return buffer
 
 def goto() -> pd.DataFrame:
-    msg = {'msg': 'AT+C,0,1,'+str(rovercfg.gotospeed_setpoint)+','+str(rovercfg.fix_timeout)+',0,-1,-1,-1'}
+    msg = {'msg': 'AT+C,0,1,'+str(rovercfg.gotospeed_setpoint)+','+str(rovercfg.fix_timeout)+',0,-1,-1,-1,-1,-1,0'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command goto is prepared')
     cmdlist.cmd_goto = False
@@ -88,21 +88,21 @@ def stop():
     robot.status_tmp_timestamp = datetime.now()
     robot.set_robot_status('stop', 'stop')
 
-    msg = {'msg': 'AT+C,0,0,-1,-1,-1,-1,-1,-1'}
+    msg = {'msg': 'AT+C,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command stop is prepared')
     cmdlist.cmd_stop = False
     return buffer
 
 def dock() -> pd.DataFrame:
-    msg = {'msg': 'AT+C,0,4,-1,-1,-1,-1,-1,-1'}
+    msg = {'msg': 'AT+C,0,4,-1,-1,-1,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command dock is prepared')
     cmdlist.cmd_dock = False
     return buffer
 
 def mow() -> pd.DataFrame:
-    msg = {'msg': 'AT+C,1,1,'+str(rovercfg.mowspeed_setpoint)+','+str(rovercfg.fix_timeout)+','+str(int(rovercfg.finish_and_restart))+',-1,-1,-1'}
+    msg = {'msg': 'AT+C,1,1,'+str(rovercfg.mowspeed_setpoint)+','+str(rovercfg.fix_timeout)+','+str(int(rovercfg.finish_and_restart))+',-1,-1,-1,-1,-1,1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command start is prepared')
     cmdlist.cmd_mow = False
@@ -138,11 +138,11 @@ def gpsreboot() -> pd.DataFrame:
 def togglemowmotor() -> pd.DataFrame:
     #mow motor switch on
     if not robot.last_mow_status:
-        msg = {'msg': 'AT+C,1,-1,-1,-1,-1,-1,-1,-1'}
+        msg = {'msg': 'AT+C,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1'}
         cmdlist.cmd_toggle_mow_motor = False
     #mow motor switch off
     else:
-        msg = {'msg': 'AT+C,0,-1,-1,-1,-1,-1,-1,-1'}
+        msg = {'msg': 'AT+C,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1'}
         cmdlist.cmd_toggle_mow_motor = False
     buffer = pd.DataFrame([msg])
     return buffer
@@ -159,7 +159,7 @@ def takepositionmode() -> pd.DataFrame:
     return buffer
 
 def changespeed(new_speed: float) -> pd.DataFrame:
-    msg = {'msg': 'AT+C,-1,-1,'+str(new_speed)+',-1,-1,-1,-1,-1'}
+    msg = {'msg': 'AT+C,-1,-1,'+str(new_speed)+',-1,-1,-1,-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Backend: Command change speed is prepared, new value is: '+str(new_speed))
     cmdlist.cmd_changemowspeed = False
@@ -167,7 +167,7 @@ def changespeed(new_speed: float) -> pd.DataFrame:
     return buffer
 
 def skipnextpoint() -> pd.DataFrame:
-    msg = {'msg': 'AT+C,-1,-1,-1,-1,-1,-1,1,-1'}
+    msg = {'msg': 'AT+C,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Command skip next point is prepared')
     cmdlist.cmd_skipnextpoint = False
@@ -182,7 +182,7 @@ def custom() -> pd.DataFrame:
     return buffer
 
 def skiptomowprogress(progress: float) -> pd.DataFrame:
-    msg = {'msg': 'AT+C,-1,-1,-1,-1,-1,'+str(progress)+',-1,-1'}
+    msg = {'msg': 'AT+C,-1,-1,-1,-1,-1,'+str(progress)+',-1,-1,-1,-1,-1'}
     buffer = pd.DataFrame([msg])
     logger.debug('Command skip to progress is prepared')
     cmdlist.cmd_skiptomowprogress = False
