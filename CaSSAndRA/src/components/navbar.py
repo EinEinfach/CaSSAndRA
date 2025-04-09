@@ -4,6 +4,9 @@ import dash_bootstrap_components as dbc
 
 # local imports
 from . import ids
+import os
+
+mowername = os.getenv("MOWERNAME", "CaSSAndRA")  # Standard"CaSSAndRA"
 
 # component
 navbar = dbc.Navbar(
@@ -11,7 +14,7 @@ navbar = dbc.Navbar(
         dbc.NavbarToggler(id=ids.NAVBARTOGGLER, n_clicks=0, class_name='mx-1 px-2'),
         dbc.NavbarBrand(
             [
-                dbc.NavLink('CaSSAndRA', id=ids.NAVBARSTATELINK, href='/', active='partial', n_clicks=0, class_name='mx-2 flex-grow-1'), 
+                dbc.NavLink(mowername, id=ids.NAVBARSTATELINK, href='/', active='partial', n_clicks=0, class_name='mx-2 flex-grow-1'), 
             ],
         ),
         dbc.Nav(
