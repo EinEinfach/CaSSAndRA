@@ -351,10 +351,10 @@ class Server:
                     break
             if mqttapi.client.connection_flag:
                 mqttapi.client.publish(mqttapi.mqtt_mower_name+'/status', 'boot')
-                self.api_thread = threading.Thread(target=self._runApi, name='api')
-                self.api_cmd_thread = threading.Thread(target=self._runApiCmd, name='api cmd')
-                self.api_thread.daemon = True
-                self.api_cmd_thread.daemon = True
+            self.api_thread = threading.Thread(target=self._runApi, name='api')
+            self.api_cmd_thread = threading.Thread(target=self._runApiCmd, name='api cmd')
+            self.api_thread.daemon = True
+            self.api_cmd_thread.daemon = True
     
     def _setupMessageServiceConnection(self) -> None:
         if cfgdata.commcfg.message_service == 'Telegram':

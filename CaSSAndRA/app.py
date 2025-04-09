@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.218.0 Added Api message if sending command fails
+#Version:0.218.1 Bug fix: No server crash more in case if API connect failed at server start
 # package imports
 import os
 import sys
