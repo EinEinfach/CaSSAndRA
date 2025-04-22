@@ -228,7 +228,6 @@ class RobotInterface:
                 self.setRobotCmds(sunraycommstack.move([robot.cmd_move_lin, robot.cmd_move_ang]) )
                 self.lastLinSpeed = robot.cmd_move_lin
                 self.lastAngSpeed = robot.cmd_move_ang
-            print(len(self.robotCmds))
     
     def _cmdTakeMap(self, way: pd.DataFrame, dockpath: bool) -> None:
         self._calcMapCrc(way, dockpath)
