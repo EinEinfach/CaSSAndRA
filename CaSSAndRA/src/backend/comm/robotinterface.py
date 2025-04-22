@@ -25,6 +25,8 @@ class RobotInterface:
     robotCmds: list = field(default_factory=lambda: list())
     cmdFailed: bool = False
     lastLoadWithDockPath: bool = False
+    lastLinSpeed: float = 0.0
+    lastAngSpeed: float = 0.0
 
     def _cmdTransmissionFailed(self) -> None:
         self.cmdFailed = True
@@ -190,6 +192,10 @@ class RobotInterface:
     def setRobotCmds(self, data: pd.DataFrame) -> None:
         self.robotCmds.append(data)
     
+    def setForceRobotCmds(self, data: pd.DataFrame) -> None:
+        self.robotCmds = []
+        self.robotCmds.append(data)
+    
     def getRobotCmds(self) -> pd.DataFrame:
         if self.robotCmds != []:
             return self.robotCmds[0]
@@ -208,11 +214,21 @@ class RobotInterface:
         self.status = 'move'
         robot.dock_reason = None
         if robot.cmd_move_lin == 0 and robot.cmd_move_ang == 0:
-            self.setRobotCmds(pd.DataFrame())
+            self.setForceRobotCmds(pd.DataFrame())
+            self.lastLinSpeed = 0.0
+            self.lastAngSpeed = 0.0
         else:
             robot.status_tmp_timestamp = datetime.now()
             robot.set_robot_status('move', 'move')
-            self.setRobotCmds(sunraycommstack.move([robot.cmd_move_lin, robot.cmd_move_ang]) )
+            if self.lastLinSpeed != robot.cmd_move_lin or self.lastAngSpeed != robot.cmd_move_ang:
+                self.setForceRobotCmds(sunraycommstack.move([robot.cmd_move_lin, robot.cmd_move_ang]) )
+                self.lastLinSpeed = robot.cmd_move_lin
+                self.lastAngSpeed = robot.cmd_move_ang
+            elif self.robotCmds == []:   
+                self.setRobotCmds(sunraycommstack.move([robot.cmd_move_lin, robot.cmd_move_ang]) )
+                self.lastLinSpeed = robot.cmd_move_lin
+                self.lastAngSpeed = robot.cmd_move_ang
+            print(len(self.robotCmds))
     
     def _cmdTakeMap(self, way: pd.DataFrame, dockpath: bool) -> None:
         self._calcMapCrc(way, dockpath)
