@@ -143,7 +143,6 @@ class RobotInterface:
     
     def performCmd(self, cmd: str) -> None:
         self.activeCmd = cmd
-        logger.info(f'Send command to robot: {cmd}')
         if cmd == 'stop':
             self._cmdStop()
         elif cmd == 'move':
@@ -204,6 +203,7 @@ class RobotInterface:
 
     def _cmdStop(self) -> None:
         self.status = 'stop'
+        logger.info(f'Send command to robot: {self.status}')
         robot.dock_reason = None
         cmd = sunraycommstack.stop()
         self.setRobotCmds(cmd)
@@ -214,6 +214,7 @@ class RobotInterface:
         self.status = 'move'
         robot.dock_reason = None
         if robot.cmd_move_lin == 0 and robot.cmd_move_ang == 0:
+            logger.info(f'Send command to robot: linear speed: {robot.cmd_move_lin}, angular speed: {robot.cmd_move_ang}')
             self.setForceRobotCmds(pd.DataFrame())
             self.lastLinSpeed = 0.0
             self.lastAngSpeed = 0.0
@@ -221,10 +222,12 @@ class RobotInterface:
             robot.status_tmp_timestamp = datetime.now()
             robot.set_robot_status('move', 'move')
             if self.lastLinSpeed != robot.cmd_move_lin or self.lastAngSpeed != robot.cmd_move_ang:
+                logger.info(f'Send command to robot: linear speed: {robot.cmd_move_lin}, angular speed: {robot.cmd_move_ang}')
                 self.setForceRobotCmds(sunraycommstack.move([robot.cmd_move_lin, robot.cmd_move_ang]) )
                 self.lastLinSpeed = robot.cmd_move_lin
                 self.lastAngSpeed = robot.cmd_move_ang
             elif self.robotCmds == []:   
+                logger.info(f'Send command to robot: linear speed: {robot.cmd_move_lin}, angular speed: {robot.cmd_move_ang}')
                 self.setRobotCmds(sunraycommstack.move([robot.cmd_move_lin, robot.cmd_move_ang]) )
                 self.lastLinSpeed = robot.cmd_move_lin
                 self.lastAngSpeed = robot.cmd_move_ang
@@ -238,6 +241,7 @@ class RobotInterface:
     
     def _cmdGoTo(self) -> None:
         self.pendingRequest = 'goTo'
+        logger.info(f'Send command to robot: {self.pendingRequest}')
         self.pendingRequestCnt += 1
         if self.pendingRequestCnt >= 5:
             self._cmdTransmissionFailed()
@@ -264,6 +268,7 @@ class RobotInterface:
     
     def _cmdDock(self) -> None:
         self.pendingRequest = 'dock'
+        logger.info(f'Send command to robot: {self.pendingRequest}')
         self.pendingRequestCnt += 1
         if self.pendingRequestCnt >= 5:
             self._cmdTransmissionFailed()
@@ -288,6 +293,7 @@ class RobotInterface:
             self._cmdTakeMap(way=current_map.gotopoint, dockpath=True)
     
     def _cmdDockSchedule(self) -> None:
+        logger.info(f'Send command to robot: dockSchedule')
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status('docking', 'docking')
         robot.dock_reason = 'schedule'
@@ -300,6 +306,7 @@ class RobotInterface:
     
     def _cmdMow(self) -> None:
         self.pendingRequest = 'mow'
+        logger.info(f'Send command to robot: {self.pendingRequest}')
         self.pendingRequestCnt += 1
         if self.pendingRequestCnt >= 5:
             self._cmdTransmissionFailed()
@@ -326,6 +333,7 @@ class RobotInterface:
     
     def _cmdSendMap(self) -> None:
         self.pendingRequest = 'sendMap'
+        logger.info(f'Send command to robot: {self.pendingRequest}')
         self.pendingRequestCnt += 1
         if self.pendingRequestCnt >= 5:
             self._cmdTransmissionFailed()
@@ -347,6 +355,7 @@ class RobotInterface:
                          
 
     def _cmdResume(self) -> None:
+        logger.info(f'Send command to robot: resume')
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status('resume', 'resume')
         robot.dock_reason = None
@@ -356,42 +365,50 @@ class RobotInterface:
         robot.last_mow_status = robot.last_mow_cmd
     
     def _cmdShutdown(self) -> None:
+        logger.info(f'Send command to robot: shutdown')
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status('shutdown', 'shutdown')
         self.setRobotCmds(sunraycommstack.shutdown())
 
     def _cmdReboot(self) -> None:
+        logger.info(f'Send command to robot: reboot')
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status('reboot', 'reboot')
         self.setRobotCmds(sunraycommstack.reboot())
 
     def _cmdGpsReboot(self) -> None:
+        logger.info(f'Send command to robot: rebootGps')
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status('gps reboot', 'gps reboot')
         self.setRobotCmds(sunraycommstack.gpsreboot())
 
     def _cmdToggleMowMowtor(self) -> None:
+        logger.info(f'Send command to robot: toggleMowMotor')
         cmd = sunraycommstack.togglemowmotor()
         self.setRobotCmds(cmd)
         robot.last_mow_cmd = self._checkMowMotorState(cmd, robot.last_mow_cmd)
         robot.last_mow_status = robot.last_mow_cmd
 
     def _cmdSetPositionMode(self) -> None:
+        logger.info(f'Send command to robot: setPositionMode')
         self.setRobotCmds(sunraycommstack.takepositionmode())
     
     def _cmdChangeMowspeed(self) -> None:
+        logger.info(f'Send command to robot: changeMowSpeed')
         cmd = sunraycommstack.changespeed(robot.mowspeed_setpoint)
         self.setRobotCmds(cmd)
         robot.last_mow_cmd = self._checkMowMotorState(cmd, robot.last_mow_cmd)
         robot.last_mow_status = robot.last_mow_cmd
     
     def _cmdChangeGotoSpeed(self) -> None:
+        logger.info(f'Send command to robot: changeGoToSpeed')
         cmd = sunraycommstack.changespeed(robot.gotospeed_setpoint)
         self.setRobotCmds(cmd)
         robot.last_mow_cmd = self._checkMowMotorState(cmd, robot.last_mow_cmd)
         robot.last_mow_status = robot.last_mow_cmd
     
     def _cmdSkipNextPoint(self) -> None:
+        logger.info(f'Send command to robot: skipNextPoint')
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status('skip point', 'skip point')
         cmd = sunraycommstack.skipnextpoint()
@@ -400,6 +417,7 @@ class RobotInterface:
         robot.last_mow_status = robot.last_mow_cmd
     
     def _cmdSkipToMowProgress(self) -> None:
+        logger.info(f'Send command to robot: skipToMowProgress')
         robot.status_tmp_timestamp = datetime.now()
         robot.set_robot_status(f'skip to {round(robot.mowprogress*100)}%', f'skip to {round(robot.mowprogress*100)}%')
         cmd = sunraycommstack.skiptomowprogress(robot.mowprogress)
@@ -408,6 +426,7 @@ class RobotInterface:
         robot.last_mow_status = False
 
     def _cmdCustom(self) -> None:
+        logger.info(f'Send command to robot: custom')
         self.setRobotCmds(sunraycommstack.custom())
 
 robotInterface = RobotInterface()

@@ -18,6 +18,7 @@ def serve_layout() -> html.Div:
     return html.Div(
         [
             dcc.Interval(id=ids.INTERVAL, interval=2*1000, n_intervals=0),
+            dcc.Interval(id=ids.JOYSTICKINTERVAL, interval=0.25*1000, n_intervals=0),
             dcc.Interval(id=ids.PROGRESSBARINTERVAL, interval=1*1000, n_intervals=0),
             dcc.Interval(id=ids.STATEMAPINTERVAL, interval=1*1000, n_intervals=0, disabled=False),
             dcc.Interval(id=ids.MAPPINGINTERVAL, interval=1*1000, n_intervals=0, disabled=True),
