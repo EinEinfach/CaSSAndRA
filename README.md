@@ -126,6 +126,7 @@ Options:
   --init                          Accepts defaults when initializing app for
                                   the first time
   --help                          Show this message and exit.
+  --mowername                     Set mower name for UI display
 
 ```
 
