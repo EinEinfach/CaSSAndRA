@@ -110,6 +110,8 @@ class MapsTopic:
             res = mapping_maps.import_api_map(value)
             if res[0] == 0:
                 saveddata.save_perimeter(mapping_maps.saved, res[1], res[2])
+                if res[3] != '':
+                    saveddata.copy_tasks(res[3], res[2])
         except Exception as e:
             logger.error('Api value for save maps command invalid')
             logger.error(str(e))  

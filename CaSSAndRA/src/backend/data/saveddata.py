@@ -495,6 +495,25 @@ def copy_task(task_name: str) -> None:
         logger.error('Could not copy task')
         logger.error(str(e))
 
+def copy_tasks(perimeter_old_name: str, perimeter_name: str) -> None:
+    try:
+        map_tasks = tasks.saved[tasks.saved['map name'] == perimeter_old_name]
+        map_tasks_parameters = tasks.saved_parameters[tasks.saved_parameters['map name'] == perimeter_old_name]
+        if map_tasks.empty or map_tasks_parameters.empty:
+            logger.info('No tasks to copy')
+            return
+        map_tasks.loc[:, 'map name'] = perimeter_name
+        map_tasks_parameters.loc[:, 'map name'] = perimeter_name
+        tasks.saved = pd.concat([tasks.saved, map_tasks], ignore_index=True)
+        tasks.saved_parameters = pd.concat([tasks.saved_parameters, map_tasks_parameters], ignore_index=True)
+        tasks.saved.to_json(file_paths.map.tasks, indent=2, date_format='iso')
+        logger.info('Tasks data are successfully saved in tasks.json')
+        tasks.saved_parameters.to_json(file_paths.map.tasks_parameters, indent=2, date_format='iso')
+        logger.info('Tasks parameters data are successfully saved in tasks_parameters.json')
+    except Exception as e:
+        logger.error('Could not copy tasks')
+        logger.error(str(e))
+
 def read_tasks(map_file_paths) -> None:
     try:
         tasks.saved = pd.read_json(map_file_paths.tasks)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.218.3 Bug fix: Joystick control
+#Version:0.219.0 Available map tasks are also copied to the new map commanded over api
 # package imports
 import os
 import sys

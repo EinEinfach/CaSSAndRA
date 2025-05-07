@@ -577,6 +577,7 @@ class Perimeters:
         try:
             perimeter = pd.DataFrame()
             map_name =  content['features'][0]['properties']['name']
+            map_old_name = content['features'][0]['properties']['oldName']
             exclusion_nr = 0
             for feature in content['features']:
                 if feature['properties']['name'] == 'perimeter':
@@ -602,12 +603,12 @@ class Perimeters:
                     df.columns = ['X', 'Y']
                     df['type'] = 'search wire'
                     perimeter = pd.concat([perimeter, df], ignore_index=True)
-            res = [0, perimeter, map_name]
+            res = [0, perimeter, map_name, map_old_name]
             return res
         except Exception as e:
             logger.error('Received map data is invalid. Aborting')
             logger.error(str(e))
-            return [-1, pd.DataFrame(), None]
+            return [-1, pd.DataFrame(), None, None]
 
     
     def create_perimeter_for_plot(self, data_to_plot: pd.DataFrame) -> pd.DataFrame:
