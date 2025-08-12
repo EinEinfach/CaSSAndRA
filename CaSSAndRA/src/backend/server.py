@@ -25,7 +25,7 @@ class Server:
     connection_thread = None
     api_thread = None
     api_cmd_thread = None
-    message_servive_thread = None
+    message_service_thread = None
     datastorage_thread = None
     schedule_thread = None
     server_info_thread = None
@@ -272,7 +272,7 @@ class Server:
             self.api_cmd_thread.start()
         if cfgdata.commcfg.message_service != None:
             logger.info('Starting message service thread')
-            self.message_servive_thread.start()  
+            self.message_service_thread.start()  
         
         #give some times to establish connection
         time.sleep(2)
@@ -362,8 +362,8 @@ class Server:
             logger.info('Message service is telegram, check for chat id')
             message_service_connection = messageservice.get_chat_id()
             if message_service_connection == 0:
-                self.message_servive_thread = threading.Thread(target=self._runMessageService, name='message service')
-                self.message_servive_thread.daemon = True
+                self.message_service_thread = threading.Thread(target=self._runMessageService, name='message service')
+                self.message_service_thread.daemon = True
             else:
                 logger.error('Message service could not be started. Check your message service settings.')
                 logger.error(f'Error code: {message_service_connection}')
@@ -371,8 +371,8 @@ class Server:
         if cfgdata.commcfg.message_service == 'Pushover':
             messageservice.pushover_token = cfgdata.commcfg.pushover_token
             messageservice.pushover_user = cfgdata.commcfg.pushover_user
-            self.message_servive_thread = threading.Thread(target=self._runMessageService, name='message service')
-            self.message_servive_thread.daemon = True
+            self.message_service_thread = threading.Thread(target=self._runMessageService, name='message service')
+            self.message_service_thread.daemon = True
     
     def _setupDataStorageLoop(self) -> None:
         self.datastorage_thread = threading.Thread(target=self._runDataStorage, name='data storage')

@@ -4,14 +4,14 @@ logger = logging.getLogger(__name__)
 from dataclasses import dataclass, field
 import json
 
-from ...data.cfgdata import commcfg, rovercfg
+from ...data.cfgdata import commcfg, rovercfg, appcfg
 from ..robotinterface import robotInterface
 
 @dataclass
 class SettingsTopic:
     settingsstate: dict = field(default_factory=lambda: dict())
     settingsstateJson: str = None
-    allowedCmds: list = field(default_factory=lambda: ['update', 'setComm', 'setRover'])
+    allowedCmds: list = field(default_factory=lambda: ['update', 'setComm', 'setRover', 'setApp'])
     allowedValues: list = field(default_factory=lambda: [])
 
     def checkCmd(self, buffer: dict) -> None:
@@ -34,6 +34,8 @@ class SettingsTopic:
                 self._setComm(buffer)
             elif command == 'setRover':
                 self._setRover(buffer)
+            elif command == 'setApp':
+                self._setApp(buffer)
         except Exception as e:
             logger.error('Api value for settings command is invalid')
             logger.error(str(e))
@@ -69,6 +71,11 @@ class SettingsTopic:
             self.settingsstate['transitSpeedSetPoint'] = rovercfg.gotospeed_setpoint
             self.settingsstate['mowSpeedSetPoint'] = rovercfg.mowspeed_setpoint
             self.settingsstate['fixTimeout'] = rovercfg.fix_timeout
+            self.settingsstate['minVoltage'] = appcfg.voltage_0
+            self.settingsstate['maxVoltage'] = appcfg.voltage_100
+            self.settingsstate['chargeCurrentThd'] = appcfg.current_thd_charge
+            self.settingsstate['dataMaxAge'] = appcfg.datamaxage
+            self.settingsstate['offlineTimeout'] = appcfg.time_to_offline
             self.settingsstateJson = json.dumps(self.settingsstate)
         except Exception as e:
             logger.error('Could not create api settings payload.')
@@ -148,6 +155,25 @@ class SettingsTopic:
             robotInterface.performCmd('setPositionMode')
         except Exception as e:
             logger.error('Api value for rover settings command is invalid')
+            logger.debug(str(e))
+    
+    def _setApp(self, buffer: dict) -> None:
+        try:
+            value = buffer['value']
+            for key in value:
+                if key == 'minVoltage':
+                    appcfg.voltage_0 = value[key]
+                if key == 'maxVoltage':
+                    appcfg.voltage_100 = value[key]
+                if key == 'chargeCurrentThd':
+                    appcfg.current_thd_charge = value[key]
+                if key == 'dataMaxAge':
+                    appcfg.datamaxage = value[key]
+                if key == 'offlineTimeout':
+                    appcfg.time_to_offline = value[key]
+            appcfg.save_appcfg()
+        except Exception as e:
+            logger.error('Api value for app settings command is invalid')
             logger.debug(str(e))
 
 

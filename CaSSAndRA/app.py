@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.219.0 Available map tasks are also copied to the new map commanded over api
+#Version:0.220.0 New settings topic to set app settings
 # package imports
 import os
 import sys
