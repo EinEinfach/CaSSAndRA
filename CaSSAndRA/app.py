@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.220.0 New settings topic to set app settings
+#Version:2.0.0 Last version for python 3.9 (preparing for switching to new python and packages versions)
 # package imports
 import os
 import sys
