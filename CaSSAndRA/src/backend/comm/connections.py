@@ -445,11 +445,20 @@ class UART:
     def on_obstacle(self, data: str) -> None:
         # datatodf.add_obstacles_to_df(data)
         robotInterface.onRobotMessageReceived('obstacles', data)
+
+@dataclass
+class OFFLINE:
+
+    def cmd_to_rover(self) -> None:
+        msg_pckg = robotInterface.getRobotCmds()
+        robotInterface.resetRobotCmds()
     
+
 #Create connection instances
 mqttcomm = MQTT()
 httpcomm = HTTP()
 uartcomm = UART()
+offlinecomm = OFFLINE()
 
 #Create api instance
 mqttapi = MQTT()

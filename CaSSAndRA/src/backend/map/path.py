@@ -1,6 +1,21 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import os
+import sys
+
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+
+if _current_dir not in sys.path:
+    sys.path.append(_current_dir)
+
+try:
+    import planner_module
+    CPP_PLANNER_AVAILABLE = True
+except ImportError:
+    CPP_PLANNER_AVAILABLE = False
+    logger.warning("C++ Planner not found. Falling back to legacy Python planner.")
+
 import pandas as pd
 from shapely.geometry import *
 import random, math
@@ -8,14 +23,13 @@ import random, math
 from . import map, cutedge, lines, rings
 from . pathfinder import pathfinder
 from ..data.mapdata import current_map
-from ..data.cfgdata import PathPlannerCfg, pathplannercfgtasktmp
+from ..data.cfgdata import PathPlannerCfg, pathplannercfgtasktmp, pathplannercfg
 from ..data.roverdata import robot
 
 def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
     tasks_order = list(substasks['name'].unique())
     logger.info(f'Create route from task. Tasks order: {tasks_order}')
     route = []
-    start_pos = calc_start_pos()
     areatomow = Polygon()
 
     current_map.total_tasks = substasks['task nr'].nunique()
@@ -48,23 +62,28 @@ def calc_task(substasks: pd.DataFrame, parameters: pd.DataFrame) -> None:
         if subtask_nr == 0:
             route = calc_simple(selected_perimeter, pathplannercfgtasktmp)
         else:
-            route_tmp = calc(selected_perimeter, pathplannercfgtasktmp, route[-1])
-            direct_way = current_map.check_direct_way(route[-1], route_tmp[0])
-            if direct_way:
-                logger.debug('Direct way possible. Connect tasks')
+            if (CPP_PLANNER_AVAILABLE and pathplannercfg.usecppplanner):
+                route_tmp = calc_cpp(selected_perimeter, pathplannercfgtasktmp, route[-1])
+                del route[-1]
                 route.extend(route_tmp)
             else:
-                logger.debug('Direct way not possible. Starting pathfinder to connect tasks')
-                pathfinder.create()
-                pathfinder.angle = 0
-                route_astar = pathfinder.find_way(route[-1], route_tmp[0])
-                if route_astar == []:
-                    logger.error('Backend: Route calculation from task could not be finished')
-                    return
-                del route_astar[-1] #remove last point it is given by legacy route (second task start point)
-                route.extend(route_astar)
-                route.extend(route_tmp)
-        start_pos = route[-1]
+                route_tmp = calc(selected_perimeter, pathplannercfgtasktmp, route[-1])
+                direct_way = current_map.check_direct_way(route[-1], route_tmp[0])
+                if direct_way:
+                    logger.debug('Direct way possible. Connect tasks')
+                    route.extend(route_tmp)
+                else:
+                    logger.debug('Direct way not possible. Starting pathfinder to connect tasks')
+                    pathfinder.create()
+                    pathfinder.angle = 0
+                    route_astar = pathfinder.find_way(route[-1], route_tmp[0])
+                    if route_astar == []:
+                        logger.error('Backend: Route calculation from task could not be finished')
+                        return
+                    del route_astar[-1] #remove last point it is given by legacy route (second task start point)
+                    route.extend(route_astar)
+                    route.extend(route_tmp)
+        
         #Extend areatomow value
         if areatomow == Polygon():
             areatomow = selected_perimeter
@@ -78,7 +97,12 @@ def calc_simple(selected_perimeter: Polygon, parameters: PathPlannerCfg) -> list
     route = []
     use_cassandra_pathfinder = False
     start_pos = calc_start_pos()
-    route_tmp = calc(selected_perimeter, parameters, start_pos)
+
+    if (CPP_PLANNER_AVAILABLE and pathplannercfg.usecppplanner):
+        route_tmp = calc_cpp(selected_perimeter, parameters, start_pos)
+    else:
+        route_tmp = calc(selected_perimeter, parameters, start_pos)
+
     if route_tmp == []:
         return []
     if use_cassandra_pathfinder:
@@ -114,7 +138,7 @@ def calc_start_pos() -> list:
     #interpolate to nearest point
     else:
         border_points = current_map.perimeter_polygon.exterior.coords
-        start_pos = [min(border_points, key=lambda coord: (coord[0]-current_pos[0])**2 + (coord[1]-current_pos[1])**2)]
+        start_pos = [min(border_points, key=lambda coord: (coord[0]-current_pos[0])**2 + (coord[1]-current_pos[1])**2)][0]
     return start_pos
     
 
@@ -125,7 +149,7 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         logger.info('Coverage path planner parameters are not valid. Calculation aborted.')
         logger.debug(parameters)
         return []
-    logger.info('Backend: Planning route:')
+    logger.info('Using Python PathPlanner')
     logger.info(parameters)
     logger.info('Rover start position: '+str(start_pos))
     start_pos = Point(start_pos)
@@ -185,5 +209,102 @@ def calc(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: lis
         route = rings.calcroute(area_to_mow, border, edge_polygons, route, parameters)
         # Clear progress bar
         current_map.total_progress = current_map.calculated_progress = 0
+    
+    logger.info("Python PathPlanner done.")
 
     return route
+
+def calc_cpp(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos: list = None) -> list:
+    if start_pos is None:
+        start_pos = calc_start_pos()
+    
+    if selected_perimeter.is_empty or (not parameters.mowarea and parameters.mowborder==0 and not parameters.mowexclusion):
+        logger.info('Coverage path planner parameters are not valid. Calculation aborted.')
+        logger.debug(parameters)
+        return []
+    
+    # 1. C++ Objekte initialisieren
+    service = planner_module.PathService()
+    settings = planner_module.PathSettings()
+
+    logger.info(f'Using C++ PathPlanner. Version: {service.getVersion()}')
+    logger.info(parameters)
+    logger.info('Rover start position: '+str(start_pos))
+    #check if random angle
+    if parameters.angle == None or math.isnan(float(parameters.angle)):
+        angle = random.randrange(start=359) 
+        logger.debug(f'Coverage path planner uses random angle: {angle}Deg')
+    else:
+        angle = parameters.angle
+    
+    # 2. Settings aus deiner PathPlannerCfg übertragen
+    settings.offset = parameters.width
+    settings.angle = math.radians(parameters.angle if parameters.angle else 0)
+    settings.distanceToBorder = parameters.distancetoborder * parameters.width
+    settings.mowArea = parameters.mowarea
+    settings.mowBorder = (parameters.mowborder > 0)
+    settings.borderLaps = parameters.mowborder
+    settings.mowExclusionsBoder = parameters.mowexclusion
+    settings.exclusionsBorderLaps = parameters.mowborder
+    settings.pattern = parameters.pattern
+    settings.mowBorderCcw = parameters.mowborderccw
+    settings.mowExclusionsBorderCcw = parameters.mowborderccw
+
+    # 3. Geometrie konvertieren
+    cpp_env = shapely_to_cpp_env(selected_perimeter)
+    cpp_start = planner_module.Point(start_pos[0], start_pos[1])
+
+    # 4. C++ RECHNUNG
+    try:
+        result = service.computeFullTask(cpp_env, settings, cpp_start)
+        
+        # 5. Resultat zurück in Python Liste konvertieren
+        # result.path ist ein LineString, wir brauchen die Punkte
+        route = [[p.x, p.y] for p in result.path.getPoints()]
+        
+        # UI Progress zurücksetzen
+        current_map.total_progress = current_map.calculated_progress = 0
+
+        logger.info("C++ PathPlanner done.")
+        
+        return route
+
+    except Exception as e:
+        logger.error(f"C++ Planner Error: {e}")
+        return []
+
+def shapely_to_cpp_env(selected_perimeter: Polygon):
+
+    # 1. Perimeter konvertieren
+    # exterior.coords liefert (x, y) Tupel
+    cpp_perimeter = planner_module.Polygon([
+        planner_module.Point(p[0], p[1]) for p in current_map.perimeter_polygon.exterior.coords
+    ])
+    
+    env = planner_module.Environment(cpp_perimeter)
+    
+    # 2. Hindernisse (Interiors) konvertieren
+    for interior in current_map.perimeter_polygon.interiors:
+        cpp_obs = planner_module.Polygon([
+            planner_module.Point(p[0], p[1]) for p in interior.coords
+        ])
+        env.addObstacle(cpp_obs)
+    
+    # 5. Mow area konverrtieren
+    if (selected_perimeter.geom_type == 'Polygon'): 
+        cpp_mow_area = planner_module.Polygon([
+            planner_module.Point(p[0], p[1]) for p in selected_perimeter.exterior.coords])
+        env.addMowArea(cpp_mow_area)
+    elif (selected_perimeter.geom_type == 'MultiPolygon'):
+        for mowArea in selected_perimeter.geoms:
+            cpp_mow_area = planner_module.Polygon([
+                planner_module.Point(p[0], p[1]) for p in mowArea.exterior.coords]) 
+            env.addMowArea(cpp_mow_area)
+        
+    # 4. Virtual Wire konvertieren (NEU)
+    if current_map.search_wire and not current_map.search_wire.is_empty:
+        cpp_search_wire = planner_module.LineString()
+        for p in current_map.search_wire.coords:
+            cpp_search_wire.addPoint(planner_module.Point(p[0], p[1]))
+        env.setVirtualWire(cpp_search_wire)    
+    return env

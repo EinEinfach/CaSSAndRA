@@ -15,7 +15,7 @@ from src.backend.data.roverdata import robot
 from src.backend.comm.api import cassandra_api
 from src.backend.comm.messageservice import messageservice
 
-from src.backend.comm.connections import mqttcomm, httpcomm, uartcomm, mqttapi
+from src.backend.comm.connections import mqttcomm, httpcomm, uartcomm, offlinecomm, mqttapi
 
 @dataclass
 class Server:
@@ -216,6 +216,15 @@ class Server:
             data_clean_finished = cleandata.check(data_clean_finished)
             time.sleep(0.1)
 
+    def _runOffline(self) -> None:
+        while True:
+            if self.restart.is_set():
+                logger.info('Connection thread is stopped')
+                return
+            offlinecomm.cmd_to_rover()
+            time.sleep(0.1)
+
+
     def setup(self, file_paths) -> None:
         logger.info(f'{self.sw} {self.version}')
         logger.info('Starting server')
@@ -312,6 +321,7 @@ class Server:
         os.system('sudo shutdown -h now')
         
     def _setupRobotConnection(self) -> None:
+        # cfgdata.commcfg.use = 'OFFLINE'
         if cfgdata.commcfg.use == 'MQTT':
             logger.info('Selected connection MQTT')
             topics = {'TOPIC_STATE':'state', 'TOPIC_STATS':'stats','TOPIC_PROPS':'props','TOPIC_ONLINE':'online'}
@@ -333,9 +343,11 @@ class Server:
             logger.info('Selected connection UART')
             uartcomm.create()
             self.connection_thread = threading.Thread(target=self._runUart, name='connection')
-
+        elif cfgdata.commcfg.use == 'OFFLINE':
+            logger.info('Offline modus selected, no requests will be send to robot')
+            self.connection_thread = threading.Thread(target=self._runOffline, name='connection')
         self.connection_thread.daemon = True
-        
+
     def _setupApiConnection(self) -> None:
         if cfgdata.commcfg.api == 'MQTT':
             logger.info('Selected API is MQTT')

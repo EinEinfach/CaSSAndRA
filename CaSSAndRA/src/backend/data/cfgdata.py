@@ -251,6 +251,7 @@ class PathPlannerCfg:
     mowborder: int = 1
     mowexclusion: bool = True
     mowborderccw: bool = True
+    usecppplanner: bool = True
 
     def read_pathplannercfg(self) -> None:
         try:
@@ -272,6 +273,7 @@ class PathPlannerCfg:
             self.mowborder = pathplannercfg_from_file['mowborder']
             self.mowexclusion = pathplannercfg_from_file['mowexclusion']
             self.mowborderccw = pathplannercfg_from_file['mowborderccw']
+            self.usecppplanner = pathplannercfg_from_file['usecppplanner']
         except Exception as e:
             logger.error('Could not read pathplannercfg.json. Data are invalid. Go with standard values')
             res = self.save_pathplannercfg()
@@ -287,6 +289,7 @@ class PathPlannerCfg:
             new_data['mowborder'] = self.mowborder
             new_data['mowexclusion'] = self.mowexclusion
             new_data['mowborderccw'] = self.mowborderccw
+            new_data['usecppplanner'] = self.usecppplanner
             with open(paths.file_paths.user.pathplannercfg, 'w') as f:
                 logger.debug('New pathplannercfg data: '+str(new_data))
                 json.dump(new_data, f, indent=4)

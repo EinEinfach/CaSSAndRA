@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:2.0.0 Last version for python 3.9 (preparing for switching to new python and packages versions)
+#Version:0.300.0 First release with CPP planner
 # package imports
 import os
 import sys
@@ -179,8 +179,7 @@ if __name__ == "__main__":
     killer = GracefulKiller()
 
     #create a thread for dash application
-    dash_thread = Thread(target=start, args=())
-    dash_thread.setDaemon(True)
+    dash_thread = Thread(target=start, args=(), daemon=True)
     dash_thread.start()
     
     while not killer.kill_now:

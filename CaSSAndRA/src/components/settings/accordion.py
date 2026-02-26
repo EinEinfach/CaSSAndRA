@@ -63,7 +63,19 @@ accordion_settings = dbc.Accordion([
                         dbc.AccordionItem(
                             [
                                 html.P('Default settings for task calculation'),
-                                html.Div(buttons.savebuttonmapsettings),
+                                dbc.Row([
+                                dbc.Col(html.Div(buttons.savebuttonmapsettings), width="auto"),
+                                dbc.Col([
+                                    dbc.FormText('Use cpp planner', className="text-center w-100"),
+                                    html.Div(
+                                        dbc.Switch(
+                                            id=ids.USECPPPLANNER,
+                                            value=pathplannercfg.usecppplanner,
+                                        ),
+                                        className="d-flex justify-content-center"
+                                    ),
+                                    ], width="auto", className="d-flex flex-column align-items-center ms-4"), # ms-4 erzeugt den Abstand (Margin Start)
+                                ], align="center", className="g-0"),
                                 dbc.FormText('Pattern'),
                                 dbc.Select(
                                     id=ids.PATTERNSETTINGS, 
@@ -478,7 +490,8 @@ def update_connectioninput(radio_input: str) -> list:
            State(ids.PATTERNSETTINGS, 'value'),
            State(ids.MOWAREASETTINGS, 'value'),
            State(ids.MOWEDGEEXCLUSIONSETTINGS, 'value'),
-           State(ids.MOWBORDERCCWSETTINGS, 'value')])
+           State(ids.MOWBORDERCCWSETTINGS, 'value'),
+           State(ids.USECPPPLANNER, 'value')])
 def update_pathplanner_settings_data(bsr_n_clicks: int, 
                                      bok_n_clicks: int, 
                                      is_open: bool, 
@@ -489,7 +502,8 @@ def update_pathplanner_settings_data(bsr_n_clicks: int,
                                      pattern: str,
                                      mowarea: bool, 
                                      mowexclusion: bool,
-                                     mowborderccw: bool
+                                     mowborderccw: bool,
+                                     usecppplanner: bool
                                      ) -> bool:
     context = ctx.triggered_id
     if context == ids.BUTTONOKMAPSETTINGS:
@@ -503,6 +517,7 @@ def update_pathplanner_settings_data(bsr_n_clicks: int,
         pathplannercfg.mowborder = mowedge
         pathplannercfg.mowexclusion = mowexclusion
         pathplannercfg.mowborderccw = mowborderccw
+        pathplannercfg.usecppplanner = usecppplanner
         pathplannercfg.save_pathplannercfg()
     if bsr_n_clicks or bok_n_clicks:
         return not is_open
@@ -663,9 +678,10 @@ def update_robotsettings_on_reload(pathname: str) -> list:
           Output(ids.MOWAREASETTINGS, 'value'),
           Output(ids.MOWEDGEEXCLUSIONSETTINGS, 'value'),
           Output(ids.MOWBORDERCCWSETTINGS, 'value'),
+          Output(ids.USECPPPLANNER, 'value'),
           [Input(ids.URLUPDATE, 'pathname')])
 def update_pathplandersettings_on_reload(pathname: str) -> list:
-    return pathplannercfg.width, pathplannercfg.angle, pathplannercfg.mowborder, pathplannercfg.distancetoborder, pathplannercfg.pattern, pathplannercfg.mowarea, pathplannercfg.mowexclusion, pathplannercfg.mowborderccw
+    return pathplannercfg.width, pathplannercfg.angle, pathplannercfg.mowborder, pathplannercfg.distancetoborder, pathplannercfg.pattern, pathplannercfg.mowarea, pathplannercfg.mowexclusion, pathplannercfg.mowborderccw, pathplannercfg.usecppplanner
 
 @callback(Output(ids.MAXAGESETTINGS, 'value'),
           Output(ids.TIMETOOFFLINESETTINGS, 'value'),

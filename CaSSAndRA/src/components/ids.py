@@ -211,6 +211,7 @@ PUSHOVERSERVICESTYLE = 'pushover-service-style'
 PUSHOVERTOKEN = 'pushover-token'
 PUSHOVERUSER = 'pushover-user'
 PUSHOVERTESTMESSAGE = 'pushoover-test-message'
+USECPPPLANNER = 'use-cpp-planner'
 
 #mapping page
 BUTTONSAVEIMPORTEDPERIMETER = 'button-save-imported-perimeter'

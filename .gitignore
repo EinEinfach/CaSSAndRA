@@ -14,6 +14,7 @@ __pycache__/
 [Ss]cripts
 pyvenv.cfg
 .venv
+.3.11.14
 pip-selfcheck.json
 
 # VSCode workspace
