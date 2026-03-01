@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#Version:0.300.0 First release with CPP planner
+#Version:0.301.0 CPP Planner over PIP (New requirements.txt)
 # package imports
 import os
 import sys

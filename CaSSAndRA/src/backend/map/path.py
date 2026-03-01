@@ -10,7 +10,7 @@ if _current_dir not in sys.path:
     sys.path.append(_current_dir)
 
 try:
-    import planner_module
+    import coverage_path_planner
     CPP_PLANNER_AVAILABLE = True
 except ImportError:
     CPP_PLANNER_AVAILABLE = False
@@ -224,8 +224,8 @@ def calc_cpp(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos:
         return []
     
     # 1. C++ Objekte initialisieren
-    service = planner_module.PathService()
-    settings = planner_module.PathSettings()
+    service = coverage_path_planner.PathService()
+    settings = coverage_path_planner.PathSettings()
 
     logger.info(f'Using C++ PathPlanner. Version: {service.getVersion()}')
     logger.info(parameters)
@@ -252,7 +252,7 @@ def calc_cpp(selected_perimeter: Polygon, parameters: PathPlannerCfg, start_pos:
 
     # 3. Geometrie konvertieren
     cpp_env = shapely_to_cpp_env(selected_perimeter)
-    cpp_start = planner_module.Point(start_pos[0], start_pos[1])
+    cpp_start = coverage_path_planner.Point(start_pos[0], start_pos[1])
 
     # 4. C++ RECHNUNG
     try:
@@ -277,34 +277,34 @@ def shapely_to_cpp_env(selected_perimeter: Polygon):
 
     # 1. Perimeter konvertieren
     # exterior.coords liefert (x, y) Tupel
-    cpp_perimeter = planner_module.Polygon([
-        planner_module.Point(p[0], p[1]) for p in current_map.perimeter_polygon.exterior.coords
+    cpp_perimeter = coverage_path_planner.Polygon([
+        coverage_path_planner.Point(p[0], p[1]) for p in current_map.perimeter_polygon.exterior.coords
     ])
     
-    env = planner_module.Environment(cpp_perimeter)
+    env = coverage_path_planner.Environment(cpp_perimeter)
     
     # 2. Hindernisse (Interiors) konvertieren
     for interior in current_map.perimeter_polygon.interiors:
-        cpp_obs = planner_module.Polygon([
-            planner_module.Point(p[0], p[1]) for p in interior.coords
+        cpp_obs = coverage_path_planner.Polygon([
+            coverage_path_planner.Point(p[0], p[1]) for p in interior.coords
         ])
         env.addObstacle(cpp_obs)
     
     # 5. Mow area konverrtieren
     if (selected_perimeter.geom_type == 'Polygon'): 
-        cpp_mow_area = planner_module.Polygon([
-            planner_module.Point(p[0], p[1]) for p in selected_perimeter.exterior.coords])
+        cpp_mow_area = coverage_path_planner.Polygon([
+            coverage_path_planner.Point(p[0], p[1]) for p in selected_perimeter.exterior.coords])
         env.addMowArea(cpp_mow_area)
     elif (selected_perimeter.geom_type == 'MultiPolygon'):
         for mowArea in selected_perimeter.geoms:
-            cpp_mow_area = planner_module.Polygon([
-                planner_module.Point(p[0], p[1]) for p in mowArea.exterior.coords]) 
+            cpp_mow_area = coverage_path_planner.Polygon([
+                coverage_path_planner.Point(p[0], p[1]) for p in mowArea.exterior.coords]) 
             env.addMowArea(cpp_mow_area)
         
     # 4. Virtual Wire konvertieren (NEU)
     if current_map.search_wire and not current_map.search_wire.is_empty:
-        cpp_search_wire = planner_module.LineString()
+        cpp_search_wire = coverage_path_planner.LineString()
         for p in current_map.search_wire.coords:
-            cpp_search_wire.addPoint(planner_module.Point(p[0], p[1]))
+            cpp_search_wire.addPoint(coverage_path_planner.Point(p[0], p[1]))
         env.setVirtualWire(cpp_search_wire)    
     return env
