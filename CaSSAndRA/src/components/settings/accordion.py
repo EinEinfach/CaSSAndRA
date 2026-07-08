@@ -238,7 +238,7 @@ accordion_settings = dbc.Accordion([
                             dbc.FormText('Default transit speed setpoint [m/s]'),
                             dbc.Input(value=rovercfg.gotospeed_setpoint, type='number', min=0.1, max=1.0, step=0.01, id=ids.GOTOSPEEDSETPOINTSETTINSGS),
                             dbc.FormText('Fix timeout [s]'),
-                            dbc.Input(value=rovercfg.fix_timeout, type='number', min=1, step=1, id=ids.FIXTIMEOUTSETTINGS),                # 
+                            dbc.Input(value=rovercfg.fix_timeout, type='number', min=0, step=1, id=ids.FIXTIMEOUTSETTINGS),                # 
                             dbc.Row([
                                 dbc.FormText(['Finish and restart']),
                                 dbc.Switch(
@@ -617,7 +617,8 @@ def update_robotsettings_data(
         rovercfg.positionmode = positionmode
         rovercfg.lon = positionmodelon
         rovercfg.lat = positionmodelat
-        rovercfg.fix_timeout = fixtimeout
+        if fixtimeout != None:
+            rovercfg.fix_timeout = fixtimeout
         rovercfg.finish_and_restart = finishandrestart
         res = rovercfg.save_rovercfg()
         # cmdlist.cmd_set_positionmode = True
