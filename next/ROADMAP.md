@@ -16,11 +16,13 @@ sowie `make lint` sind grün.
 - **Fertig, wenn:** `make test` und `make lint` grün; Binary liefert UI + `/api/health` aus; E2E-Test prüft das.
 
 ## Phase 1 – Protokoll (`protocol`)
-- [ ] Checksumme, HTTP-Verschlüsselung
-- [ ] Befehle bauen: AT+C, M, W, N, X, P, Y
-- [ ] Antworten parsen: AT+V, S, T (inkl. ältere Firmware mit kürzeren Antworten)
-- [ ] Echte Strings sammeln (Roboter / Legacy-Debug-Logs) → Golden-Files in `tests/protocol/testdata/`
-- **Fertig, wenn:** jeder Befehl/jede Antwort aus Legacy `sunraycommstack.py` abgedeckt und getestet ist.
+- [x] Checksumme, HTTP-Verschlüsselung (gegen Legacy-Algorithmus und Firmware geprüft)
+- [x] Befehle bauen: AT+C (typsicher, Nullwert = „nichts ändern“), M, W/N/X (Karten-Upload in 30er-Paketen), P, Y
+- [x] Antworten parsen: AT+V, S, T, S2, W-Bestätigung (inkl. älterer Firmware; zusätzliche Felder neuerer Firmware werden ignoriert)
+- [x] Golden-Files in `tests/protocol/testdata/` (synthetisch nach Firmware-Format, siehe README dort)
+- [x] Fuzz-Tests: kein Parser darf bei beliebigen Eingaben abstürzen (2 Funde behoben, als Regression im Korpus)
+- [ ] Echte Mitschnitte vom Roboter ergänzen (Debug-Log `RX:`), sobald einer erreichbar ist
+- **Ergebnis:** 100 % Abdeckung von `protocol`. Sunray-MQTT-JSON (State/Stats/Props) folgt mit `link/mqtt.go` in Phase 4, Karten-CRC-Vergleich in Phase 5.
 
 ## Phase 2 – Simulator & Robot-Zustand (`link`, `robot`)
 - [ ] `Link`-Interface, `sim.go`: simulierter Roboter (versteht AT-Befehle, fährt, Batterie, Job-Wechsel)
@@ -65,7 +67,7 @@ sowie `make lint` sind grün.
 
 ## Phase 9 – MQTT-API (`mqttapi`)
 - [ ] Kompatibel zur Legacy-API (alle Topics, Payloads)
-- [ ] Kompatibilitätstests mit mitgeschnittenen Legacy-Payloads
+- [ ] Kompatibilitätstests mit mitgeschnittenen Legacy-Payloads (Beispiele für alle Topics stehen in `~/.cassandra/log/cassandra.log*`, Zeilen „API failed to publish“)
 - **Fertig, wenn:** die bestehende Home-Automation ohne Änderung funktioniert.
 
 ## Phase 10 – Abschluss

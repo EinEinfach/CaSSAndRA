@@ -115,7 +115,8 @@ backend/tests/
 - **Die Regeln sind selbst Tests:** `backend/tests/architecture` und `web/tests/architecture.test.ts` schlagen fehl, wenn die Struktur verletzt wird. Neue Regeln dort ergänzen (`allowedDeps`, `topLevel`), nicht nur hier beschreiben.
 - **Folge in Go:** Tests in einem anderen Ordner sind ein eigenes Package und sehen **nur die exportierte API** des Features. Das ist gewollt (Black-Box-Tests gegen die öffentliche Schnittstelle). Wenn etwas nur testbar ist, indem man Interna exportiert, ist das ein Hinweis, das Design zu ändern, nicht die Sichtbarkeit.
 - Table-driven Tests sind Standard.
-- `tests/protocol`: **Golden-Tests** mit echten Protokoll-Strings (inkl. alter Firmware-Varianten mit kürzeren AT+S/AT+T-Antworten).
+- `tests/protocol`: **Golden-Tests** mit Antwortzeilen in `testdata/` (inkl. alter Firmware-Varianten). Erwartete Werte kommen aus einer unabhängigen Quelle (Firmware-Format, Legacy-Algorithmus), nie aus dem Code unter Test.
+- **Fuzz-Tests** für alles, was Daten von außen parst (`FuzzParseReplies`). Gefundene Abstürze bleiben im Korpus `testdata/fuzz/`. Länger laufen lassen: `go test ./tests/protocol -run XXX -fuzz FuzzParseReplies -fuzztime 60s`.
 - `link/sim.go`: simulierter Roboter, der AT-Befehle versteht und Zustand liefert – für Integrationstests und lokale Entwicklung ohne Hardware.
 - Planner: `testkit.FakePlanner` für alle anderen Tests; echte cgo-Tests in `tests/planner` hinter Build-Tag `cpp`.
 - Frontend: Vitest für Logik/Stores in `web/tests/features/…`. Abhängigkeiten wie `fetch` als Parameter übergeben (siehe `#shared/api.ts`), damit sie ohne Mocks auf Modulebene testbar sind.
@@ -146,12 +147,17 @@ CI: `.github/workflows/next.yml` (Backend, Web, E2E) bei Änderungen unter `next
 Kommunikationswege zum Roboter: **HTTP** (POST an Roboter-IP), **MQTT**, **UART** (seriell). Alle drei
 müssen unterstützt werden; die Kernlogik darf nicht wissen, welcher aktiv ist.
 
-**Nachrichtenformat (HTTP/UART):** ASCII, `BEFEHL,arg1,arg2,...,0xCS`.
-Checksumme = Summe der ASCII-Bytes der Nachricht vor `,` modulo 256, als Hex (`0x..`). Antworten werden
-genauso geprüft.
+**Referenz ist die Firmware**, nicht der Legacy-Code: `sunray/comm.cpp` in github.com/Ardumower/Sunray
+(`processCmd`, `cmdAnswer`, `cmd*`). Implementiert in `backend/protocol/`.
 
-**HTTP-Verschlüsselung:** `AT+V` liefert u. a. `encrypt` (Feld 3) und `challenge` (Feld 4). Bei `encrypt=1`:
-`key = password % challenge`; jedes Zeichen `c → c + key`, und wenn > 126, dann `- 126 + 31`.
+**Nachrichtenformat:** ASCII, `PAYLOAD,0xCS`. CS = Summe der Payload-Bytes modulo 256, die Firmware sendet
+zwei Hex-Ziffern klein, Antworten enden mit `\r\n`. Wir senden immer mit Prüfsumme: HTTP prüft sie,
+UART/Konsole entfernt sie ungeprüft.
+
+**HTTP-Verschlüsselung:** `AT+V` ist nie verschlüsselt und liefert `V,<fw>,<version>,<encrypt>,<challenge>,…`.
+Bei `encrypt=1`: `key = password % challenge` (Firmware wählt die Challenge so, dass key in 1..94 liegt).
+Verschlüsselt wird die komplette Zeile inkl. Prüfsumme, nur Zeichen 32..126: `c → c + key`, über 126 hinaus
+zurück auf 32 (`- 95`). Antworten kommen unverschlüsselt.
 
 **Wichtige Befehle:**
 | Befehl | Zweck |
@@ -167,8 +173,10 @@ genauso geprüft.
 | `AT+P,mode,lon,lat` | Positionsmodus (absolut/relativ) |
 | `AT+Y` / `AT+Y2` / `AT+Y3` | Reboot / GPS-Reboot / Shutdown |
 
-Feldlisten von AT+S/AT+T exakt aus `sunraycommstack.py` übernehmen (inkl. Auffüllen für ältere Firmware).
-Über MQTT kommen State/Stats/Props als JSON auf `<mower_name>/<topic>`.
+AT+S hat 19 Felder (ältere Firmware 16 oder 17), AT+T 31 (älter 24 oder 25). Geparst wird ab der Mindestlänge,
+fehlende Felder sind 0, zusätzliche Felder neuerer Firmware werden ignoriert. Beim Laden steht der Ladestrom
+negativ in `amps` (Firmware schreibt `"-"` davor, daher auch `"--x"` möglich). Über MQTT kommen State/Stats/Props
+als JSON auf `<mower_name>/<topic>` (Phase 4).
 
 ## Domänenwissen: Bahnplanung
 
