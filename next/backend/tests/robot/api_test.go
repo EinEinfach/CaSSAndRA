@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -193,28 +194,35 @@ func TestPublishStateOnlyOnChange(t *testing.T) {
 		})
 		close(done)
 	}()
-	count := func() int { mu.Lock(); defer mu.Unlock(); return len(published) }
-	waitUntil := func(n int) {
+	snapshot := func() []string { mu.Lock(); defer mu.Unlock(); return slices.Clone(published) }
+	waitUntil := func(ok func([]string) bool) {
 		t.Helper()
 		deadline := time.Now().Add(2 * time.Second)
-		for count() < n && time.Now().Before(deadline) {
+		for !ok(snapshot()) && time.Now().Before(deadline) {
 			time.Sleep(time.Millisecond)
 		}
 	}
 
-	waitUntil(1)
+	waitUntil(func(p []string) bool { return len(p) >= 1 })
 	time.Sleep(20 * time.Millisecond) // many ticks without changes
-	if n := count(); n != 1 {
+	if n := len(snapshot()); n != 1 {
 		t.Errorf("published %d times without changes, want 1", n)
 	}
 
+	// Going online and the first state are two changes; a tick may fall in
+	// between, so the intermediate state may be published too.
 	f.online(state(protocol.OpMow))
-	waitUntil(2)
+	lastIsTransit := func(p []string) bool { return strings.Contains(p[len(p)-1], `"transit"`) }
+	waitUntil(lastIsTransit)
 	cancel()
 	<-done
-	mu.Lock()
-	defer mu.Unlock()
-	if len(published) != 2 || !strings.Contains(published[0], `"offline"`) || !strings.Contains(published[1], `"transit"`) {
-		t.Errorf("published = %q", published)
+	got := snapshot()
+	if !strings.Contains(got[0], `"offline"`) || !lastIsTransit(got) || len(got) > 3 {
+		t.Errorf("published = %q", got)
+	}
+	for i := 1; i < len(got); i++ {
+		if got[i] == got[i-1] {
+			t.Errorf("published the same state twice: %q", got[i])
+		}
 	}
 }
