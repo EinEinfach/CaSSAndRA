@@ -1,0 +1,4 @@
+/bin/
+/backend/coverage.out
+/backend/server/dist/*
+!/backend/server/dist/.gitkeep

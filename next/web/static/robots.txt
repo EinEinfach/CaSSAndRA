@@ -1,0 +1,3 @@
+# Local robot controller, nothing to index.
+User-agent: *
+Disallow: /

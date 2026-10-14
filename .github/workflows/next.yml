@@ -1,0 +1,70 @@
+name: next
+
+on:
+  push:
+    paths:
+      - "next/**"
+      - ".github/workflows/next.yml"
+  pull_request:
+    paths:
+      - "next/**"
+      - ".github/workflows/next.yml"
+
+defaults:
+  run:
+    working-directory: next
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: next/backend/go.mod
+          cache-dependency-path: next/backend/go.mod
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.14
+          working-directory: next/backend
+      - run: cd backend && go vet ./...
+      - run: make test-go
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: next/web/package-lock.json
+      - run: cd web && npm ci
+      - run: make lint-web
+      - run: make test-web
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [backend, web]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: next/backend/go.mod
+          cache-dependency-path: next/backend/go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: next/web/package-lock.json
+      - run: cd web && npm ci && npx playwright install --with-deps chromium
+      - run: make test-e2e
+        env:
+          CI: "true"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: next/web/playwright-report
