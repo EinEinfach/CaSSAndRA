@@ -19,6 +19,7 @@ func FuzzParseReplies(f *testing.F) {
 	f.Add("S2,99999999,0.5")
 	f.Add("S2,1,0.5,0.5,1,99999999999")
 	f.Add(",,,,0x00")
+	f.Add(`{"battery_voltage":1,"position":{"x":1,"y":2},"job":1}`)
 	f.Fuzz(func(_ *testing.T, line string) {
 		p, err := protocol.Unframe(line)
 		if err != nil {
@@ -30,6 +31,10 @@ func FuzzParseReplies(f *testing.F) {
 		_, _ = protocol.ParseObstacles(p)
 		_, _ = protocol.ParseWaypointAck(p)
 		_ = protocol.ReplyMatches(p, p)
+		_, _ = protocol.ParseBridgeState([]byte(line))
+		_, _ = protocol.ParseBridgeStats([]byte(line))
+		_, _ = protocol.ParseBridgeProps([]byte(line))
+		_, _ = protocol.ParseBridgeOnline([]byte(line))
 	})
 }
 

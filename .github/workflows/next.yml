@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: next/backend/go.mod
-          cache-dependency-path: next/backend/go.mod
+          cache-dependency-path: next/backend/go.sum
       - uses: golangci/golangci-lint-action@v8
         with:
           version: v2.14
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: next/backend/go.mod
-          cache-dependency-path: next/backend/go.mod
+          cache-dependency-path: next/backend/go.sum
       - uses: actions/setup-node@v4
         with:
           node-version: 24

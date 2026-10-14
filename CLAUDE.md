@@ -121,6 +121,8 @@ backend/tests/
 - `tests/protocol`: **Golden-Tests** mit Antwortzeilen in `testdata/` (inkl. alter Firmware-Varianten). Erwartete Werte kommen aus einer unabhängigen Quelle (Firmware-Format, Legacy-Algorithmus), nie aus dem Code unter Test.
 - **Fuzz-Tests** für alles, was Daten von außen parst (`FuzzParseReplies`). Gefundene Abstürze bleiben im Korpus `testdata/fuzz/`. Länger laufen lassen: `go test ./tests/protocol -run XXX -fuzz FuzzParseReplies -fuzztime 60s`.
 - `link/sim.go`: simulierter Roboter als `Transport`. Er läuft durch denselben `Poller` wie HTTP/UART, d. h. Tests mit dem Simulator prüfen den echten Code-Pfad. Für Fehlerfälle gibt es `SetOffline`, `SetBatteryVoltage`, `TriggerRain`.
+- Echte Transporte werden gegen echte Gegenstellen getestet, nicht gegen Mocks: HTTP über `testkit.RobotHTTPServer` (Simulator hinter `httptest`), UART über `net.Pipe` mit einem Fake-Roboter, der Konsolenrauschen einstreut, MQTT gegen `testkit.StartBroker` (eingebetteter mochi-Broker).
+- Test-HTTP-Handler, die auf `r.Context().Done()` warten, müssen vorher den Body lesen – sonst bemerkt der Server das Auflegen nicht und `httptest.Server.Close` hängt.
 - Unit-Tests von `robot` nutzen einen Fake-`Sender` (`tests/robot/helpers_test.go`), der Fehler, eigene Antworten und Blockieren pro Befehl simuliert. Zusammenspiel robot + link + sim gehört nach `tests/integration`.
 - Tests mit echten Timern (Poller) mit `-race -count=20` auf Wackeligkeit prüfen, bevor sie committet werden.
 - Planner: `testkit.FakePlanner` für alle anderen Tests; echte cgo-Tests in `tests/planner` hinter Build-Tag `cpp`.
@@ -143,9 +145,12 @@ make test-cpp     # Backend inkl. echtem Planner (Build-Tag cpp) – ab Phase 6
 make lint         # go vet + golangci-lint + svelte-check + prettier + eslint
 make fmt          # Formatieren (golangci-lint fmt, prettier)
 make coverage     # Backend-Coverage über alle Features (-coverpkg=./...)
-make dev          # Backend :8050 + Vite-Devserver (Proxy /api → Backend)
+make dev          # Backend :8050 mit Simulator + Vite-Devserver (Proxy /api → Backend)
 make build        # Frontend bauen, nach backend/server/dist kopieren, bin/cassandra bauen
 ```
+
+Mit echtem Roboter: `bin/cassandra --link http --http-url http://<ip>` (Passwort per `CASSANDRA_HTTP_PASSWORD`),
+`--link uart --uart-port /dev/ttyACM0` oder `--link mqtt --mqtt-broker tcp://<ip>:1883 --mqtt-mower <prefix>`.
 
 Einzelnes Feature: `cd backend && go test ./tests/robot/`, einzelner Test: `go test ./tests/robot/ -run TestStop`.
 Frontend einzeln: `cd web && npx vitest --run tests/shared/api.test.ts`.
@@ -160,8 +165,15 @@ müssen unterstützt werden; die Kernlogik darf nicht wissen, welcher aktiv ist.
 Anfrage/Antwort und implementieren nur `Transport.Exchange(line) → line`; der `Poller` macht daraus einen
 `Link` (fragt AT+S jede 1 s, AT+S2 alle 10 s, AT+T alle 60 s, wie Legacy). Bei MQTT schickt eine Bridge
 State/Stats/Props als JSON auf `<name>/state|stats|props|online`, Befehle gehen ohne Antwort auf
-`<name>/command` – das wird ein eigener `Link`. Hinweis: Die Sunray-Firmware hat zusätzlich ein eigenes,
+`<name>/command` (roh, ohne Prüfsumme, wie Legacy) – eigener `MQTTLink`. Online ist der Roboter dort, wenn der
+Broker verbunden ist *und* `<name>/online` nicht `false` meldet; gemeldet wird erst nach bestätigten Abos. Hinweis: Die Sunray-Firmware hat zusätzlich ein eigenes,
 viel einfacheres MQTT (`/op`, `/cmd` mit `start|stop|dock`), das CaSSAndRA nicht nutzt.
+
+**Umsetzung:** `link/http.go` (POST, 6 s Timeout, leerer Body = Zeile abgelehnt), `link/uart.go` (`LineTransport`:
+überspringt Konsolenausgaben bis zur passenden Antwort, öffnet den Port nach Fehlern neu), `link/mqtt.go`
+(paho; Nachrichten laufen über einen Kanal, damit der Handler nur aus `Run` aufgerufen wird). Auswahl über
+`app.LinkConfig` bzw. `--link sim|http|uart|mqtt`; Passwörter auch per `CASSANDRA_HTTP_PASSWORD` /
+`CASSANDRA_MQTT_PASSWORD`, damit sie nicht in der Prozessliste stehen.
 
 **Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er
 idempotent ist. `Stop` bricht einen laufenden Karten-Upload ab, statt hinter ihm zu warten.

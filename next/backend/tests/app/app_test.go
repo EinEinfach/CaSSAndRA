@@ -38,6 +38,11 @@ type running struct {
 
 func start(t *testing.T) running {
 	t.Helper()
+	return startWith(t, testConfig(t))
+}
+
+func startWith(t *testing.T, cfg app.Config) running {
+	t.Helper()
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
@@ -46,7 +51,7 @@ func start(t *testing.T) running {
 	done := make(chan struct{})
 	var runErr error
 	go func() {
-		runErr = app.Run(ctx, testConfig(t), ln)
+		runErr = app.Run(ctx, cfg, ln)
 		close(done)
 	}()
 	t.Cleanup(func() {

@@ -19,13 +19,55 @@ import (
 
 const shutdownTimeout = 5 * time.Second
 
+// Link kinds.
+const (
+	LinkSim  = "sim"
+	LinkHTTP = "http"
+	LinkUART = "uart"
+	LinkMQTT = "mqtt"
+)
+
+// LinkConfig selects and configures the connection to the robot.
+type LinkConfig struct {
+	Kind string // LinkSim, LinkHTTP, LinkUART or LinkMQTT
+	// HTTP: robot URL and the password from the firmware's config.h (0 = none).
+	HTTPURL      string
+	HTTPPassword int
+	// UART: serial port and baud rate.
+	UARTPort string
+	UARTBaud int
+	MQTT     link.MQTTConfig
+}
+
+func (c LinkConfig) validate() error {
+	switch c.Kind {
+	case LinkSim:
+	case LinkHTTP:
+		if c.HTTPURL == "" {
+			return errors.New("invalid config: the http link needs a robot URL")
+		}
+	case LinkUART:
+		if c.UARTPort == "" || c.UARTBaud <= 0 {
+			return errors.New("invalid config: the uart link needs a port and a baud rate")
+		}
+	case LinkMQTT:
+		if c.MQTT.Broker == "" || c.MQTT.MowerName == "" {
+			return errors.New("invalid config: the mqtt link needs a broker and a mower name")
+		}
+	default:
+		return fmt.Errorf("invalid config: unknown link %q (sim, http, uart or mqtt)", c.Kind)
+	}
+	return nil
+}
+
 // Config holds everything the app needs to start.
 type Config struct {
 	Version string
 	UI      fs.FS
 	Logger  *slog.Logger
 	Robot   robot.Config
-	// SimTick is the simulation step; the simulator is the only link so far.
+	Link    LinkConfig
+	// SimTick is the simulation step of the simulated robot.
 	SimTick time.Duration
 	// Poll controls how often the robot is asked for data.
 	Poll link.PollConfig
@@ -35,14 +77,13 @@ type Config struct {
 	Heartbeat time.Duration
 }
 
-// DefaultConfig returns the settings for running with the simulator.
+// DefaultConfig returns the legacy defaults with the simulated robot.
 func DefaultConfig() Config {
-	poll := link.DefaultPollConfig()
-	poll.StateInterval = 200 * time.Millisecond // the simulator is local and cheap
 	return Config{
 		Robot:           robot.DefaultConfig(),
+		Link:            LinkConfig{Kind: LinkSim, UARTBaud: 115200},
 		SimTick:         100 * time.Millisecond,
-		Poll:            poll,
+		Poll:            link.DefaultPollConfig(),
 		PublishInterval: 200 * time.Millisecond,
 		Heartbeat:       15 * time.Second,
 	}
@@ -60,7 +101,7 @@ func (c Config) validate() error {
 			return fmt.Errorf("invalid config: %s must be positive, got %v (start from DefaultConfig)", name, d)
 		}
 	}
-	return nil
+	return c.Link.validate()
 }
 
 // Run serves CaSSAndRA on ln until ctx is cancelled, then shuts down gracefully.
@@ -74,7 +115,10 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	log := cfg.Logger
 	cfg.Robot.Logger = log.With("feature", "robot")
 
-	// Deferred in reverse: first cancel the background goroutines, then wait for them.
+	// Deferred in reverse: cancel the background goroutines, wait for them,
+	// and only then release the link they use.
+	l, closeLink := newLink(cfg)
+	defer closeLink()
 	var wg sync.WaitGroup
 	defer wg.Wait()
 	ctx, cancel := context.WithCancel(ctx)
@@ -87,21 +131,19 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 		}()
 	}
 
-	simCfg := link.DefaultSimConfig()
-	simCfg.Start = link.DemoStation
-	sim := link.NewSim(simCfg)
-	poller := link.NewPoller(sim, cfg.Poll)
-	r := robot.New(poller, cfg.Robot)
+	r := robot.New(l, cfg.Robot)
 	hub := server.NewHub(cfg.Heartbeat)
 
-	goroutine(func() { sim.Run(ctx, cfg.SimTick) })
+	if sim, ok := l.(*simLink); ok {
+		goroutine(func() { sim.sim.Run(ctx, cfg.SimTick) })
+		goroutine(func() { uploadDemoMap(ctx, r, log) })
+	}
 	goroutine(func() {
-		if err := poller.Run(ctx, r); err != nil {
+		if err := l.Run(ctx, r); err != nil {
 			log.Error("robot link stopped", "err", err)
 		}
 	})
 	goroutine(func() { r.PublishState(ctx, cfg.PublishInterval, func(b []byte) { hub.Publish("robot", b) }) })
-	goroutine(func() { uploadDemoMap(ctx, r, log) })
 
 	srv := &http.Server{
 		Handler: server.New(server.Options{
@@ -118,7 +160,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 
 	serveErr := make(chan error, 1)
 	go func() { serveErr <- srv.Serve(ln) }()
-	log.Info("CaSSAndRA started", "addr", ln.Addr().String(), "version", cfg.Version, "link", "simulator")
+	log.Info("CaSSAndRA started", "addr", ln.Addr().String(), "version", cfg.Version, "link", cfg.Link.Kind)
 
 	select {
 	case err := <-serveErr:
@@ -136,6 +178,35 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 		return fmt.Errorf("serve http: %w", err)
 	}
 	return nil
+}
+
+// simLink is the simulated robot behind a poller; the app also steps the
+// simulation and gives it the demo garden.
+type simLink struct {
+	*link.Poller
+	sim *link.Sim
+}
+
+// newLink builds the configured link and a function that releases it.
+func newLink(cfg Config) (link.Link, func()) {
+	lc := cfg.Link
+	switch lc.Kind {
+	case LinkHTTP:
+		poll := cfg.Poll
+		poll.Encrypt, poll.Password = true, lc.HTTPPassword
+		return link.NewPoller(link.NewHTTPTransport(lc.HTTPURL), poll), func() {}
+	case LinkUART:
+		tr := link.NewUARTTransport(lc.UARTPort, lc.UARTBaud)
+		return link.NewPoller(tr, cfg.Poll), func() { _ = tr.Close() }
+	case LinkMQTT:
+		mc := lc.MQTT
+		mc.Logger = cfg.Logger.With("feature", "link")
+		return link.NewMQTTLink(mc), func() {}
+	}
+	simCfg := link.DefaultSimConfig()
+	simCfg.Start = link.DemoStation
+	sim := link.NewSim(simCfg)
+	return &simLink{Poller: link.NewPoller(sim, cfg.Poll), sim: sim}, func() {}
 }
 
 // uploadDemoMap gives the simulated robot something to mow once it is online.

@@ -43,9 +43,12 @@ sowie `make lint` sind grün.
 - Architektur-Review: Struktur trägt. Gefunden und behoben: Deadlock in `app.Run` bei Serverfehler, Endlosschleife im Karten-Effekt, schwacher Kontrast des Stop-Knopfs im Dunkelmodus.
 
 ## Phase 4 – Echte Verbindungen (`link`)
-- [ ] `http.go` (inkl. Verschlüsselung), `uart.go`, `mqtt.go`
-- [ ] Reconnect, Timeouts, alles über `context`
-- **Fertig, wenn:** die neue App einen echten Roboter steuert (mindestens über den eigenen Verbindungsweg).
+- [x] `http.go` (inkl. Verschlüsselung), `uart.go` (`LineTransport`, überspringt Konsolenausgaben), `mqtt.go` (Format der Legacy-Bridge)
+- [x] Reconnect, Timeouts, alles über `context`; MQTT meldet online erst nach bestätigten Abos
+- [x] Auswahl per `app.LinkConfig` / `--link`, Passwörter auch per Umgebungsvariable
+- [x] Tests gegen echte Gegenstellen: Simulator hinter `httptest`, serielle Leitung über `net.Pipe`, eingebetteter MQTT-Broker (inkl. Broker-Neustart)
+- [ ] **Test mit echtem Roboter** über den eigenen Verbindungsweg (offen – braucht den Roboter; nicht ohne Absprache, da beim Verbinden `AT+P` gesendet wird)
+- **Ergebnis:** alle drei Wege implementiert und gegen Simulator/Broker getestet, Gesamtabdeckung 97 %.
 
 ## Phase 5 – Einstellungen & Karten (`settings`, `maps`)
 - [ ] Settings laden/speichern/in der UI bearbeiten
@@ -86,4 +89,3 @@ sowie `make lint` sind grün.
 - UI-Sprache / Mehrsprachigkeit (vorerst Englisch wie Legacy)
 - Eigenes Tag-Schema für den Neubau (Version kommt noch aus Legacy-Tags `v2.0.0-…`)
 - Statistik-Speicherung: JSON oder SQLite (bis Phase 8)
-- Phase 4: alle drei Verbindungswege sofort oder zuerst nur der genutzte
