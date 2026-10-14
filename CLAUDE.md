@@ -81,7 +81,8 @@ Ebene, hier eintragen. Wenn die Struktur abweicht, diese Datei aktualisieren.
 - **Abhängigkeiten zeigen nur nach unten:** `geo` und `protocol` hängen von nichts ab. `link` nutzt `protocol`. Fachliche Features (`robot`, `maps`, `tasks` …) dürfen sich gegenseitig nutzen, aber ohne Zyklen. `server` und `mqttapi` stehen ganz oben und werden nur von `app` importiert.
 - **Jedes Feature hat eine kleine öffentliche API** (Konstruktor + Methoden). Andere Features nutzen nur diese, nie Interna.
 - **Kein globaler Zustand.** Abhängigkeiten werden im Konstruktor übergeben (Legacy nutzt Modul-Globals wie `cmdlist.cmd_mow = True` – genau das vermeiden).
-- **Interfaces dort, wo sie gebraucht werden:** z. B. definiert `tasks` das `Planner`-Interface, das es braucht; `robot` definiert `Link`. Uhrzeit immer über ein `Clock`-Interface, damit `schedule` testbar ist.
+- **Interfaces dort, wo sie gebraucht werden:** z. B. definiert `tasks` das `Planner`-Interface, das es braucht; `robot` definiert `Sender` (nur `Send`), obwohl `link.Link` mehr kann.
+- **Zeit ist injizierbar:** Features nehmen `Now func() time.Time` in ihrer Config (Default `time.Now`), Tests übergeben `testkit.FakeClock.Now`. Simulationszeit läuft nur über `Sim.Step`.
 - **Protokoll ist pur:** `protocol` macht kein I/O. String rein → Struct raus und umgekehrt.
 - **Nebenläufigkeit:** ein Goroutine pro Verbindung/Loop, Kommunikation über Channels oder klar gekapselten Zustand mit Mutex. Alle Loops hängen an einem `context.Context` für sauberes Herunterfahren.
 - **Fehler** werden zurückgegeben und mit `fmt.Errorf("...: %w", err)` angereichert, nicht geloggt-und-verschluckt.
@@ -117,7 +118,9 @@ backend/tests/
 - Table-driven Tests sind Standard.
 - `tests/protocol`: **Golden-Tests** mit Antwortzeilen in `testdata/` (inkl. alter Firmware-Varianten). Erwartete Werte kommen aus einer unabhängigen Quelle (Firmware-Format, Legacy-Algorithmus), nie aus dem Code unter Test.
 - **Fuzz-Tests** für alles, was Daten von außen parst (`FuzzParseReplies`). Gefundene Abstürze bleiben im Korpus `testdata/fuzz/`. Länger laufen lassen: `go test ./tests/protocol -run XXX -fuzz FuzzParseReplies -fuzztime 60s`.
-- `link/sim.go`: simulierter Roboter, der AT-Befehle versteht und Zustand liefert – für Integrationstests und lokale Entwicklung ohne Hardware.
+- `link/sim.go`: simulierter Roboter als `Transport`. Er läuft durch denselben `Poller` wie HTTP/UART, d. h. Tests mit dem Simulator prüfen den echten Code-Pfad. Für Fehlerfälle gibt es `SetOffline`, `SetBatteryVoltage`, `TriggerRain`.
+- Unit-Tests von `robot` nutzen einen Fake-`Sender` (`tests/robot/helpers_test.go`), der Fehler, eigene Antworten und Blockieren pro Befehl simuliert. Zusammenspiel robot + link + sim gehört nach `tests/integration`.
+- Tests mit echten Timern (Poller) mit `-race -count=20` auf Wackeligkeit prüfen, bevor sie committet werden.
 - Planner: `testkit.FakePlanner` für alle anderen Tests; echte cgo-Tests in `tests/planner` hinter Build-Tag `cpp`.
 - Frontend: Vitest für Logik/Stores in `web/tests/features/…`. Abhängigkeiten wie `fetch` als Parameter übergeben (siehe `#shared/api.ts`), damit sie ohne Mocks auf Modulebene testbar sind.
 - E2E: Playwright in `web/tests/e2e/` (`*.e2e.ts`) gegen das echte Binary (`make build`, Port 4173), ab Phase 2 mit sim-Link.
@@ -146,6 +149,16 @@ CI: `.github/workflows/next.yml` (Backend, Web, E2E) bei Änderungen unter `next
 
 Kommunikationswege zum Roboter: **HTTP** (POST an Roboter-IP), **MQTT**, **UART** (seriell). Alle drei
 müssen unterstützt werden; die Kernlogik darf nicht wissen, welcher aktiv ist.
+
+**Aufbau in `link`:** `Link` = `Run(ctx, Handler)` + `Send(ctx, payload) (reply, error)`. HTTP und UART sind
+Anfrage/Antwort und implementieren nur `Transport.Exchange(line) → line`; der `Poller` macht daraus einen
+`Link` (fragt AT+S jede 1 s, AT+S2 alle 10 s, AT+T alle 60 s, wie Legacy). Bei MQTT schickt eine Bridge
+State/Stats/Props als JSON auf `<name>/state|stats|props|online`, Befehle gehen ohne Antwort auf
+`<name>/command` – das wird ein eigener `Link`. Hinweis: Die Sunray-Firmware hat zusätzlich ein eigenes,
+viel einfacheres MQTT (`/op`, `/cmd` mit `start|stop|dock`), das CaSSAndRA nicht nutzt.
+
+**Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er
+idempotent ist. `Stop` bricht einen laufenden Karten-Upload ab, statt hinter ihm zu warten.
 
 **Referenz ist die Firmware**, nicht der Legacy-Code: `sunray/comm.cpp` in github.com/Ardumower/Sunray
 (`processCmd`, `cmdAnswer`, `cmd*`). Implementiert in `backend/protocol/`.

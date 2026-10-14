@@ -25,9 +25,13 @@ sowie `make lint` sind grün.
 - **Ergebnis:** 100 % Abdeckung von `protocol`. Sunray-MQTT-JSON (State/Stats/Props) folgt mit `link/mqtt.go` in Phase 4, Karten-CRC-Vergleich in Phase 5.
 
 ## Phase 2 – Simulator & Robot-Zustand (`link`, `robot`)
-- [ ] `Link`-Interface, `sim.go`: simulierter Roboter (versteht AT-Befehle, fährt, Batterie, Job-Wechsel)
-- [ ] `robot`: abgeleiteter Status, Befehle mit Stop-Vorrang, Online-Erkennung
-- **Fertig, wenn:** `tests/robot` spielt Mähen → Stop → Docken gegen den Simulator durch.
+- [x] `Link`-Interface (`Run` mit `Handler` für Meldungen, `Send` für Befehle) – passt für Anfrage/Antwort (HTTP, UART) und Push (MQTT)
+- [x] `Poller`: macht aus einem `Transport` (eine Zeile hin, eine zurück) einen `Link`; Polling-Intervalle wie Legacy, Verschlüsselung, Wiederverbindung
+- [x] `sim.go`: simulierter Roboter als `Transport` – versteht AT-Befehle, Karten-Upload, fährt Route und Dockpfad, lädt, Akku, Regen, Joystick, Fehler ohne Route; Zeit läuft nur über `Step` (deterministisch)
+- [x] `robot`: Status wie Legacy (offline, idle, move, map upload, mow, transit, docking, charging, docked, error), SoC, Dock-Grund, Befehle
+- [x] Sicherheit: nur `Stop` wird wiederholt (3×), `Stop` bricht laufenden Karten-Upload ab statt zu warten
+- [x] `testkit.FakeClock`
+- **Ergebnis:** `tests/integration` spielt Mähen → Stop → Docken (unverschlüsselt und verschlüsselt), Routenende, Regen und Verbindungsabbruch gegen den Simulator durch. Abdeckung `robot` 100 %, `link` 98 %.
 
 ## Phase 3 – Erster Durchstich bis zum Browser (`server`, Web)
 - [ ] WebSocket-Hub, REST-Befehle
