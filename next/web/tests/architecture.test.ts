@@ -46,15 +46,23 @@ describe('frontend architecture', () => {
 		expect(offenders.map((f) => relative(root, f))).toEqual([]);
 	});
 
-	it('mirrors shared/ code with tests', () => {
-		const sources = files(join(src, 'shared'))
-			.filter((f) => /\.(ts|svelte)$/.test(f))
-			.map((f) => relative(join(src, 'shared'), f).replace(/(\.svelte)?\.ts$|\.svelte$/, ''));
-		const tested = files(join(tests, 'shared')).map((f) =>
-			relative(join(tests, 'shared'), f).replace(/\.test\.ts$/, '')
+	// Every source file needs a test: Foo.svelte and foo.ts -> Foo.test.ts / foo.test.ts,
+	// store.svelte.ts -> store.test.ts. Files with only types are exempt.
+	const untested = (srcDir: string, testDir: string) => {
+		const tested = new Set(
+			files(testDir).map((f) => relative(testDir, f).replace(/\.test\.ts$/, ''))
 		);
-		for (const source of sources) {
-			expect(tested, `src/shared/${source} has no test`).toContain(source);
-		}
+		return files(srcDir)
+			.filter((f) => /\.(ts|svelte)$/.test(f) && !f.endsWith('types.ts'))
+			.map((f) => relative(srcDir, f).replace(/(\.svelte)?\.ts$|\.svelte$/, ''))
+			.filter((name) => !tested.has(name));
+	};
+
+	it('mirrors shared/ code with tests', () => {
+		expect(untested(join(src, 'shared'), join(tests, 'shared'))).toEqual([]);
+	});
+
+	it.each(features)('mirrors every file of feature %s with a test', (feature) => {
+		expect(untested(join(src, 'features', feature), join(tests, 'features', feature))).toEqual([]);
 	});
 });

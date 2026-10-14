@@ -75,6 +75,7 @@ type Robot struct {
 	dockByUser bool
 	dockReason DockReason
 	cancelBusy context.CancelFunc
+	uploaded   protocol.Map
 }
 
 // New returns a Robot that sends commands through l.

@@ -29,7 +29,7 @@ Struktur nicht übernehmen. Relevante Legacy-Stellen:
 
 - **Backend:** Go (aktuelle stabile Version), ein einziges Binary.
 - **Frontend:** Svelte + TypeScript (SvelteKit mit `adapter-static`), Build wird per `go:embed` ins Binary eingebettet.
-- **Live-Daten:** WebSocket (Backend → UI: Zustand, Position, Fortschritt). Befehle per REST (JSON).
+- **Live-Daten:** Server-Sent Events auf `GET /api/events` (Backend → UI: Zustand, Position, Fortschritt), Befehle per REST (JSON). Bewusst kein WebSocket: Daten fließen nur in eine Richtung, SSE braucht keine Go-Bibliothek, der Browser verbindet sich selbst neu, und es ist mit `httptest` testbar. Neue Clients bekommen sofort das letzte Event jedes Typs.
 - **Kartendarstellung:** Canvas-basiert im Browser, Koordinaten in Metern (lokales System des Roboters).
 - **Bahnplanung:** C++-Planner aus dem eigenen Repo [CaSSAndRA_PathPlannerCore](https://github.com/EinEinfach/CaSSAndRA_PathPlannerCore), angebunden über **cgo**. Das ist das einzige Stück, das nicht neu geschrieben wird (siehe „Planner-Anbindung“).
 - **Persistenz:** Dateien im Datenverzeichnis (Standard `~/.cassandra`), JSON für Config/Karten/Tasks. Kein pickle, keine DataFrames. Zeitreihen ggf. später SQLite.
@@ -57,12 +57,12 @@ next/
     settings/        App-, Rover-, Verbindungs- und Planner-Einstellungen; Import aus Legacy-Daten
     stats/           Statistik und Verlauf (Batterie, Mähzeit, GPS-Qualität)
     mqttapi/         Externe MQTT-API (kompatibel zur Legacy-API, siehe unten)
-    server/          HTTP-Handler, WebSocket-Hub, eingebettetes Frontend (`server/dist/`, Build-Ausgabe, gitignored); montiert die Routen der Features
+    server/          HTTP-Handler, SSE-Hub, eingebettetes Frontend (`server/dist/`, Build-Ausgabe, gitignored); montiert die Routen der Features (`Options.Routes`)
     tests/           Spiegelt die Feature-Ordner, siehe „Testen“
   web/
     src/
       features/      dieselben Features wie im Backend, jeweils ein Ordner (Komponenten, Stores, API-Client)
-      shared/        UI-Bausteine, Kartenrenderer (Canvas), WebSocket-Client
+      shared/        API-Client, Event-Stream, Kartenrenderer (Canvas: viewport.ts, drawMap.ts, MapCanvas.svelte)
       routes/        SvelteKit-Seiten, setzen nur Features zusammen
     tests/           Spiegelt src/: tests/features/<feature>/, tests/shared/, tests/e2e/, dazu architecture.test.ts
   third_party/
@@ -87,6 +87,8 @@ Ebene, hier eintragen. Wenn die Struktur abweicht, diese Datei aktualisieren.
 - **Nebenläufigkeit:** ein Goroutine pro Verbindung/Loop, Kommunikation über Channels oder klar gekapselten Zustand mit Mutex. Alle Loops hängen an einem `context.Context` für sauberes Herunterfahren.
 - **Fehler** werden zurückgegeben und mit `fmt.Errorf("...: %w", err)` angereichert, nicht geloggt-und-verschluckt.
 - **Logging** über `log/slog`, strukturiert.
+- **HTTP-API eines Features** liegt im Feature (`robot/api.go`: `Handler()`, JSON-Typen mit camelCase-Tags). `app` montiert sie in `server`. Fehler-Mapping: offline → 503, Timeout → 504, sonstiger Link-Fehler → 502, ungültige Eingabe → 400, Body `{"error": "..."}`. JSON enthält nie `NaN` und nie `null` für Listen.
+- **Goroutinen in `app`** laufen an einem eigenen Kontext und werden beim Beenden abgebrochen *und* abgewartet (`defer wg.Wait()` vor `defer cancel()` registrieren, damit `cancel` zuerst läuft). Request-Kontexte hängen über `BaseContext` am App-Kontext, sonst blockieren offene Event-Streams das Herunterfahren.
 - **cgo nur in `planner/`**, in einer Datei hinter Build-Tag `cpp`. Alles andere bleibt reines Go und ist ohne C-Toolchain testbar.
 
 ## Testen
@@ -122,8 +124,12 @@ backend/tests/
 - Unit-Tests von `robot` nutzen einen Fake-`Sender` (`tests/robot/helpers_test.go`), der Fehler, eigene Antworten und Blockieren pro Befehl simuliert. Zusammenspiel robot + link + sim gehört nach `tests/integration`.
 - Tests mit echten Timern (Poller) mit `-race -count=20` auf Wackeligkeit prüfen, bevor sie committet werden.
 - Planner: `testkit.FakePlanner` für alle anderen Tests; echte cgo-Tests in `tests/planner` hinter Build-Tag `cpp`.
-- Frontend: Vitest für Logik/Stores in `web/tests/features/…`. Abhängigkeiten wie `fetch` als Parameter übergeben (siehe `#shared/api.ts`), damit sie ohne Mocks auf Modulebene testbar sind.
-- E2E: Playwright in `web/tests/e2e/` (`*.e2e.ts`) gegen das echte Binary (`make build`, Port 4173), ab Phase 2 mit sim-Link.
+- Frontend: Logik gehört in `.ts`-Dateien (pure Funktionen, Klassen), Komponenten bleiben dünn. Abhängigkeiten werden übergeben statt importiert-und-gemockt: `fetch` als Parameter, `send`/`sender`/`loadMap` als Props bzw. Konstruktor-Argumente, Timer über ein `Scheduler`-Interface.
+- Komponententests mit `@testing-library/svelte` in jsdom. Canvas wird über `tests/shared/recordingContext.ts` geprüft (zeichnet jeden Befehl auf), `ResizeObserver` per `vi.stubGlobal`.
+- Svelte 5: Ein `$effect`, der State schreibt, den er auch liest, läuft endlos (`effect_update_depth_exceeded`). Gelesenen-und-geschriebenen State in `untrack(...)` lesen.
+- Dateinamen dürfen sich nicht nur in Groß-/Kleinschreibung unterscheiden (`Joystick.svelte` + `joystick.ts` → gleiche Testdatei auf macOS).
+- E2E: Playwright in `web/tests/e2e/` (`*.e2e.ts`) gegen das echte Binary (`make build`, Port 4173) mit Simulator und Demo-Garten. Neue E2E-Tests mit `npx playwright test --repeat-each=3` auf Wackeligkeit prüfen.
+- `go test` läuft im Makefile mit `-timeout 120s`, damit ein hängender Test (Deadlock) nicht den ganzen Lauf blockiert.
 - Bevor eine Aufgabe als erledigt gilt: Tests laufen grün, `go vet` und Linter sauber.
 
 ## Befehle
@@ -237,6 +243,7 @@ Vorgehen für die Go-Anbindung:
 ## Konventionen
 
 - Code, Bezeichner und Commit-Messages auf Englisch; Diskussion und diese Datei auf Deutsch.
+- UI-Texte vorerst Englisch wie in der Legacy-App. Mehrsprachigkeit ist offen (siehe ROADMAP).
 - Einheiten im Namen, wo nicht offensichtlich (`speedMps`, `angleRad`, `timeoutSec`).
 - Sicherheit: Der Roboter ist eine Maschine mit Messer. Befehle, die Bewegung auslösen, nie automatisch
   wiederholen, ohne dass es explizit so entworfen ist; Stop hat immer Vorrang.

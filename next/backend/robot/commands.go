@@ -154,6 +154,9 @@ func (r *Robot) UploadMap(ctx context.Context, m protocol.Map) error {
 			return fmt.Errorf("upload map: %w: robot stored up to point %d, sent %d", ErrUploadRejected, got, next)
 		}
 	}
+	r.mu.Lock()
+	r.uploaded = m
+	r.mu.Unlock()
 	return nil
 }
 

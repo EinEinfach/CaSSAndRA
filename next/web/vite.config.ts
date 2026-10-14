@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { svelteTesting } from '@testing-library/svelte/vite';
 
 // Backend for `npm run dev` (make dev starts it on this port).
 const backend = process.env.CASSANDRA_BACKEND ?? 'http://127.0.0.1:8050';
@@ -15,7 +16,8 @@ export default defineConfig({
 			},
 			// Pure SPA: the Go server serves index.html for every client route.
 			adapter: adapter({ fallback: 'index.html' })
-		})
+		}),
+		svelteTesting()
 	],
 	server: {
 		proxy: { '/api': { target: backend, ws: true } }
@@ -23,6 +25,7 @@ export default defineConfig({
 	test: {
 		expect: { requireAssertions: true },
 		include: ['tests/**/*.test.ts'],
-		environment: 'node'
+		// jsdom for component tests; plain logic tests run fine in it too.
+		environment: 'jsdom'
 	}
 });

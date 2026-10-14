@@ -7,11 +7,12 @@ test('API health endpoint answers', async ({ request }) => {
 	expect(await res.json()).toMatchObject({ status: 'ok' });
 });
 
-test('start page shows server status', async ({ page }) => {
+test('start page shows the app and its version', async ({ page, request }) => {
+	const { version } = await (await request.get('/api/health')).json();
 	await page.goto('/');
 
 	await expect(page.getByRole('heading', { name: 'CaSSAndRA' })).toBeVisible();
-	await expect(page.getByTestId('health')).toContainText('Server ok');
+	await expect(page.getByText(version)).toBeVisible();
 });
 
 test('client routes are served by the SPA fallback', async ({ request }) => {

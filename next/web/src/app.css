@@ -1,0 +1,109 @@
+:root {
+	color-scheme: light dark;
+	--bg: #f4f6f2;
+	--surface: #ffffff;
+	--surface-sunken: #e8ece4;
+	--border: #cfd6c8;
+	--text: #1d2419;
+	--text-muted: #5d6857;
+	--accent: #3f7d20;
+	--accent-text: #ffffff;
+	--tone-text: #1d2419;
+	--tone-neutral: #e3e7df;
+	--tone-active: #cfe6b8;
+	--tone-good: #bfe0f2;
+	--tone-warning: #f6dfa6;
+	--tone-danger: #f4bcb4;
+	--tone-danger-text: #b3261e;
+	--danger: #b3261e;
+	--on-danger: #ffffff;
+
+	--map-bg: #e3e7df;
+	--map-lawn: #b9d99a;
+	--map-border: #4d7a2f;
+	--map-exclusion: #d8c2a0;
+	--map-dock: #2f6fb3;
+	--map-way: rgb(40 60 30 / 0.35);
+	--map-way-done: rgb(40 60 30 / 0.12);
+	--map-trail: #e08a1e;
+	--map-target: #b3261e;
+	--map-robot: #ffffff;
+	--map-robot-outline: #1d2419;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #12160f;
+		--surface: #1b2117;
+		--surface-sunken: #252d20;
+		--border: #3a4532;
+		--text: #e6eadf;
+		--text-muted: #a2ad99;
+		--accent: #7cbf4a;
+		--accent-text: #12160f;
+		--tone-text: #e6eadf;
+		--tone-neutral: #2c3526;
+		--tone-active: #2f5a1a;
+		--tone-good: #1d4a63;
+		--tone-warning: #6b5317;
+		--tone-danger: #6e2420;
+		--tone-danger-text: #ff8a80;
+		--danger: #c62f25;
+		--on-danger: #ffffff;
+
+		--map-bg: #1b2117;
+		--map-lawn: #2c4a1d;
+		--map-border: #7cbf4a;
+		--map-exclusion: #5a4a33;
+		--map-dock: #6aa8e6;
+		--map-way: rgb(220 235 210 / 0.3);
+		--map-way-done: rgb(220 235 210 / 0.1);
+		--map-trail: #f0a040;
+		--map-target: #ff8a80;
+		--map-robot: #e6eadf;
+		--map-robot-outline: #12160f;
+	}
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
+	line-height: 1.4;
+}
+
+button {
+	font: inherit;
+	padding: 8px 14px;
+	border-radius: 10px;
+	border: 1px solid var(--border);
+	background: var(--surface);
+	color: var(--text);
+	cursor: pointer;
+}
+button:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+button.primary {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: var(--accent-text);
+	font-weight: 600;
+}
+button.danger {
+	background: var(--danger);
+	border-color: var(--danger);
+	color: var(--on-danger);
+	font-weight: 600;
+}

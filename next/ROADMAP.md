@@ -34,10 +34,13 @@ sowie `make lint` sind grün.
 - **Ergebnis:** `tests/integration` spielt Mähen → Stop → Docken (unverschlüsselt und verschlüsselt), Routenende, Regen und Verbindungsabbruch gegen den Simulator durch. Abdeckung `robot` 100 %, `link` 98 %.
 
 ## Phase 3 – Erster Durchstich bis zum Browser (`server`, Web)
-- [ ] WebSocket-Hub, REST-Befehle
-- [ ] UI: Live-Karte (Canvas) mit Roboterposition, Status, Start/Stop/Dock, Joystick
-- **Fertig, wenn:** `make dev` startet mit Simulator, Roboter bewegt sich flüssig im Browser, Playwright-Test läuft.
-- Architektur-Review: trägt die Struktur? Wenn nicht, jetzt nachschärfen.
+- [x] SSE-Hub (`GET /api/events`) statt WebSocket – Begründung in `CLAUDE.md`
+- [x] Robot-API: `GET /api/robot/state|map`, `POST /api/robot/<befehl>`, `move`, `mow-motor`, `speed`, `skip-to-progress`
+- [x] `app` verdrahtet Simulator → Poller → Robot → Hub/Server; Demo-Garten (`link.DemoMap`) bis Karten existieren
+- [x] UI: Live-Karte (Canvas, Zoom/Verschieben/Pinch, Hell/Dunkel), Status, Mähen/Stop/Docken, Joystick
+- [x] Tests: Komponenten (jsdom), Zeichnen über aufzeichnenden Canvas-Kontext, E2E mit Klick auf Mähen/Stop/Docken und Joystick
+- **Ergebnis:** `make dev` startet mit Simulator, der Roboter fährt im Browser. Backend 98 % Abdeckung, 124 Frontend-Tests, 5 E2E-Tests.
+- Architektur-Review: Struktur trägt. Gefunden und behoben: Deadlock in `app.Run` bei Serverfehler, Endlosschleife im Karten-Effekt, schwacher Kontrast des Stop-Knopfs im Dunkelmodus.
 
 ## Phase 4 – Echte Verbindungen (`link`)
 - [ ] `http.go` (inkl. Verschlüsselung), `uart.go`, `mqtt.go`
@@ -80,5 +83,7 @@ sowie `make lint` sind grün.
 - [ ] Testlauf parallel zur Legacy-App, dann Umstieg; `CaSSAndRA/` erst danach entfernen
 
 ## Offene Entscheidungen
+- UI-Sprache / Mehrsprachigkeit (vorerst Englisch wie Legacy)
+- Eigenes Tag-Schema für den Neubau (Version kommt noch aus Legacy-Tags `v2.0.0-…`)
 - Statistik-Speicherung: JSON oder SQLite (bis Phase 8)
 - Phase 4: alle drei Verbindungswege sofort oder zuerst nur der genutzte

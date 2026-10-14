@@ -1,0 +1,90 @@
+import { describe, expect, it, vi } from 'vitest';
+import { EventStream, type EventSourceLike } from '#shared/events.ts';
+
+class FakeSource implements EventSourceLike {
+	onopen: ((ev: Event) => unknown) | null = null;
+	onerror: ((ev: Event) => unknown) | null = null;
+	closed = false;
+	listeners = new Map<string, Set<(ev: Event) => void>>();
+
+	addEventListener(type: string, fn: (ev: Event) => void) {
+		if (!this.listeners.has(type)) this.listeners.set(type, new Set());
+		this.listeners.get(type)!.add(fn);
+	}
+	removeEventListener(type: string, fn: (ev: Event) => void) {
+		this.listeners.get(type)?.delete(fn);
+	}
+	close() {
+		this.closed = true;
+	}
+	emit(type: string, data: string) {
+		for (const fn of this.listeners.get(type) ?? []) fn(new MessageEvent(type, { data }));
+	}
+}
+
+function setup() {
+	const source = new FakeSource();
+	const urls: string[] = [];
+	const stream = new EventStream('/api/events', (url) => {
+		urls.push(url);
+		return source;
+	});
+	return { source, stream, urls };
+}
+
+describe('EventStream', () => {
+	it('connects to the given URL', () => {
+		expect(setup().urls).toEqual(['/api/events']);
+	});
+
+	it('delivers parsed events by name', () => {
+		const { source, stream } = setup();
+		const robot = vi.fn();
+		const other = vi.fn();
+		stream.on('robot', robot);
+		stream.on('map', other);
+
+		source.emit('robot', '{"status":"idle"}');
+
+		expect(robot).toHaveBeenCalledWith({ status: 'idle' });
+		expect(other).not.toHaveBeenCalled();
+	});
+
+	it('stops delivering after unsubscribe', () => {
+		const { source, stream } = setup();
+		const fn = vi.fn();
+		const off = stream.on('robot', fn);
+		off();
+		source.emit('robot', '{}');
+		expect(fn).not.toHaveBeenCalled();
+	});
+
+	it('skips invalid JSON instead of throwing', () => {
+		const { source, stream } = setup();
+		const fn = vi.fn();
+		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+		stream.on('robot', fn);
+
+		expect(() => source.emit('robot', '{broken')).not.toThrow();
+		expect(fn).not.toHaveBeenCalled();
+		expect(log).toHaveBeenCalled();
+		log.mockRestore();
+	});
+
+	it('reports connection status and closes', () => {
+		const { source, stream } = setup();
+		const status = vi.fn();
+		const off = stream.onStatus(status);
+
+		source.onopen!(new Event('open'));
+		source.onerror!(new Event('error'));
+		source.onopen!(new Event('open'));
+		stream.close();
+		expect(status.mock.calls.map((c) => c[0])).toEqual([true, false, true, false]);
+		expect(source.closed).toBe(true);
+
+		off();
+		source.onopen!(new Event('open'));
+		expect(status).toHaveBeenCalledTimes(4);
+	});
+});

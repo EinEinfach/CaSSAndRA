@@ -50,9 +50,9 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("listen: %w", err)
 	}
-	return app.Run(ctx, app.Config{
-		Version: version,
-		UI:      server.EmbeddedUI(),
-		Logger:  logger,
-	}, ln)
+	cfg := app.DefaultConfig()
+	cfg.Version = version
+	cfg.UI = server.EmbeddedUI()
+	cfg.Logger = logger
+	return app.Run(ctx, cfg, ln)
 }

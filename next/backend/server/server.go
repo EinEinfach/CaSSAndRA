@@ -18,6 +18,10 @@ type Options struct {
 	// is not a file, so client-side routes work on reload.
 	UI     fs.FS
 	Logger *slog.Logger
+	// Events is served at GET /api/events (e.g. a *Hub).
+	Events http.Handler
+	// Routes mounts feature handlers by ServeMux pattern, e.g. "/api/robot/".
+	Routes map[string]http.Handler
 }
 
 // Health is the response of GET /api/health.
@@ -39,6 +43,12 @@ func New(opts Options) http.Handler {
 		w.Header().Set("Allow", "GET, HEAD")
 		writeJSON(w, opts.Logger, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
 	})
+	if opts.Events != nil {
+		mux.Handle("GET /api/events", opts.Events)
+	}
+	for pattern, h := range opts.Routes {
+		mux.Handle(pattern, h)
+	}
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, opts.Logger, http.StatusNotFound, map[string]string{"error": "not found"})
 	})

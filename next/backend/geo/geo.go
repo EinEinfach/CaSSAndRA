@@ -3,5 +3,6 @@ package geo
 
 // Point is a position in the robot's local coordinate system, in meters.
 type Point struct {
-	X, Y float64
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 }
