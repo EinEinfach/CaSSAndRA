@@ -101,7 +101,7 @@ type Stats struct {
 	TempMaxC                      float64
 	GPSChecksumErrors             int
 	DGPSChecksumErrors            int
-	MaxCycleTimeMs                int
+	MaxCycleTimeSec               float64
 	SerialBufferSize              int
 	DurationMowInvalidSec         int
 	InvalidRecoveries             int
@@ -193,7 +193,7 @@ func ParseStats(payload string) (Stats, error) {
 		TempMaxC:                      p.float(10),
 		GPSChecksumErrors:             p.int(11),
 		DGPSChecksumErrors:            p.int(12),
-		MaxCycleTimeMs:                p.int(13),
+		MaxCycleTimeSec:               p.float(13),
 		SerialBufferSize:              p.int(14),
 		DurationMowInvalidSec:         p.int(15),
 		InvalidRecoveries:             p.int(16),

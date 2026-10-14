@@ -53,7 +53,7 @@ func TestParseBridgeStats(t *testing.T) {
 		"counter_gps_chk_sum_errors": 8, "counter_dgps_chk_sum_errors": 9, "counter_invalid_recoveries": 10,
 		"counter_float_recoveries": 11, "counter_gps_jumps": 12, "counter_gps_motion_timeout": 13,
 		"counter_imu_triggered": 14, "counter_sonar_triggered": 15, "counter_bumper_triggered": 16,
-		"counter_obstacles": 17, "time_max_cycle": 18, "time_max_dpgs_age": 19.5, "serial_buffer_size": 20,
+		"counter_obstacles": 17, "time_max_cycle": 18.5, "time_max_dpgs_age": 19.5, "serial_buffer_size": 20,
 		"free_memory": 21, "reset_cause": 22, "temp_min": 8.5, "temp_max": 42.1, "unknown_field": 1
 	}`))
 	if err != nil {
@@ -63,7 +63,7 @@ func TestParseBridgeStats(t *testing.T) {
 		DurationIdleSec: 1, DurationChargeSec: 2, DurationMowSec: 3, DurationMowInvalidSec: 4,
 		DurationMowFloatSec: 5, DurationMowFixSec: 6, DistanceMowTraveledM: 7.5, GPSChecksumErrors: 8,
 		DGPSChecksumErrors: 9, InvalidRecoveries: 10, FloatRecoveries: 11, GPSJumps: 12, GPSMotionTimeouts: 13,
-		IMURecoveries: 14, SonarTriggered: 15, BumperTriggered: 16, Obstacles: 17, MaxCycleTimeMs: 18,
+		IMURecoveries: 14, SonarTriggered: 15, BumperTriggered: 16, Obstacles: 17, MaxCycleTimeSec: 18.5,
 		MaxDGPSAgeSec: 19.5, SerialBufferSize: 20, FreeMemory: 21, ResetCause: 22, TempMinC: 8.5, TempMaxC: 42.1,
 	}
 	if got != want {

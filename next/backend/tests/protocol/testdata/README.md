@@ -10,7 +10,12 @@ Zeilenenden ändert.
 Go-Code mit Python berechnet. Ältere Firmware-Varianten (`*_fw_*`) bilden die
 kürzeren Antworten nach, die der Legacy-Code in `sunraycommstack.py` auffüllt.
 
-**Echte Mitschnitte ergänzen:** Zeile aus einem Debug-Log (`RX:`) als neue Datei
+**Echte Mitschnitte:** `*_real_sunray_1_0_324_sim.txt` sind byte-genaue Antworten der
+Sunray-Firmware 1.0.324 im Linux-Simulationsmodus (per HTTP abgefragt, unverschlüsselt).
+Sie haben gezeigt, dass die maximale Zykluszeit in AT+T eine Kommazahl in Sekunden ist
+(`0.03`), keine Ganzzahl.
+
+**Weitere Mitschnitte ergänzen:** Zeile aus einem Debug-Log (`RX:`) als neue Datei
 ablegen, z. B. `state_real_2026_10_alfred.txt`, und in `replies_test.go` einen
 Testfall mit den erwarteten Werten hinzufügen.
 

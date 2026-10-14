@@ -83,7 +83,7 @@ type bridgeStats struct {
 	CounterSonarTriggered    int     `json:"counter_sonar_triggered"`
 	CounterBumperTriggered   int     `json:"counter_bumper_triggered"`
 	CounterObstacles         int     `json:"counter_obstacles"`
-	TimeMaxCycle             int     `json:"time_max_cycle"`
+	TimeMaxCycle             float64 `json:"time_max_cycle"`
 	TimeMaxDGPSAge           float64 `json:"time_max_dpgs_age"`
 	SerialBufferSize         int     `json:"serial_buffer_size"`
 	FreeMemory               int     `json:"free_memory"`
@@ -113,7 +113,7 @@ func ParseBridgeStats(data []byte) (Stats, error) {
 		TempMaxC:              b.TempMax,
 		GPSChecksumErrors:     b.CounterGPSChkSumErrors,
 		DGPSChecksumErrors:    b.CounterDGPSChkSumErrors,
-		MaxCycleTimeMs:        b.TimeMaxCycle,
+		MaxCycleTimeSec:       b.TimeMaxCycle,
 		SerialBufferSize:      b.SerialBufferSize,
 		DurationMowInvalidSec: b.DurationMowInvalid,
 		InvalidRecoveries:     b.CounterInvalidRecoveries,

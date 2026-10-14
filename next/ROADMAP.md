@@ -21,7 +21,8 @@ sowie `make lint` sind grün.
 - [x] Antworten parsen: AT+V, S, T, S2, W-Bestätigung (inkl. älterer Firmware; zusätzliche Felder neuerer Firmware werden ignoriert)
 - [x] Golden-Files in `tests/protocol/testdata/` (synthetisch nach Firmware-Format, siehe README dort)
 - [x] Fuzz-Tests: kein Parser darf bei beliebigen Eingaben abstürzen (2 Funde behoben, als Regression im Korpus)
-- [ ] Echte Mitschnitte vom Roboter ergänzen (Debug-Log `RX:`), sobald einer erreichbar ist
+- [x] Echte Mitschnitte ergänzt: Sunray 1.0.324 (Linux-Simulation) für AT+V, AT+S, AT+T, AT+S2
+- [ ] Mitschnitte von echter Hardware (Alfred/Ardumower) ergänzen
 - **Ergebnis:** 100 % Abdeckung von `protocol`. Sunray-MQTT-JSON (State/Stats/Props) folgt mit `link/mqtt.go` in Phase 4, Karten-CRC-Vergleich in Phase 5.
 
 ## Phase 2 – Simulator & Robot-Zustand (`link`, `robot`)
@@ -47,7 +48,8 @@ sowie `make lint` sind grün.
 - [x] Reconnect, Timeouts, alles über `context`; MQTT meldet online erst nach bestätigten Abos
 - [x] Auswahl per `app.LinkConfig` / `--link`, Passwörter auch per Umgebungsvariable
 - [x] Tests gegen echte Gegenstellen: Simulator hinter `httptest`, serielle Leitung über `net.Pipe`, eingebetteter MQTT-Broker (inkl. Broker-Neustart)
-- [ ] **Test mit echtem Roboter** über den eigenen Verbindungsweg (offen – braucht den Roboter; nicht ohne Absprache, da beim Verbinden `AT+P` gesendet wird)
+- [x] HTTP gegen echte Sunray-Firmware (1.0.324, Linux-Simulation): Verbindung, Zustand, Statistik, Stop, Mähen, Joystick. Fand einen Parser-Fehler (Zykluszeit in AT+T ist eine Kommazahl; im Bridge-JSON hätte das die ganze Statistik verworfen).
+- [ ] **Test mit echtem Roboter**: HTTP auf Hardware, UART, MQTT über die Bridge (offen – braucht Roboter bzw. Bridge; nicht ohne Absprache, da beim Verbinden `AT+P` gesendet wird)
 - **Ergebnis:** alle drei Wege implementiert und gegen Simulator/Broker getestet, Gesamtabdeckung 97 %.
 
 ## Phase 5 – Einstellungen & Karten (`settings`, `maps`)

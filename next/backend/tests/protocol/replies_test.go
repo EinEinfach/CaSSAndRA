@@ -19,6 +19,10 @@ func TestParseVersion(t *testing.T) {
 			Board: "Linux", Driver: "SR", MCUFirmware: "RM18", MCUFirmwareVers: "1.1.16", RobotID: "0123abcd",
 		}},
 		{"version_old", protocol.Version{Firmware: "Ardumower Sunray", Version: "1.0.219"}},
+		{"version_real_sunray_1_0_324_sim", protocol.Version{
+			Firmware: "Sunray", Version: "1.0.324", Board: "Linux", Driver: "XX",
+			MCUFirmware: "XX", MCUFirmwareVers: "XX", RobotID: "sim",
+		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.golden, func(t *testing.T) {
@@ -59,6 +63,14 @@ func TestParseState(t *testing.T) {
 	fw250 := fw300
 	fw250.LateralErrorM = 0
 
+	// Captured from Sunray 1.0.324 in Linux simulation mode.
+	realSim := protocol.State{
+		BatteryVoltage: 27, X: -4.71, Y: -36.98, HeadingRad: -1.55,
+		Solution: protocol.SolutionFix, Op: protocol.OpIdle, MowPointIndex: 2,
+		TargetX: -4.90, TargetY: -36.87, AccuracyM: 0.01, MapCRC: -904911, LateralErrorM: -0.01,
+		TimetableWeekday: -1,
+	}
+
 	tests := []struct {
 		golden string
 		want   protocol.State
@@ -68,6 +80,7 @@ func TestParseState(t *testing.T) {
 		{"state_charging_negative_board_current", chargingNegativeBoard},
 		{"state_fw_1_0_300", fw300},
 		{"state_fw_1_0_250", fw250},
+		{"state_real_sunray_1_0_324_sim", realSim},
 	}
 	for _, tt := range tests {
 		t.Run(tt.golden, func(t *testing.T) {
@@ -116,7 +129,7 @@ var currentStats = protocol.Stats{
 	DurationIdleSec: 3600, DurationChargeSec: 7200, DurationMowSec: 5400, DurationMowFloatSec: 600,
 	DurationMowFixSec: 4700, FloatRecoveries: 3, DistanceMowTraveledM: 1234.50, MaxDGPSAgeSec: 12.30,
 	IMURecoveries: 1, TempMinC: 8.50, TempMaxC: 42.10, GPSChecksumErrors: 2, DGPSChecksumErrors: 5,
-	MaxCycleTimeMs: 15, SerialBufferSize: 1024, DurationMowInvalidSec: 100, InvalidRecoveries: 4,
+	MaxCycleTimeSec: 0.15, SerialBufferSize: 1024, DurationMowInvalidSec: 100, InvalidRecoveries: 4,
 	Obstacles: 17, FreeMemory: 52000, ResetCause: 4, GPSJumps: 1, SonarTriggered: 6, BumperTriggered: 9,
 	GPSMotionTimeouts: 2, DurationMowMotorRecoverySec: 30, LiftTriggered: 1, GPSNoSpeedTriggered: 2,
 	ToFTriggered: 3, DiffIMUWheelYawSpeedTriggered: 4, IMUNoRotationTriggered: 5, RotationTimeoutTriggered: 6,
@@ -130,6 +143,13 @@ func TestParseStats(t *testing.T) {
 	fw24 := fw25
 	fw24.DurationMowMotorRecoverySec = 0
 
+	// Captured from Sunray 1.0.324 in Linux simulation mode.
+	realSim := protocol.Stats{
+		DurationIdleSec: 127, DurationMowSec: 23, DurationMowFixSec: 23, MaxDGPSAgeSec: 0.20,
+		TempMinC: 50, TempMaxC: 50, MaxCycleTimeSec: 0.03, SerialBufferSize: 4096,
+		InvalidRecoveries: 1, FreeMemory: 1000000, GPSJumps: 1,
+	}
+
 	tests := []struct {
 		golden string
 		want   protocol.Stats
@@ -137,6 +157,7 @@ func TestParseStats(t *testing.T) {
 		{"stats_current", currentStats},
 		{"stats_fw_25_fields", fw25},
 		{"stats_fw_24_fields", fw24},
+		{"stats_real_sunray_1_0_324_sim", realSim},
 	}
 	for _, tt := range tests {
 		t.Run(tt.golden, func(t *testing.T) {
@@ -176,12 +197,16 @@ func TestParseObstacles(t *testing.T) {
 }
 
 func TestParseObstaclesNone(t *testing.T) {
-	got, err := protocol.ParseObstacles(payload(t, "obstacles_none"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(got) != 0 {
-		t.Errorf("got %d obstacles, want 0", len(got))
+	for _, golden := range []string{"obstacles_none", "obstacles_real_sunray_1_0_324_sim"} {
+		t.Run(golden, func(t *testing.T) {
+			got, err := protocol.ParseObstacles(payload(t, golden))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(got) != 0 {
+				t.Errorf("got %d obstacles, want 0", len(got))
+			}
+		})
 	}
 }
 
