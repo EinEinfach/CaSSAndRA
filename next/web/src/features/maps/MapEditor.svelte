@@ -245,7 +245,8 @@
 		overflow-x: auto;
 		border-radius: 14px;
 		background: var(--surface);
-		box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+		box-shadow: var(--shadow);
+		border: 1px solid var(--border);
 	}
 	.tools button {
 		flex: none;

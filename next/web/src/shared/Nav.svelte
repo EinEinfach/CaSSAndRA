@@ -133,7 +133,7 @@
 			width: 32px;
 			height: 32px;
 			border-radius: 10px;
-			background: linear-gradient(135deg, var(--accent), var(--map-border));
+			background: var(--text);
 		}
 		.name {
 			font-size: 0.6rem;
@@ -177,7 +177,7 @@
 			background: var(--danger);
 		}
 		.dot.on {
-			background: var(--accent);
+			background: var(--ok);
 		}
 	}
 </style>

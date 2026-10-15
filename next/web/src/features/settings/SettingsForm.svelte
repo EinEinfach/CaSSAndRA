@@ -418,7 +418,18 @@
 		border-radius: 16px;
 		background: var(--text);
 		color: var(--bg);
-		box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+		box-shadow: var(--shadow);
+	}
+	/* The bar is inverted, so are its buttons. */
+	.savebar button {
+		background: transparent;
+		color: inherit;
+		border-color: currentColor;
+	}
+	.savebar button.primary {
+		background: var(--bg);
+		color: var(--text);
+		border-color: var(--bg);
 	}
 	.savebar p {
 		flex: 1;
