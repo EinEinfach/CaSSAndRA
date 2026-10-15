@@ -13,7 +13,10 @@ const colors: MapColors = {
 	trail: 'trail',
 	target: 'target',
 	robot: 'robot',
-	robotOutline: 'outline'
+	robotOutline: 'outline',
+	wire: 'wire',
+	handle: 'handle',
+	handleFill: 'handleFill'
 };
 
 // 10 px per meter, world (0,0) at screen (100,100), y up.
@@ -152,6 +155,68 @@ describe('drawMap', () => {
 		drawMap(ctx, vp, { trail: [{ x: 0, y: 0 }] }, colors);
 		expect(ctx.shapes).toEqual([]);
 	});
+
+	it('draws the search wire as a dotted line', () => {
+		const ctx = recordingContext();
+		drawMap(
+			ctx,
+			vp,
+			{
+				searchWire: [
+					{ x: 0, y: 0 },
+					{ x: 1, y: 0 }
+				]
+			},
+			colors
+		);
+		expect(ctx.shapes).toEqual([
+			expect.objectContaining({ op: 'stroke', color: 'wire', dashed: true, closed: false })
+		]);
+	});
+
+	it('draws edit handles above everything, the selected one larger', () => {
+		const ctx = recordingContext();
+		const points = [
+			{ x: 0, y: 0 },
+			{ x: 1, y: 0 },
+			{ x: 1, y: 1 }
+		];
+		drawMap(
+			ctx,
+			vp,
+			{
+				robot: { position: { x: 5, y: 5 }, headingRad: 0 },
+				edit: { points, closed: true, selected: 1 }
+			},
+			colors
+		);
+		const handles = ctx.shapes.filter((s) => s.arcs.length > 0 && s.op === 'fill');
+		expect(handles.map((h) => [h.color, h.arcs[0][2]])).toEqual([
+			['handleFill', 6],
+			['handle', 9],
+			['handleFill', 6]
+		]);
+		const outline = ctx.shapes.find(
+			(s) => s.op === 'stroke' && s.color === 'handle' && s.points.length === 3
+		);
+		expect(outline?.closed).toBe(true);
+		// handles come after the robot
+		expect(ctx.shapes.findIndex((s) => s.color === 'robot')).toBeLessThan(
+			ctx.shapes.findIndex((s) => s.color === 'handleFill')
+		);
+	});
+
+	it('draws an open polygon outline while it has only two points', () => {
+		const ctx = recordingContext();
+		const points = [
+			{ x: 0, y: 0 },
+			{ x: 1, y: 0 }
+		];
+		drawMap(ctx, vp, { edit: { points, closed: true, selected: null } }, colors);
+		const outline = ctx.shapes.find((s) => s.op === 'stroke' && s.points.length === 2);
+		expect(outline?.closed).toBe(false);
+		expect(ctx.shapes.filter((s) => s.op === 'fill' && s.color === 'handle')).toEqual([]);
+	});
 });
 
 describe('mapPoints', () => {
@@ -161,10 +226,12 @@ describe('mapPoints', () => {
 				perimeter: [{ x: 0, y: 0 }],
 				exclusions: [[{ x: 1, y: 1 }]],
 				dock: [{ x: 2, y: 2 }],
+				searchWire: [{ x: 2.5, y: 2.5 }],
 				way: [{ x: 3, y: 3 }],
 				trail: [{ x: 9, y: 9 }],
-				robot: { position: { x: 4, y: 4 }, headingRad: 0 }
+				robot: { position: { x: 4, y: 4 }, headingRad: 0 },
+				edit: { points: [{ x: 8, y: 8 }], closed: false, selected: null }
 			}).map((p) => p.x)
-		).toEqual([0, 1, 2, 3, 4]);
+		).toEqual([0, 1, 2, 2.5, 3, 4]);
 	});
 });

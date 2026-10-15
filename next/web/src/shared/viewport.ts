@@ -16,6 +16,8 @@ export interface Viewport {
 }
 
 export const MIN_SCALE = 0.5;
+/** Fitting never zooms in further than to show this many meters (e.g. only the robot). */
+export const MIN_FIT_SPAN_M = 5;
 export const MAX_SCALE = 500;
 
 const clampScale = (s: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, s));
@@ -35,10 +37,10 @@ export function fit(points: Point[], width: number, height: number, padding = 24
 		minY = Math.min(minY, p.y);
 		maxY = Math.max(maxY, p.y);
 	}
-	const spanX = Math.max(maxX - minX, 1);
-	const spanY = Math.max(maxY - minY, 1);
 	const usableW = Math.max(width - 2 * padding, 1);
 	const usableH = Math.max(height - 2 * padding, 1);
+	const spanX = Math.max(maxX - minX, MIN_FIT_SPAN_M * (usableW / Math.min(usableW, usableH)));
+	const spanY = Math.max(maxY - minY, MIN_FIT_SPAN_M * (usableH / Math.min(usableW, usableH)));
 	return {
 		centerX: (minX + maxX) / 2,
 		centerY: (minY + maxY) / 2,

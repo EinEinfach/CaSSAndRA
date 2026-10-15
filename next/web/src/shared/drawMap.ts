@@ -6,16 +6,26 @@ export interface RobotPose {
 	headingRad: number;
 }
 
+/** Handles of the shape being edited. */
+export interface EditOverlay {
+	points: Point[];
+	closed: boolean;
+	/** Index of the selected point, drawn larger. */
+	selected: number | null;
+}
+
 export interface MapLayers {
 	perimeter?: Point[];
 	exclusions?: Point[][];
 	dock?: Point[];
+	searchWire?: Point[];
 	way?: Point[];
 	/** Way points before this index are drawn as done. */
 	wayDoneIndex?: number;
 	trail?: Point[];
 	target?: Point | null;
 	robot?: RobotPose | null;
+	edit?: EditOverlay | null;
 }
 
 export interface MapColors {
@@ -24,12 +34,15 @@ export interface MapColors {
 	border: string;
 	exclusion: string;
 	dock: string;
+	wire: string;
 	way: string;
 	wayDone: string;
 	trail: string;
 	target: string;
 	robot: string;
 	robotOutline: string;
+	handle: string;
+	handleFill: string;
 }
 
 /** The subset of CanvasRenderingContext2D the map needs. */
@@ -106,6 +119,15 @@ export function drawMap(ctx: MapContext, vp: Viewport, layers: MapLayers, colors
 		dot(ctx, vp, layers.dock[layers.dock.length - 1], 5, colors.dock);
 	}
 
+	if (layers.searchWire && layers.searchWire.length > 1) {
+		ctx.setLineDash([2, 4]);
+		path(ctx, vp, layers.searchWire, false);
+		ctx.strokeStyle = colors.wire;
+		ctx.lineWidth = 2;
+		ctx.stroke();
+		ctx.setLineDash([]);
+	}
+
 	if (layers.trail && layers.trail.length > 1) {
 		path(ctx, vp, layers.trail, false);
 		ctx.strokeStyle = colors.trail;
@@ -118,6 +140,32 @@ export function drawMap(ctx: MapContext, vp: Viewport, layers: MapLayers, colors
 	if (layers.robot) {
 		drawRobot(ctx, vp, layers.robot, colors);
 	}
+	if (layers.edit) {
+		drawEdit(ctx, vp, layers.edit, colors);
+	}
+}
+
+const HANDLE_PX = 6;
+const SELECTED_PX = 9;
+
+function drawEdit(ctx: MapContext, vp: Viewport, edit: EditOverlay, colors: MapColors) {
+	if (edit.points.length > 1) {
+		path(ctx, vp, edit.points, edit.closed && edit.points.length > 2);
+		ctx.strokeStyle = colors.handle;
+		ctx.lineWidth = 2.5;
+		ctx.stroke();
+	}
+	edit.points.forEach((p, i) => {
+		const s = toScreen(vp, p);
+		const selected = i === edit.selected;
+		ctx.beginPath();
+		ctx.arc(s.x, s.y, selected ? SELECTED_PX : HANDLE_PX, 0, 2 * Math.PI);
+		ctx.fillStyle = selected ? colors.handle : colors.handleFill;
+		ctx.fill();
+		ctx.strokeStyle = colors.handle;
+		ctx.lineWidth = 2;
+		ctx.stroke();
+	});
 }
 
 function path(ctx: MapContext, vp: Viewport, pts: Point[], closed: boolean) {
@@ -165,6 +213,7 @@ export function mapPoints(layers: MapLayers): Point[] {
 		...(layers.perimeter ?? []),
 		...(layers.exclusions ?? []).flat(),
 		...(layers.dock ?? []),
+		...(layers.searchWire ?? []),
 		...(layers.way ?? []),
 		...(layers.robot ? [layers.robot.position] : [])
 	];

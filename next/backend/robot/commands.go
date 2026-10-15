@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 )
@@ -55,13 +56,15 @@ func (r *Robot) Dock(ctx context.Context) error {
 
 // Mow starts mowing the uploaded route.
 func (r *Robot) Mow(ctx context.Context) error {
-	cmd := protocol.Mow(r.cfg.MowSpeedMps, r.cfg.FixTimeoutSec, r.cfg.FinishAndRestart)
+	s := r.settings()
+	cmd := protocol.Mow(s.MowSpeedMps, s.FixTimeoutSec, s.FinishAndRestart)
 	return r.command(ctx, "mow", cmd.Encode(), func() { r.mowMotor = true })
 }
 
 // Goto drives along the uploaded route with the mow motor off.
 func (r *Robot) Goto(ctx context.Context) error {
-	cmd := protocol.Goto(r.cfg.GotoSpeedMps, r.cfg.FixTimeoutSec)
+	s := r.settings()
+	cmd := protocol.Goto(s.GotoSpeedMps, s.FixTimeoutSec)
 	return r.command(ctx, "goto", cmd.Encode(), func() { r.mowMotor = false })
 }
 
@@ -116,7 +119,16 @@ func (r *Robot) Shutdown(ctx context.Context) error {
 // ErrUploadRejected means the robot did not accept all map points.
 var ErrUploadRejected = errors.New("map upload rejected")
 
-// UploadMap transfers m to the robot. Stop aborts a running upload.
+// ErrBusy means the robot is driving; a map upload would replace the route
+// it is following (AT+W with index 0 clears the robot's map).
+var ErrBusy = errors.New("robot is driving, stop it first")
+
+// ErrMapCRCMismatch means the robot did not report the checksum of the
+// uploaded map in time, so it stores a different map.
+var ErrMapCRCMismatch = errors.New("map checksum mismatch")
+
+// UploadMap transfers m to the robot and waits until the robot reports its
+// checksum. Stop aborts a running upload.
 func (r *Robot) UploadMap(ctx context.Context, m protocol.Map) error {
 	r.cmdMu.Lock()
 	defer r.cmdMu.Unlock()
@@ -124,6 +136,11 @@ func (r *Robot) UploadMap(ctx context.Context, m protocol.Map) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	r.mu.Lock()
+	switch st := r.statusLocked(); st {
+	case StatusMow, StatusTransit, StatusDocking, StatusMove:
+		r.mu.Unlock()
+		return fmt.Errorf("upload map: %w (status %s)", ErrBusy, st)
+	}
 	r.cancelBusy = cancel
 	r.uploading = true
 	r.mu.Unlock()
@@ -154,10 +171,36 @@ func (r *Robot) UploadMap(ctx context.Context, m protocol.Map) error {
 			return fmt.Errorf("upload map: %w: robot stored up to point %d, sent %d", ErrUploadRejected, got, next)
 		}
 	}
+	if err := r.awaitMapCRC(ctx, protocol.MapChecksum(m)); err != nil {
+		return fmt.Errorf("upload map: %w", err)
+	}
 	r.mu.Lock()
 	r.uploaded = m
 	r.mu.Unlock()
 	return nil
+}
+
+// awaitMapCRC waits for a state report with the expected map checksum.
+// It is the only check that also works for links without replies (MQTT).
+func (r *Robot) awaitMapCRC(ctx context.Context, want protocol.MapCRC) error {
+	timeout := time.NewTimer(r.cfg.MapCRCTimeout)
+	defer timeout.Stop()
+	for {
+		r.mu.Lock()
+		got, seen := r.state.MapCRC, r.stateSeen
+		r.mu.Unlock()
+		if want.Matches(got) {
+			return nil
+		}
+		select {
+		case <-seen:
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-timeout.C:
+			return fmt.Errorf("%w: robot reports %d, want %d (Arduino) or %d (Linux)",
+				ErrMapCRCMismatch, got, want.Arduino, want.Linux)
+		}
+	}
 }
 
 // command sends one command and, if it was delivered, applies its effect

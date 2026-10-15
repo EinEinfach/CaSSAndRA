@@ -1,10 +1,8 @@
 package app_test
 
 import (
-	"context"
-	"net"
 	"net/http"
-	"strings"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -12,6 +10,7 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tests/testkit"
 )
 
@@ -22,7 +21,9 @@ func TestRunWithHTTPLink(t *testing.T) {
 	robotSrv := testkit.RobotHTTPServer(t, sim)
 
 	cfg := testConfig(t)
-	cfg.Link = app.LinkConfig{Kind: app.LinkHTTP, HTTPURL: robotSrv.URL, HTTPPassword: 4711}
+	writeSettings(t, cfg, func(s *settings.Settings) {
+		s.Connection.Kind, s.Connection.HTTPURL, s.Connection.HTTPPassword = settings.LinkHTTP, robotSrv.URL, 4711
+	})
 	r := startWith(t, cfg)
 
 	waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.Status == robot.StatusIdle })
@@ -41,10 +42,11 @@ func TestRunWithMQTTLink(t *testing.T) {
 	commands := broker.Collect(t, "garden/alfred/command")
 
 	cfg := testConfig(t)
-	cfg.Link = app.LinkConfig{Kind: app.LinkMQTT, MQTT: link.MQTTConfig{
-		Broker: broker.URL(), ClientID: "cassandra-app-test", MowerName: "garden/alfred",
-		ReconnectDelay: 50 * time.Millisecond,
-	}}
+	cfg.Poll.ReconnectDelay = 50 * time.Millisecond
+	writeSettings(t, cfg, func(s *settings.Settings) {
+		s.Connection.Kind, s.Connection.MQTTBroker = settings.LinkMQTT, broker.URL()
+		s.Connection.MQTTClientID, s.Connection.MQTTMower = "cassandra-app-test", "garden/alfred"
+	})
 	r := startWith(t, cfg)
 
 	state := `{"battery_voltage":27,"position":{"x":1,"y":2,"solution":2},"job":0}`
@@ -76,7 +78,9 @@ func TestRunWithMQTTLink(t *testing.T) {
 
 func TestRunWithMissingSerialPort(t *testing.T) {
 	cfg := testConfig(t)
-	cfg.Link = app.LinkConfig{Kind: app.LinkUART, UARTPort: "/dev/cassandra-does-not-exist", UARTBaud: 115200}
+	writeSettings(t, cfg, func(s *settings.Settings) {
+		s.Connection.Kind, s.Connection.UARTPort = settings.LinkUART, "/dev/cassandra-does-not-exist"
+	})
 	r := startWith(t, cfg)
 
 	// The server keeps running and reports the robot offline.
@@ -89,32 +93,17 @@ func TestRunWithMissingSerialPort(t *testing.T) {
 	}
 }
 
-func TestRunRejectsIncompleteLinkConfig(t *testing.T) {
-	tests := []struct {
-		name string
-		link app.LinkConfig
-		want string
-	}{
-		{"unknown kind", app.LinkConfig{Kind: "bluetooth"}, "unknown link"},
-		{"http without URL", app.LinkConfig{Kind: app.LinkHTTP}, "robot URL"},
-		{"uart without port", app.LinkConfig{Kind: app.LinkUART, UARTBaud: 115200}, "port"},
-		{"uart without baud", app.LinkConfig{Kind: app.LinkUART, UARTPort: "/dev/x"}, "baud"},
-		{"mqtt without broker", app.LinkConfig{Kind: app.LinkMQTT, MQTT: link.MQTTConfig{MowerName: "m"}}, "broker"},
-		{"mqtt without mower", app.LinkConfig{Kind: app.LinkMQTT, MQTT: link.MQTTConfig{Broker: "tcp://x:1"}}, "mower"},
+// writeSettings stores the default settings changed by change in the data
+// directory of cfg, as the UI would.
+func writeSettings(t *testing.T, cfg app.Config, change func(s *settings.Settings)) {
+	t.Helper()
+	store, err := settings.Open(filepath.Join(cfg.DataDir, "settings.json"))
+	if err != nil {
+		t.Fatal(err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ln, err := net.Listen("tcp", "127.0.0.1:0")
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer func() { _ = ln.Close() }()
-			cfg := testConfig(t)
-			cfg.Link = tt.link
-			err = app.Run(context.Background(), cfg, ln)
-			if err == nil || !strings.Contains(err.Error(), tt.want) {
-				t.Errorf("err = %v, want it to mention %q", err, tt.want)
-			}
-		})
+	s := settings.Default()
+	change(&s)
+	if err := store.Set(s); err != nil {
+		t.Fatal(err)
 	}
 }

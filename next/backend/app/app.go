@@ -3,70 +3,41 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"log/slog"
 	"net"
 	"net/http"
+	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/server"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
 )
 
-const shutdownTimeout = 5 * time.Second
-
-// Link kinds.
 const (
-	LinkSim  = "sim"
-	LinkHTTP = "http"
-	LinkUART = "uart"
-	LinkMQTT = "mqtt"
+	shutdownTimeout = 5 * time.Second
+	// positionModeTimeout bounds sending a changed position mode.
+	positionModeTimeout = 5 * time.Second
 )
 
-// LinkConfig selects and configures the connection to the robot.
-type LinkConfig struct {
-	Kind string // LinkSim, LinkHTTP, LinkUART or LinkMQTT
-	// HTTP: robot URL and the password from the firmware's config.h (0 = none).
-	HTTPURL      string
-	HTTPPassword int
-	// UART: serial port and baud rate.
-	UARTPort string
-	UARTBaud int
-	MQTT     link.MQTTConfig
-}
-
-func (c LinkConfig) validate() error {
-	switch c.Kind {
-	case LinkSim:
-	case LinkHTTP:
-		if c.HTTPURL == "" {
-			return errors.New("invalid config: the http link needs a robot URL")
-		}
-	case LinkUART:
-		if c.UARTPort == "" || c.UARTBaud <= 0 {
-			return errors.New("invalid config: the uart link needs a port and a baud rate")
-		}
-	case LinkMQTT:
-		if c.MQTT.Broker == "" || c.MQTT.MowerName == "" {
-			return errors.New("invalid config: the mqtt link needs a broker and a mower name")
-		}
-	default:
-		return fmt.Errorf("invalid config: unknown link %q (sim, http, uart or mqtt)", c.Kind)
-	}
-	return nil
-}
-
-// Config holds everything the app needs to start.
+// Config holds everything the app needs to start. The user settings
+// (connection, rover, ...) live in DataDir and are changed in the UI.
 type Config struct {
 	Version string
 	UI      fs.FS
 	Logger  *slog.Logger
-	Robot   robot.Config
-	Link    LinkConfig
+	// DataDir holds settings and maps. On the first start, legacy CaSSAndRA
+	// data in the same directory (user/, map/) is imported.
+	DataDir string
+	// Robot holds the robot defaults; the user settings replace its Settings.
+	Robot robot.Config
 	// SimTick is the simulation step of the simulated robot.
 	SimTick time.Duration
 	// Poll controls how often the robot is asked for data.
@@ -77,11 +48,10 @@ type Config struct {
 	Heartbeat time.Duration
 }
 
-// DefaultConfig returns the legacy defaults with the simulated robot.
+// DefaultConfig returns the defaults; only DataDir must be set.
 func DefaultConfig() Config {
 	return Config{
 		Robot:           robot.DefaultConfig(),
-		Link:            LinkConfig{Kind: LinkSim, UARTBaud: 115200},
 		SimTick:         100 * time.Millisecond,
 		Poll:            link.DefaultPollConfig(),
 		PublishInterval: 200 * time.Millisecond,
@@ -95,13 +65,16 @@ func (c Config) validate() error {
 		"SimTick": c.SimTick, "Poll.StateInterval": c.Poll.StateInterval,
 		"Poll.ObstaclesInterval": c.Poll.ObstaclesInterval, "Poll.StatsInterval": c.Poll.StatsInterval,
 		"Poll.ReconnectDelay": c.Poll.ReconnectDelay, "PublishInterval": c.PublishInterval,
-		"Heartbeat": c.Heartbeat, "Robot.OfflineAfter": c.Robot.OfflineAfter,
+		"Heartbeat": c.Heartbeat, "Robot.MapCRCTimeout": c.Robot.MapCRCTimeout,
 	} {
 		if d <= 0 {
 			return fmt.Errorf("invalid config: %s must be positive, got %v (start from DefaultConfig)", name, d)
 		}
 	}
-	return c.Link.validate()
+	if c.DataDir == "" {
+		return errors.New("invalid config: DataDir must be set")
+	}
+	return nil
 }
 
 // Run serves CaSSAndRA on ln until ctx is cancelled, then shuts down gracefully.
@@ -113,12 +86,13 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 		cfg.Logger = slog.New(slog.DiscardHandler)
 	}
 	log := cfg.Logger
-	cfg.Robot.Logger = log.With("feature", "robot")
 
-	// Deferred in reverse: cancel the background goroutines, wait for them,
-	// and only then release the link they use.
-	l, closeLink := newLink(cfg)
-	defer closeLink()
+	settingsStore, mapStore, err := openData(cfg.DataDir, log)
+	if err != nil {
+		return err
+	}
+
+	// Deferred in reverse: cancel the background goroutines, then wait for them.
 	var wg sync.WaitGroup
 	defer wg.Wait()
 	ctx, cancel := context.WithCancel(ctx)
@@ -131,27 +105,54 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 		}()
 	}
 
-	r := robot.New(l, cfg.Robot)
+	sender := &switchSender{}
+	robotCfg := cfg.Robot
+	robotCfg.Settings = robotSettings(settingsStore.Get())
+	robotCfg.Logger = log.With("feature", "robot")
+	r := robot.New(sender, robotCfg)
 	hub := server.NewHub(cfg.Heartbeat)
 
-	if sim, ok := l.(*simLink); ok {
-		goroutine(func() { sim.sim.Run(ctx, cfg.SimTick) })
-		goroutine(func() { uploadDemoMap(ctx, r, log) })
-	}
-	goroutine(func() {
-		if err := l.Run(ctx, r); err != nil {
-			log.Error("robot link stopped", "err", err)
+	reconnect := make(chan struct{}, 1)
+	settingsStore.OnChange(func(old, next settings.Settings) {
+		r.SetSettings(robotSettings(next))
+		if old.Rover.AbsolutePosition != next.Rover.AbsolutePosition || old.Rover.Lon != next.Rover.Lon || old.Rover.Lat != next.Rover.Lat {
+			pctx, cancel := context.WithTimeout(ctx, positionModeTimeout)
+			if err := r.SendPositionMode(pctx); err != nil && !errors.Is(err, link.ErrOffline) {
+				log.Warn("send changed position mode", "err", err)
+			}
+			cancel()
+		}
+		if old.Connection != next.Connection {
+			select {
+			case reconnect <- struct{}{}:
+			default: // a reconnect is pending anyway
+			}
 		}
 	})
+	publishMaps := func() {
+		if b, err := json.Marshal(mapStore.ListJSON()); err == nil {
+			hub.Publish("maps", b)
+		}
+	}
+	publishMaps()
+	mapStore.OnChange(publishMaps)
+
+	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect) })
 	goroutine(func() { r.PublishState(ctx, cfg.PublishInterval, func(b []byte) { hub.Publish("robot", b) }) })
 
+	mapsAPI := mapStore.Handler(r)
 	srv := &http.Server{
 		Handler: server.New(server.Options{
 			Version: cfg.Version,
 			UI:      cfg.UI,
 			Logger:  log,
 			Events:  hub,
-			Routes:  map[string]http.Handler{"/api/robot/": r.Handler()},
+			Routes: map[string]http.Handler{
+				"/api/robot/":   r.Handler(),
+				"/api/settings": settingsStore.Handler(),
+				"/api/maps":     mapsAPI,
+				"/api/maps/":    mapsAPI,
+			},
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
 		// Requests end with the app, so open event streams do not block shutdown.
@@ -160,7 +161,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 
 	serveErr := make(chan error, 1)
 	go func() { serveErr <- srv.Serve(ln) }()
-	log.Info("CaSSAndRA started", "addr", ln.Addr().String(), "version", cfg.Version, "link", cfg.Link.Kind)
+	log.Info("CaSSAndRA started", "addr", ln.Addr().String(), "version", cfg.Version, "data", cfg.DataDir)
 
 	select {
 	case err := <-serveErr:
@@ -180,47 +181,59 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	return nil
 }
 
-// simLink is the simulated robot behind a poller; the app also steps the
-// simulation and gives it the demo garden.
-type simLink struct {
-	*link.Poller
-	sim *link.Sim
-}
-
-// newLink builds the configured link and a function that releases it.
-func newLink(cfg Config) (link.Link, func()) {
-	lc := cfg.Link
-	switch lc.Kind {
-	case LinkHTTP:
-		poll := cfg.Poll
-		poll.Encrypt, poll.Password = true, lc.HTTPPassword
-		return link.NewPoller(link.NewHTTPTransport(lc.HTTPURL), poll), func() {}
-	case LinkUART:
-		tr := link.NewUARTTransport(lc.UARTPort, lc.UARTBaud)
-		return link.NewPoller(tr, cfg.Poll), func() { _ = tr.Close() }
-	case LinkMQTT:
-		mc := lc.MQTT
-		mc.Logger = cfg.Logger.With("feature", "link")
-		return link.NewMQTTLink(mc), func() {}
+// openData opens settings and maps. On the first start it imports the data
+// of legacy CaSSAndRA from the same directory.
+func openData(dir string, log *slog.Logger) (*settings.Store, *maps.Store, error) {
+	settingsStore, err := settings.Open(filepath.Join(dir, "settings.json"))
+	if err != nil {
+		return nil, nil, err
 	}
-	simCfg := link.DefaultSimConfig()
-	simCfg.Start = link.DemoStation
-	sim := link.NewSim(simCfg)
-	return &simLink{Poller: link.NewPoller(sim, cfg.Poll), sim: sim}, func() {}
-}
+	if !settingsStore.Exists() {
+		s, found, warnings, err := settings.ImportLegacy(filepath.Join(dir, "user"))
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, w := range warnings {
+			log.Warn("legacy settings import", "problem", w)
+		}
+		if err := settingsStore.Set(s); err != nil {
+			return nil, nil, err
+		}
+		log.Info("settings created", "importedFromLegacy", found)
+	}
 
-// uploadDemoMap gives the simulated robot something to mow once it is online.
-func uploadDemoMap(ctx context.Context, r *robot.Robot, log *slog.Logger) {
-	t := time.NewTicker(100 * time.Millisecond)
-	defer t.Stop()
-	for !r.Snapshot().Online {
-		select {
-		case <-ctx.Done():
-			return
-		case <-t.C:
+	mapStore, err := maps.OpenStore(filepath.Join(dir, "maps"), maps.StoreConfig{})
+	if err != nil {
+		return nil, nil, err
+	}
+	if mapStore.Fresh() {
+		li, err := maps.ImportLegacy(filepath.Join(dir, "map"))
+		if err != nil {
+			log.Warn("legacy maps import", "err", err)
+		}
+		n, warnings := mapStore.Import(li)
+		for _, w := range warnings {
+			log.Warn("legacy maps import", "problem", w)
+		}
+		if n > 0 {
+			log.Info("legacy maps imported", "maps", n, "active", li.Active)
 		}
 	}
-	if err := r.UploadMap(ctx, link.DemoMap()); err != nil && ctx.Err() == nil {
-		log.Error("upload demo map", "err", err)
+	return settingsStore, mapStore, nil
+}
+
+func robotSettings(s settings.Settings) robot.Settings {
+	return robot.Settings{
+		MowSpeedMps:      s.Rover.MowSpeedMps,
+		GotoSpeedMps:     s.Rover.GotoSpeedMps,
+		FixTimeoutSec:    s.Rover.FixTimeoutSec,
+		FinishAndRestart: s.Rover.FinishAndRestart,
+		AbsolutePosition: s.Rover.AbsolutePosition,
+		Lon:              s.Rover.Lon,
+		Lat:              s.Rover.Lat,
+		BatteryEmptyV:    s.Battery.EmptyV,
+		BatteryFullV:     s.Battery.FullV,
+		ChargingBelowA:   s.Battery.ChargingBelowA,
+		OfflineAfter:     time.Duration(s.Battery.OfflineAfterSec) * time.Second,
 	}
 }

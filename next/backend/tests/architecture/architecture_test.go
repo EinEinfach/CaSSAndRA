@@ -23,6 +23,7 @@ var testOnlyDirs = []string{"architecture", "integration", "testkit"}
 // import any feature except the ones in topLevel.
 var allowedDeps = map[string][]string{
 	"geo":      {},
+	"jsonfile": {},
 	"protocol": {"geo"},
 	"link":     {"geo", "protocol"},
 }

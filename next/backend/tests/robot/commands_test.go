@@ -288,3 +288,128 @@ func TestCommandsWaitForUpload(t *testing.T) {
 		t.Errorf("mow after upload: %v", err)
 	}
 }
+
+func TestUploadMapWaitsForChecksum(t *testing.T) {
+	want := protocol.MapChecksum(square)
+	report := func(crc int64) func(f fixture) {
+		return func(f fixture) {
+			s := state(protocol.OpIdle)
+			s.MapCRC = crc
+			f.robot.OnState(s)
+		}
+	}
+	tests := []struct {
+		name    string
+		after   func(f fixture) // runs while UploadMap waits
+		wantErr error
+	}{
+		{"linux checksum", report(want.Linux), nil},
+		{"arduino checksum", report(want.Arduino), nil},
+		{"other map stays on the robot", report(want.Linux + 1), robot.ErrMapCRCMismatch},
+		{"no state report", func(fixture) {}, robot.ErrMapCRCMismatch},
+		{"stop", func(f fixture) { _ = f.robot.Stop(context.Background()) }, context.Canceled},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := newFixture(t)
+			f.sender.stored = nil // the robot reports nothing by itself
+			done := make(chan error, 1)
+			go func() { done <- f.robot.UploadMap(context.Background(), square) }()
+			waitFor(t, func() bool { return len(f.sender.payloads()) == len(protocol.MapUpload(square)) })
+			tt.after(f)
+			if err := <-done; !errors.Is(err, tt.wantErr) {
+				t.Errorf("err = %v, want %v", err, tt.wantErr)
+			}
+			uploaded := len(f.robot.Map().Perimeter) > 0
+			if uploaded != (tt.wantErr == nil) {
+				t.Errorf("map stored as uploaded = %v, want %v", uploaded, tt.wantErr == nil)
+			}
+		})
+	}
+}
+
+func TestUploadMapAcceptsMatchingChecksumAlreadyReported(t *testing.T) {
+	f := newFixture(t)
+	f.sender.stored = nil
+	s := state(protocol.OpIdle)
+	s.MapCRC = protocol.MapChecksum(square).Linux // e.g. the same map uploaded again
+	f.online(s)
+	if err := f.robot.UploadMap(context.Background(), square); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func waitFor(t *testing.T, ok func() bool) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for !ok() {
+		if time.Now().After(deadline) {
+			t.Fatal("condition not met in time")
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+
+func TestUploadMapRefusedWhileDriving(t *testing.T) {
+	for _, op := range []protocol.Op{protocol.OpMow, protocol.OpDock} {
+		t.Run(op.String(), func(t *testing.T) {
+			f := newFixture(t)
+			f.online(state(op))
+			err := f.robot.UploadMap(context.Background(), square)
+			if !errors.Is(err, robot.ErrBusy) {
+				t.Errorf("err = %v, want ErrBusy", err)
+			}
+			for _, p := range f.sender.payloads() {
+				if strings.HasPrefix(p, "AT+W") {
+					t.Fatalf("sent %q while the robot drives", p)
+				}
+			}
+		})
+	}
+	t.Run("manual driving", func(t *testing.T) {
+		f := newFixture(t)
+		f.online(state(protocol.OpIdle))
+		if err := f.robot.Move(context.Background(), 0.2, 0); err != nil {
+			t.Fatal(err)
+		}
+		if err := f.robot.UploadMap(context.Background(), square); !errors.Is(err, robot.ErrBusy) {
+			t.Errorf("err = %v, want ErrBusy", err)
+		}
+	})
+}
+
+func TestSetSettingsApplyToTheNextCommand(t *testing.T) {
+	f := newFixture(t)
+	s := robot.DefaultConfig().Settings
+	s.MowSpeedMps, s.FixTimeoutSec, s.FinishAndRestart = 0.5, 30, true
+	s.GotoSpeedMps = 0.6
+	f.robot.SetSettings(s)
+	if err := f.robot.Mow(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.robot.Goto(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	sent := f.sender.payloads()
+	want := []string{protocol.Mow(0.5, 30, true).Encode(), protocol.Goto(0.6, 30).Encode()}
+	if !reflect.DeepEqual(sent, want) {
+		t.Errorf("sent %q, want %q", sent, want)
+	}
+}
+
+func TestSendPositionMode(t *testing.T) {
+	f := newFixture(t)
+	s := robot.DefaultConfig().Settings
+	s.AbsolutePosition, s.Lon, s.Lat = true, 13.4, 52.5
+	f.robot.SetSettings(s)
+	if err := f.robot.SendPositionMode(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if sent := f.sender.payloads(); len(sent) != 1 || sent[0] != protocol.PositionMode(true, 13.4, 52.5) {
+		t.Errorf("sent %q", sent)
+	}
+	f.sender.fail["AT+P"] = 1
+	if err := f.robot.SendPositionMode(context.Background()); !errors.Is(err, errLinkDown) {
+		t.Errorf("err = %v, want the link error", err)
+	}
+}

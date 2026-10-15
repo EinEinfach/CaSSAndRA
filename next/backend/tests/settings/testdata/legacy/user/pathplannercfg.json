@@ -1,0 +1,11 @@
+{
+    "pattern": "squares",
+    "width": 0.16,
+    "angle": 15,
+    "distancetoborder": 2,
+    "mowarea": false,
+    "mowborder": 3,
+    "mowexclusion": false,
+    "mowborderccw": true,
+    "usecppplanner": true
+}

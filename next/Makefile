@@ -52,10 +52,10 @@ build: build-web ## Single binary with embedded frontend -> bin/cassandra
 
 dev: ## Backend on :8050 and Vite dev server with hot reload
 	@trap 'kill 0' INT TERM; \
-	(cd backend && go run . --host 127.0.0.1 --port 8050 --log-level debug) & \
+	(cd backend && go run . --host 127.0.0.1 --port 8050 --log-level debug --data-dir ../.dev-data) & \
 	(cd web && npm run dev) & \
 	wait
 
 clean: ## Remove build output
-	rm -rf bin web/build backend/coverage.out
+	rm -rf bin web/build backend/coverage.out .e2e-data
 	find $(UI_DIST) -mindepth 1 ! -name .gitkeep -delete

@@ -11,8 +11,10 @@ test('start page shows the app and its version', async ({ page, request }) => {
 	const { version } = await (await request.get('/api/health')).json();
 	await page.goto('/');
 
-	await expect(page.getByRole('heading', { name: 'CaSSAndRA' })).toBeVisible();
-	await expect(page.getByText(version)).toBeVisible();
+	const nav = page.getByRole('navigation', { name: 'Main' });
+	await expect(nav.getByText('CaSSAndRA')).toBeVisible();
+	await expect(nav.getByText(version)).toBeVisible();
+	await expect(nav.getByRole('link', { name: 'Live' })).toHaveAttribute('aria-current', 'page');
 });
 
 test('client routes are served by the SPA fallback', async ({ request }) => {

@@ -38,10 +38,24 @@ describe('fit', () => {
 		expect(vp.scale).toBe(20);
 	});
 
+	it('keeps long, narrow maps filling the long side', () => {
+		const strip = fit(
+			[
+				{ x: 0, y: 0 },
+				{ x: 100, y: 1 }
+			],
+			200,
+			100,
+			0
+		);
+		expect(strip.scale).toBe(2);
+	});
+
 	it('handles no points and single points', () => {
 		expect(fit([], 100, 100)).toMatchObject({ centerX: 0, centerY: 0, scale: 20 });
 		const single = fit([{ x: 3, y: 4 }], 100, 100, 0);
-		expect(single).toMatchObject({ centerX: 3, centerY: 4, scale: 100 });
+		// never closer than MIN_FIT_SPAN_M (5 m) on the shorter side
+		expect(single).toMatchObject({ centerX: 3, centerY: 4, scale: 20 });
 	});
 
 	it('clamps the scale', () => {

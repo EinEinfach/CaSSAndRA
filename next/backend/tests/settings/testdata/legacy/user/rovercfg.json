@@ -1,0 +1,9 @@
+{
+    "mowspeed_setpoint": 0.4,
+    "gotospeed_setpoint": 0.5,
+    "positionmode": "absolute",
+    "lon": 13.4,
+    "lat": 52.5,
+    "fix_timeout": 90,
+    "finish_and_restart": true
+}

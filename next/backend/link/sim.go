@@ -392,21 +392,10 @@ func (s *Sim) splitExclusions() {
 	}
 }
 
-// mapCRC follows Map::calcMapCRC: the sum of all coordinates in centimeters.
+// mapCRC is what Sunray on Linux reports for the stored map.
 func (s *Sim) mapCRC() int64 {
-	var crc int64
-	add := func(pts []geo.Point) {
-		for _, p := range pts {
-			crc += int64(math.Round(p.X*100) + math.Round(p.Y*100))
-		}
-	}
-	add(s.perimeter)
-	for _, ex := range s.exclusions {
-		add(ex)
-	}
-	add(s.dock)
-	add(s.way)
-	return crc
+	m := protocol.Map{Perimeter: s.perimeter, Exclusions: s.exclusions, Dock: s.dock, Way: s.way}
+	return protocol.MapChecksum(m).Linux
 }
 
 // Step advances the simulation by dt.

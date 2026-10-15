@@ -1,0 +1,13 @@
+{
+    "datamaxage": 30,
+    "time_to_offline": 30,
+    "voltage_to_soc": [
+        {"V": 20.4, "SoC": 0},
+        {"V": 28.0, "SoC": 100}
+    ],
+    "current_thd_charge": -0.05,
+    "rover_picture": "alfred/",
+    "obstacles_amount": 0,
+    "light_mode": true,
+    "rover_picture_size": 130
+}

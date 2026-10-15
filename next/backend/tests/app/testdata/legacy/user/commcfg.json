@@ -1,0 +1,8 @@
+{
+    "USE": "UART",
+    "UART": [
+        {"SERPORT": "/dev/cassandra-does-not-exist"},
+        {"BAUDRATE": 115200}
+    ],
+    "API": "None"
+}

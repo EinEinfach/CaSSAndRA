@@ -24,6 +24,9 @@ type fakeSender struct {
 	replies map[string]string // command -> reply payload override
 	block   map[string]bool   // command -> wait until ctx is done
 	blocked chan string       // receives the command that started blocking
+	points  []geo.Point       // received with AT+W
+	// stored is called after AT+X with the points the robot now stores.
+	stored func(points []geo.Point)
 }
 
 func newFakeSender() *fakeSender {
@@ -47,6 +50,13 @@ func (f *fakeSender) Send(ctx context.Context, payload string) (string, error) {
 		f.fail[name]--
 	}
 	reply, override := f.replies[name]
+	if name == "AT+W" {
+		f.points = append(f.points, waypoints(payload)...)
+	}
+	points, stored := f.points, f.stored
+	if name == "AT+X" {
+		f.points = nil
+	}
 	f.mu.Unlock()
 
 	if block {
@@ -57,10 +67,24 @@ func (f *fakeSender) Send(ctx context.Context, payload string) (string, error) {
 	if failing {
 		return "", errLinkDown
 	}
+	if name == "AT+X" && stored != nil {
+		stored(points)
+	}
 	if override {
 		return reply, nil
 	}
 	return defaultReply(payload), nil
+}
+
+// waypoints parses the points of an AT+W payload.
+func waypoints(payload string) []geo.Point {
+	parts := strings.Split(payload, ",")[2:]
+	pts := make([]geo.Point, len(parts)/2)
+	for i := range pts {
+		pts[i].X, _ = strconv.ParseFloat(parts[2*i], 64)
+		pts[i].Y, _ = strconv.ParseFloat(parts[2*i+1], 64)
+	}
+	return pts
 }
 
 // defaultReply answers like the firmware: AT+W acks the next index.
@@ -98,7 +122,15 @@ func newFixture(t *testing.T) fixture {
 	cfg := robot.DefaultConfig()
 	cfg.Now = clock.Now
 	cfg.Logger = testkit.Logger(t)
-	return fixture{robot: robot.New(sender, cfg), sender: sender, clock: clock}
+	cfg.MapCRCTimeout = 100 * time.Millisecond
+	r := robot.New(sender, cfg)
+	// Like the firmware: the next state report carries the new map's checksum.
+	sender.stored = func(points []geo.Point) {
+		s := state(protocol.OpIdle)
+		s.MapCRC = protocol.MapChecksum(protocol.Map{Way: points}).Linux
+		r.OnState(s)
+	}
+	return fixture{robot: r, sender: sender, clock: clock}
 }
 
 // online connects the robot and reports one state.

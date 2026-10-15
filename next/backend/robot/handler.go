@@ -2,6 +2,7 @@ package robot
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/geo"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
@@ -17,10 +18,21 @@ func (r *Robot) OnOnline(online bool) {
 	if !online {
 		return
 	}
-	cmd := protocol.PositionMode(r.cfg.AbsolutePosition, r.cfg.Lon, r.cfg.Lat)
-	if _, err := r.link.Send(context.Background(), cmd); err != nil {
+	if err := r.SendPositionMode(context.Background()); err != nil {
 		r.log.Warn("set position mode", "err", err)
 	}
+}
+
+// SendPositionMode sends the configured position mode (AT+P). It does not
+// wait for other commands: OnOnline calls it from the link's loop, which
+// must keep delivering states while e.g. a map upload waits for its checksum.
+func (r *Robot) SendPositionMode(ctx context.Context) error {
+	s := r.settings()
+	r.log.Info("command", "cmd", "position mode", "absolute", s.AbsolutePosition)
+	if _, err := r.link.Send(ctx, protocol.PositionMode(s.AbsolutePosition, s.Lon, s.Lat)); err != nil {
+		return fmt.Errorf("position mode: %w", err)
+	}
+	return nil
 }
 
 // OnVersion implements link.Handler.
@@ -40,6 +52,8 @@ func (r *Robot) OnState(s protocol.State) {
 	r.updateDockReasonLocked(s)
 	r.state = s
 	r.stateAt = r.cfg.Now()
+	close(r.stateSeen)
+	r.stateSeen = make(chan struct{})
 }
 
 // OnStats implements link.Handler.

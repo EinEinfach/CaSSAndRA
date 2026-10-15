@@ -1,0 +1,7 @@
+{
+  "X":{"0":0.0,"1":10.0,"2":10.0,"3":0.0,"4":0.0,"5":2.0,"6":3.0,"7":3.0,"8":6.0,"9":7.0,"10":7.0,"11":6.0,"12":1.0,"13":1.0,"14":-1.0,"15":0.5,"16":5.0,"17":0.0,"18":20.0,"19":20.0,"20":0.0,"21":0.0,"22":1.0,"23":5.0,"24":6.0},
+  "Y":{"0":0.0,"1":0.0,"2":10.0,"3":10.0,"4":0.0,"5":2.0,"6":2.0,"7":3.0,"8":6.0,"9":6.0,"10":7.0,"11":7.0,"12":1.0,"13":2.0,"14":2.0,"15":0.5,"16":0.5,"17":0.0,"18":0.0,"19":5.0,"20":5.0,"21":0.0,"22":0.0,"23":5.0,"24":5.0},
+  "type":{"0":"perimeter","1":"perimeter","2":"perimeter","3":"perimeter","4":"perimeter","5":"exclusion_10","6":"exclusion_10","7":"exclusion_10","8":"exclusion_2","9":"exclusion_2","10":"exclusion_2","11":"exclusion_2","12":"dockpoints","13":"dockpoints","14":"dockpoints","15":"search wire","16":"search wire","17":"perimeter","18":"perimeter","19":"perimeter","20":"perimeter","21":"perimeter","22":"perimeter","23":"dockpoints","24":"dockpoints"},
+  "map_nr":{"0":null,"1":null,"2":null,"3":null,"4":null,"5":null,"6":null,"7":null,"8":null,"9":null,"10":null,"11":null,"12":null,"13":null,"14":null,"15":null,"16":null,"17":1.0,"18":1.0,"19":1.0,"20":1.0,"21":1.0,"22":null,"23":null,"24":null},
+  "name":{"0":"Garden","1":"Garden","2":"Garden","3":"Garden","4":"Garden","5":"Garden","6":"Garden","7":"Garden","8":"Garden","9":"Garden","10":"Garden","11":"Garden","12":"Garden","13":"Garden","14":"Garden","15":"Garden","16":"Garden","17":"Yard","18":"Yard","19":"Yard","20":"Yard","21":"Yard","22":"Broken","23":"Yard","24":"Yard"}
+}

@@ -53,11 +53,13 @@ sowie `make lint` sind grün.
 - **Ergebnis:** alle drei Wege implementiert und gegen Simulator/Broker getestet, Gesamtabdeckung 97 %.
 
 ## Phase 5 – Einstellungen & Karten (`settings`, `maps`)
-- [ ] Settings laden/speichern/in der UI bearbeiten
-- [ ] Legacy-Import aus `~/.cassandra` (Configs, Karten, Tasks)
-- [ ] Karten-Editor: Perimeter, Ausschlüsse, Dockpunkte, Suchdraht; mehrere Karten
-- [ ] Upload zum Roboter (AT+W/N/X, 30er-Pakete, map_crc prüfen)
-- **Fertig, wenn:** die echte Karte importiert, angezeigt und zum Roboter übertragen wird.
+- [x] Settings laden/speichern/in der UI bearbeiten: `settings.json` im Datenverzeichnis (`--data-dir`, Standard `~/.cassandra`); Passwörter verlassen das Backend nie; Verbindungswechsel ohne Neustart; Fahr-/Batteriewerte und Positionsmodus wirken sofort. Die `--link`-Flags sind entfallen.
+- [x] Legacy-Import beim ersten Start: `user/*.json` (inkl. Zugangsdaten der MQTT-API für Phase 9) und `map/perimeter.json` + `tmp.json` (aktive Karte). Mit den echten Daten getestet: 21 Karten, keine Warnung. Tasks und Zeitplan importieren ihre Features in Phase 7/8 selbst.
+- [x] Karten-Editor: Perimeter, Ausschlüsse, Dockpfad, Suchdraht; mehrere Karten; Undo/Redo, Ziehen, Roboterposition als Punkt; neue App-Hülle (Navigation, eigenes Design)
+- [x] Upload zum Roboter (AT+W/N/X, 30er-Pakete) mit **exakter map_crc-Prüfung** (Arduino- und Linux-Variante der Firmware nachgebildet, Golden-Werte aus C-Referenz); Upload wird abgelehnt, solange der Roboter fährt
+- [ ] Upload gegen echte Sunray-Firmware prüfen (Simulator auf 192.168.2.26 war beim Test nicht erreichbar)
+- [ ] Später: GeoJSON-/Sunray-Kartenimport und -export wie im Legacy-Code
+- **Fertig, wenn:** die echte Karte importiert, angezeigt und zum Roboter übertragen wird. (Import und Anzeige: erledigt; Übertragung: im Simulator erledigt, echte Firmware offen)
 
 ## Phase 6 – Planner (parallel zu Phase 2–5 möglich)
 - [ ] Im Planner-Repo: C-API, CMake-Target als statische Lib ohne pybind, Tests, Tippfehler `mowExclusionsBoder` korrigieren, Tag

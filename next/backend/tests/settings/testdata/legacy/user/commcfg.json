@@ -1,0 +1,31 @@
+{
+    "USE": "HTTP",
+    "MQTT": [
+        {"CLIENT_ID": "Robo_MQTT"},
+        {"USERNAME": "bridge"},
+        {"PASSWORD": "bridgepw"},
+        {"MQTT_SERVER": "192.168.2.21"},
+        {"PORT": 1884},
+        {"MOWER_NAME": "Robo"}
+    ],
+    "HTTP": [
+        {"IP": "http://192.168.2.26"},
+        {"PASSWORD": "123456"}
+    ],
+    "UART": [
+        {"SERPORT": "/dev/ttyUSB0"},
+        {"BAUDRATE": 19200}
+    ],
+    "API": "MQTT",
+    "MQTT_API": [
+        {"CLIENT_ID": "DevServer"},
+        {"USERNAME": "api"},
+        {"PASSWORD": "apipw"},
+        {"MQTT_SERVER": "192.168.2.30"},
+        {"PORT": 1883},
+        {"API_SERVER_NAME": "Garden"}
+    ],
+    "MESSAGE_SERVICE": null,
+    "TELEGRAM": [{"TOKEN": null}, {"CHAT_ID": null}],
+    "PUSHOVER": [{"TOKEN": null}, {"USER": null}]
+}

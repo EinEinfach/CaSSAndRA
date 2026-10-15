@@ -2,3 +2,5 @@
 /backend/coverage.out
 /backend/server/dist/*
 !/backend/server/dist/.gitkeep
+/.e2e-data/
+/.dev-data/

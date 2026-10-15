@@ -1,0 +1,4 @@
+{
+    "USE": "HTTP",
+    "HTTP": [{"IP": ""}, {"PASSWORD": ""}]
+}

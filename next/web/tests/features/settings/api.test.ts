@@ -1,0 +1,31 @@
+import { describe, expect, it, vi } from 'vitest';
+import { fetchSettings, saveSettings } from '#features/settings/api.ts';
+import { view } from './fixtures.ts';
+
+const respond = (status: number, body: unknown) =>
+	vi.fn(async () => new Response(JSON.stringify(body), { status }));
+
+describe('settings api', () => {
+	it('loads the settings', async () => {
+		const fetchFn = respond(200, view());
+		await expect(fetchSettings(fetchFn)).resolves.toEqual(view());
+		expect(fetchFn).toHaveBeenCalledWith('/api/settings', expect.anything());
+	});
+
+	it('saves with PUT and returns the new view', async () => {
+		const fetchFn = respond(200, view());
+		const update = { settings: view().settings, passwords: { mqttPassword: 'x' } };
+		await expect(saveSettings(update, fetchFn)).resolves.toEqual(view());
+		expect(fetchFn).toHaveBeenCalledWith(
+			'/api/settings',
+			expect.objectContaining({ method: 'PUT', body: JSON.stringify(update) })
+		);
+	});
+
+	it('reports validation errors', async () => {
+		const fetchFn = respond(400, { error: 'invalid settings: rover.mowSpeedMps' });
+		await expect(
+			saveSettings({ settings: view().settings, passwords: {} }, fetchFn)
+		).rejects.toThrow('rover.mowSpeedMps');
+	});
+});

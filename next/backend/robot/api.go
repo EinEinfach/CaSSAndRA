@@ -195,16 +195,25 @@ func (r *Robot) Handler() http.Handler {
 func run(w http.ResponseWriter, req *http.Request, cmd func(context.Context) error) {
 	ctx, cancel := context.WithTimeout(req.Context(), commandTimeout)
 	defer cancel()
-	err := cmd(ctx)
+	if err := cmd(ctx); err != nil {
+		writeError(w, ErrorStatus(err), err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// ErrorStatus maps a command error to an HTTP status: busy 409, offline 503,
+// timeout 504, any other link or robot error 502.
+func ErrorStatus(err error) int {
 	switch {
-	case err == nil:
-		w.WriteHeader(http.StatusNoContent)
+	case errors.Is(err, ErrBusy):
+		return http.StatusConflict
 	case errors.Is(err, link.ErrOffline):
-		writeError(w, http.StatusServiceUnavailable, err.Error())
+		return http.StatusServiceUnavailable
 	case errors.Is(err, context.DeadlineExceeded):
-		writeError(w, http.StatusGatewayTimeout, err.Error())
+		return http.StatusGatewayTimeout
 	default:
-		writeError(w, http.StatusBadGateway, err.Error())
+		return http.StatusBadGateway
 	}
 }
 

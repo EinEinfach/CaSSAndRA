@@ -226,3 +226,20 @@ func TestPublishStateOnlyOnChange(t *testing.T) {
 		}
 	}
 }
+
+func TestErrorStatus(t *testing.T) {
+	tests := []struct {
+		err  error
+		want int
+	}{
+		{fmt.Errorf("x: %w", robot.ErrBusy), http.StatusConflict},
+		{fmt.Errorf("x: %w", link.ErrOffline), http.StatusServiceUnavailable},
+		{context.DeadlineExceeded, http.StatusGatewayTimeout},
+		{robot.ErrMapCRCMismatch, http.StatusBadGateway},
+	}
+	for _, tt := range tests {
+		if got := robot.ErrorStatus(tt.err); got != tt.want {
+			t.Errorf("ErrorStatus(%v) = %d, want %d", tt.err, got, tt.want)
+		}
+	}
+}

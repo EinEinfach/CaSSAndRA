@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ApiError, fetchHealth, getJSON, post } from '#shared/api.ts';
+import { ApiError, fetchHealth, getJSON, post, sendJSON } from '#shared/api.ts';
 
 function respond(status: number, body?: unknown): typeof fetch {
 	return vi.fn(
@@ -73,5 +73,35 @@ describe('post', () => {
 		await expect(
 			post('/api/robot/dock', undefined, respond(503, { error: 'robot offline' }))
 		).rejects.toThrow('/api/robot/dock: robot offline');
+	});
+});
+
+describe('sendJSON', () => {
+	it('sends the body and returns the JSON response', async () => {
+		const fetchFn = respond(201, { id: 'm1' });
+		await expect(sendJSON('POST', '/api/maps', { name: 'Garden' }, fetchFn)).resolves.toEqual({
+			id: 'm1'
+		});
+		expect(fetchFn).toHaveBeenCalledWith('/api/maps', {
+			method: 'POST',
+			headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+			body: '{"name":"Garden"}'
+		});
+	});
+
+	it('returns undefined for 204 and sends no body without payload', async () => {
+		const fetchFn = respond(204);
+		await expect(sendJSON('DELETE', '/api/maps/m1', undefined, fetchFn)).resolves.toBeUndefined();
+		expect(fetchFn).toHaveBeenCalledWith('/api/maps/m1', {
+			method: 'DELETE',
+			headers: { Accept: 'application/json' },
+			body: undefined
+		});
+	});
+
+	it('throws the backend error', async () => {
+		await expect(
+			sendJSON('PUT', '/api/settings', {}, respond(400, { error: 'invalid settings: x' }))
+		).rejects.toThrow('/api/settings: invalid settings: x');
 	});
 });

@@ -50,6 +50,33 @@ export async function post(
 	}
 }
 
+/**
+ * Sends a JSON request and returns the JSON response, or undefined for
+ * 204 No Content.
+ */
+export async function sendJSON<T>(
+	method: 'POST' | 'PUT' | 'DELETE',
+	path: string,
+	body?: unknown,
+	fetchFn: typeof fetch = fetch
+): Promise<T | undefined> {
+	const res = await fetchFn(path, {
+		method,
+		headers:
+			body === undefined
+				? { Accept: 'application/json' }
+				: { Accept: 'application/json', 'Content-Type': 'application/json' },
+		body: body === undefined ? undefined : JSON.stringify(body)
+	});
+	if (!res.ok) {
+		throw new ApiError(path, res.status, await errorDetail(res));
+	}
+	if (res.status === 204) {
+		return undefined;
+	}
+	return (await res.json()) as T;
+}
+
 export function fetchHealth(fetchFn: typeof fetch = fetch): Promise<Health> {
 	return getJSON<Health>('/api/health', fetchFn);
 }

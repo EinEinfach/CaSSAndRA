@@ -17,8 +17,9 @@ type Sender interface {
 	Send(ctx context.Context, payload string) (string, error)
 }
 
-// Config holds the user settings the robot needs.
-type Config struct {
+// Settings are the user settings the robot needs. They can change while
+// the robot runs (SetSettings).
+type Settings struct {
 	MowSpeedMps      float64
 	GotoSpeedMps     float64
 	FixTimeoutSec    int
@@ -32,6 +33,14 @@ type Config struct {
 	ChargingBelowA float64
 	// OfflineAfter without a state report the robot counts as offline.
 	OfflineAfter time.Duration
+}
+
+// Config holds everything the robot needs at start.
+type Config struct {
+	Settings
+	// MapCRCTimeout is how long UploadMap waits for the robot to report the
+	// checksum of the new map.
+	MapCRCTimeout time.Duration
 	// Now returns the current time; tests pass a fake clock.
 	Now func() time.Time
 	// Logger receives command and connection events.
@@ -41,13 +50,16 @@ type Config struct {
 // DefaultConfig returns the legacy CaSSAndRA defaults.
 func DefaultConfig() Config {
 	return Config{
-		MowSpeedMps:    0.25,
-		GotoSpeedMps:   0.3,
-		FixTimeoutSec:  60,
-		BatteryEmptyV:  22,
-		BatteryFullV:   28,
-		ChargingBelowA: -0.03,
-		OfflineAfter:   60 * time.Second,
+		Settings: Settings{
+			MowSpeedMps:    0.25,
+			GotoSpeedMps:   0.3,
+			FixTimeoutSec:  60,
+			BatteryEmptyV:  22,
+			BatteryFullV:   28,
+			ChargingBelowA: -0.03,
+			OfflineAfter:   60 * time.Second,
+		},
+		MapCRCTimeout: 10 * time.Second,
 	}
 }
 
@@ -55,7 +67,7 @@ func DefaultConfig() Config {
 // receive reports and sends commands through a Sender. Safe for concurrent use.
 type Robot struct {
 	link Sender
-	cfg  Config
+	cfg  Config // cfg.Settings is guarded by mu
 	log  *slog.Logger
 
 	// cmdMu serializes commands. Stop does not take it; it cancels the
@@ -67,6 +79,7 @@ type Robot struct {
 	version    protocol.Version
 	state      protocol.State
 	stateAt    time.Time
+	stateSeen  chan struct{} // closed and replaced on every state report
 	stats      protocol.Stats
 	obstacles  [][]geo.Point
 	mowMotor   bool // last commanded; the robot does not report it
@@ -86,5 +99,19 @@ func New(l Sender, cfg Config) *Robot {
 	if cfg.Logger == nil {
 		cfg.Logger = slog.New(slog.DiscardHandler)
 	}
-	return &Robot{link: l, cfg: cfg, log: cfg.Logger}
+	return &Robot{link: l, cfg: cfg, log: cfg.Logger, stateSeen: make(chan struct{})}
+}
+
+// SetSettings replaces the user settings. They apply to the next command; a
+// changed position mode is sent with the next SendPositionMode.
+func (r *Robot) SetSettings(s Settings) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.cfg.Settings = s
+}
+
+func (r *Robot) settings() Settings {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.cfg.Settings
 }

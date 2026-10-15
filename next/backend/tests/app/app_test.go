@@ -23,6 +23,7 @@ func testConfig(t *testing.T) app.Config {
 	cfg.Version = "test"
 	cfg.UI = fstest.MapFS{"index.html": {Data: []byte("ui")}}
 	cfg.Logger = testkit.Logger(t)
+	cfg.DataDir = t.TempDir()
 	cfg.SimTick = 10 * time.Millisecond
 	cfg.Poll.StateInterval = 10 * time.Millisecond
 	cfg.PublishInterval = 10 * time.Millisecond
@@ -188,6 +189,11 @@ func TestRunRejectsInvalidConfig(t *testing.T) {
 	err = app.Run(context.Background(), app.Config{}, ln)
 	if err == nil || !strings.Contains(err.Error(), "must be positive") {
 		t.Errorf("Run with empty config err = %v, want validation error", err)
+	}
+	cfg := testConfig(t)
+	cfg.DataDir = ""
+	if err := app.Run(context.Background(), cfg, ln); err == nil || !strings.Contains(err.Error(), "DataDir") {
+		t.Errorf("Run without DataDir err = %v, want validation error", err)
 	}
 }
 

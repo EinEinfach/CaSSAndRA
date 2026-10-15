@@ -1,75 +1,55 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { MapsStore } from '#features/maps/store.svelte.ts';
 	import Controls from '#features/robot/Controls.svelte';
 	import Joystick from '#features/robot/Joystick.svelte';
 	import RobotMap from '#features/robot/RobotMap.svelte';
 	import StatusPanel from '#features/robot/StatusPanel.svelte';
 	import { RobotStore } from '#features/robot/store.svelte.ts';
-	import { fetchHealth } from '#shared/api.ts';
-	import { EventStream } from '#shared/events.ts';
+	import { useStream } from '#shared/streamContext.ts';
 
+	const stream = useStream();
 	const robot = new RobotStore();
-	let version = $state('');
+	const maps = new MapsStore();
 
 	onMount(() => {
-		const stream = new EventStream();
-		const stop = robot.connect(stream);
-		fetchHealth()
-			.then((h) => (version = h.version))
-			.catch(() => {});
-		return () => {
-			stop();
-			stream.close();
-		};
+		const stops = [robot.connect(stream), maps.connect(stream)];
+		return () => stops.forEach((stop) => stop());
 	});
 
 	const status = $derived(robot.connected && robot.state ? robot.state.status : 'offline');
+	// What the robot has wins; before it reports a map, show the active one.
+	const shownMap = $derived(
+		robot.map.perimeter.length > 0 || !maps.active
+			? robot.map
+			: {
+					perimeter: maps.active.perimeter,
+					exclusions: maps.active.exclusions,
+					dock: maps.active.dock,
+					way: []
+				}
+	);
 </script>
 
 <div class="page">
-	<header>
-		<h1>CaSSAndRA</h1>
-		<span class="version">{version}</span>
-	</header>
-	<main>
-		<div class="map">
-			<RobotMap state={robot.state} map={robot.map} trail={robot.trail} />
+	<div class="map">
+		<RobotMap state={robot.state} map={shownMap} trail={robot.trail} />
+	</div>
+	<aside>
+		<StatusPanel state={robot.state} connected={robot.connected} />
+		<Controls {status} />
+		<div class="joystick">
+			<Joystick disabled={!['idle', 'move'].includes(status)} />
 		</div>
-		<aside>
-			<StatusPanel state={robot.state} connected={robot.connected} />
-			<Controls {status} />
-			<div class="joystick">
-				<Joystick disabled={!['idle', 'move'].includes(status)} />
-			</div>
-		</aside>
-	</main>
+	</aside>
 </div>
 
 <style>
 	.page {
-		min-height: 100dvh;
-		display: flex;
-		flex-direction: column;
-		padding: 12px 16px 16px;
-		gap: 12px;
-	}
-	header {
-		display: flex;
-		align-items: baseline;
-		gap: 12px;
-	}
-	h1 {
-		font-size: 1.25rem;
-		margin: 0;
-	}
-	.version {
-		color: var(--text-muted);
-		font-size: 0.85rem;
-	}
-	main {
-		flex: 1;
+		min-height: calc(100dvh - var(--nav-bottom));
 		display: grid;
 		gap: 16px;
+		padding: 16px;
 		grid-template-columns: 1fr;
 		grid-template-rows: minmax(300px, 55dvh) auto;
 	}
@@ -82,7 +62,7 @@
 		gap: 16px;
 		background: var(--surface);
 		border: 1px solid var(--border);
-		border-radius: 12px;
+		border-radius: 16px;
 		padding: 16px;
 	}
 	.joystick {
@@ -90,7 +70,8 @@
 		justify-content: center;
 	}
 	@media (min-width: 900px) {
-		main {
+		.page {
+			height: 100dvh;
 			grid-template-columns: 1fr 340px;
 			grid-template-rows: 1fr;
 		}

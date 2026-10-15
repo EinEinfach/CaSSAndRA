@@ -44,17 +44,18 @@ Logik, Persistenz, REST-/WebSocket-Handler. Es gibt kein `internal/`, `pkg/`, `s
 ```
 next/
   backend/
-    main.go          Nur Flags/Logging/Signale, ruft app.Run auf.
+    main.go          Nur Flags (--host, --port, --data-dir, --log-level), Logging, Signale; ruft app.Run auf.
     app/             Verdrahtet alle Features und startet sie – die einzige Stelle, die alle Features kennt. Testbar mit Port 0.
     geo/             Geometrie-Typen (Point, Polygon, LineString) – Shared Kernel, dünn halten
+    jsonfile/        JSON-Dateien atomar lesen/schreiben (temp + rename, 0600) – Hilfspaket ohne Abhängigkeiten
     protocol/        Sunray-Protokoll: AT-Befehle bauen, Antworten parsen, Checksumme, HTTP-Verschlüsselung. Reine Funktionen.
     link/            Verbindung zum Roboter: Interface + http.go, mqtt.go, uart.go, sim.go (Simulator)
     robot/           Robot-Zustand, Statusableitung, Befehle (Mähen, Stop, Dock, Goto, Joystick …)
-    maps/            Perimeter, Ausschlüsse, Dockpunkte, Suchdraht; Kartenverwaltung und Upload zum Roboter
+    maps/            Perimeter, Ausschlüsse, Dockpfad, Suchdraht; Kartenspeicher (eine Datei je Karte + active.json), Legacy-Import, API inkl. Upload zum Roboter
     planner/         Planner-Interface + cgo-Anbindung (Build-Tag `cpp`)
     tasks/           Aufgaben (Teilflächen + Parameter), Reihenfolge, Routenberechnung über planner
     schedule/        Zeitplan (Wochentag → Zeitfenster), startet Tasks
-    settings/        App-, Rover-, Verbindungs- und Planner-Einstellungen; Import aus Legacy-Daten
+    settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
     stats/           Statistik und Verlauf (Batterie, Mähzeit, GPS-Qualität)
     mqttapi/         Externe MQTT-API (kompatibel zur Legacy-API, siehe unten)
     server/          HTTP-Handler, SSE-Hub, eingebettetes Frontend (`server/dist/`, Build-Ausgabe, gitignored); montiert die Routen der Features (`Options.Routes`)
@@ -87,6 +88,8 @@ Ebene, hier eintragen. Wenn die Struktur abweicht, diese Datei aktualisieren.
 - **Nebenläufigkeit:** ein Goroutine pro Verbindung/Loop, Kommunikation über Channels oder klar gekapselten Zustand mit Mutex. Alle Loops hängen an einem `context.Context` für sauberes Herunterfahren.
 - **Fehler** werden zurückgegeben und mit `fmt.Errorf("...: %w", err)` angereichert, nicht geloggt-und-verschluckt.
 - **Logging** über `log/slog`, strukturiert.
+- **Persistenz:** über `jsonfile` (atomar, 0600). Ein Feature besitzt seine Dateien; Stores laden beim Öffnen, validieren beim Schreiben und melden Änderungen per `OnChange`. Ist eine Datei kaputt, startet die App nicht (lieber laut als still überschrieben).
+- **Einstellungen zur Laufzeit:** Features bekommen veränderliche Werte über einen Setter (`robot.SetSettings`), nicht durch Neubau. Was in der Run-Schleife eines Links aufgerufen wird (z. B. `OnOnline` → `SendPositionMode`), darf nicht auf `cmdMu` warten.
 - **HTTP-API eines Features** liegt im Feature (`robot/api.go`: `Handler()`, JSON-Typen mit camelCase-Tags). `app` montiert sie in `server`. Fehler-Mapping: offline → 503, Timeout → 504, sonstiger Link-Fehler → 502, ungültige Eingabe → 400, Body `{"error": "..."}`. JSON enthält nie `NaN` und nie `null` für Listen.
 - **Goroutinen in `app`** laufen an einem eigenen Kontext und werden beim Beenden abgebrochen *und* abgewartet (`defer wg.Wait()` vor `defer cancel()` registrieren, damit `cancel` zuerst läuft). Request-Kontexte hängen über `BaseContext` am App-Kontext, sonst blockieren offene Event-Streams das Herunterfahren.
 - **cgo nur in `planner/`**, in einer Datei hinter Build-Tag `cpp`. Alles andere bleibt reines Go und ist ohne C-Toolchain testbar.
@@ -126,11 +129,13 @@ backend/tests/
 - Unit-Tests von `robot` nutzen einen Fake-`Sender` (`tests/robot/helpers_test.go`), der Fehler, eigene Antworten und Blockieren pro Befehl simuliert. Zusammenspiel robot + link + sim gehört nach `tests/integration`.
 - Tests mit echten Timern (Poller) mit `-race -count=20` auf Wackeligkeit prüfen, bevor sie committet werden.
 - Planner: `testkit.FakePlanner` für alle anderen Tests; echte cgo-Tests in `tests/planner` hinter Build-Tag `cpp`.
+- Frontend: Seiten (`routes/`) bekommen den einen Event-Stream per Context (`#shared/streamContext.ts`, vom Layout bereitgestellt). Gemeinsame Formular-Bausteine stehen in `app.css` (`.card`, `.field` mit `.hint`, `.switch`). Design ist eigenständig, nicht an die Legacy-App gebunden.
 - Frontend: Logik gehört in `.ts`-Dateien (pure Funktionen, Klassen), Komponenten bleiben dünn. Abhängigkeiten werden übergeben statt importiert-und-gemockt: `fetch` als Parameter, `send`/`sender`/`loadMap` als Props bzw. Konstruktor-Argumente, Timer über ein `Scheduler`-Interface.
 - Komponententests mit `@testing-library/svelte` in jsdom. Canvas wird über `tests/shared/recordingContext.ts` geprüft (zeichnet jeden Befehl auf), `ResizeObserver` per `vi.stubGlobal`.
 - Svelte 5: Ein `$effect`, der State schreibt, den er auch liest, läuft endlos (`effect_update_depth_exceeded`). Gelesenen-und-geschriebenen State in `untrack(...)` lesen.
 - Dateinamen dürfen sich nicht nur in Groß-/Kleinschreibung unterscheiden (`Joystick.svelte` + `joystick.ts` → gleiche Testdatei auf macOS).
-- E2E: Playwright in `web/tests/e2e/` (`*.e2e.ts`) gegen das echte Binary (`make build`, Port 4173) mit Simulator und Demo-Garten. Neue E2E-Tests mit `npx playwright test --repeat-each=3` auf Wackeligkeit prüfen.
+- E2E: Playwright in `web/tests/e2e/` (`*.e2e.ts`) gegen das echte Binary (`make build`, Port 4173, frisches `--data-dir ../.e2e-data`) mit Simulator und Demo-Garten. Die Tests teilen sich den Roboter und laufen nacheinander (`workers: 1`); wer den Roboter verändert, stellt ihn danach wieder her (Verbindung kurz wechseln = frischer Simulator). Neue E2E-Tests mit `npx playwright test --repeat-each=3` auf Wackeligkeit prüfen.
+- Testdaten aus echten Installationen nie 1:1 einchecken (Zugangsdaten!): Format nachbauen, Werte erfinden.
 - `go test` läuft im Makefile mit `-timeout 120s`, damit ein hängender Test (Deadlock) nicht den ganzen Lauf blockiert.
 - Bevor eine Aufgabe als erledigt gilt: Tests laufen grün, `go vet` und Linter sauber.
 
@@ -149,8 +154,10 @@ make dev          # Backend :8050 mit Simulator + Vite-Devserver (Proxy /api →
 make build        # Frontend bauen, nach backend/server/dist kopieren, bin/cassandra bauen
 ```
 
-Mit echtem Roboter: `bin/cassandra --link http --http-url http://<ip>` (Passwort per `CASSANDRA_HTTP_PASSWORD`),
-`--link uart --uart-port /dev/ttyACM0` oder `--link mqtt --mqtt-broker tcp://<ip>:1883 --mqtt-mower <prefix>`.
+Daten: `bin/cassandra --data-dir <dir>` (Standard `~/.cassandra`). Beim ersten Start (kein `settings.json` bzw. kein
+`maps/`) werden Legacy-Daten aus demselben Verzeichnis importiert (`user/*.json`, `map/perimeter.json`, `map/tmp.json`).
+Die Verbindung zum Roboter wird in der UI unter Settings gewählt (oder in `settings.json`), nicht per Flag.
+`make dev` nutzt `.dev-data/`, E2E ein frisches `.e2e-data/` – nie `~/.cassandra`.
 
 Einzelnes Feature: `cd backend && go test ./tests/robot/`, einzelner Test: `go test ./tests/robot/ -run TestStop`.
 Frontend einzeln: `cd web && npx vitest --run tests/shared/api.test.ts`.
@@ -171,9 +178,15 @@ viel einfacheres MQTT (`/op`, `/cmd` mit `start|stop|dock`), das CaSSAndRA nicht
 
 **Umsetzung:** `link/http.go` (POST, 6 s Timeout, leerer Body = Zeile abgelehnt), `link/uart.go` (`LineTransport`:
 überspringt Konsolenausgaben bis zur passenden Antwort, öffnet den Port nach Fehlern neu), `link/mqtt.go`
-(paho; Nachrichten laufen über einen Kanal, damit der Handler nur aus `Run` aufgerufen wird). Auswahl über
-`app.LinkConfig` bzw. `--link sim|http|uart|mqtt`; Passwörter auch per `CASSANDRA_HTTP_PASSWORD` /
-`CASSANDRA_MQTT_PASSWORD`, damit sie nicht in der Prozessliste stehen.
+(paho; Nachrichten laufen über einen Kanal, damit der Handler nur aus `Run` aufgerufen wird). Auswahl über die Einstellungen (`settings.Connection`); `app` startet den passenden Link und tauscht ihn bei Änderungen aus (`app/link.go`: `superviseLink`, `switchSender`).
+
+**Karten-Upload und map_crc:** Nach AT+W/N/X meldet der Roboter in AT+S die `map_crc` = Summe aller Punkte in cm
+(`map.cpp`: `Point::setXY`, `Point::crc`). Die Rechnung hängt von der Plattform ab: Arduino schneidet jede Koordinate
+auf `short` ab (z. B. 40.94 → 4093), Linux addiert als `float` und schneidet erst die Punktsumme ab. `protocol.MapChecksum`
+bildet beide exakt nach (float32), Golden-Werte stammen aus `tests/protocol/testdata/map_crc_reference.c`.
+`robot.UploadMap` wartet danach (bis `MapCRCTimeout`) auf eine passende CRC – die einzige Prüfung, die auch über MQTT
+greift – und lehnt Uploads ab, solange der Roboter fährt (AT+W mit Index 0 löscht seine Route). Legacy toleriert
+stattdessen eine Abweichung < 200. Der Simulator rechnet wie Sunray unter Linux.
 
 **Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er
 idempotent ist. `Stop` bricht einen laufenden Karten-Upload ab, statt hinter ihm zu warten.
