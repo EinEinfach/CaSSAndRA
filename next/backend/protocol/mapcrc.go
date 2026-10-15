@@ -9,9 +9,10 @@ import (
 // MapCRC is the map checksum the robot reports in AT+S (map_crc) once it
 // has stored a map. The firmware sums all points in centimeters
 // (map.cpp: Point::setXY, Point::crc), but the result depends on its
-// platform: on Arduino each coordinate is truncated to a short, on Linux
-// the coordinates stay float and only each point's sum is truncated. Both
-// use single precision, so e.g. 40.94 becomes 4093 cm on Arduino.
+// platform and version: on Arduino each coordinate is truncated to a short,
+// current Linux firmware keeps them float and truncates only each point's
+// sum (Sunray 1.0.324 on Linux still computes like Arduino). Both use single
+// precision, so e.g. 40.94 becomes 4093 cm on Arduino.
 type MapCRC struct {
 	Arduino int64
 	Linux   int64

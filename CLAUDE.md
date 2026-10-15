@@ -181,8 +181,9 @@ viel einfacheres MQTT (`/op`, `/cmd` mit `start|stop|dock`), das CaSSAndRA nicht
 (paho; Nachrichten laufen über einen Kanal, damit der Handler nur aus `Run` aufgerufen wird). Auswahl über die Einstellungen (`settings.Connection`); `app` startet den passenden Link und tauscht ihn bei Änderungen aus (`app/link.go`: `superviseLink`, `switchSender`).
 
 **Karten-Upload und map_crc:** Nach AT+W/N/X meldet der Roboter in AT+S die `map_crc` = Summe aller Punkte in cm
-(`map.cpp`: `Point::setXY`, `Point::crc`). Die Rechnung hängt von der Plattform ab: Arduino schneidet jede Koordinate
-auf `short` ab (z. B. 40.94 → 4093), Linux addiert als `float` und schneidet erst die Punktsumme ab. `protocol.MapChecksum`
+(`map.cpp`: `Point::setXY`, `Point::crc`). Die Rechnung hängt von Plattform und Version ab: Arduino schneidet jede
+Koordinate auf `short` ab (z. B. 40.94 → 4093), aktuelle Linux-Firmware addiert als `float` und schneidet erst die
+Punktsumme ab. Sunray 1.0.324 unter Linux rechnet noch wie Arduino (am echten Simulator geprüft). `protocol.MapChecksum`
 bildet beide exakt nach (float32), Golden-Werte stammen aus `tests/protocol/testdata/map_crc_reference.c`.
 `robot.UploadMap` wartet danach (bis `MapCRCTimeout`) auf eine passende CRC – die einzige Prüfung, die auch über MQTT
 greift – und lehnt Uploads ab, solange der Roboter fährt (AT+W mit Index 0 löscht seine Route). Legacy toleriert

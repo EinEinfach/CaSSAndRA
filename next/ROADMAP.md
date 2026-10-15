@@ -57,9 +57,10 @@ sowie `make lint` sind grün.
 - [x] Legacy-Import beim ersten Start: `user/*.json` (inkl. Zugangsdaten der MQTT-API für Phase 9) und `map/perimeter.json` + `tmp.json` (aktive Karte). Mit den echten Daten getestet: 21 Karten, keine Warnung. Tasks und Zeitplan importieren ihre Features in Phase 7/8 selbst.
 - [x] Karten-Editor: Perimeter, Ausschlüsse, Dockpfad, Suchdraht; mehrere Karten; Undo/Redo, Ziehen, Roboterposition als Punkt; neue App-Hülle (Navigation, eigenes Design)
 - [x] Upload zum Roboter (AT+W/N/X, 30er-Pakete) mit **exakter map_crc-Prüfung** (Arduino- und Linux-Variante der Firmware nachgebildet, Golden-Werte aus C-Referenz); Upload wird abgelehnt, solange der Roboter fährt
-- [ ] Upload gegen echte Sunray-Firmware prüfen (Simulator auf 192.168.2.26 war beim Test nicht erreichbar)
+- [x] Upload gegen echte Sunray-Firmware geprüft: Karte „mika“ (127 Perimeterpunkte, 53 Ausschlüsse) an Sunray 1.0.324 (Linux-Simulation); gemeldete map_crc = Arduino-Variante, Prüfung bestanden
+- [ ] Optimierung: Zustandsabfragen während eines Uploads pausieren (Simulator ~0,5 s/Anfrage → Upload von „mika“ dauerte 27 s)
 - [ ] Später: GeoJSON-/Sunray-Kartenimport und -export wie im Legacy-Code
-- **Fertig, wenn:** die echte Karte importiert, angezeigt und zum Roboter übertragen wird. (Import und Anzeige: erledigt; Übertragung: im Simulator erledigt, echte Firmware offen)
+- **Fertig, wenn:** die echte Karte importiert, angezeigt und zum Roboter übertragen wird. (erledigt)
 
 ## Phase 6 – Planner (parallel zu Phase 2–5 möglich)
 - [ ] Im Planner-Repo: C-API, CMake-Target als statische Lib ohne pybind, Tests, Tippfehler `mowExclusionsBoder` korrigieren, Tag
