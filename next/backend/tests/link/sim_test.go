@@ -238,6 +238,27 @@ func TestSimManualMoveExpires(t *testing.T) {
 	}
 }
 
+// Like ChargeOp::onChargerDisconnected: driving off the contacts ends charging.
+func TestSimDrivesOffTheDock(t *testing.T) {
+	s := newSim(t)
+	upload(t, s, garden)
+	send(t, s, protocol.Dock().Encode())
+	st := stepUntil(t, s, 5*time.Minute, func(st protocol.State) bool { return st.Op == protocol.OpCharge })
+
+	send(t, s, protocol.Move(0, 0))
+	s.Step(time.Second)
+	if got := s.State(); got.Op != protocol.OpCharge || got.X != st.X || got.Y != st.Y {
+		t.Fatalf("a zero move left the dock: %+v", got)
+	}
+
+	send(t, s, protocol.Move(-0.2, 0))
+	s.Step(time.Second)
+	got := s.State()
+	if got.Op != protocol.OpIdle || math.Hypot(got.X-st.X, got.Y-st.Y) < 0.1 {
+		t.Errorf("after driving back: op %v at (%.2f,%.2f), want idle away from (%.2f,%.2f)", got.Op, got.X, got.Y, st.X, st.Y)
+	}
+}
+
 func TestSimSkipAndProgress(t *testing.T) {
 	s := newSim(t)
 	upload(t, s, garden)

@@ -422,6 +422,12 @@ func (s *Sim) Step(dt time.Duration) {
 			s.op = protocol.OpCharge
 		}
 	case protocol.OpCharge:
+		if s.manualLeft > 0 && (s.manualLin != 0 || s.manualAng != 0) {
+			// Driving off the charging contacts ends charging (ChargeOp::onChargerDisconnected).
+			s.op = protocol.OpIdle
+			s.manual(sec)
+			break
+		}
 		s.chargeSec += sec
 		s.voltage = math.Min(s.cfg.BatteryFullV, s.voltage+s.cfg.ChargeVPerSec*sec)
 	case protocol.OpIdle:

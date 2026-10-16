@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { MapsStore } from '#features/maps/store.svelte.ts';
 	import Controls from '#features/robot/Controls.svelte';
+	import { canDriveManually } from '#features/robot/drive.ts';
 	import Joystick from '#features/robot/Joystick.svelte';
 	import RobotMap from '#features/robot/RobotMap.svelte';
 	import StatusPanel from '#features/robot/StatusPanel.svelte';
@@ -39,7 +40,7 @@
 		<StatusPanel state={robot.state} connected={robot.connected} />
 		<Controls {status} />
 		<div class="joystick">
-			<Joystick disabled={!['idle', 'move'].includes(status)} />
+			<Joystick disabled={!canDriveManually(status)} />
 		</div>
 	</aside>
 </div>

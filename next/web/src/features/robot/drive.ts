@@ -1,5 +1,16 @@
 // Manual driving: from joystick offset to drive commands, and sending them.
 
+import type { RobotStatus } from './types.ts';
+
+/**
+ * When the joystick may drive. Like legacy CaSSAndRA also in the dock (driving
+ * off ends charging) and after an error (to free the robot), but not while a
+ * job drives it or a map is being uploaded.
+ */
+export function canDriveManually(status: RobotStatus): boolean {
+	return ['idle', 'move', 'docked', 'charging', 'error'].includes(status);
+}
+
 export interface Drive {
 	linear: number; // m/s, forward positive
 	angular: number; // rad/s, counter-clockwise positive

@@ -51,6 +51,23 @@ test('the joystick drives the robot', async ({ page }) => {
 	await expect(status(page)).toHaveText('Idle', { timeout: 5_000 });
 });
 
+test('the joystick drives the robot off the dock', async ({ page }) => {
+	await page.goto('/');
+	await button(page, 'Dock').click();
+	await expect(status(page)).toHaveText('Charging', { timeout: 30_000 });
+
+	const pad = page.getByRole('slider');
+	const box = (await pad.boundingBox())!;
+	const start = await robotPosition(page);
+	await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+	await page.mouse.down();
+	await page.mouse.move(box.x + box.width / 2, box.y + box.height - 10, { steps: 5 });
+	await expect.poll(async () => robotPosition(page), { timeout: 5_000 }).not.toEqual(start);
+	await page.mouse.up();
+
+	await expect(status(page)).toHaveText('Idle', { timeout: 5_000 });
+});
+
 // The server sends the robot state only when it changes; a page opened again
 // must still show it (the shared stream replays the latest events).
 test('the live view keeps its data after visiting another page', async ({ page }) => {

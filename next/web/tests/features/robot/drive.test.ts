@@ -1,5 +1,29 @@
 import { describe, expect, it, vi } from 'vitest';
-import { MoveSender, driveFromOffset, type Drive, type Scheduler } from '#features/robot/drive.ts';
+import {
+	MoveSender,
+	canDriveManually,
+	driveFromOffset,
+	type Drive,
+	type Scheduler
+} from '#features/robot/drive.ts';
+
+describe('canDriveManually', () => {
+	it.each([
+		['idle', true],
+		['move', true],
+		['docked', true],
+		['charging', true],
+		['error', true],
+		['mow', false],
+		['transit', false],
+		['docking', false],
+		['map upload', false],
+		['offline', false],
+		['unknown', false]
+	] as const)('%s -> %s', (status, want) => {
+		expect(canDriveManually(status)).toBe(want);
+	});
+});
 
 describe('driveFromOffset', () => {
 	const limits = { maxLinear: 0.5, maxAngular: 1, deadzone: 0.15 };
