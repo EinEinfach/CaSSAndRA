@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"slices"
 	"strings"
 )
 
@@ -25,6 +26,9 @@ const (
 	PatternRings   = "rings"
 )
 
+// Robot pictures on the map (web/static/rovers/<name>.png, from legacy CaSSAndRA).
+var RobotPictures = []string{"default", "ardumower", "alfred", "landrumower"}
+
 // Settings are all user settings. The zero value is invalid; start from Default.
 type Settings struct {
 	Connection Connection `json:"connection"`
@@ -32,6 +36,7 @@ type Settings struct {
 	Battery    Battery    `json:"battery"`
 	Planner    Planner    `json:"planner"`
 	API        API        `json:"api"`
+	Appearance Appearance `json:"appearance"`
 }
 
 // Connection selects how CaSSAndRA talks to the robot.
@@ -96,6 +101,13 @@ type API struct {
 	Password   string `json:"password"`
 }
 
+// Appearance is how the robot is drawn on the map.
+type Appearance struct {
+	RobotPicture string `json:"robotPicture"` // one of RobotPictures
+	// RobotSizeCm is the edge of the square picture on the map, as in legacy CaSSAndRA.
+	RobotSizeCm int `json:"robotSizeCm"`
+}
+
 // Default returns the settings of a fresh installation: the simulated robot
 // and the legacy CaSSAndRA defaults.
 func Default() Settings {
@@ -105,6 +117,7 @@ func Default() Settings {
 		Battery:    Battery{EmptyV: 22, FullV: 28, ChargingBelowA: -0.03, OfflineAfterSec: 60},
 		Planner:    Planner{Pattern: PatternLines, WidthM: 0.18, DistanceToBorder: 1, MowArea: true, BorderLaps: 1, MowExclusions: true},
 		API:        API{ServerName: "CaSSAndRA", ClientID: "CaSSAndRA-API"},
+		Appearance: Appearance{RobotPicture: "default", RobotSizeCm: 100},
 	}
 }
 
@@ -169,6 +182,11 @@ func (s Settings) Validate() error {
 		check(strings.TrimSpace(a.ServerName) != "", "api.serverName must be set")
 		check(a.ClientID != "", "api.clientId must be set")
 	}
+
+	ap := s.Appearance
+	check(slices.Contains(RobotPictures, ap.RobotPicture),
+		"appearance.robotPicture must be one of %s, got %q", strings.Join(RobotPictures, ", "), ap.RobotPicture)
+	check(ap.RobotSizeCm >= 50 && ap.RobotSizeCm <= 500, "appearance.robotSizeCm must be between 50 and 500")
 
 	if len(errs) > 0 {
 		return fmt.Errorf("%w: %s", ErrInvalid, strings.Join(errs, "; "))

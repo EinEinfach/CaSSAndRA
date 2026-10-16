@@ -24,3 +24,22 @@ test('invalid values are explained and not saved', async ({ page }) => {
 	await page.getByRole('button', { name: 'Discard' }).click();
 	await expect(page.getByRole('alert')).toHaveCount(0);
 });
+
+test('robot pictures are served and the choice is kept', async ({ page }) => {
+	const picture = page.waitForResponse((r) => r.url().endsWith('/rovers/landrumower.png'));
+	await page.goto('/settings');
+	const res = await picture;
+	expect(res.status()).toBe(200);
+	expect(res.headers()['content-type']).toBe('image/png');
+
+	await page.getByText('Landrumower', { exact: true }).click();
+	await page.getByRole('button', { name: 'Save' }).click();
+	await expect(page.getByRole('status')).toHaveText('Saved');
+	await page.reload();
+	await expect(page.getByRole('radio', { name: 'Landrumower' })).toBeChecked();
+
+	// Restore the default for the other tests.
+	await page.getByText('Default', { exact: true }).click();
+	await page.getByRole('button', { name: 'Save' }).click();
+	await expect(page.getByRole('status')).toHaveText('Saved');
+});

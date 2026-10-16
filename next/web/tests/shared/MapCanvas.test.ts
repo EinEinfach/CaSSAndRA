@@ -1,6 +1,9 @@
 import { render, screen } from '@testing-library/svelte';
+import { tick } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MapCanvas from '#shared/MapCanvas.svelte';
+import { RobotPictureSource } from '#shared/robotPicture.svelte.ts';
+import PictureMapHarness from './PictureMapHarness.svelte';
 import { recordingContext } from './recordingContext.ts';
 
 let ctx: ReturnType<typeof recordingContext>;
@@ -44,6 +47,20 @@ describe('MapCanvas', () => {
 
 		expect(screen.getByLabelText('Garden').tagName).toBe('CANVAS');
 		expect(ctx.shapes.some((s) => s.op === 'fill' && s.closed)).toBe(true);
+	});
+
+	it('draws the robot picture of the layout once it has loaded', async () => {
+		const image = {} as CanvasImageSource;
+		const source = new RobotPictureSource(() => Promise.resolve(image));
+		const robot = { position: { x: 5, y: 5 }, headingRad: 0 };
+		render(PictureMapHarness, { source, layers: { perimeter, robot } });
+		expect(ctx.images).toEqual([]);
+		expect(ctx.shapes.some((s) => s.color === '#888' && s.points.length === 4)).toBe(true); // arrow
+
+		await source.set('alfred', 100);
+		await tick();
+
+		expect(ctx.images.at(-1)?.image).toBe(image);
 	});
 
 	it('redraws when the layers change', async () => {

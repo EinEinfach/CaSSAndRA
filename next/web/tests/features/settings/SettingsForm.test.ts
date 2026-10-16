@@ -48,6 +48,20 @@ describe('SettingsForm', () => {
 		expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
 	});
 
+	it('chooses the robot picture and its size', async () => {
+		const save = setup();
+		await userEvent.click(await screen.findByRole('radio', { name: 'Alfred' }));
+		const size = screen.getByLabelText(/Size/) as HTMLInputElement;
+		await userEvent.clear(size);
+		await userEvent.type(size, '130');
+		await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+		expect(save.mock.calls[0][0].settings.appearance).toEqual({
+			robotPicture: 'alfred',
+			robotSizeCm: 130
+		});
+	});
+
 	it('keeps a set password unless one is typed or removed', async () => {
 		const save = setup();
 		const pw = (await screen.findByLabelText('Robot password')) as HTMLInputElement;

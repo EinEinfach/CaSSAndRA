@@ -53,12 +53,23 @@ export interface Api {
 	password: string;
 }
 
+/** Robot pictures in static/rovers, as in settings.RobotPictures. */
+export const robotPictures = ['default', 'ardumower', 'alfred', 'landrumower'] as const;
+export type RobotPictureName = (typeof robotPictures)[number];
+
+export interface Appearance {
+	robotPicture: RobotPictureName;
+	/** Edge of the square picture on the map. */
+	robotSizeCm: number;
+}
+
 export interface Settings {
 	connection: Connection;
 	rover: Rover;
 	battery: Battery;
 	planner: Planner;
 	api: Api;
+	appearance: Appearance;
 }
 
 /** Which passwords are set; the backend never sends them. */

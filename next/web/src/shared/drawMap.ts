@@ -6,6 +6,13 @@ export interface RobotPose {
 	headingRad: number;
 }
 
+/** A top view of the robot facing +x, drawn instead of the arrow. */
+export interface RobotPicture {
+	image: CanvasImageSource;
+	/** Edge of the square picture in meters. */
+	sizeM: number;
+}
+
 /** Handles of the shape being edited. */
 export interface EditOverlay {
 	points: Point[];
@@ -25,6 +32,7 @@ export interface MapLayers {
 	trail?: Point[];
 	target?: Point | null;
 	robot?: RobotPose | null;
+	robotPicture?: RobotPicture | null;
 	edit?: EditOverlay | null;
 }
 
@@ -61,6 +69,7 @@ export type MapContext = Pick<
 	| 'translate'
 	| 'rotate'
 	| 'setLineDash'
+	| 'drawImage'
 > & {
 	fillStyle: string | CanvasGradient | CanvasPattern;
 	strokeStyle: string | CanvasGradient | CanvasPattern;
@@ -72,6 +81,8 @@ export type MapContext = Pick<
 /** Robot drawn 0.6 m long, but never smaller than this many pixels. */
 const ROBOT_LENGTH_M = 0.6;
 const ROBOT_MIN_PX = 14;
+/** A picture stays recognizable when zoomed out. */
+const PICTURE_MIN_PX = 28;
 
 export function drawMap(ctx: MapContext, vp: Viewport, layers: MapLayers, colors: MapColors): void {
 	ctx.fillStyle = colors.background;
@@ -138,7 +149,8 @@ export function drawMap(ctx: MapContext, vp: Viewport, layers: MapLayers, colors
 		dot(ctx, vp, layers.target, 4, colors.target);
 	}
 	if (layers.robot) {
-		drawRobot(ctx, vp, layers.robot, colors);
+		if (layers.robotPicture) drawRobotPicture(ctx, vp, layers.robot, layers.robotPicture);
+		else drawRobot(ctx, vp, layers.robot, colors);
 	}
 	if (layers.edit) {
 		drawEdit(ctx, vp, layers.edit, colors);
@@ -204,6 +216,17 @@ function drawRobot(ctx: MapContext, vp: Viewport, robot: RobotPose, colors: MapC
 	ctx.strokeStyle = colors.robotOutline;
 	ctx.lineWidth = 2;
 	ctx.stroke();
+	ctx.restore();
+}
+
+/** The picture centered on the robot, turned to its heading like the arrow. */
+function drawRobotPicture(ctx: MapContext, vp: Viewport, robot: RobotPose, picture: RobotPicture) {
+	const s = toScreen(vp, robot.position);
+	const size = Math.max(picture.sizeM * vp.scale, PICTURE_MIN_PX);
+	ctx.save();
+	ctx.translate(s.x, s.y);
+	ctx.rotate(-robot.headingRad);
+	ctx.drawImage(picture.image, -size / 2, -size / 2, size, size);
 	ctx.restore();
 }
 

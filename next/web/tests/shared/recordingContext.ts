@@ -11,16 +11,30 @@ export interface Shape {
 	arcs: [number, number, number][];
 }
 
-export function recordingContext(): MapContext & { shapes: Shape[]; rects: string[] } {
+export interface Image {
+	image: CanvasImageSource;
+	/** x, y, width, height relative to the translated origin */
+	box: [number, number, number, number];
+	at: [number, number];
+	rotation: number;
+}
+
+type Recording = MapContext & { shapes: Shape[]; rects: string[]; images: Image[] };
+
+export function recordingContext(): Recording {
 	let points: [number, number][] = [];
 	let arcs: [number, number, number][] = [];
 	let closed = false;
 	let dashed = false;
 	const shapes: Shape[] = [];
 	const rects: string[] = [];
+	const images: Image[] = [];
+	let at: [number, number] = [0, 0];
+	let rotation = 0;
 	const ctx = {
 		shapes,
 		rects,
+		images,
 		fillStyle: '' as MapContext['fillStyle'],
 		strokeStyle: '' as MapContext['strokeStyle'],
 		lineWidth: 1,
@@ -56,9 +70,19 @@ export function recordingContext(): MapContext & { shapes: Shape[]; rects: strin
 			dashed = d.length > 0;
 		},
 		save() {},
-		restore() {},
-		translate() {},
-		rotate() {}
+		restore() {
+			at = [0, 0];
+			rotation = 0;
+		},
+		translate(x: number, y: number) {
+			at = [x, y];
+		},
+		rotate(angle: number) {
+			rotation = angle;
+		},
+		drawImage(image: CanvasImageSource, x: number, y: number, w: number, h: number) {
+			images.push({ image, box: [x, y, w, h], at, rotation });
+		}
 	};
-	return ctx as unknown as MapContext & { shapes: Shape[]; rects: string[] };
+	return ctx as unknown as Recording;
 }

@@ -150,6 +150,38 @@ describe('drawMap', () => {
 		expect(ctx.shapes[3].arcs).toEqual([[120, 80, 4]]);
 	});
 
+	it('draws the robot picture centered and turned to the heading instead of the arrow', () => {
+		const ctx = recordingContext();
+		const image = {} as CanvasImageSource;
+		drawMap(
+			ctx,
+			vp,
+			{
+				robot: { position: { x: 1, y: 1 }, headingRad: Math.PI / 2 },
+				robotPicture: { image, sizeM: 5 }
+			},
+			colors
+		);
+		expect(ctx.shapes).toEqual([]);
+		expect(ctx.images).toEqual([
+			{ image, at: [110, 90], rotation: -Math.PI / 2, box: [-25, -25, 50, 50] }
+		]);
+	});
+
+	it('keeps a small robot picture visible when zoomed out', () => {
+		const ctx = recordingContext();
+		drawMap(
+			ctx,
+			vp,
+			{
+				robot: { position: { x: 0, y: 0 }, headingRad: 0 },
+				robotPicture: { image: {} as CanvasImageSource, sizeM: 0.5 }
+			},
+			colors
+		);
+		expect(ctx.images[0].box).toEqual([-14, -14, 28, 28]);
+	});
+
 	it('does not draw a trail of one point', () => {
 		const ctx = recordingContext();
 		drawMap(ctx, vp, { trail: [{ x: 0, y: 0 }] }, colors);

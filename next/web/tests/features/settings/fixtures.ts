@@ -42,7 +42,8 @@ export function view(): SettingsView {
 				clientId: 'CaSSAndRA-API',
 				user: '',
 				password: ''
-			}
+			},
+			appearance: { robotPicture: 'default', robotSizeCm: 100 }
 		},
 		secrets: { httpPassword: true, mqttPassword: false, apiPassword: false }
 	};

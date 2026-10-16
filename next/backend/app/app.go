@@ -112,8 +112,17 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	r := robot.New(sender, robotCfg)
 	hub := server.NewHub(cfg.Heartbeat)
 
+	// The browser follows the settings it shows everywhere (e.g. the robot picture).
+	publishSettings := func(s settings.Settings) {
+		if b, err := json.Marshal(settings.ViewOf(s)); err == nil {
+			hub.Publish("settings", b)
+		}
+	}
+	publishSettings(settingsStore.Get())
+
 	reconnect := make(chan struct{}, 1)
 	settingsStore.OnChange(func(old, next settings.Settings) {
+		publishSettings(next)
 		r.SetSettings(robotSettings(next))
 		if old.Rover.AbsolutePosition != next.Rover.AbsolutePosition || old.Rover.Lon != next.Rover.Lon || old.Rover.Lat != next.Rover.Lat {
 			pctx, cancel := context.WithTimeout(ctx, positionModeTimeout)

@@ -6,7 +6,9 @@
 	import Nav, { type NavItem } from '#shared/Nav.svelte';
 	import { fetchHealth } from '#shared/api.ts';
 	import { EventStream } from '#shared/events.ts';
+	import { provideRobotPicture, RobotPictureSource } from '#shared/robotPicture.svelte.ts';
 	import { provideStream } from '#shared/streamContext.ts';
+	import type { SettingsView } from '#features/settings/types.ts';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
@@ -15,6 +17,8 @@
 
 	const stream = new EventStream();
 	provideStream(stream);
+	const robotPicture = new RobotPictureSource();
+	provideRobotPicture(robotPicture);
 
 	const items: NavItem[] = [
 		{ href: resolve('/'), label: 'Live', icon: 'live' },
@@ -23,12 +27,17 @@
 	];
 
 	onMount(() => {
-		const stop = stream.onStatus((c) => (connected = c));
+		const stops = [
+			stream.onStatus((c) => (connected = c)),
+			stream.on<SettingsView>('settings', ({ settings: { appearance } }) =>
+				robotPicture.set(appearance.robotPicture, appearance.robotSizeCm)
+			)
+		];
 		fetchHealth()
 			.then((h) => (version = h.version))
 			.catch(() => {});
 		return () => {
-			stop();
+			stops.forEach((stop) => stop());
 			stream.close();
 		};
 	});

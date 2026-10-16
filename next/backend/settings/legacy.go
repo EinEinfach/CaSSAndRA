@@ -216,6 +216,11 @@ func applyApp(raw map[string]json.RawMessage, s *Settings) error {
 			b.FullV = p.V
 		}
 	}
+	a := &s.Appearance
+	if pic := strings.Trim(d.str("rover_picture"), "/"); pic != "" {
+		a.RobotPicture = pic
+	}
+	d.get("rover_picture_size", &a.RobotSizeCm)
 	return d.err
 }
 

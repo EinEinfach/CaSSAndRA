@@ -273,3 +273,38 @@ func streamEvents(t *testing.T, baseURL, name string) <-chan string {
 	}()
 	return out
 }
+
+func TestSettingsEventFollowsChangesWithoutPasswords(t *testing.T) {
+	cfg := testConfig(t)
+	writeSettings(t, cfg, func(s *settings.Settings) { s.Connection.HTTPPassword = 4711 })
+	r := startWith(t, cfg)
+	events := streamEvents(t, r.baseURL, "settings")
+
+	next := func() settings.View {
+		t.Helper()
+		select {
+		case data := <-events:
+			if strings.Contains(data, "4711") {
+				t.Fatalf("settings event leaks the password: %s", data)
+			}
+			var v settings.View
+			if err := json.Unmarshal([]byte(data), &v); err != nil {
+				t.Fatal(err)
+			}
+			return v
+		case <-time.After(3 * time.Second):
+			t.Fatal("no settings event")
+			return settings.View{}
+		}
+	}
+	if v := next(); v.Settings.Appearance.RobotPicture != "default" || !v.Secrets.HTTPPassword {
+		t.Fatalf("first event = %+v", v)
+	}
+	if code, body := send(t, http.MethodPut, r.baseURL+"/api/settings",
+		`{"settings": {"appearance": {"robotPicture": "alfred", "robotSizeCm": 130}}}`); code != http.StatusOK {
+		t.Fatalf("PUT settings = %d %s", code, body)
+	}
+	if v := next(); v.Settings.Appearance != (settings.Appearance{RobotPicture: "alfred", RobotSizeCm: 130}) {
+		t.Errorf("event after change = %+v", v.Settings.Appearance)
+	}
+}

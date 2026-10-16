@@ -2,7 +2,15 @@
 	import { onMount } from 'svelte';
 	import { fetchSettings, saveSettings } from './api.ts';
 	import { emptyEdits, isDirty, passwordUpdate, type PasswordEdits } from './form.ts';
-	import type { LinkKind, Secrets, Settings, SettingsUpdate, SettingsView } from './types.ts';
+	import { robotPictureURL } from '#shared/robotPicture.svelte.ts';
+	import {
+		robotPictures,
+		type LinkKind,
+		type Secrets,
+		type Settings,
+		type SettingsUpdate,
+		type SettingsView
+	} from './types.ts';
 
 	let {
 		load = () => fetchSettings(),
@@ -191,6 +199,37 @@
 
 		<section class="card">
 			<header>
+				<h2>Robot on the map</h2>
+				<p>Picture and size of the robot in the live view and the editor.</p>
+			</header>
+			<div class="pictures" role="radiogroup" aria-label="Robot picture">
+				{#each robotPictures as p (p)}
+					<label class="tile picture" class:selected={draft.appearance.robotPicture === p}>
+						<input
+							type="radio"
+							name="picture"
+							value={p}
+							bind:group={draft.appearance.robotPicture}
+						/>
+						<img src={robotPictureURL(p)} alt="" />
+						<span>{p[0].toUpperCase() + p.slice(1)}</span>
+					</label>
+				{/each}
+			</div>
+			<label class="field">
+				Size <span class="hint">cm, edge of the picture</span>
+				<input
+					type="number"
+					min="50"
+					max="500"
+					step="1"
+					bind:value={draft.appearance.robotSizeCm}
+				/>
+			</label>
+		</section>
+
+		<section class="card">
+			<header>
 				<h2>Battery</h2>
 				<p>Turns voltage into charge level and detects charging.</p>
 			</header>
@@ -352,6 +391,28 @@
 		display: grid;
 		gap: 10px;
 		grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+	}
+	.pictures {
+		display: grid;
+		gap: 8px;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+	}
+	.tile.picture {
+		grid-template-columns: 48px 1fr;
+		align-items: center;
+		gap: 10px;
+		padding: 6px 10px 6px 6px;
+	}
+	.tile.picture img {
+		width: 48px;
+		height: 48px;
+		/* The pictures face right (heading 0) with a wide margin; show them driving up. */
+		transform: rotate(-90deg) scale(1.2);
+	}
+	.tile.picture span {
+		color: inherit;
+		font-size: 0.9rem;
+		font-weight: 500;
 	}
 	.tile {
 		position: relative;

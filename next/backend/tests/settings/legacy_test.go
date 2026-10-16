@@ -36,6 +36,7 @@ func TestImportLegacy(t *testing.T) {
 			Enabled: true, Broker: "tcp://192.168.2.30:1883", ServerName: "Garden",
 			ClientID: "DevServer", User: "api", Password: "apipw",
 		},
+		Appearance: settings.Appearance{RobotPicture: "alfred", RobotSizeCm: 130},
 	}
 	if got != want {
 		t.Errorf("got  %+v\nwant %+v", got, want)

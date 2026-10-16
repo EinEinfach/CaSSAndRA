@@ -15,6 +15,7 @@
 <script lang="ts">
 	import { onMount, untrack } from 'svelte';
 	import { drawMap, mapPoints, type MapColors, type MapLayers } from './drawMap.ts';
+	import { useRobotPicture } from './robotPicture.svelte.ts';
 	import { fit, pan, resize, toWorld, zoomAt, type Viewport } from './viewport.ts';
 
 	interface Props {
@@ -31,6 +32,8 @@
 
 	/** Pointer travel in pixels below which a press counts as a tap. */
 	const TAP_SLOP = 6;
+
+	const robotPicture = useRobotPicture();
 
 	let canvas: HTMLCanvasElement;
 	let vp = $state<Viewport>(fit([], 300, 300));
@@ -103,7 +106,7 @@
 		canvas.width = Math.round(vp.width * dpr);
 		canvas.height = Math.round(vp.height * dpr);
 		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-		drawMap(ctx, vp, layers, colors());
+		drawMap(ctx, vp, { ...layers, robotPicture: robotPicture?.current }, colors());
 	});
 
 	onMount(() => {
