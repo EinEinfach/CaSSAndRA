@@ -80,11 +80,44 @@ describe('EventStream', () => {
 		source.onerror!(new Event('error'));
 		source.onopen!(new Event('open'));
 		stream.close();
-		expect(status.mock.calls.map((c) => c[0])).toEqual([true, false, true, false]);
+		expect(status.mock.calls.map((c) => c[0])).toEqual([false, true, false, true, false]);
 		expect(source.closed).toBe(true);
 
 		off();
 		source.onopen!(new Event('open'));
-		expect(status).toHaveBeenCalledTimes(4);
+		expect(status).toHaveBeenCalledTimes(5);
+	});
+
+	it('tells a late status listener that the stream is connected', () => {
+		const { source, stream } = setup();
+		source.onopen!(new Event('open'));
+		const status = vi.fn();
+		stream.onStatus(status);
+		expect(status).toHaveBeenCalledWith(true);
+	});
+
+	// A page opened again subscribes after the server sent its (only-on-change) events.
+	it('gives a new listener the latest event of its type right away', () => {
+		const { source, stream } = setup();
+		const off = stream.on('robot', () => {});
+		source.emit('robot', '{"n":1}');
+		source.emit('robot', '{"n":2}');
+		off();
+
+		const late = vi.fn();
+		stream.on('robot', late);
+		expect(late).toHaveBeenCalledExactlyOnceWith({ n: 2 });
+
+		source.emit('robot', '{"n":3}');
+		expect(late).toHaveBeenLastCalledWith({ n: 3 });
+		expect(late).toHaveBeenCalledTimes(2);
+	});
+
+	it('replays nothing before the first event', () => {
+		const { stream } = setup();
+		const fn = vi.fn();
+		stream.on('maps', fn);
+		stream.on('maps', fn);
+		expect(fn).not.toHaveBeenCalled();
 	});
 });

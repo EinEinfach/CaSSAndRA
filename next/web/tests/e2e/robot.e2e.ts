@@ -50,3 +50,18 @@ test('the joystick drives the robot', async ({ page }) => {
 
 	await expect(status(page)).toHaveText('Idle', { timeout: 5_000 });
 });
+
+// The server sends the robot state only when it changes; a page opened again
+// must still show it (the shared stream replays the latest events).
+test('the live view keeps its data after visiting another page', async ({ page }) => {
+	await page.goto('/');
+	await expect(status(page)).toHaveText(/Idle|Docked|Charging/, { timeout: 10_000 });
+	const before = await status(page).textContent();
+
+	await page.getByRole('link', { name: 'Maps' }).click();
+	await expect(page).toHaveURL(/\/maps/);
+	await page.getByRole('link', { name: 'Live' }).click();
+
+	await expect(status(page)).toHaveText(before!, { timeout: 1_000 });
+	await expect(page.getByTestId('robot-battery')).toContainText('%');
+});

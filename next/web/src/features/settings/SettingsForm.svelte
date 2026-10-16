@@ -398,21 +398,24 @@
 		grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
 	}
 	.tile.picture {
-		grid-template-columns: 48px 1fr;
-		align-items: center;
-		gap: 10px;
-		padding: 6px 10px 6px 6px;
+		justify-items: center;
+		gap: 4px;
+		padding: 10px 6px 8px;
+		min-width: 0;
+		text-align: center;
 	}
 	.tile.picture img {
-		width: 48px;
-		height: 48px;
+		width: 56px;
+		height: 56px;
 		/* The pictures face right (heading 0) with a wide margin; show them driving up. */
 		transform: rotate(-90deg) scale(1.2);
 	}
 	.tile.picture span {
+		max-width: 100%;
 		color: inherit;
 		font-size: 0.9rem;
 		font-weight: 500;
+		overflow-wrap: anywhere;
 	}
 	.tile {
 		position: relative;
