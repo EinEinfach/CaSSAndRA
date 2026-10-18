@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/svelte';
+import { tick } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import RobotMap from '#features/robot/RobotMap.svelte';
 import { recordingContext } from '../../shared/recordingContext.ts';
-import { robotState } from './fixtures.ts';
+import { fakeFrames, robotState } from './fixtures.ts';
 
 let ctx: ReturnType<typeof recordingContext>;
 
@@ -23,6 +24,7 @@ beforeEach(() => {
 	document.documentElement.style.setProperty('--map-robot', 'robot-color');
 	document.documentElement.style.setProperty('--map-target', 'target-color');
 	document.documentElement.style.setProperty('--map-way-done', 'done-color');
+	document.documentElement.style.setProperty('--map-trail', 'trail-color');
 });
 
 afterEach(() => {
@@ -66,5 +68,39 @@ describe('RobotMap', () => {
 		render(RobotMap, { state: robotState({ status: 'idle' }), map, trail: [] });
 		expect(colorsDrawn()).toContain('robot-color');
 		expect(colorsDrawn()).not.toContain('target-color');
+	});
+
+	it('glides the robot to a new position, with the trail ending at it', async () => {
+		const frames = fakeFrames();
+		const at = (x: number) => robotState({ status: 'mow', position: { x, y: 5 } });
+		const trailEnd = () =>
+			ctx.shapes
+				.filter((s) => s.color === 'trail-color')
+				.at(-1)!
+				.points.at(-1)!;
+		const props = (x: number) => ({
+			state: at(x),
+			map,
+			trail: [
+				{ x: 0, y: 5 },
+				{ x, y: 5 }
+			],
+			frames: frames.clock
+		});
+		const { rerender } = render(RobotMap, props(2));
+		const start = trailEnd();
+
+		frames.advance(1000);
+		await rerender(props(6));
+		frames.advance(500);
+		await tick();
+		const half = trailEnd();
+		frames.advance(500);
+		await tick();
+		const end = trailEnd();
+
+		expect(end[0]).toBeGreaterThan(start[0]);
+		expect(half[0]).toBeCloseTo((start[0] + end[0]) / 2, 6);
+		expect(half[1]).toBeCloseTo(start[1], 6);
 	});
 });
