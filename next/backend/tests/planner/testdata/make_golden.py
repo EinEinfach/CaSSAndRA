@@ -2,8 +2,10 @@
 planner's Python module (pybind11) - an independent way into the same C++ core
 than the Go binding under test.
 
-Run with the module of the pinned planner on the path, e.g.:
-  cmake -S ../../../../third_party/PathPlannerCore -B /tmp/pp && cmake --build /tmp/pp --target coverage_path_planner
+Run with the module of the pinned planner on the path, built without fused
+multiply-add like planner/core.cpp (otherwise routes differ per platform), e.g.:
+  cmake -S ../../../../third_party/PathPlannerCore -B /tmp/pp -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_FLAGS=-ffp-contract=off && cmake --build /tmp/pp --target coverage_path_planner
   PYTHONPATH=/tmp/pp python3 make_golden.py
 """
 import json

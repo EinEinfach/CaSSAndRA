@@ -264,7 +264,9 @@ Go-Anbindung (`backend/planner/`):
   selbst, kein CMake-Schritt, Cross-Compiling wie bei jedem cgo-Paket. `nocpp.go` (`!cpp`) liefert `ErrUnavailable`.
 - Features definieren ihr eigenes Interface (`Route`, `Way`); Tests nutzen `testkit.FakePlanner`.
 - `tests/planner/testdata/golden.json` stammt aus dem Python-Modul des Planners (`make_golden.py`) – unabhängiger
-  Weg in denselben Kern. Nach einem Planner-Update neu erzeugen.
+  Weg in denselben Kern. Nach einem Planner-Update neu erzeugen, mit `-ffp-contract=off`.
+- `core.cpp` schaltet FMA per Pragma ab (cgo verbietet `-ffp-contract=off`): Sonst rechnet clang auf arm64 anders als
+  gcc auf x86, und eine Rundung kann die Wahl der nächsten Bahn kippen – andere Route je Plattform.
 - `make build` baut mit Planner; `make build-static` (auf Linux) ein statisches Binary, das auf jedem Linux läuft
   (CI-Job `release-build` für amd64 und arm64). Ein Segfault im C++-Code beendet den ganzen Prozess; falls das in der
   Praxis vorkommt, Planner als separaten Prozess aufrufen.
