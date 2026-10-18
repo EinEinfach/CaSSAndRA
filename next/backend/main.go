@@ -37,6 +37,7 @@ func run() error {
 	port := flag.Int("port", 8050, "port to listen on")
 	logLevel := flag.String("log-level", "info", "debug, info, warn or error")
 	showVersion := flag.Bool("version", false, "print version and exit")
+	checkPlanner := flag.Bool("check-planner", false, "compute a route for the demo garden and exit")
 	flag.StringVar(&cfg.DataDir, "data-dir", defaultDataDir,
 		"directory for settings and maps; legacy CaSSAndRA data there is imported on the first start")
 	flag.Parse()
@@ -44,6 +45,9 @@ func run() error {
 	if *showVersion {
 		fmt.Println(version)
 		return nil
+	}
+	if *checkPlanner {
+		return app.CheckPlanner(context.Background(), os.Stdout)
 	}
 
 	var level slog.Level

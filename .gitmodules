@@ -1,0 +1,3 @@
+[submodule "next/third_party/PathPlannerCore"]
+	path = next/third_party/PathPlannerCore
+	url = https://github.com/EinEinfach/CaSSAndRA_PathPlannerCore.git

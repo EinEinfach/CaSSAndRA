@@ -4,13 +4,16 @@ VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X main.version=$(VERSION)
 UI_DIST := backend/server/dist
 BIN     := bin/cassandra
+# The binary includes the C++ planner (cgo, third_party/PathPlannerCore). GO_TAGS= builds without it.
+GO_TAGS ?= cpp
 
-.PHONY: help setup test test-go test-cpp test-web test-e2e coverage lint lint-go lint-web fmt build build-web dev clean
+.PHONY: help setup test test-go test-cpp test-web test-e2e coverage lint lint-go lint-web fmt build build-static build-web dev clean
 
 help: ## List all targets
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-12s %s\n", $$1, $$2}'
 
-setup: ## Install frontend dependencies and Playwright browser
+setup: ## Fetch the planner submodule, install frontend dependencies and Playwright browser
+	git submodule update --init
 	cd web && npm ci && npx playwright install chromium
 
 test: test-go test-web ## Unit and architecture tests (backend + frontend)
@@ -33,7 +36,7 @@ coverage: ## Backend coverage report across all features
 lint: lint-go lint-web ## All linters and type checks
 
 lint-go:
-	cd backend && go vet ./... && golangci-lint run ./...
+	cd backend && go vet ./... && go vet -tags cpp ./... && golangci-lint run ./... && golangci-lint run --build-tags cpp ./...
 
 lint-web:
 	cd web && npm run check && npm run lint
@@ -47,8 +50,16 @@ build-web:
 	find $(UI_DIST) -mindepth 1 ! -name .gitkeep -delete
 	cp -R web/build/. $(UI_DIST)/
 
-build: build-web ## Single binary with embedded frontend -> bin/cassandra
-	cd backend && go build -ldflags "$(LDFLAGS)" -o ../$(BIN) .
+build: build-web ## Single binary with embedded frontend and planner -> bin/cassandra
+	cd backend && go build -tags "$(GO_TAGS)" -ldflags "$(LDFLAGS)" -o ../$(BIN) .
+
+# Fully static Linux binary that runs on any distribution (e.g. Raspberry Pi OS),
+# built on Linux for the machine's architecture. netgo/osusergo keep glibc's
+# resolver and user lookup (which need shared libraries) out.
+build-static: build-web ## Static Linux binary -> bin/cassandra-linux-$(shell go env GOARCH)
+	cd backend && CGO_ENABLED=1 go build -tags "$(GO_TAGS) netgo osusergo" \
+		-ldflags "$(LDFLAGS) -linkmode external -extldflags -static" \
+		-o ../bin/cassandra-linux-$$(go env GOARCH) .
 
 dev: ## Backend on :8050 and Vite dev server with hot reload
 	@trap 'kill 0' INT TERM; \

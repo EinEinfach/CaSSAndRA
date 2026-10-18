@@ -63,10 +63,13 @@ sowie `make lint` sind grün.
 - [ ] Später: GeoJSON-/Sunray-Kartenimport und -export wie im Legacy-Code
 - **Fertig, wenn:** die echte Karte importiert, angezeigt und zum Roboter übertragen wird. (erledigt)
 
-## Phase 6 – Planner (parallel zu Phase 2–5 möglich)
-- [ ] Im Planner-Repo: C-API, CMake-Target als statische Lib ohne pybind, Tests, Tippfehler `mowExclusionsBoder` korrigieren, Tag
-- [ ] Hier: Submodule `third_party/PathPlannerCore`, `planner/cgo.go`, `testkit.FakePlanner`
-- [ ] Machbarkeitstest ARM-Build: Go + statische C++-Lib für arm64 (Docker buildx oder zig cc), auf dem Pi starten
+## Phase 6 – Planner
+- [x] Im Planner-Repo (Branch `c-api`): C-API `planner_c.h` (Mähroute + A*-Weg), CMake-Target `planner_core` ohne pybind, GoogleTests (99 grün; drei alte Tests an die halbe Startlinie angepasst), Tippfehler `mowExclusionsBorder` korrigiert (Python behält den alten Namen), Version 1.4
+- [x] Hier: Submodule `third_party/PathPlannerCore`, `planner/` (cgo kompiliert die Quellen selbst, Build-Tag `cpp`), `testkit.FakePlanner`, Golden-Routen aus dem Python-Modul, `make test-cpp`, `cassandra --check-planner`
+- [x] CI: Tests mit und ohne Planner; statische Binaries für amd64 und arm64 (native GitHub-Runner) mit `--check-planner`, als Download
+- [ ] Auf dem Pi starten: `cassandra-linux-arm64 --check-planner` (Artefakt aus der CI)
+- [ ] Planner-Repo: `c-api` nach `main` mergen und taggen – **Achtung, ein Tag `v*` veröffentlicht auf PyPI** (nur nach Absprache); danach das Submodule auf den Tag setzen
+- [ ] 32-Bit-Pi (armv7): offen, ob nötig
 - **Fertig, wenn:** `make test-cpp` grün und das arm64-Binary auf dem Pi eine Route berechnet.
 
 ## Phase 7 – Aufgaben & Mähen (`tasks`)

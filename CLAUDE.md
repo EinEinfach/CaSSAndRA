@@ -52,7 +52,7 @@ next/
     link/            Verbindung zum Roboter: Interface + http.go, mqtt.go, uart.go, sim.go (Simulator)
     robot/           Robot-Zustand, Statusableitung, Befehle (Mähen, Stop, Dock, Goto, Joystick …)
     maps/            Perimeter, Ausschlüsse, Dockpfad, Suchdraht; Kartenspeicher (eine Datei je Karte + active.json), Legacy-Import, API inkl. Upload zum Roboter
-    planner/         Planner-Interface + cgo-Anbindung (Build-Tag `cpp`)
+    planner/         C++-Planner (Mähroute, A*-Weg) über cgo hinter Build-Tag `cpp`; ohne Tag ErrUnavailable
     tasks/           Aufgaben (Teilflächen + Parameter), Reihenfolge, Routenberechnung über planner
     schedule/        Zeitplan (Wochentag → Zeitfenster), startet Tasks
     settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
@@ -67,7 +67,7 @@ next/
       routes/        SvelteKit-Seiten, setzen nur Features zusammen
     tests/           Spiegelt src/: tests/features/<feature>/, tests/shared/, tests/e2e/, dazu architecture.test.ts
   third_party/
-    PathPlannerCore/ Git-Submodule des Planner-Repos, auf einen Commit/Tag gepinnt
+    PathPlannerCore/ Git-Submodule des Planner-Repos, auf einen Commit gepinnt
 ```
 
 Frontend-Importe laufen über Node-Subpath-Imports aus `package.json` (SvelteKit 3), mit Dateiendung:
@@ -92,7 +92,7 @@ Ebene, hier eintragen. Wenn die Struktur abweicht, diese Datei aktualisieren.
 - **Einstellungen zur Laufzeit:** Features bekommen veränderliche Werte über einen Setter (`robot.SetSettings`), nicht durch Neubau. Was in der Run-Schleife eines Links aufgerufen wird (z. B. `OnOnline` → `SendPositionMode`), darf nicht auf `cmdMu` warten.
 - **HTTP-API eines Features** liegt im Feature (`robot/api.go`: `Handler()`, JSON-Typen mit camelCase-Tags). `app` montiert sie in `server`. Fehler-Mapping: offline → 503, Timeout → 504, sonstiger Link-Fehler → 502, ungültige Eingabe → 400, Body `{"error": "..."}`. JSON enthält nie `NaN` und nie `null` für Listen.
 - **Goroutinen in `app`** laufen an einem eigenen Kontext und werden beim Beenden abgebrochen *und* abgewartet (`defer wg.Wait()` vor `defer cancel()` registrieren, damit `cancel` zuerst läuft). Request-Kontexte hängen über `BaseContext` am App-Kontext, sonst blockieren offene Event-Streams das Herunterfahren.
-- **cgo nur in `planner/`**, in einer Datei hinter Build-Tag `cpp`. Alles andere bleibt reines Go und ist ohne C-Toolchain testbar.
+- **cgo nur in `planner/`**, hinter Build-Tag `cpp` (`cgo.go`, `core.cpp`; der Architekturtest prüft das). Alles andere bleibt reines Go und ist ohne C-Toolchain testbar.
 
 ## Testen
 
@@ -142,17 +142,18 @@ backend/tests/
 
 ## Befehle
 
-Alle aus `next/`. Einmalig: `make setup` (npm ci + Playwright-Chromium). Go ≥ 1.27, golangci-lint v2, Node ≥ 24.
+Alle aus `next/`. Einmalig: `make setup` (Submodule, npm ci, Playwright-Chromium). Go ≥ 1.27, golangci-lint v2, Node ≥ 24, C++20-Compiler (clang/gcc).
 
 ```
 make test         # Backend (go test -race ./tests/...) + Frontend (vitest) – Unit- und Architektur-Tests
 make test-e2e     # baut das Binary und führt Playwright dagegen aus
-make test-cpp     # Backend inkl. echtem Planner (Build-Tag cpp) – ab Phase 6
+make test-cpp     # Backend inkl. echtem Planner (Build-Tag cpp)
 make lint         # go vet + golangci-lint + svelte-check + prettier + eslint
 make fmt          # Formatieren (golangci-lint fmt, prettier)
 make coverage     # Backend-Coverage über alle Features (-coverpkg=./...)
 make dev          # Backend :8050 mit Simulator + Vite-Devserver (Proxy /api → Backend)
-make build        # Frontend bauen, nach backend/server/dist kopieren, bin/cassandra bauen
+make build        # Frontend bauen, nach backend/server/dist kopieren, bin/cassandra mit Planner bauen (GO_TAGS= ohne)
+make build-static # auf Linux: statisches bin/cassandra-linux-<arch> (läuft z. B. auf Raspberry Pi OS)
 ```
 
 Daten: `bin/cassandra --data-dir <dir>` (Standard `~/.cassandra`). Beim ersten Start (kein `settings.json` bzw. kein
@@ -242,27 +243,31 @@ Ergebnis ist eine Punktfolge (die Route), die per `AT+W` übertragen wird.
 Quelle: https://github.com/EinEinfach/CaSSAndRA_PathPlannerCore (eigenes Repo, gleicher Autor; Änderungen
 dort sind erlaubt und erwünscht, wenn die Anbindung sie braucht).
 
-Aufbau des Planner-Repos (Stand v1.3):
+Aufbau des Planner-Repos (Stand 1.4, Branch `c-api`):
 - C++20, CMake; Kern in `src/` + `include/` (`Geometry`, `Environment`, `PathPlanner`, `PathService`),
-  Clipper2 ist mit eingebettet. GoogleTest-Tests in `tests/`.
-- Öffentlicher Einstieg: `Planner::PathService::computeFullTask(env, settings, startPos)` →
-  `PlanningResult { path, slices, debugLines, debugLinesSec }`. Für uns zählt `path`.
-- `PathSettings`: `pattern`, `offset`, `angle`, `distanceToBorder`, `mowArea`, `mowBorder`, `mowBorderCcw`,
-  `borderLaps`, `mowExclusionsBoder` (sic, Tippfehler im Original), `mowExclusionsBorderCcw`, `exclusionsBorderLaps`.
+  Clipper2 ist mit eingebettet. GoogleTest-Tests in `tests/` (`make test` dort).
+- **C-API** `include/planner_c.h` / `src/planner_c.cpp`: `planner_compute` (= `PathService::computeFullTask`, Mähroute)
+  und `planner_find_path` (A*, `PathPlanner::findPath`, für Goto/Anfahrten), nur flache Typen, keine Exception über
+  die Grenze (Status + Meldung), Ergebnis mit `planner_free_path` freigeben. CMake-Target `planner_core` (statisch),
+  pybind nur bei `PLANNER_BUILD_PYTHON=ON` (Standard, für das Wheel).
+- `PathSettings::mowExclusionsBorder` (früher `mowExclusionsBoder`; das Python-Modul kennt den alten Namen weiter).
 - `src/python_wrapper.cpp` ist die pybind-Anbindung für das Legacy-Wheel; `GeoJSONReader` + `main.cpp` nur für die Standalone-App.
-- `PathPlanner` enthält auch A*-Wegfindung (`findAStarPath`, `isPathClear`) – Kandidat für Goto/Anfahrtswege, statt das in Go nachzubauen.
+- **Achtung:** Ein Tag `v*` dort veröffentlicht per GitHub Action ein Wheel auf PyPI. Tags nur nach Absprache.
 
-Vorgehen für die Go-Anbindung:
-1. **C-API im Planner-Repo** ergänzen (`include/planner_c.h`, `src/planner_c.cpp`): `extern "C"`, nur flache Typen
-   (Punkt-Arrays als `double*` + Länge, Settings als C-Struct, Ergebnis-Puffer + Free-Funktion, Fehler als Rückgabecode
-   statt C++-Exceptions über die Grenze). Dazu ein CMake-Target als **statische Library** ohne pybind-Abhängigkeit
-   (pybind/Python-Suche nur, wenn das Python-Modul gebaut wird).
-2. Planner-Repo als **Git-Submodule** unter `next/third_party/PathPlannerCore` einbinden, auf Tag gepinnt.
-3. `backend/planner/cgo.go` (Build-Tag `cpp`) linkt die statische Library (`-lstdc++` bzw. `-lc++`) und übersetzt
-   zwischen `geo`-Typen und der C-API. Ohne Tag gibt es nur das Interface; Tests nutzen `testkit.FakePlanner`.
-4. Planner läuft in eigener Goroutine, das Ergebnis kommt über einen Channel, die UI bleibt bedienbar. Die C-API fängt
-   alle C++-Exceptions ab. Achtung: ein Segfault im C++-Code beendet den ganzen Go-Prozess. Falls das in der Praxis
-   vorkommt, Planner stattdessen als separaten Prozess aufrufen (Standalone-Binary mit JSON über stdin/stdout).
+Go-Anbindung (`backend/planner/`):
+- Submodule `next/third_party/PathPlannerCore`, auf einen Commit gepinnt (`make setup` holt es).
+- `planner.go` (reines Go): `Area`, `Settings`, Fehler (`ErrUnavailable`, `ErrInvalid`, `ErrNoPath`, `ErrFailed`),
+  `Native` mit `Route` und `Way`. Eine Rechnung zur Zeit (Pi); ein abgelaufener Context kehrt sofort zurück, die
+  C++-Rechnung läuft dann im Hintergrund zu Ende (nicht unterbrechbar).
+- Hinter Build-Tag `cpp`: `cgo.go` (Übersetzung, Speicher für die C-Seite per `calloc`, da cgo keine Go-Zeiger in
+  übergebenem Speicher erlaubt) und `core.cpp`, das die Planner-Quellen per `#include` einbindet – cgo kompiliert sie
+  selbst, kein CMake-Schritt, Cross-Compiling wie bei jedem cgo-Paket. `nocpp.go` (`!cpp`) liefert `ErrUnavailable`.
+- Features definieren ihr eigenes Interface (`Route`, `Way`); Tests nutzen `testkit.FakePlanner`.
+- `tests/planner/testdata/golden.json` stammt aus dem Python-Modul des Planners (`make_golden.py`) – unabhängiger
+  Weg in denselben Kern. Nach einem Planner-Update neu erzeugen.
+- `make build` baut mit Planner; `make build-static` (auf Linux) ein statisches Binary, das auf jedem Linux läuft
+  (CI-Job `release-build` für amd64 und arm64). Ein Segfault im C++-Code beendet den ganzen Prozess; falls das in der
+  Praxis vorkommt, Planner als separaten Prozess aufrufen.
 
 ## Kompatibilität
 

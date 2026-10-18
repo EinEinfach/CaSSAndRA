@@ -26,6 +26,7 @@ var allowedDeps = map[string][]string{
 	"jsonfile": {},
 	"protocol": {"geo"},
 	"link":     {"geo", "protocol"},
+	"planner":  {"geo"},
 }
 
 // topLevel features may only be imported by app (and main).
@@ -136,6 +137,59 @@ func TestTestFoldersOnlyContainTests(t *testing.T) {
 	}
 }
 
+// cgo (and the C++ it compiles) lives only in planner and only behind the
+// build tag cpp, so every other feature builds and tests without a C++ toolchain.
+func TestCgoOnlyInPlannerBehindTheCppTag(t *testing.T) {
+	for _, f := range features(t) {
+		dir := filepath.Join(root(t), f)
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, e := range entries {
+			path := filepath.Join(dir, e.Name())
+			ext := filepath.Ext(path)
+			usesC := slices.Contains([]string{".c", ".cc", ".cpp", ".h", ".hpp"}, ext)
+			if ext == ".go" {
+				usesC = slices.Contains(allImports(t, path), "C")
+			}
+			if !usesC {
+				continue
+			}
+			if f != "planner" {
+				t.Errorf("%s: cgo and C/C++ code belong in planner only", rel(t, path))
+				continue
+			}
+			if !hasCppTag(t, path) {
+				t.Errorf("%s: cgo and C/C++ code need the build constraint //go:build cpp", rel(t, path))
+			}
+		}
+	}
+}
+
+func allImports(t *testing.T, file string) []string {
+	t.Helper()
+	f, err := parser.ParseFile(token.NewFileSet(), file, nil, parser.ImportsOnly)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out []string
+	for _, imp := range f.Imports {
+		out = append(out, strings.Trim(imp.Path.Value, `"`))
+	}
+	return out
+}
+
+func hasCppTag(t *testing.T, file string) bool {
+	t.Helper()
+	b, err := os.ReadFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	first, _, _ := strings.Cut(string(b), "\n")
+	return strings.TrimSpace(first) == "//go:build cpp"
+}
+
 func TestDependencyDirection(t *testing.T) {
 	for _, f := range features(t) {
 		for _, file := range goFiles(t, filepath.Join(root(t), f)) {
@@ -165,6 +219,8 @@ func TestCheckImportRules(t *testing.T) {
 		{"app", "server", true},
 		{"server", "app", false},
 		{"robot", "tests/testkit", false},
+		{"planner", "geo", true},
+		{"planner", "maps", false},
 	}
 	for _, tt := range tests {
 		if got := checkImport(tt.from, tt.to) == ""; got != tt.allowed {
