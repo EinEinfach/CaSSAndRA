@@ -50,8 +50,10 @@ func (r *Robot) OnState(s protocol.State) {
 		r.mowMotor = false // the firmware switches it off
 	}
 	r.updateDockReasonLocked(s)
+	before := r.statusLocked()
 	r.state = s
 	r.stateAt = r.cfg.Now()
+	r.updateTrailLocked(before, r.statusLocked())
 	close(r.stateSeen)
 	r.stateSeen = make(chan struct{})
 }

@@ -82,3 +82,21 @@ test('the live view keeps its data after visiting another page', async ({ page }
 	await expect(status(page)).toHaveText(before!, { timeout: 1_000 });
 	await expect(page.getByTestId('robot-battery')).toContainText('%');
 });
+
+test('the trail starts anew when the robot docks or is cleared', async ({ page }) => {
+	const clear = page.getByRole('button', { name: 'Clear trail' });
+	await page.goto('/');
+	await expect(status(page)).toHaveText(/Idle|Docked|Charging/, { timeout: 10_000 });
+
+	await button(page, 'Mow').click();
+	await expect(clear).toBeVisible({ timeout: 5_000 });
+	await clear.click();
+	await expect(clear).toBeHidden();
+	await expect(clear).toBeVisible({ timeout: 5_000 }); // grows again while mowing
+
+	await button(page, 'Dock').click();
+	await expect(status(page)).toHaveText('Charging', { timeout: 30_000 });
+	await expect(clear).toBeHidden();
+	const trail = await (await page.request.get('/api/robot/trail')).json();
+	expect(trail.points.length).toBeLessThanOrEqual(1);
+});

@@ -1,6 +1,6 @@
 // Robot commands and queries (robot/api.go).
-import { getJSON, post } from '#shared/api.ts';
-import type { RobotMap, RobotState } from './types.ts';
+import { getJSON, post, sendJSON } from '#shared/api.ts';
+import type { RobotMap, RobotState, Trail } from './types.ts';
 
 export type SimpleCommand =
 	'stop' | 'dock' | 'mow' | 'goto' | 'skip-next-point' | 'reboot' | 'reboot-gps' | 'shutdown';
@@ -19,3 +19,10 @@ export const fetchState = (fetchFn: typeof fetch = fetch) =>
 
 export const fetchMap = (fetchFn: typeof fetch = fetch) =>
 	getJSON<RobotMap>('/api/robot/map', fetchFn);
+
+export const fetchTrail = (fetchFn: typeof fetch = fetch) =>
+	getJSON<Trail>('/api/robot/trail', fetchFn);
+
+export async function clearTrail(fetchFn: typeof fetch = fetch): Promise<void> {
+	await sendJSON('DELETE', '/api/robot/trail', undefined, fetchFn);
+}

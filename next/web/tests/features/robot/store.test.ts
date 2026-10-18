@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { RobotStore } from '#features/robot/store.svelte.ts';
-import type { RobotMap } from '#features/robot/types.ts';
+import { RobotStore, type TrailApi } from '#features/robot/store.svelte.ts';
+import type { RobotMap, Trail } from '#features/robot/types.ts';
 import { EventStream, type EventSourceLike } from '#shared/events.ts';
 import { robotState } from './fixtures.ts';
 
@@ -25,9 +25,31 @@ function fakeStream() {
 	};
 }
 
+/** The backend's trail; load answers when the test resolves it. */
+function fakeTrail(initial: Trail = { id: 1, points: [] }) {
+	let backend = initial;
+	const waiting: (() => void)[] = [];
+	const api = {
+		load: vi.fn(() => new Promise<Trail>((resolve) => waiting.push(() => resolve(backend)))),
+		clear: vi.fn(async () => {})
+	} satisfies TrailApi;
+	return {
+		api,
+		set: (t: Trail) => (backend = t),
+		/** Answers all pending loads. */
+		answer: async () => {
+			waiting.splice(0).forEach((fn) => fn());
+			await Promise.resolve();
+			await Promise.resolve();
+		}
+	};
+}
+
+const p = (x: number) => ({ x, y: 0 });
+
 describe('RobotStore', () => {
 	it('follows state and connection from the stream', () => {
-		const store = new RobotStore(async () => map);
+		const store = new RobotStore(async () => map, fakeTrail().api);
 		const s = fakeStream();
 		const stop = store.connect(s.stream);
 
@@ -42,7 +64,7 @@ describe('RobotStore', () => {
 
 	it('loads the map once per map checksum', async () => {
 		const load = vi.fn(async () => map);
-		const store = new RobotStore(load);
+		const store = new RobotStore(load, fakeTrail().api);
 
 		store.apply(robotState({ mapCrc: 1 }));
 		store.apply(robotState({ mapCrc: 1 }));
@@ -55,7 +77,7 @@ describe('RobotStore', () => {
 	it('retries the map after a failed load', async () => {
 		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
 		const load = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(map);
-		const store = new RobotStore(load);
+		const store = new RobotStore(load, fakeTrail().api);
 
 		store.apply(robotState({ mapCrc: 1 }));
 		await vi.waitFor(() => expect(log).toHaveBeenCalled());
@@ -65,17 +87,72 @@ describe('RobotStore', () => {
 		log.mockRestore();
 	});
 
-	it('builds a trail while online and keeps it when offline', () => {
-		const store = new RobotStore(async () => map);
-		store.apply(robotState({ position: { x: 0, y: 0 } }));
-		store.apply(robotState({ position: { x: 1, y: 0 } }));
-		store.apply(robotState({ status: 'offline', position: { x: 2, y: 0 } }));
-		expect(store.trail).toEqual([
-			{ x: 0, y: 0 },
-			{ x: 1, y: 0 }
-		]);
+	it('takes the trail from the backend and extends it with new states', async () => {
+		const t = fakeTrail({ id: 1, points: [p(0), p(1)] });
+		const store = new RobotStore(async () => map, t.api);
 
-		store.clearTrail();
+		store.apply(robotState({ trailId: 1, position: p(1) }));
+		store.apply(robotState({ trailId: 1, position: p(2) })); // arrives while loading
+		await t.answer();
+		expect(store.trail).toEqual([p(0), p(1), p(2)]);
+
+		store.apply(robotState({ trailId: 1, position: p(3) }));
+		store.apply(robotState({ trailId: 1, status: 'offline', position: p(4) }));
+		expect(store.trail).toEqual([p(0), p(1), p(2), p(3)]);
+		expect(t.api.load).toHaveBeenCalledTimes(1);
+	});
+
+	it('fetches the trail again when it starts anew (docked or cleared elsewhere)', async () => {
+		const t = fakeTrail({ id: 1, points: [p(0), p(1)] });
+		const store = new RobotStore(async () => map, t.api);
+		store.apply(robotState({ trailId: 1, position: p(1) }));
+		await t.answer();
+
+		t.set({ id: 2, points: [p(5)] });
+		store.apply(robotState({ trailId: 2, status: 'charging', position: p(5) }));
 		expect(store.trail).toEqual([]);
+		await t.answer();
+		expect(store.trail).toEqual([p(5)]);
+	});
+
+	it('ignores a loaded trail that is already outdated', async () => {
+		const t = fakeTrail({ id: 1, points: [p(0)] });
+		const store = new RobotStore(async () => map, t.api);
+		store.apply(robotState({ trailId: 1, position: p(0) }));
+		t.set({ id: 2, points: [p(9)] }); // the backend moved on before answering
+		await t.answer();
+		expect(store.trail).toEqual([]);
+
+		store.apply(robotState({ trailId: 2, position: p(9) }));
+		await t.answer();
+		expect(store.trail).toEqual([p(9)]);
+	});
+
+	it('retries loading the trail with the next state', async () => {
+		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const api: TrailApi = {
+			load: vi
+				.fn()
+				.mockRejectedValueOnce(new Error('offline'))
+				.mockResolvedValue({ id: 1, points: [p(7)] }),
+			clear: vi.fn()
+		};
+		const store = new RobotStore(async () => map, api);
+		store.apply(robotState({ trailId: 1, position: p(7) }));
+		await vi.waitFor(() => expect(log).toHaveBeenCalled());
+		store.apply(robotState({ trailId: 1, position: p(7) }));
+		await vi.waitFor(() => expect(store.trail).toEqual([p(7)]));
+		log.mockRestore();
+	});
+
+	it('clears the trail at once and in the backend', async () => {
+		const t = fakeTrail({ id: 1, points: [p(0), p(1)] });
+		const store = new RobotStore(async () => map, t.api);
+		store.apply(robotState({ trailId: 1, position: p(1) }));
+		await t.answer();
+
+		await store.clearTrail();
+		expect(store.trail).toEqual([]);
+		expect(t.api.clear).toHaveBeenCalledOnce();
 	});
 });

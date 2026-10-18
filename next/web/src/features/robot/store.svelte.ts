@@ -1,9 +1,17 @@
 // Live robot state for the UI, fed by the event stream.
 import type { EventStream } from '#shared/events.ts';
 import type { Point } from '#shared/viewport.ts';
-import { fetchMap } from './api.ts';
+import { clearTrail, fetchMap, fetchTrail } from './api.ts';
 import { extendTrail } from './trail.ts';
-import type { RobotMap, RobotState } from './types.ts';
+import type { RobotMap, RobotState, Trail } from './types.ts';
+
+/** Where the trail lives: the backend keeps it, the store follows it. */
+export interface TrailApi {
+	load(): Promise<Trail>;
+	clear(): Promise<void>;
+}
+
+const backendTrail: TrailApi = { load: () => fetchTrail(), clear: () => clearTrail() };
 
 const emptyMap: RobotMap = { perimeter: [], exclusions: [], dock: [], way: [] };
 
@@ -14,9 +22,13 @@ export class RobotStore {
 	connected = $state(false);
 
 	private loadedCrc: number | null = null;
+	private trailId: number | null = null;
 	private stops: (() => void)[] = [];
 
-	constructor(private loadMap: () => Promise<RobotMap> = () => fetchMap()) {}
+	constructor(
+		private loadMap: () => Promise<RobotMap> = () => fetchMap(),
+		private trailApi: TrailApi = backendTrail
+	) {}
 
 	/** Starts following the stream. Returns a function that stops it. */
 	connect(stream: EventStream): () => void {
@@ -34,7 +46,13 @@ export class RobotStore {
 
 	apply(s: RobotState): void {
 		this.state = s;
-		if (s.status !== 'offline') {
+		if (s.trailId !== this.trailId) {
+			// A new trail (docked, cleared, or first state): take the backend's.
+			this.trailId = s.trailId;
+			this.trail = [];
+			this.loadTrail();
+		} else if (s.status !== 'offline') {
+			// Same trail: extend it like the backend does instead of fetching it all again.
 			this.trail = extendTrail(this.trail, s.position);
 		}
 		if (s.mapCrc !== this.loadedCrc) {
@@ -48,7 +66,24 @@ export class RobotStore {
 		}
 	}
 
-	clearTrail(): void {
+	/** Starts a new trail for every browser. */
+	async clearTrail(): Promise<void> {
 		this.trail = [];
+		await this.trailApi.clear();
+	}
+
+	private loadTrail(): void {
+		const id = this.trailId;
+		this.trailApi
+			.load()
+			.then((t) => {
+				if (t.id !== id || this.trailId !== id) return; // a newer trail is coming
+				// Keep what states added while loading.
+				this.trail = this.trail.reduce((trail, p) => extendTrail(trail, p), t.points);
+			})
+			.catch((err) => {
+				console.error('loading the trail failed', err);
+				if (this.trailId === id) this.trailId = null; // retry with the next state
+			});
 	}
 }

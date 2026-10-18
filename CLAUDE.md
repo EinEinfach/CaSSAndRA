@@ -133,6 +133,7 @@ backend/tests/
 - Frontend: Logik gehört in `.ts`-Dateien (pure Funktionen, Klassen), Komponenten bleiben dünn. Abhängigkeiten werden übergeben statt importiert-und-gemockt: `fetch` als Parameter, `send`/`sender`/`loadMap` als Props bzw. Konstruktor-Argumente, Timer über ein `Scheduler`-Interface.
 - Komponententests mit `@testing-library/svelte` in jsdom. Canvas wird über `tests/shared/recordingContext.ts` geprüft (zeichnet jeden Befehl auf), `ResizeObserver` per `vi.stubGlobal`.
 - Svelte 5: Ein `$effect`, der State schreibt, den er auch liest, läuft endlos (`effect_update_depth_exceeded`). Gelesenen-und-geschriebenen State in `untrack(...)` lesen.
+- Svelte 5: Keine Variable oder Prop `state` in einer Komponente, die `$state(...)` nutzt – Svelte liest das sonst als Store-Abo (`store_invalid_shape`). Prop beim Destrukturieren umbenennen (`state: robot`).
 - Dateinamen dürfen sich nicht nur in Groß-/Kleinschreibung unterscheiden (`Joystick.svelte` + `joystick.ts` → gleiche Testdatei auf macOS).
 - E2E: Playwright in `web/tests/e2e/` (`*.e2e.ts`) gegen das echte Binary (`make build`, Port 4173, frisches `--data-dir ../.e2e-data`) mit Simulator und Demo-Garten. Die Tests teilen sich den Roboter und laufen nacheinander (`workers: 1`); wer den Roboter verändert, stellt ihn danach wieder her (Verbindung kurz wechseln = frischer Simulator). Neue E2E-Tests mit `npx playwright test --repeat-each=3` auf Wackeligkeit prüfen.
 - Testdaten aus echten Installationen nie 1:1 einchecken (Zugangsdaten!): Format nachbauen, Werte erfinden.
@@ -188,6 +189,10 @@ bildet beide exakt nach (float32), Golden-Werte stammen aus `tests/protocol/test
 `robot.UploadMap` wartet danach (bis `MapCRCTimeout`) auf eine passende CRC – die einzige Prüfung, die auch über MQTT
 greift – und lehnt Uploads ab, solange der Roboter fährt (AT+W mit Index 0 löscht seine Route). Legacy toleriert
 stattdessen eine Abweichung < 200. Der Simulator rechnet wie Sunray unter Linux.
+
+**Gefahrene Spur:** `robot` führt sie (`robot/trail.go`: 5 cm Mindestabstand, neue Spur nach Sprung > 5 m, max. 2000 Punkte)
+und beginnt sie neu, sobald der Status auf docked/charging wechselt oder über `DELETE /api/robot/trail`. Der Zustand
+trägt `trailId`; der Browser holt die Spur nur bei neuer Id (`GET /api/robot/trail`) und verlängert sie sonst selbst.
 
 **Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er
 idempotent ist. `Stop` bricht einen laufenden Karten-Upload ab, statt hinter ihm zu warten.

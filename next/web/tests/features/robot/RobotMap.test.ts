@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/svelte';
+import userEvent from '@testing-library/user-event';
 import { tick } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import RobotMap from '#features/robot/RobotMap.svelte';
@@ -102,5 +103,26 @@ describe('RobotMap', () => {
 		expect(end[0]).toBeGreaterThan(start[0]);
 		expect(half[0]).toBeCloseTo((start[0] + end[0]) / 2, 6);
 		expect(half[1]).toBeCloseTo(start[1], 6);
+	});
+
+	it('offers to clear the trail once there is one', async () => {
+		const clearTrail = vi.fn(async () => {});
+		const props = (trail: { x: number; y: number }[]) => ({
+			state: robotState({ status: 'mow' }),
+			map,
+			trail,
+			clearTrail
+		});
+		const { rerender } = render(RobotMap, props([{ x: 1, y: 2 }]));
+		expect(screen.queryByRole('button', { name: 'Clear trail' })).toBeNull();
+
+		await rerender(
+			props([
+				{ x: 0, y: 2 },
+				{ x: 1, y: 2 }
+			])
+		);
+		await userEvent.click(screen.getByRole('button', { name: 'Clear trail' }));
+		expect(clearTrail).toHaveBeenCalledOnce();
 	});
 });

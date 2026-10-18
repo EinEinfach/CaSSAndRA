@@ -40,6 +40,7 @@ type StateJSON struct {
 	DockReason      DockReason `json:"dockReason"`
 	MapCRC          int64      `json:"mapCrc"`
 	UpdatedAt       *time.Time `json:"updatedAt"`
+	TrailID         int64      `json:"trailId"`
 }
 
 // MapJSON is the map last uploaded to the robot.
@@ -64,6 +65,7 @@ func (r *Robot) StateJSON() StateJSON {
 		Solution: s.Solution.String(), AccuracyM: finite(s.AccuracyM), Satellites: s.Satellites,
 		Op: s.Op.String(), Sensor: s.Sensor.String(), MowMotorOn: s.MowMotorOn,
 		MowPointIndex: s.MowPointIndex, DockReason: s.DockReason, MapCRC: s.MapCRC, UpdatedAt: updated,
+		TrailID: s.TrailID,
 	}
 }
 
@@ -122,6 +124,13 @@ func (r *Robot) Handler() http.Handler {
 	})
 	mux.HandleFunc("GET /api/robot/map", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, r.MapJSON())
+	})
+	mux.HandleFunc("GET /api/robot/trail", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, r.Trail())
+	})
+	mux.HandleFunc("DELETE /api/robot/trail", func(w http.ResponseWriter, _ *http.Request) {
+		r.ClearTrail()
+		w.WriteHeader(http.StatusNoContent)
 	})
 
 	simple := map[string]func(context.Context) error{

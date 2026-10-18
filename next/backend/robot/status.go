@@ -68,6 +68,7 @@ type Snapshot struct {
 	DockReason      DockReason
 	MapCRC          int64
 	UpdatedAt       time.Time // last state report; zero if none yet
+	TrailID         int64     // changes when the trail starts anew
 	Stats           protocol.Stats
 	Obstacles       [][]geo.Point
 }
@@ -100,6 +101,7 @@ func (r *Robot) Snapshot() Snapshot {
 		DockReason:      r.dockReason,
 		MapCRC:          s.MapCRC,
 		UpdatedAt:       r.stateAt,
+		TrailID:         r.trail.id,
 		Stats:           r.stats,
 		Obstacles:       obstacles,
 	}

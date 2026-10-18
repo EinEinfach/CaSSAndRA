@@ -37,6 +37,8 @@ export interface RobotState {
 	dockReason: DockReason;
 	mapCrc: number;
 	updatedAt: string | null;
+	/** Changes when the trail starts anew (docked or cleared): fetch it again. */
+	trailId: number;
 }
 
 export interface RobotMap {
@@ -44,4 +46,10 @@ export interface RobotMap {
 	exclusions: Point[][];
 	dock: Point[];
 	way: Point[];
+}
+
+/** The path driven since the robot last docked (GET /api/robot/trail). */
+export interface Trail {
+	id: number;
+	points: Point[];
 }

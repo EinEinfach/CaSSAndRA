@@ -89,6 +89,7 @@ type Robot struct {
 	dockReason DockReason
 	cancelBusy context.CancelFunc
 	uploaded   protocol.Map
+	trail      trail
 }
 
 // New returns a Robot that sends commands through l.
@@ -99,7 +100,10 @@ func New(l Sender, cfg Config) *Robot {
 	if cfg.Logger == nil {
 		cfg.Logger = slog.New(slog.DiscardHandler)
 	}
-	return &Robot{link: l, cfg: cfg, log: cfg.Logger, stateSeen: make(chan struct{})}
+	r := &Robot{link: l, cfg: cfg, log: cfg.Logger, stateSeen: make(chan struct{})}
+	// Ids differ between runs, so a browser never mistakes a new trail for its old one.
+	r.trail.id = cfg.Now().UnixMilli()
+	return r
 }
 
 // SetSettings replaces the user settings. They apply to the next command; a

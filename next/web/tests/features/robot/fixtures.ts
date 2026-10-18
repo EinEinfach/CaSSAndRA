@@ -24,6 +24,7 @@ export function robotState(overrides: Partial<RobotState> = {}): RobotState {
 		dockReason: '',
 		mapCrc: 1234,
 		updatedAt: '2026-06-01T12:00:00Z',
+		trailId: 1,
 		...overrides
 	};
 }

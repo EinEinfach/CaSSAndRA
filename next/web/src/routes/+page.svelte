@@ -34,7 +34,12 @@
 
 <div class="page">
 	<div class="map">
-		<RobotMap state={robot.state} map={shownMap} trail={robot.trail} />
+		<RobotMap
+			state={robot.state}
+			map={shownMap}
+			trail={robot.trail}
+			clearTrail={() => robot.clearTrail()}
+		/>
 	</div>
 	<aside>
 		<StatusPanel state={robot.state} connected={robot.connected} />
