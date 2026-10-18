@@ -58,6 +58,7 @@ sowie `make lint` sind grün.
 - [x] Karten-Editor: Perimeter, Ausschlüsse, Dockpfad, Suchdraht; mehrere Karten; Undo/Redo, Ziehen, Roboterposition als Punkt; neue App-Hülle (Navigation, eigenes Design)
 - [x] Upload zum Roboter (AT+W/N/X, 30er-Pakete) mit **exakter map_crc-Prüfung** (Arduino- und Linux-Variante der Firmware nachgebildet, Golden-Werte aus C-Referenz); Upload wird abgelehnt, solange der Roboter fährt
 - [x] Upload gegen echte Sunray-Firmware geprüft: Karte „mika“ (127 Perimeterpunkte, 53 Ausschlüsse) an Sunray 1.0.324 (Linux-Simulation); gemeldete map_crc = Arduino-Variante, Prüfung bestanden
+- [x] Live-Ansicht nachgeschärft: graue Palette, Rover-Bilder aus der Legacy-App (wählbar, Größe in cm, per SSE `settings` in allen Browsern), Roboter gleitet zwischen Meldungen (wie CaSSAndRA_native), Spur im Backend (neu beim Andocken oder per „Clear trail“), Joystick auch im Dock und nach Fehlern, Seiten bekommen beim Wiederöffnen sofort die letzten Events
 - [ ] Optimierung: Zustandsabfragen während eines Uploads pausieren (Simulator ~0,5 s/Anfrage → Upload von „mika“ dauerte 27 s)
 - [ ] Später: GeoJSON-/Sunray-Kartenimport und -export wie im Legacy-Code
 - **Fertig, wenn:** die echte Karte importiert, angezeigt und zum Roboter übertragen wird. (erledigt)
