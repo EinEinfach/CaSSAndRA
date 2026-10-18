@@ -142,7 +142,7 @@ export function drawMap(ctx: MapContext, vp: Viewport, layers: MapLayers, colors
 	if (layers.trail && layers.trail.length > 1) {
 		path(ctx, vp, layers.trail, false);
 		ctx.strokeStyle = colors.trail;
-		ctx.lineWidth = 3;
+		ctx.lineWidth = 1.5; // a hint of where the robot went, not more than the map
 		ctx.stroke();
 	}
 	if (layers.target) {

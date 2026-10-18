@@ -33,7 +33,7 @@
 	--map-handle-fill: #ffffff;
 	--map-way: rgb(0 0 0 / 0.28);
 	--map-way-done: rgb(0 0 0 / 0.08);
-	--map-trail: #e8590c;
+	--map-trail: rgb(232 89 12 / 0.35);
 	--map-target: #c5221f;
 	--map-robot: #121212;
 	--map-robot-outline: #ffffff;
@@ -71,7 +71,7 @@
 		--map-handle-fill: #000000;
 		--map-way: rgb(255 255 255 / 0.3);
 		--map-way-done: rgb(255 255 255 / 0.08);
-		--map-trail: #ff922b;
+		--map-trail: rgb(255 146 43 / 0.35);
 		--map-target: #ff6b60;
 		--map-robot: #ffffff;
 		--map-robot-outline: #000000;
