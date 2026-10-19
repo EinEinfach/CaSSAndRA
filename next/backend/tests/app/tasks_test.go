@@ -50,7 +50,7 @@ func TestPreviewIsSharedAndDroppedWhenTheMapChanges(t *testing.T) {
 	}
 
 	code, body = send(t, http.MethodPost, r.baseURL+"/api/tasks/preview",
-		`{"parameters":{"pattern":"rings","widthM":0.18,"angleDeg":0,"distanceToBorder":1,"mowArea":true,"borderLaps":1,"mowExclusions":false,"borderCcw":false}}`)
+		`{"parts":[{"parameters":{"pattern":"rings","widthM":0.18,"angleDeg":0,"distanceToBorder":1,"mowArea":true,"borderLaps":1,"mowExclusions":false,"borderCcw":false}}]}`)
 	if code != http.StatusOK {
 		t.Fatalf("preview = %d %s", code, body)
 	}
@@ -84,8 +84,8 @@ func TestPreviewWithTheBuiltInPlanner(t *testing.T) {
 	}
 	// A selection over the corner of the garden: lanes only in 0..4 x 0..4.
 	code, body = send(t, http.MethodPost, r.baseURL+"/api/tasks/preview",
-		`{"selection":[{"x":-4,"y":-4},{"x":4,"y":-4},{"x":4,"y":4},{"x":-4,"y":4}],
-		"parameters":{"pattern":"lines","widthM":0.25,"angleDeg":30,"distanceToBorder":1,"mowArea":true,"borderLaps":1,"mowExclusions":false,"borderCcw":false}}`)
+		`{"parts":[{"selection":[{"x":-4,"y":-4},{"x":4,"y":-4},{"x":4,"y":4},{"x":-4,"y":4}],
+		"parameters":{"pattern":"lines","widthM":0.25,"angleDeg":30,"distanceToBorder":1,"mowArea":true,"borderLaps":1,"mowExclusions":false,"borderCcw":false}}]}`)
 	if !planner.Available() {
 		if code != http.StatusNotImplemented {
 			t.Errorf("preview without planner = %d %s, want 501", code, body)
@@ -132,7 +132,7 @@ func TestStartMowingThePlannedRoute(t *testing.T) {
 		t.Errorf("start without plan = %d %s, want 409", code, body)
 	}
 	code, body = send(t, http.MethodPost, r.baseURL+"/api/tasks/preview",
-		`{"parameters":{"pattern":"lines","widthM":0.18,"angleDeg":0,"distanceToBorder":1,"mowArea":true,"borderLaps":1,"mowExclusions":false,"borderCcw":false}}`)
+		`{"parts":[{"parameters":{"pattern":"lines","widthM":0.18,"angleDeg":0,"distanceToBorder":1,"mowArea":true,"borderLaps":1,"mowExclusions":false,"borderCcw":false}}]}`)
 	if code != http.StatusOK {
 		t.Fatalf("preview = %d %s", code, body)
 	}
@@ -154,4 +154,42 @@ func TestStartMowingThePlannedRoute(t *testing.T) {
 		t.Fatalf("stop = %d", code)
 	}
 	waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.Status == robot.StatusIdle })
+}
+
+func TestTasksOfADeletedMapAreDropped(t *testing.T) {
+	r := start(t)
+	events := streamEvents(t, r.baseURL, "tasks")
+	code, body := send(t, http.MethodPost, r.baseURL+"/api/maps",
+		`{"name": "Back", "perimeter": [{"x":0,"y":0},{"x":8,"y":0},{"x":8,"y":8}]}`)
+	if code != http.StatusCreated {
+		t.Fatalf("POST map = %d %s", code, body)
+	}
+	var m maps.Map
+	_ = json.Unmarshal([]byte(body), &m)
+	code, body = send(t, http.MethodPost, r.baseURL+"/api/tasks", `{"name":"All","mapId":"`+m.ID+`",
+		"parts":[{"parameters":{"pattern":"lines","widthM":0.18,"angleDeg":0,"distanceToBorder":1,"mowArea":true,"borderLaps":1,"mowExclusions":false,"borderCcw":false}}]}`)
+	if code != http.StatusCreated {
+		t.Fatalf("POST task = %d %s", code, body)
+	}
+	if code, body := send(t, http.MethodDelete, r.baseURL+"/api/maps/"+m.ID, ""); code != http.StatusNoContent {
+		t.Fatalf("DELETE map = %d %s", code, body)
+	}
+	// Events: empty list at start, one task, empty again.
+	var counts []int
+	deadline := time.After(3 * time.Second)
+	for len(counts) < 3 {
+		select {
+		case data := <-events:
+			var l tasks.ListJSON
+			if err := json.Unmarshal([]byte(data), &l); err != nil {
+				t.Fatal(err)
+			}
+			counts = append(counts, len(l.Tasks))
+		case <-deadline:
+			t.Fatalf("tasks events %v, want 0, 1, 0", counts)
+		}
+	}
+	if counts[1] != 1 || counts[2] != 0 {
+		t.Errorf("tasks events %v, want 0, 1, 0", counts)
+	}
 }

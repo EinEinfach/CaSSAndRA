@@ -91,10 +91,11 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	}
 	log := cfg.Logger
 
-	settingsStore, mapStore, err := openData(cfg.DataDir, log)
+	data, err := openData(cfg.DataDir, log)
 	if err != nil {
 		return err
 	}
+	settingsStore, mapStore, taskStore := data.settings, data.maps, data.tasks
 
 	// Deferred in reverse: cancel the background goroutines, then wait for them.
 	var wg sync.WaitGroup
@@ -152,7 +153,14 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	if cfg.Planner == nil {
 		cfg.Planner = planner.New()
 	}
-	taskService := tasks.New(cfg.Planner, mapStore, r, tasks.Config{})
+	taskService := tasks.New(cfg.Planner, mapStore, r, taskStore, tasks.Config{})
+	publishTasks := func() {
+		if b, err := json.Marshal(taskService.ListJSON()); err == nil {
+			hub.Publish("tasks", b)
+		}
+	}
+	publishTasks()
+	taskStore.OnChange(publishTasks)
 	publishPlan := func(*tasks.Plan) {
 		if b, err := json.Marshal(taskService.PlanJSON()); err == nil {
 			hub.Publish("plan", b)
@@ -163,12 +171,17 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	mapStore.OnChange(func() {
 		publishMaps()
 		taskService.MapsChanged()
+		exists := func(id string) bool { _, err := mapStore.Get(id); return err == nil }
+		if err := taskStore.KeepMaps(exists); err != nil {
+			log.Warn("remove tasks of a deleted map", "err", err)
+		}
 	})
 
 	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect) })
 	goroutine(func() { r.PublishState(ctx, cfg.PublishInterval, func(b []byte) { hub.Publish("robot", b) }) })
 
 	mapsAPI := mapStore.Handler(r)
+	tasksAPI := taskService.Handler()
 	srv := &http.Server{
 		Handler: server.New(server.Options{
 			Version: cfg.Version,
@@ -180,7 +193,8 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 				"/api/settings": settingsStore.Handler(),
 				"/api/maps":     mapsAPI,
 				"/api/maps/":    mapsAPI,
-				"/api/tasks/":   taskService.Handler(),
+				"/api/tasks":    tasksAPI,
+				"/api/tasks/":   tasksAPI,
 			},
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
@@ -210,30 +224,37 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	return nil
 }
 
-// openData opens settings and maps. On the first start it imports the data
-// of legacy CaSSAndRA from the same directory.
-func openData(dir string, log *slog.Logger) (*settings.Store, *maps.Store, error) {
+// stores are the files of the data directory.
+type stores struct {
+	settings *settings.Store
+	maps     *maps.Store
+	tasks    *tasks.Store
+}
+
+// openData opens settings, maps and tasks. On the first start it imports the
+// data of legacy CaSSAndRA from the same directory.
+func openData(dir string, log *slog.Logger) (stores, error) {
 	settingsStore, err := settings.Open(filepath.Join(dir, "settings.json"))
 	if err != nil {
-		return nil, nil, err
+		return stores{}, err
 	}
 	if !settingsStore.Exists() {
 		s, found, warnings, err := settings.ImportLegacy(filepath.Join(dir, "user"))
 		if err != nil {
-			return nil, nil, err
+			return stores{}, err
 		}
 		for _, w := range warnings {
 			log.Warn("legacy settings import", "problem", w)
 		}
 		if err := settingsStore.Set(s); err != nil {
-			return nil, nil, err
+			return stores{}, err
 		}
 		log.Info("settings created", "importedFromLegacy", found)
 	}
 
 	mapStore, err := maps.OpenStore(filepath.Join(dir, "maps"), maps.StoreConfig{})
 	if err != nil {
-		return nil, nil, err
+		return stores{}, err
 	}
 	if mapStore.Fresh() {
 		li, err := maps.ImportLegacy(filepath.Join(dir, "map"))
@@ -248,7 +269,28 @@ func openData(dir string, log *slog.Logger) (*settings.Store, *maps.Store, error
 			log.Info("legacy maps imported", "maps", n, "active", li.Active)
 		}
 	}
-	return settingsStore, mapStore, nil
+	taskStore, err := tasks.OpenStore(filepath.Join(dir, "tasks.json"), tasks.StoreConfig{})
+	if err != nil {
+		return stores{}, err
+	}
+	if !taskStore.Exists() {
+		mapIDs := map[string]string{}
+		for _, m := range mapStore.List() {
+			mapIDs[m.Name] = m.ID
+		}
+		li, err := tasks.ImportLegacy(filepath.Join(dir, "map"), mapIDs)
+		if err != nil {
+			log.Warn("legacy tasks import", "err", err)
+		}
+		n, warnings := taskStore.Import(li)
+		for _, w := range warnings {
+			log.Warn("legacy tasks import", "problem", w)
+		}
+		if n > 0 {
+			log.Info("legacy tasks imported", "tasks", n)
+		}
+	}
+	return stores{settings: settingsStore, maps: mapStore, tasks: taskStore}, nil
 }
 
 func robotSettings(s settings.Settings) robot.Settings {

@@ -15,18 +15,38 @@ export interface Parameters {
 	borderCcw: boolean;
 }
 
-export interface PreviewRequest {
+/** One piece of a task: what to mow and how. */
+export interface Part {
 	/** A polygon around the part to mow; empty = the whole garden. */
 	selection: Point[];
 	parameters: Parameters;
+}
+
+/** A saved mowing job of one map; its parts are mowed one after another. */
+export interface Task {
+	id: string;
+	name: string;
+	mapId: string;
+	parts: Part[];
+	updatedAt: string;
+}
+
+/** The editable part of a task. */
+export type TaskShape = Pick<Task, 'name' | 'mapId' | 'parts'>;
+
+/** Either drawn parts or saved tasks, mowed in the given order. */
+export interface PreviewRequest {
+	parts?: Part[];
+	taskIds?: string[];
 }
 
 /** A computed route for the active map. */
 export interface Plan {
 	mapId: string;
 	mapUpdatedAt: string;
-	selection: Point[];
-	parameters: Parameters;
+	/** The saved tasks the route was planned for; empty for drawn parts. */
+	taskIds: string[];
+	parts: Part[];
 	start: Point;
 	route: Point[];
 	distanceM: number;
@@ -36,4 +56,9 @@ export interface Plan {
 /** The "plan" event and GET /api/tasks/preview. */
 export interface PlanEvent {
 	plan: Plan | null;
+}
+
+/** The "tasks" event and GET /api/tasks. */
+export interface TaskList {
+	tasks: Task[];
 }

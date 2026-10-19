@@ -1,5 +1,5 @@
 // Shared test data for the tasks feature.
-import type { Parameters, Plan } from '#features/tasks/types.ts';
+import type { Parameters, Plan, Task } from '#features/tasks/types.ts';
 import { pts } from '../maps/fixtures.ts';
 
 export function parameters(overrides: Partial<Parameters> = {}): Parameters {
@@ -20,12 +20,23 @@ export function plan(overrides: Partial<Plan> = {}): Plan {
 	return {
 		mapId: 'm1',
 		mapUpdatedAt: '2026-06-01T12:00:00Z',
-		selection: [],
-		parameters: parameters(),
+		taskIds: [],
+		parts: [{ selection: [], parameters: parameters() }],
 		start: { x: 1, y: 2 },
 		route: pts(1, 2, 0, 0, 10, 0, 10, 10),
 		distanceM: 1350,
 		createdAt: '2026-06-01T12:05:00Z',
+		...overrides
+	};
+}
+
+export function task(id: string, name: string, overrides: Partial<Task> = {}): Task {
+	return {
+		id,
+		name,
+		mapId: 'm1',
+		parts: [{ selection: [], parameters: parameters() }],
+		updatedAt: '2026-06-01T12:00:00Z',
 		...overrides
 	};
 }

@@ -5,8 +5,15 @@
 	import type { SettingsView } from '#features/settings/types.ts';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { clearPreview, previewRoute, startMowing } from '#features/tasks/api.ts';
-	import { PlanStore } from '#features/tasks/store.svelte.ts';
+	import {
+		clearPreview,
+		createTask,
+		deleteTask,
+		previewRoute,
+		startMowing,
+		updateTask
+	} from '#features/tasks/api.ts';
+	import { PlanStore, TaskStore } from '#features/tasks/store.svelte.ts';
 	import TaskPlanner from '#features/tasks/TaskPlanner.svelte';
 	import type { Parameters } from '#features/tasks/types.ts';
 	import { useStream } from '#shared/streamContext.ts';
@@ -14,6 +21,7 @@
 	const stream = useStream();
 	const maps = new MapsStore();
 	const plans = new PlanStore();
+	const tasks = new TaskStore();
 	const robot = new RobotStore();
 	let defaults = $state<Parameters | null>(null);
 	let mowSpeedMps = $state(0);
@@ -22,6 +30,7 @@
 		const stops = [
 			maps.connect(stream),
 			plans.connect(stream),
+			tasks.connect(stream),
 			robot.connect(stream),
 			stream.on<SettingsView>('settings', ({ settings }) => {
 				defaults = settings.planner;
@@ -44,6 +53,7 @@
 
 <TaskPlanner
 	map={maps.active}
+	tasks={tasks.forMap(maps.active?.id)}
 	robot={pose}
 	plan={plans.plan}
 	planLoaded={plans.loaded}
@@ -52,6 +62,8 @@
 	robotStatus={robot.connected && robot.state ? robot.state.status : 'offline'}
 	preview={(req) => previewRoute(req)}
 	discard={() => clearPreview()}
+	save={(t, id) => (id ? updateTask(id, t) : createTask(t))}
+	remove={(id) => deleteTask(id)}
 	start={async () => {
 		await startMowing();
 		await goto(resolve('/'));

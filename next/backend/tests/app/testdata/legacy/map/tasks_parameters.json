@@ -1,0 +1,79 @@
+{
+ "map name": {
+  "0": "Garden",
+  "1": "Garden",
+  "2": "Yard",
+  "3": "Gone",
+  "4": "Garden"
+ },
+ "task nr": {
+  "0": 0,
+  "1": 1,
+  "2": 0,
+  "3": 0,
+  "4": 0
+ },
+ "pattern": {
+  "0": "lines",
+  "1": "rings",
+  "2": "squares",
+  "3": "lines",
+  "4": "lines"
+ },
+ "width": {
+  "0": 0.2,
+  "1": 0.16,
+  "2": 0.18,
+  "3": 0.18,
+  "4": 0
+ },
+ "angle": {
+  "0": 105,
+  "1": null,
+  "2": 400,
+  "3": 0,
+  "4": 0
+ },
+ "distancetoborder": {
+  "0": 1,
+  "1": 0,
+  "2": 1,
+  "3": 1,
+  "4": 1
+ },
+ "mowarea": {
+  "0": true,
+  "1": true,
+  "2": true,
+  "3": true,
+  "4": true
+ },
+ "mowborder": {
+  "0": 2,
+  "1": 1,
+  "2": 0,
+  "3": 1,
+  "4": 1
+ },
+ "mowexclusion": {
+  "0": true,
+  "1": false,
+  "2": true,
+  "3": true,
+  "4": true
+ },
+ "mowborderccw": {
+  "0": false,
+  "1": true,
+  "2": false,
+  "3": false,
+  "4": false
+ },
+ "name": {
+  "0": "Front lawn",
+  "1": "Front lawn",
+  "2": "Everything",
+  "3": "Lost",
+  "4": "Bad"
+ }
+}

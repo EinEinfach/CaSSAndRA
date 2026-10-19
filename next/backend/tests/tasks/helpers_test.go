@@ -2,6 +2,7 @@ package tasks_test
 
 import (
 	"context"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -91,6 +92,7 @@ type fixture struct {
 	robot   *fakeRobot
 	planner *testkit.FakePlanner
 	clock   *testkit.FakeClock
+	tasks   *tasks.Store
 	svc     *tasks.Service
 }
 
@@ -111,6 +113,15 @@ func newFixture(t *testing.T) *fixture {
 	}
 	f := &fixture{maps: store, mapID: m.ID, robot: &fakeRobot{}, planner: &testkit.FakePlanner{}, clock: clock}
 	f.robot.set(geo.Point{X: 5, Y: 2}, protocol.OpIdle)
-	f.svc = tasks.New(f.planner, store, f.robot, tasks.Config{Now: clock.Now})
+	f.tasks, err = tasks.OpenStore(filepath.Join(t.TempDir(), "tasks.json"), tasks.StoreConfig{Now: clock.Now})
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.svc = tasks.New(f.planner, store, f.robot, f.tasks, tasks.Config{Now: clock.Now})
 	return f
+}
+
+// one is a request for one part.
+func one(sel []geo.Point, p tasks.Parameters) tasks.Request {
+	return tasks.Request{Parts: []tasks.Part{{Selection: sel, Parameters: p}}}
 }

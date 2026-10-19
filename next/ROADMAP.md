@@ -74,7 +74,7 @@ sowie `make lint` sind grün.
 
 ## Phase 7 – Aufgaben & Mähen (`tasks`)
 - [x] Teilflächen wählen (ganzer Garten, Rechteck, Polygon), Parameter, Route berechnen, Vorschau in der UI (Seite „Tasks“, Event `plan`); Auswahl wird auf den Rasen zugeschnitten (behebt leere Ringe bei angeschnittenen Ausschlusszonen)
-- [ ] Aufgaben speichern, Reihenfolge, mehrere zu einer Route verketten
+- [x] Aufgaben speichern (mehrere Teile), Reihenfolge, mehrere zu einer Route verketten, Legacy-Import (an echten Daten geprüft: 111 Aufgaben, alle berechenbar)
 - [x] Mähen starten (Route + Karte senden, Start-Prüfungen), Fortschritt, zu Fortschritt springen, Punkt überspringen (Simulator + E2E)
 - [ ] Goto mit A*-Wegfindung aus dem Planner
 - **Fertig, wenn:** eine komplette Mähaufgabe vom Planen bis zum Docken auf dem echten Roboter läuft.

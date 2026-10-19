@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { PlanStore } from '#features/tasks/store.svelte.ts';
+import { PlanStore, TaskStore } from '#features/tasks/store.svelte.ts';
 import { EventStream, type EventSourceLike } from '#shared/events.ts';
-import { plan } from './fixtures.ts';
+import { plan, task } from './fixtures.ts';
 
 function fakeStream() {
 	const listeners = new Map<string, (ev: Event) => void>();
@@ -34,5 +34,16 @@ describe('PlanStore', () => {
 
 		stop();
 		expect(listeners.has('plan')).toBe(false);
+	});
+
+	it('TaskStore follows the tasks event and filters by map', () => {
+		const { stream, emit } = fakeStream();
+		const store = new TaskStore();
+		const stop = store.connect(stream);
+		emit('tasks', { tasks: [task('a', 'A'), task('b', 'B', { mapId: 'm2' })] });
+		expect(store.loaded).toBe(true);
+		expect(store.forMap('m1').map((t) => t.name)).toEqual(['A']);
+		expect(store.forMap(undefined)).toEqual([]);
+		stop();
 	});
 });

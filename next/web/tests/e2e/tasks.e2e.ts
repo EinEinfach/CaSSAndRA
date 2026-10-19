@@ -40,6 +40,9 @@ test.beforeAll(async ({ request }) => {
 
 test.afterAll(async ({ request }) => {
 	await request.post('/api/robot/stop');
+	for (const t of (await (await request.get('/api/tasks')).json()).tasks) {
+		await request.delete(`/api/tasks/${t.id}`);
+	}
 	await request.delete('/api/tasks/preview');
 	await request.put('/api/maps/active', { data: { id: previousActive } });
 	// Reconnecting starts a fresh simulator with the demo garden for the other tests.
@@ -96,4 +99,37 @@ test('start mowing the planned route, follow and jump ahead', async ({ page }) =
 	await button(page, 'Stop').click();
 	await expect(page.getByTestId('robot-status')).toHaveText('Idle', { timeout: 10_000 });
 	await expect(page.getByLabel('Route progress')).toHaveCount(0);
+});
+
+test('save tasks, plan two of them in order and delete one', async ({ page }) => {
+	await page.goto('/tasks');
+	await expect(page.getByText(/No saved tasks/)).toBeVisible();
+
+	for (const [name, pattern] of [
+		['E2E lines', 'Lines'],
+		['E2E rings', 'Rings']
+	] as const) {
+		await page.getByRole('radio', { name: pattern }).check({ force: true });
+		await page.getByLabel('Task name').fill(name);
+		await button(page, 'Save task').click();
+		await expect(page.getByRole('status')).toHaveText(`Saved ${name}.`);
+	}
+	const list = page.getByRole('list', { name: 'Saved tasks' });
+	await expect(list.getByRole('listitem')).toHaveCount(2);
+
+	// The checkbox is hidden behind the order badge: tap the task's name.
+	await list.getByText('E2E rings', { exact: true }).click();
+	await list.getByText('E2E lines', { exact: true }).click();
+	await button(page, 'Plan 2 tasks').click();
+	await expect(page.getByLabel('Planned route')).toContainText(/\d+ points/, { timeout: 15_000 });
+
+	// The choice survives a reload together with the plan.
+	await page.reload();
+	await expect(page.getByLabel('Mow E2E rings')).toBeChecked();
+	await expect(page.getByText(/changed since/)).toHaveCount(0);
+
+	await button(page, 'Delete E2E lines').click();
+	await button(page, 'Delete E2E lines?').click();
+	await expect(list.getByRole('listitem')).toHaveCount(1);
+	await expect(page.getByText(/changed since/)).toBeVisible();
 });

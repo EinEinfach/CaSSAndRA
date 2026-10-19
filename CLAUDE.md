@@ -53,7 +53,7 @@ next/
     robot/           Robot-Zustand, Statusableitung, Befehle (Mähen, Stop, Dock, Goto, Joystick …)
     maps/            Perimeter, Ausschlüsse, Dockpfad, Suchdraht; Kartenspeicher (eine Datei je Karte + active.json), Legacy-Import, API inkl. Upload zum Roboter
     planner/         C++-Planner (Mähroute, A*-Weg) über cgo hinter Build-Tag `cpp`; ohne Tag ErrUnavailable
-    tasks/           Aufgaben (Teilflächen + Parameter), Routenvorschau über planner (Event `plan`), später Reihenfolge und Speicherung
+    tasks/           Aufgaben (Teile aus Fläche + Parametern, tasks.json), Legacy-Import, Routenvorschau über planner (Event `plan`), Start
     schedule/        Zeitplan (Wochentag → Zeitfenster), startet Tasks
     settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
     stats/           Statistik und Verlauf (Batterie, Mähzeit, GPS-Qualität)
@@ -195,8 +195,14 @@ stattdessen eine Abweichung < 200. Der Simulator rechnet wie Sunray unter Linux.
 und beginnt sie neu, sobald der Status auf docked/charging wechselt oder über `DELETE /api/robot/trail`. Der Zustand
 trägt `trailId`; der Browser holt die Spur nur bei neuer Id (`GET /api/robot/trail`) und verlängert sie sonst selbst.
 
-**Routenvorschau (`tasks`):** `POST /api/tasks/preview` mit Auswahl (Polygon, leer = ganzer Garten) und Parametern
-(wie `settings.Planner`; Ausschlussrunden = Randrunden, mindestens 1). Start wie Legacy: angedockt (oder < 1 m von der
+**Aufgaben (`tasks`):** Eine Aufgabe gehört zu einer Karte und hat Teile (Auswahl-Polygon, leer = ganzer Garten, +
+Parameter wie `settings.Planner`; Ausschlussrunden = Randrunden, mindestens 1), wie die Legacy-„task nr“. Gespeichert in
+`tasks.json` (Event `tasks`); Aufgaben gelöschter Karten verschwinden mit. Import beim ersten Start aus
+`map/tasks.json` + `tasks_parameters.json` (Lasso und „range“ → Polygon, leerer Winkel → 0°, gecachte Routen verworfen,
+Zuordnung über den Kartennamen).
+
+**Routenvorschau:** `POST /api/tasks/preview` mit `parts` (im Browser gezeichnet) oder `taskIds` (gespeicherte Aufgaben
+in dieser Reihenfolge); jeder Teil startet am Endpunkt des vorherigen (Legacy `calc_task`). Start wie Legacy: angedockt (oder < 1 m von der
 Station) am Anfang des Dockpfads, außerhalb des Perimeters an der nächsten Ecke, sonst an der Position. Die Vorschau
 liegt nur im Speicher, geht als Event `plan` an alle Browser und verfällt, wenn sich die aktive Karte ändert. Bei
 überlappenden Anfragen bleibt die zuletzt gestellte. `POST /api/tasks/start` überträgt Karte + Route (`UploadMap`) und

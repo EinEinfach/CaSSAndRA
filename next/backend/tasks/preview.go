@@ -38,24 +38,25 @@ var (
 	ErrNothingToMow = errors.New("the selection leaves nothing to mow")
 )
 
-// Request is what the user wants mowed.
+// Request is what the user wants mowed: either parts drawn in the UI or
+// saved tasks of the active map, mowed in the given order.
 type Request struct {
-	// Selection is a polygon around the part to mow; empty = the whole garden.
-	Selection  []geo.Point `json:"selection"`
-	Parameters Parameters  `json:"parameters"`
+	Parts   []Part   `json:"parts"`
+	TaskIDs []string `json:"taskIds"`
 }
 
 // Plan is a computed route for the active map.
 type Plan struct {
 	MapID string `json:"mapId"`
 	// MapUpdatedAt is the version of the map the route was computed for.
-	MapUpdatedAt time.Time   `json:"mapUpdatedAt"`
-	Selection    []geo.Point `json:"selection"`
-	Parameters   Parameters  `json:"parameters"`
-	Start        geo.Point   `json:"start"`
-	Route        []geo.Point `json:"route"`
-	DistanceM    float64     `json:"distanceM"`
-	CreatedAt    time.Time   `json:"createdAt"`
+	MapUpdatedAt time.Time `json:"mapUpdatedAt"`
+	// TaskIDs are the saved tasks the route was planned for, if any.
+	TaskIDs   []string    `json:"taskIds"`
+	Parts     []Part      `json:"parts"`
+	Start     geo.Point   `json:"start"`
+	Route     []geo.Point `json:"route"`
+	DistanceM float64     `json:"distanceM"`
+	CreatedAt time.Time   `json:"createdAt"`
 }
 
 // Config holds what the service needs.
@@ -69,6 +70,7 @@ type Service struct {
 	planner Planner
 	maps    Maps
 	robot   Robot
+	tasks   *Store
 	now     func() time.Time
 
 	mu        sync.Mutex
@@ -82,24 +84,18 @@ type Service struct {
 	notifyMu sync.Mutex
 }
 
-// New returns a service without a plan.
-func New(p Planner, m Maps, r Robot, cfg Config) *Service {
+// New returns a service without a plan; saved tasks come from store.
+func New(p Planner, m Maps, r Robot, store *Store, cfg Config) *Service {
 	if cfg.Now == nil {
 		cfg.Now = time.Now
 	}
-	return &Service{planner: p, maps: m, robot: r, now: cfg.Now}
+	return &Service{planner: p, maps: m, robot: r, tasks: store, now: cfg.Now}
 }
 
 // Preview computes the route for req on the active map, starting where the
 // robot is, and makes it the current plan. When previews overlap, the one
 // requested last stays, even if it finishes first.
 func (s *Service) Preview(ctx context.Context, req Request) (Plan, error) {
-	if err := req.Parameters.Validate(); err != nil {
-		return Plan{}, err
-	}
-	if err := validSelection(req.Selection); err != nil {
-		return Plan{}, err
-	}
 	id := s.maps.ActiveID()
 	if id == "" {
 		return Plan{}, ErrNoMap
@@ -107,6 +103,10 @@ func (s *Service) Preview(ctx context.Context, req Request) (Plan, error) {
 	m, err := s.maps.Get(id)
 	if err != nil {
 		return Plan{}, fmt.Errorf("%w: %w", ErrNoMap, err)
+	}
+	parts, err := s.parts(req, m.ID)
+	if err != nil {
+		return Plan{}, err
 	}
 	snap := s.robot.Snapshot()
 	start := startPoint(m, snap.Position, snap.Op == protocol.OpCharge)
@@ -116,21 +116,33 @@ func (s *Service) Preview(ctx context.Context, req Request) (Plan, error) {
 	seq := s.seq
 	s.mu.Unlock()
 
-	route, err := s.planner.Route(ctx, area(m, req.Selection), req.Parameters.settings(), start)
-	if errors.Is(err, planner.ErrInvalid) && len(req.Selection) > 0 {
-		return Plan{}, fmt.Errorf("%w: %w", ErrNothingToMow, err)
-	}
-	if err != nil {
-		return Plan{}, err
-	}
-	if len(route) < 2 {
-		return Plan{}, ErrNothingToMow
+	// Each part starts where the previous one ended (legacy calc_task).
+	var route []geo.Point
+	for i, part := range parts {
+		from := start
+		if len(route) > 0 {
+			from = route[len(route)-1]
+		}
+		r, err := s.planner.Route(ctx, area(m, part.Selection), part.Parameters.settings(), from)
+		if errors.Is(err, planner.ErrInvalid) && len(part.Selection) > 0 {
+			return Plan{}, fmt.Errorf("%w (part %d): %w", ErrNothingToMow, i+1, err)
+		}
+		if err != nil {
+			return Plan{}, err
+		}
+		if len(r) < 2 {
+			return Plan{}, fmt.Errorf("%w (part %d)", ErrNothingToMow, i+1)
+		}
+		if len(route) > 0 {
+			route = route[:len(route)-1] // the same point starts the next part
+		}
+		route = append(route, r...)
 	}
 	plan := Plan{
 		MapID:        m.ID,
 		MapUpdatedAt: m.UpdatedAt,
-		Selection:    nonNil(req.Selection),
-		Parameters:   req.Parameters,
+		TaskIDs:      nonNilStrings(req.TaskIDs),
+		Parts:        parts,
 		Start:        start,
 		Route:        route,
 		DistanceM:    length(route),
@@ -146,6 +158,40 @@ func (s *Service) Preview(ctx context.Context, req Request) (Plan, error) {
 	s.mu.Unlock()
 	s.changed()
 	return plan, nil
+}
+
+// parts checks the request and returns the parts to mow, in order.
+func (s *Service) parts(req Request, mapID string) ([]Part, error) {
+	switch {
+	case len(req.Parts) > 0 && len(req.TaskIDs) > 0:
+		return nil, fmt.Errorf("%w: give either parts or taskIds", ErrInvalid)
+	case len(req.TaskIDs) > 0:
+		var parts []Part
+		for _, id := range req.TaskIDs {
+			t, err := s.tasks.Get(id)
+			if err != nil {
+				return nil, err
+			}
+			if t.MapID != mapID {
+				return nil, fmt.Errorf("%w: task %q belongs to another map", ErrInvalid, t.Name)
+			}
+			parts = append(parts, t.Parts...)
+		}
+		return parts, nil
+	case len(req.Parts) > maxParts:
+		return nil, fmt.Errorf("%w: at most %d parts", ErrInvalid, maxParts)
+	case len(req.Parts) == 0:
+		return nil, fmt.Errorf("%w: nothing requested", ErrInvalid)
+	}
+	parts := make([]Part, len(req.Parts))
+	for i, p := range req.Parts {
+		if err := p.Validate(); err != nil {
+			return nil, fmt.Errorf("part %d: %w", i+1, err)
+		}
+		p.Selection = nonNil(p.Selection)
+		parts[i] = p
+	}
+	return parts, nil
 }
 
 // Current returns the current plan, nil if there is none.
@@ -202,6 +248,13 @@ func (s *Service) changed() {
 	for _, f := range listeners {
 		f(plan)
 	}
+}
+
+func nonNilStrings(s []string) []string {
+	if s == nil {
+		return []string{}
+	}
+	return s
 }
 
 func nonNil(p []geo.Point) []geo.Point {

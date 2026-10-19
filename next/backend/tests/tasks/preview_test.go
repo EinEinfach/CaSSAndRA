@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -52,7 +53,7 @@ func TestParametersValidate(t *testing.T) {
 func TestPreviewAsksThePlanner(t *testing.T) {
 	f := newFixture(t)
 	sel := []geo.Point{{X: 1, Y: 1}, {X: 3, Y: 1}, {X: 3, Y: 3}}
-	plan, err := f.svc.Preview(context.Background(), tasks.Request{Selection: sel, Parameters: params})
+	plan, err := f.svc.Preview(context.Background(), one(sel, params))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +88,7 @@ func TestPreviewAsksThePlanner(t *testing.T) {
 	if want := math.Hypot(5, 2) + 30; math.Abs(plan.DistanceM-want) > 1e-9 {
 		t.Errorf("distance = %v, want %v", plan.DistanceM, want)
 	}
-	if !plan.CreatedAt.Equal(t0) || len(plan.Selection) != 3 || plan.Parameters != params {
+	if !plan.CreatedAt.Equal(t0) || len(plan.Parts) != 1 || len(plan.Parts[0].Selection) != 3 || plan.Parts[0].Parameters != params {
 		t.Errorf("plan = %+v", plan)
 	}
 	if cur := f.svc.Current(); cur == nil || len(cur.Route) != 5 {
@@ -97,15 +98,15 @@ func TestPreviewAsksThePlanner(t *testing.T) {
 
 func TestPreviewOfTheWholeGarden(t *testing.T) {
 	f := newFixture(t)
-	plan, err := f.svc.Preview(context.Background(), tasks.Request{Parameters: params})
+	plan, err := f.svc.Preview(context.Background(), one(nil, params))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if c := f.planner.Routes()[0]; c.Area.MowAreas != nil {
 		t.Errorf("mow areas = %v, want none", c.Area.MowAreas)
 	}
-	if plan.Selection == nil {
-		t.Error("selection is nil, want [] for the JSON")
+	if plan.Parts[0].Selection == nil || plan.TaskIDs == nil {
+		t.Error("selection or task IDs nil, want [] for the JSON")
 	}
 }
 
@@ -123,7 +124,7 @@ func TestExclusionLapsFollowTheBorderLaps(t *testing.T) {
 		f := newFixture(t)
 		p := params
 		p.BorderLaps, p.MowExclusions = tt.borderLaps, tt.mowExclusions
-		if _, err := f.svc.Preview(context.Background(), tasks.Request{Parameters: p}); err != nil {
+		if _, err := f.svc.Preview(context.Background(), one(nil, p)); err != nil {
 			t.Fatal(err)
 		}
 		if got := f.planner.Routes()[0].Settings.ExclusionLaps; got != tt.want {
@@ -151,7 +152,7 @@ func TestRouteStartsWhereTheRobotLeavesFrom(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f := newFixture(t)
 			f.robot.set(tt.pos, tt.op)
-			plan, err := f.svc.Preview(context.Background(), tasks.Request{Parameters: params})
+			plan, err := f.svc.Preview(context.Background(), one(nil, params))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -169,25 +170,25 @@ func TestPreviewErrors(t *testing.T) {
 		req   tasks.Request
 		want  error
 	}{
-		{"invalid parameters", nil, tasks.Request{Parameters: tasks.Parameters{Pattern: "lines"}}, tasks.ErrInvalid},
-		{"selection of two points", nil, tasks.Request{Selection: []geo.Point{{X: 1, Y: 1}, {X: 2, Y: 2}}, Parameters: params}, tasks.ErrInvalid},
-		{"selection with NaN", nil, tasks.Request{Selection: []geo.Point{{X: 1, Y: 1}, {X: math.NaN(), Y: 2}, {X: 2, Y: 1}}, Parameters: params}, tasks.ErrInvalid},
-		{"no active map", func(f *fixture) { _ = f.maps.SetActive("") }, tasks.Request{Parameters: params}, tasks.ErrNoMap},
+		{"invalid parameters", nil, one(nil, tasks.Parameters{Pattern: "lines"}), tasks.ErrInvalid},
+		{"selection of two points", nil, one([]geo.Point{{X: 1, Y: 1}, {X: 2, Y: 2}}, params), tasks.ErrInvalid},
+		{"selection with NaN", nil, one([]geo.Point{{X: 1, Y: 1}, {X: math.NaN(), Y: 2}, {X: 2, Y: 1}}, params), tasks.ErrInvalid},
+		{"no active map", func(f *fixture) { _ = f.maps.SetActive("") }, one(nil, params), tasks.ErrNoMap},
 		{"planner unavailable", func(f *fixture) {
 			f.planner.RouteFunc = func(planner.Area, planner.Settings, geo.Point) ([]geo.Point, error) {
 				return nil, planner.ErrUnavailable
 			}
-		}, tasks.Request{Parameters: params}, planner.ErrUnavailable},
+		}, one(nil, params), planner.ErrUnavailable},
 		{"empty route", func(f *fixture) {
 			f.planner.RouteFunc = func(_ planner.Area, _ planner.Settings, start geo.Point) ([]geo.Point, error) {
 				return []geo.Point{start}, nil
 			}
-		}, tasks.Request{Parameters: params}, tasks.ErrNothingToMow},
+		}, one(nil, params), tasks.ErrNothingToMow},
 		{"selection outside the garden", func(f *fixture) {
 			f.planner.RouteFunc = func(planner.Area, planner.Settings, geo.Point) ([]geo.Point, error) {
 				return nil, planner.ErrInvalid
 			}
-		}, tasks.Request{Selection: []geo.Point{{X: 20, Y: 20}, {X: 30, Y: 20}, {X: 30, Y: 30}}, Parameters: params}, tasks.ErrNothingToMow},
+		}, one([]geo.Point{{X: 20, Y: 20}, {X: 30, Y: 20}, {X: 30, Y: 30}}, params), tasks.ErrNothingToMow},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -218,7 +219,7 @@ func TestTheLastRequestedPreviewStays(t *testing.T) {
 		p := params
 		p.WidthM = width
 		go func() {
-			_, err := f.svc.Preview(context.Background(), tasks.Request{Parameters: p})
+			_, err := f.svc.Preview(context.Background(), one(nil, p))
 			done <- err
 		}()
 		return done
@@ -236,7 +237,7 @@ func TestTheLastRequestedPreviewStays(t *testing.T) {
 	if err := <-first; err != nil {
 		t.Fatal(err)
 	}
-	if got := f.svc.Current().Parameters.WidthM; got != 0.3 {
+	if got := f.svc.Current().Parts[0].Parameters.WidthM; got != 0.3 {
 		t.Errorf("plan has width %v, want 0.3 from the later request", got)
 	}
 }
@@ -250,7 +251,7 @@ func TestClearAndNotifications(t *testing.T) {
 		defer mu.Unlock()
 		got = append(got, p)
 	})
-	if _, err := f.svc.Preview(context.Background(), tasks.Request{Parameters: params}); err != nil {
+	if _, err := f.svc.Preview(context.Background(), one(nil, params)); err != nil {
 		t.Fatal(err)
 	}
 	f.svc.Clear()
@@ -296,7 +297,7 @@ func TestPlanFollowsTheActiveMap(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f := newFixture(t)
 			f.maps.OnChange(f.svc.MapsChanged)
-			if _, err := f.svc.Preview(context.Background(), tasks.Request{Parameters: params}); err != nil {
+			if _, err := f.svc.Preview(context.Background(), one(nil, params)); err != nil {
 				t.Fatal(err)
 			}
 			tt.change(t, f)
@@ -315,5 +316,86 @@ func waitFor(t *testing.T, cond func() bool) {
 			t.Fatal("condition not met in time")
 		}
 		time.Sleep(time.Millisecond)
+	}
+}
+
+func TestPartsAreChainedEndToStart(t *testing.T) {
+	f := newFixture(t)
+	n := 0
+	f.planner.RouteFunc = func(_ planner.Area, _ planner.Settings, start geo.Point) ([]geo.Point, error) {
+		n++
+		end := geo.Point{X: float64(n), Y: float64(n)}
+		return []geo.Point{start, {X: 9, Y: float64(n)}, end}, nil
+	}
+	sel := []geo.Point{{X: 1, Y: 1}, {X: 3, Y: 1}, {X: 3, Y: 3}}
+	req := tasks.Request{Parts: []tasks.Part{{Parameters: params}, {Selection: sel, Parameters: params}}}
+	plan, err := f.svc.Preview(context.Background(), req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	calls := f.planner.Routes()
+	if len(calls) != 2 || calls[1].Start != (geo.Point{X: 1, Y: 1}) || len(calls[1].Area.MowAreas) != 1 {
+		t.Fatalf("calls = %+v, want the second part to start at the end of the first", calls)
+	}
+	want := []geo.Point{{X: 5, Y: 2}, {X: 9, Y: 1}, {X: 1, Y: 1}, {X: 9, Y: 2}, {X: 2, Y: 2}}
+	if !slices.Equal(plan.Route, want) {
+		t.Errorf("route = %v, want %v (the joint point once)", plan.Route, want)
+	}
+	if len(plan.Parts) != 2 {
+		t.Errorf("plan parts = %d, want 2", len(plan.Parts))
+	}
+}
+
+func TestPreviewOfSavedTasksInTheGivenOrder(t *testing.T) {
+	f := newFixture(t)
+	wide := params
+	wide.WidthM = 0.5
+	a, err := f.tasks.Create(tasks.Task{Name: "A", MapID: f.mapID, Parts: []tasks.Part{{Parameters: params}, {Parameters: params}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := f.tasks.Create(tasks.Task{Name: "B", MapID: f.mapID, Parts: []tasks.Part{{Parameters: wide}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := f.svc.Preview(context.Background(), tasks.Request{TaskIDs: []string{b.ID, a.ID}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	calls := f.planner.Routes()
+	if len(calls) != 3 || calls[0].Settings.LaneWidthM != 0.5 || calls[1].Settings.LaneWidthM != 0.2 {
+		t.Errorf("calls = %+v, want B, then both parts of A", calls)
+	}
+	if !slices.Equal(plan.TaskIDs, []string{b.ID, a.ID}) || len(plan.Parts) != 3 {
+		t.Errorf("plan tasks %v with %d parts", plan.TaskIDs, len(plan.Parts))
+	}
+}
+
+func TestPreviewOfTasksRefuses(t *testing.T) {
+	f := newFixture(t)
+	other, err := f.tasks.Create(tasks.Task{Name: "Elsewhere", MapID: "another-map", Parts: []tasks.Part{{Parameters: params}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	mine, err := f.tasks.Create(tasks.Task{Name: "Mine", MapID: f.mapID, Parts: []tasks.Part{{Parameters: params}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		name string
+		req  tasks.Request
+		want error
+	}{
+		{"unknown task", tasks.Request{TaskIDs: []string{"nope"}}, tasks.ErrNotFound},
+		{"task of another map", tasks.Request{TaskIDs: []string{other.ID}}, tasks.ErrInvalid},
+		{"tasks and parts", tasks.Request{TaskIDs: []string{mine.ID}, Parts: []tasks.Part{{Parameters: params}}}, tasks.ErrInvalid},
+		{"nothing", tasks.Request{}, tasks.ErrInvalid},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if _, err := f.svc.Preview(context.Background(), tt.req); !errors.Is(err, tt.want) {
+				t.Errorf("err = %v, want %v", err, tt.want)
+			}
+		})
 	}
 }

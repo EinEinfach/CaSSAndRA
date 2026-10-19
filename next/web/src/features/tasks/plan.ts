@@ -1,6 +1,6 @@
 // Describing a computed route.
 import type { RobotStatus } from '#features/robot/types.ts';
-import type { Parameters, Plan, PreviewRequest } from './types.ts';
+import type { Parameters, Part, Plan } from './types.ts';
 
 /** A route can be sent while the robot stands still: idle or in the dock. */
 export function canStartRoute(status: RobotStatus): boolean {
@@ -13,11 +13,22 @@ const sameNumbers = (a: { x: number; y: number }[], b: { x: number; y: number }[
 const sameParameters = (a: Parameters, b: Parameters) =>
 	(Object.keys(a) as (keyof Parameters)[]).every((k) => a[k] === b[k]);
 
-/** Whether the plan was computed for exactly this request. */
-export function planMatches(plan: Plan, req: PreviewRequest): boolean {
+/** Whether the plan was computed for exactly these drawn parts. */
+export function planMatchesParts(plan: Plan, parts: Part[]): boolean {
 	return (
-		sameNumbers(plan.selection, req.selection) && sameParameters(plan.parameters, req.parameters)
+		plan.taskIds.length === 0 &&
+		plan.parts.length === parts.length &&
+		plan.parts.every(
+			(p, i) =>
+				sameNumbers(p.selection, parts[i].selection) &&
+				sameParameters(p.parameters, parts[i].parameters)
+		)
 	);
+}
+
+/** Whether the plan was computed for these saved tasks, in this order. */
+export function planMatchesTasks(plan: Plan, taskIds: string[]): boolean {
+	return plan.taskIds.length === taskIds.length && plan.taskIds.every((id, i) => id === taskIds[i]);
 }
 
 export function formatDistance(m: number): string {

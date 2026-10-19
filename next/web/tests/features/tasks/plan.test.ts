@@ -3,24 +3,40 @@ import {
 	canStartRoute,
 	formatDistance,
 	formatDuration,
-	planMatches
+	planMatchesParts,
+	planMatchesTasks
 } from '#features/tasks/plan.ts';
 import { pts } from '../maps/fixtures.ts';
 import { parameters, plan } from './fixtures.ts';
 
 describe('plan', () => {
-	it('matches the request it was computed for', () => {
-		const p = plan({ selection: pts(0, 0, 1, 0, 1, 1) });
-		expect(planMatches(p, { selection: pts(0, 0, 1, 0, 1, 1), parameters: parameters() })).toBe(
-			true
-		);
-		expect(planMatches(p, { selection: pts(0, 0, 1, 0, 1, 2), parameters: parameters() })).toBe(
-			false
-		);
-		expect(planMatches(p, { selection: [], parameters: parameters() })).toBe(false);
+	it('matches the drawn parts it was computed for', () => {
+		const sel = pts(0, 0, 1, 0, 1, 1);
+		const p = plan({ parts: [{ selection: sel, parameters: parameters() }] });
 		expect(
-			planMatches(p, { selection: p.selection, parameters: parameters({ angleDeg: 45 }) })
+			planMatchesParts(p, [{ selection: pts(0, 0, 1, 0, 1, 1), parameters: parameters() }])
+		).toBe(true);
+		expect(
+			planMatchesParts(p, [{ selection: pts(0, 0, 1, 0, 1, 2), parameters: parameters() }])
 		).toBe(false);
+		expect(planMatchesParts(p, [{ selection: [], parameters: parameters() }])).toBe(false);
+		expect(
+			planMatchesParts(p, [{ selection: sel, parameters: parameters({ angleDeg: 45 }) }])
+		).toBe(false);
+		expect(
+			planMatchesParts(p, [
+				{ selection: sel, parameters: parameters() },
+				{ selection: sel, parameters: parameters() }
+			])
+		).toBe(false);
+		expect(planMatchesParts(plan({ taskIds: ['a'] }), plan().parts)).toBe(false);
+	});
+
+	it('matches the saved tasks it was computed for, in order', () => {
+		const p = plan({ taskIds: ['a', 'b'] });
+		expect(planMatchesTasks(p, ['a', 'b'])).toBe(true);
+		expect(planMatchesTasks(p, ['b', 'a'])).toBe(false);
+		expect(planMatchesTasks(p, ['a'])).toBe(false);
 	});
 
 	it('starts a route only while the robot stands still', () => {

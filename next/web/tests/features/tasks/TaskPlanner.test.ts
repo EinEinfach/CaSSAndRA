@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import TaskPlanner from '#features/tasks/TaskPlanner.svelte';
-import type { PreviewRequest } from '#features/tasks/types.ts';
+import type { PreviewRequest, TaskShape } from '#features/tasks/types.ts';
 import { garden, pts } from '../maps/fixtures.ts';
-import { parameters, plan } from './fixtures.ts';
+import { parameters, plan, task } from './fixtures.ts';
 
 beforeEach(() => {
 	vi.stubGlobal(
@@ -36,11 +36,16 @@ function pointer(type: string, x: number, y: number) {
 const button = (name: string | RegExp) => screen.getByRole('button', { name }) as HTMLButtonElement;
 
 function setup(props: Partial<Parameters<typeof render<typeof TaskPlanner>>[1]> = {}) {
-	const preview = vi.fn(async (req: PreviewRequest) => plan({ selection: req.selection }));
+	const preview = vi.fn(async (req: PreviewRequest) =>
+		plan({ parts: req.parts ?? [], taskIds: req.taskIds ?? [] })
+	);
 	const discard = vi.fn(async () => {});
 	const start = vi.fn(async () => {});
+	const save = vi.fn<(t: TaskShape, id: string | null) => Promise<void>>(async () => {});
+	const remove = vi.fn<(id: string) => Promise<void>>(async () => {});
 	const result = render(TaskPlanner, {
 		map: garden(),
+		tasks: [],
 		plan: null,
 		planLoaded: true,
 		defaults: parameters(),
@@ -49,16 +54,20 @@ function setup(props: Partial<Parameters<typeof render<typeof TaskPlanner>>[1]> 
 		preview,
 		discard,
 		start,
+		save,
+		remove,
 		...props
 	});
-	return { preview, discard, start, ...result };
+	return { preview, discard, start, save, remove, ...result };
 }
+
+const whole = { selection: [], parameters: parameters() };
 
 describe('TaskPlanner', () => {
 	it('plans the whole garden with the default parameters', async () => {
 		const { preview } = setup();
 		await userEvent.click(button('Calculate route'));
-		expect(preview).toHaveBeenCalledWith({ selection: [], parameters: parameters() });
+		expect(preview).toHaveBeenCalledWith({ parts: [whole] });
 	});
 
 	it('sends changed parameters', async () => {
@@ -70,8 +79,12 @@ describe('TaskPlanner', () => {
 		await userEvent.click(screen.getByLabelText('Mow around exclusions'));
 		await userEvent.click(button('Calculate route'));
 		expect(preview).toHaveBeenCalledWith({
-			selection: [],
-			parameters: parameters({ pattern: 'rings', angleDeg: 45, mowExclusions: false })
+			parts: [
+				{
+					selection: [],
+					parameters: parameters({ pattern: 'rings', angleDeg: 45, mowExclusions: false })
+				}
+			]
 		});
 	});
 
@@ -79,7 +92,7 @@ describe('TaskPlanner', () => {
 		const { preview } = setup();
 		await userEvent.click(screen.getByRole('radio', { name: 'Rectangle' }));
 		expect(button('Calculate route').disabled).toBe(true);
-		expect(screen.getByText('Select a part of the garden first.')).toBeTruthy();
+		expect(screen.getByText('Select an area for every part first.')).toBeTruthy();
 
 		pointer('pointerdown', 1, 1);
 		pointer('pointermove', 3, 2);
@@ -87,10 +100,57 @@ describe('TaskPlanner', () => {
 		pointer('pointerup', 5, 4);
 		await tick();
 		await userEvent.click(button('Calculate route'));
-		const sel = preview.mock.calls[0][0].selection;
+		const sel = preview.mock.calls[0][0].parts![0].selection;
 		expect(sel).toHaveLength(4);
 		expect(sel[0].x).toBeCloseTo(1, 1);
 		expect(sel[2].y).toBeCloseTo(4, 1);
+	});
+
+	it('plans two parts one after another', async () => {
+		const { preview } = setup();
+		await userEvent.click(button('+ Part'));
+		await userEvent.click(screen.getByRole('radio', { name: 'Squares' }));
+		expect(screen.getByRole('tab', { name: 'Part 2' }).getAttribute('aria-selected')).toBe('true');
+		await userEvent.click(button('Calculate route'));
+		expect(preview.mock.calls[0][0].parts!.map((p) => p.parameters.pattern)).toEqual([
+			'lines',
+			'squares'
+		]);
+	});
+
+	it('saves the drawn task under a name', async () => {
+		const { save } = setup();
+		expect(button('Save task').disabled).toBe(true);
+		await userEvent.type(screen.getByLabelText('Task name'), 'Front');
+		await userEvent.click(button('Save task'));
+		expect(save).toHaveBeenCalledWith({ name: 'Front', mapId: 'm1', parts: [whole] }, null);
+		expect(screen.getByRole('status').textContent).toBe('Saved Front.');
+		expect((screen.getByLabelText('Task name') as HTMLInputElement).value).toBe('');
+	});
+
+	it('changes a saved task', async () => {
+		const { save } = setup({ tasks: [task('t1', 'Back')] });
+		await userEvent.click(button('Edit'));
+		expect(screen.getByRole('heading', { name: 'Edit Back' })).toBeTruthy();
+		await userEvent.click(screen.getByRole('radio', { name: 'Rings' }));
+		await userEvent.click(button('Save changes'));
+		expect(save).toHaveBeenCalledWith(
+			{
+				name: 'Back',
+				mapId: 'm1',
+				parts: [{ selection: [], parameters: parameters({ pattern: 'rings' }) }]
+			},
+			't1'
+		);
+	});
+
+	it('plans the chosen saved tasks in the order they were chosen', async () => {
+		const { preview } = setup({ tasks: [task('a', 'A'), task('b', 'B')] });
+		expect(button('Plan task').disabled).toBe(true);
+		await userEvent.click(screen.getByLabelText('Mow B'));
+		await userEvent.click(screen.getByLabelText('Mow A'));
+		await userEvent.click(button('Plan 2 tasks'));
+		expect(preview).toHaveBeenCalledWith({ taskIds: ['b', 'a'] });
 	});
 
 	it('shows the planned route and notices changes since', async () => {
@@ -108,17 +168,24 @@ describe('TaskPlanner', () => {
 		expect(screen.queryByLabelText('Planned route')).toBeNull();
 	});
 
+	it('notices a different choice of saved tasks', async () => {
+		setup({ tasks: [task('a', 'A'), task('b', 'B')], plan: plan({ taskIds: ['a'] }) });
+		expect(screen.queryByText(/changed since/)).toBeNull();
+		await userEvent.click(screen.getByLabelText('Mow B'));
+		expect(screen.getByText(/changed since/)).toBeTruthy();
+		expect(button('Start mowing').disabled).toBe(true);
+	});
+
 	it('opens with the area and parameters of the current plan', async () => {
 		const sel = pts(1, 1, 4, 1, 4, 4);
 		const { preview } = setup({
-			plan: plan({ selection: sel, parameters: parameters({ widthM: 0.3 }) })
+			plan: plan({ parts: [{ selection: sel, parameters: parameters({ widthM: 0.3 }) }] })
 		});
 		expect((screen.getByRole('radio', { name: 'Polygon' }) as HTMLInputElement).checked).toBe(true);
 		expect((screen.getByLabelText(/Lane width/) as HTMLInputElement).value).toBe('0.3');
 		await userEvent.click(button('Calculate route'));
 		expect(preview).toHaveBeenCalledWith({
-			selection: sel,
-			parameters: parameters({ widthM: 0.3 })
+			parts: [{ selection: sel, parameters: parameters({ widthM: 0.3 }) }]
 		});
 	});
 
@@ -144,26 +211,20 @@ describe('TaskPlanner', () => {
 		expect(button('Start mowing').disabled).toBe(false);
 	});
 
-	it('shows why the robot did not start', async () => {
+	it('shows why something failed', async () => {
 		setup({
 			plan: plan(),
 			start: vi.fn(async () => Promise.reject(new Error('robot is offline')))
 		});
 		await userEvent.click(button('Start mowing'));
 		expect(screen.getByRole('alert').textContent).toBe('robot is offline');
+		expect(button('Calculate route').disabled).toBe(false);
 	});
 
 	it('discards the route', async () => {
 		const { discard } = setup({ plan: plan() });
 		await userEvent.click(button('Discard route'));
 		expect(discard).toHaveBeenCalled();
-	});
-
-	it('shows why a route could not be computed', async () => {
-		setup({ preview: vi.fn(async () => Promise.reject(new Error('no active map'))) });
-		await userEvent.click(button('Calculate route'));
-		expect(screen.getByRole('alert').textContent).toBe('no active map');
-		expect(button('Calculate route').disabled).toBe(false);
 	});
 
 	it('asks for a map when none is active', () => {

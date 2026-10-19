@@ -19,7 +19,7 @@ import (
 func planned(t *testing.T) *fixture {
 	t.Helper()
 	f := newFixture(t)
-	if _, err := f.svc.Preview(context.Background(), tasks.Request{Parameters: params}); err != nil {
+	if _, err := f.svc.Preview(context.Background(), one(nil, params)); err != nil {
 		t.Fatal(err)
 	}
 	return f

@@ -3,14 +3,22 @@
 	import type { MapLayers, RobotPose } from '#shared/drawMap.ts';
 	import type { GardenMap } from '#features/maps/types.ts';
 	import type { RobotStatus } from '#features/robot/types.ts';
-	import { canStartRoute, formatDistance, formatDuration, planMatches } from './plan.ts';
-	import type { Tool } from './selection.ts';
+	import PartForm from './PartForm.svelte';
+	import {
+		canStartRoute,
+		formatDistance,
+		formatDuration,
+		planMatchesParts,
+		planMatchesTasks
+	} from './plan.ts';
 	import { PlanSession } from './session.svelte.ts';
-	import type { Parameters, Plan, PreviewRequest } from './types.ts';
+	import TaskList from './TaskList.svelte';
+	import type { Parameters, Plan, PreviewRequest, Task, TaskShape } from './types.ts';
 
 	let {
 		map,
 		robot = null,
+		tasks,
 		plan,
 		planLoaded,
 		defaults,
@@ -18,11 +26,15 @@
 		robotStatus,
 		preview,
 		discard,
-		start
+		start,
+		save,
+		remove
 	}: {
 		/** The active map; null = none. */
 		map: GardenMap | null;
 		robot?: RobotPose | null;
+		/** Saved tasks of the active map. */
+		tasks: Task[];
 		plan: Plan | null;
 		/** True once the plan event arrived, so the page can show the last plan. */
 		planLoaded: boolean;
@@ -33,11 +45,17 @@
 		discard: () => Promise<void>;
 		/** Sends the route to the robot and starts mowing. */
 		start: () => Promise<void>;
+		/** Creates (id null) or changes a saved task. */
+		save: (task: TaskShape, id: string | null) => Promise<unknown>;
+		remove: (id: string) => Promise<void>;
 	} = $props();
 
+	type Action = 'plan' | 'calculate' | 'save' | 'delete' | 'start' | 'discard';
+
 	const session = new PlanSession();
-	let busy = $state<'calculate' | 'start' | 'discard' | null>(null);
+	let busy = $state<Action | null>(null);
 	let error = $state('');
+	let saved = $state('');
 
 	$effect(() => {
 		if (planLoaded) session.adopt(plan);
@@ -45,11 +63,19 @@
 	$effect(() => {
 		if (defaults) session.useDefaults(defaults);
 	});
+	$effect(() => {
+		const ids = tasks.map((t) => t.id);
+		session.keepChosen(ids);
+	});
 
 	const shownPlan = $derived(plan && map && plan.mapId === map.id ? plan : null);
-	const outdated = $derived(
-		shownPlan !== null && session.request !== null && !planMatches(shownPlan, session.request)
-	);
+	const outdated = $derived.by(() => {
+		if (!shownPlan) return false;
+		if (shownPlan.taskIds.length > 0) return !planMatchesTasks(shownPlan, session.chosen);
+		return session.drafted !== null && !planMatchesParts(shownPlan, session.drafted);
+	});
+	const startable = $derived(shownPlan !== null && !outdated && canStartRoute(robotStatus));
+	const task = $derived(map ? session.toTask(map.id) : null);
 
 	const interact: MapInteraction = {
 		tap: (p) => session.tap(p),
@@ -68,20 +94,9 @@
 		...session.canvasLayers
 	});
 
-	const tools: { tool: Tool; label: string }[] = [
-		{ tool: 'all', label: 'Whole garden' },
-		{ tool: 'rectangle', label: 'Rectangle' },
-		{ tool: 'polygon', label: 'Polygon' }
-	];
-
-	const toolHint: Record<Tool, string> = {
-		all: 'The route covers the whole garden.',
-		rectangle: 'Drag on the map to draw a rectangle.',
-		polygon: 'Tap the map to add corners, drag a corner to move it.'
-	};
-
-	async function run(what: NonNullable<typeof busy>, action: () => Promise<unknown>) {
+	async function run(what: Action, action: () => Promise<unknown>) {
 		error = '';
+		saved = '';
 		busy = what;
 		try {
 			await action();
@@ -92,7 +107,12 @@
 		}
 	}
 
-	const startable = $derived(shownPlan !== null && !outdated && canStartRoute(robotStatus));
+	async function saveTask() {
+		const name = task!.name;
+		await save(task!, session.editing);
+		session.reset();
+		saved = `Saved ${name}.`;
+	}
 </script>
 
 <div class="planner">
@@ -107,102 +127,71 @@
 		{#if !map}
 			<p class="empty">No active map. Choose or draw one under Maps.</p>
 		{:else}
-			<section>
-				<h2>Area</h2>
-				<div class="segmented" role="radiogroup" aria-label="Area">
-					{#each tools as t (t.tool)}
-						<label class:selected={session.tool === t.tool}>
-							<input
-								type="radio"
-								name="tool"
-								checked={session.tool === t.tool}
-								onchange={() => session.setTool(t.tool)}
-							/>
-							{t.label}
-						</label>
-					{/each}
-				</div>
-				<p class="hint">{toolHint[session.tool]}</p>
-				{#if session.tool !== 'all'}
-					<!-- always there, so the form below does not jump when drawing starts -->
-					<div class="row">
-						{#if session.tool === 'polygon'}
-							<button
-								type="button"
-								disabled={session.selection.length === 0}
-								onclick={() => session.removeLastCorner()}
-							>
-								Remove last corner
-							</button>
-						{/if}
-						<button
-							type="button"
-							disabled={session.selection.length === 0}
-							onclick={() => session.clearSelection()}
-						>
-							Clear selection
-						</button>
-					</div>
+			<section aria-label="Saved tasks">
+				<h2>Saved tasks</h2>
+				<TaskList
+					{tasks}
+					chosen={session.chosen}
+					busy={busy !== null}
+					toggle={(id) => session.toggle(id)}
+					edit={(t) => session.edit(t)}
+					remove={(id) => run('delete', () => remove(id))}
+				/>
+				{#if tasks.length > 0}
+					<button
+						type="button"
+						class:primary={session.chosen.length > 0 && (!shownPlan || outdated)}
+						disabled={busy !== null || session.chosen.length === 0}
+						onclick={() => run('plan', () => preview({ taskIds: session.chosen }))}
+					>
+						{busy === 'plan'
+							? 'Calculating…'
+							: session.chosen.length > 1
+								? `Plan ${session.chosen.length} tasks`
+								: 'Plan task'}
+					</button>
 				{/if}
 			</section>
 
-			{#if session.parameters}
-				{@const p = session.parameters}
-				<section>
-					<h2>Pattern</h2>
-					<div class="segmented" role="radiogroup" aria-label="Pattern">
-						{#each ['lines', 'squares', 'rings'] as const as pattern (pattern)}
-							<label class:selected={p.pattern === pattern}>
-								<input type="radio" name="pattern" value={pattern} bind:group={p.pattern} />
-								{pattern[0].toUpperCase() + pattern.slice(1)}
-							</label>
-						{/each}
-					</div>
-					<div class="grid">
-						<label class="field">
-							Lane width <span class="hint">m</span>
-							<input type="number" step="0.01" bind:value={p.widthM} />
-						</label>
-						<label class="field">
-							Angle <span class="hint">°</span>
-							<input type="number" step="1" bind:value={p.angleDeg} />
-						</label>
-						<label class="field">
-							Distance to border <span class="hint">lanes</span>
-							<input type="number" step="1" bind:value={p.distanceToBorder} />
-						</label>
-						<label class="field">
-							Border laps
-							<input type="number" step="1" bind:value={p.borderLaps} />
-						</label>
-					</div>
-					<label class="switch">
-						Mow the area
-						<input type="checkbox" bind:checked={p.mowArea} />
-					</label>
-					<label class="switch">
-						Mow around exclusions
-						<input type="checkbox" bind:checked={p.mowExclusions} />
-					</label>
-					<label class="switch">
-						Border counter-clockwise
-						<input type="checkbox" bind:checked={p.borderCcw} />
-					</label>
-				</section>
-			{/if}
-
-			<section>
+			<section aria-label="Task editor">
+				<h2>{session.editing ? `Edit ${session.name || 'task'}` : 'New task'}</h2>
+				<PartForm {session} />
 				<button
 					type="button"
-					class:primary={!shownPlan || outdated}
-					disabled={busy !== null || session.request === null}
-					onclick={() => run('calculate', () => preview(session.request!))}
+					disabled={busy !== null || session.drafted === null}
+					onclick={() => run('calculate', () => preview({ parts: session.drafted! }))}
 				>
 					{busy === 'calculate' ? 'Calculating…' : 'Calculate route'}
 				</button>
-				{#if session.tool !== 'all' && session.request === null}
-					<p class="hint">Select a part of the garden first.</p>
+				{#if session.part && session.drafted === null}
+					<p class="hint">Select an area for every part first.</p>
 				{/if}
+				<div class="save">
+					<input
+						class="text"
+						aria-label="Task name"
+						placeholder="Name of the task"
+						bind:value={session.name}
+					/>
+					<button
+						type="button"
+						disabled={busy !== null || task === null}
+						onclick={() => run('save', saveTask)}
+					>
+						{session.editing ? 'Save changes' : 'Save task'}
+					</button>
+				</div>
+				{#if session.editing}
+					<button type="button" class="link" onclick={() => session.reset()}>
+						Stop editing, start a new task
+					</button>
+				{/if}
+				{#if saved}
+					<p class="hint" role="status">{saved}</p>
+				{/if}
+			</section>
+
+			<section aria-label="Route">
 				{#if shownPlan}
 					<div class="result" aria-label="Planned route">
 						<strong>{formatDistance(shownPlan.distanceM)}</strong>
@@ -212,9 +201,7 @@
 						{/if}
 					</div>
 					{#if outdated}
-						<p class="hint">
-							Area or parameters changed since. Calculate again to update the route.
-						</p>
+						<p class="hint">The choice changed since. Calculate again to update the route.</p>
 					{/if}
 					<button
 						type="button"
@@ -275,15 +262,22 @@
 		color: var(--text-muted);
 		font-size: 0.85rem;
 	}
-	.row {
+	.save {
 		display: flex;
-		flex-wrap: wrap;
 		gap: 8px;
 	}
-	.grid {
-		display: grid;
-		gap: 12px;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+	.save input {
+		flex: 1;
+		min-width: 0;
+	}
+	.link {
+		align-self: flex-start;
+		border: none;
+		background: none;
+		padding: 0;
+		color: var(--text-muted);
+		text-decoration: underline;
+		font-size: 0.85rem;
 	}
 	.result {
 		display: flex;

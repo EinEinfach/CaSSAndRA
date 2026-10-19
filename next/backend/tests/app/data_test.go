@@ -18,6 +18,7 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tests/testkit"
 )
 
@@ -85,6 +86,22 @@ func TestFirstStartImportsLegacyData(t *testing.T) {
 	}
 	if !slices.Equal(names, []string{"Garden", "Yard"}) || active != "Yard" {
 		t.Errorf("maps %v, active %q; want Garden, Yard with Yard active", names, active)
+	}
+	var taskList tasks.ListJSON
+	if err := getJSON(r.baseURL+"/api/tasks", &taskList); err != nil {
+		t.Fatal(err)
+	}
+	mapOf := map[string]string{}
+	for _, m := range list.Maps {
+		mapOf[m.ID] = m.Name
+	}
+	var imported []string
+	for _, tk := range taskList.Tasks {
+		imported = append(imported, tk.Name+"@"+mapOf[tk.MapID])
+	}
+	slices.Sort(imported)
+	if !slices.Equal(imported, []string{"Everything@Yard", "Front lawn@Garden"}) {
+		t.Errorf("tasks %v, want Everything@Yard and Front lawn@Garden", imported)
 	}
 	r.cancel()
 	<-r.done

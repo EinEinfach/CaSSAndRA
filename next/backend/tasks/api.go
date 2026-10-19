@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -27,6 +28,16 @@ type PlanJSON struct {
 	Plan *Plan `json:"plan"` // null without a plan
 }
 
+// ListJSON is the response of GET /api/tasks and the "tasks" event.
+type ListJSON struct {
+	Tasks []Task `json:"tasks"`
+}
+
+// ListJSON returns all saved tasks.
+func (s *Service) ListJSON() ListJSON {
+	return ListJSON{Tasks: s.tasks.List()}
+}
+
 // PlanJSON returns the current plan in browser format.
 func (s *Service) PlanJSON() PlanJSON {
 	return PlanJSON{Plan: s.Current()}
@@ -35,6 +46,41 @@ func (s *Service) PlanJSON() PlanJSON {
 // Handler serves the tasks API under /api/tasks/.
 func (s *Service) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /api/tasks", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, s.ListJSON())
+	})
+	mux.HandleFunc("POST /api/tasks", func(w http.ResponseWriter, r *http.Request) {
+		var t Task
+		if !decode(w, r, &t) {
+			return
+		}
+		created, err := s.saveTask(t, true)
+		if err != nil {
+			writeError(w, errorStatus(err), err.Error())
+			return
+		}
+		writeJSON(w, http.StatusCreated, created)
+	})
+	mux.HandleFunc("PUT /api/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+		var t Task
+		if !decode(w, r, &t) {
+			return
+		}
+		t.ID = r.PathValue("id")
+		updated, err := s.saveTask(t, false)
+		if err != nil {
+			writeError(w, errorStatus(err), err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, updated)
+	})
+	mux.HandleFunc("DELETE /api/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+		if err := s.tasks.Delete(r.PathValue("id")); err != nil {
+			writeError(w, errorStatus(err), err.Error())
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("GET /api/tasks/preview", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, s.PlanJSON())
 	})
@@ -68,8 +114,23 @@ func (s *Service) Handler() http.Handler {
 	return mux
 }
 
+// saveTask stores t after checking that its map exists.
+func (s *Service) saveTask(t Task, create bool) (Task, error) {
+	if _, err := s.maps.Get(t.MapID); err != nil {
+		return Task{}, fmt.Errorf("%w: unknown map %q", ErrInvalid, t.MapID)
+	}
+	if create {
+		return s.tasks.Create(t)
+	}
+	return s.tasks.Update(t)
+}
+
 func errorStatus(err error) int {
 	switch {
+	case errors.Is(err, ErrNotFound):
+		return http.StatusNotFound
+	case errors.Is(err, ErrNameTaken):
+		return http.StatusConflict
 	case errors.Is(err, ErrInvalid), errors.Is(err, ErrNothingToMow), errors.Is(err, planner.ErrInvalid):
 		return http.StatusBadRequest
 	case errors.Is(err, ErrNoMap), errors.Is(err, ErrNoPlan), errors.Is(err, ErrStalePlan), errors.Is(err, ErrStarting):
