@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"os"
 	"strings"
@@ -151,6 +152,42 @@ func TestRouteStaysInTheGardenAndOutOfExclusions(t *testing.T) {
 	}
 }
 
+// A selection over the corner of the garden: only 0..3 x 0..3 lies inside.
+var cornerSelection = [][]geo.Point{{{X: -5, Y: -5}, {X: 3, Y: -5}, {X: 3, Y: 3}, {X: -5, Y: 3}}}
+
+func TestMowAreasAreCutToThePerimeter(t *testing.T) {
+	for _, pattern := range []planner.Pattern{planner.PatternLines, planner.PatternSquares, planner.PatternRings} {
+		for _, distance := range []float64{0, 0.5} {
+			t.Run(fmt.Sprintf("%s distance %v", pattern, distance), func(t *testing.T) {
+				a := square
+				a.MowAreas = cornerSelection
+				s := planner.Settings{Pattern: pattern, LaneWidthM: 0.25, DistanceToBorderM: distance, MowArea: true, BorderLaps: 1}
+				got, err := planner.New().Route(context.Background(), a, s, geo.Point{X: 1, Y: 1})
+				if err != nil {
+					t.Fatal(err)
+				}
+				if len(got) < 10 {
+					t.Fatalf("only %d points", len(got))
+				}
+				for i, p := range got {
+					if p.X < -1e-6 || p.X > 3+1e-6 || p.Y < -1e-6 || p.Y > 3+1e-6 {
+						t.Fatalf("point %d %v outside the selected part of the garden", i, p)
+					}
+				}
+			})
+		}
+	}
+}
+
+func TestMowAreasOutsideThePerimeter(t *testing.T) {
+	a := square
+	a.MowAreas = [][]geo.Point{{{X: 20, Y: 20}, {X: 30, Y: 20}, {X: 30, Y: 30}}}
+	_, err := planner.New().Route(context.Background(), a, lanes, geo.Point{X: 1, Y: 1})
+	if !errors.Is(err, planner.ErrInvalid) || !strings.Contains(err.Error(), "outside the perimeter") {
+		t.Errorf("err = %v, want ErrInvalid: outside the perimeter", err)
+	}
+}
+
 func TestWayGoesAroundTheExclusion(t *testing.T) {
 	start, goal := geo.Point{X: 1, Y: 5}, geo.Point{X: 9, Y: 5}
 	got, err := planner.New().Way(context.Background(), square, start, goal)
@@ -184,6 +221,9 @@ func TestInvalidInput(t *testing.T) {
 		{"NaN in an exclusion", func(a *planner.Area, _ *planner.Settings) {
 			a.Exclusions = [][]geo.Point{{{X: 1, Y: 1}, {X: math.NaN(), Y: 2}, {X: 2, Y: 1}}}
 		}, "finite"},
+		{"mow area of two points", func(a *planner.Area, _ *planner.Settings) {
+			a.MowAreas = [][]geo.Point{{{X: 1, Y: 1}, {X: 2, Y: 2}}}
+		}, "mow area"},
 		{"search wire of one point", func(a *planner.Area, _ *planner.Settings) { a.SearchWire = []geo.Point{{X: 1, Y: 1}} }, "virtual wire"},
 		{"zero lane width", func(_ *planner.Area, s *planner.Settings) { s.LaneWidthM = 0 }, "offset"},
 		{"unknown pattern", func(_ *planner.Area, s *planner.Settings) { s.Pattern = "spiral" }, "pattern"},

@@ -27,7 +27,7 @@ const (
 type Area struct {
 	Perimeter  []geo.Point
 	Exclusions [][]geo.Point
-	// MowAreas are the parts to mow; none means the whole perimeter.
+	// MowAreas are the parts to mow, cut to the perimeter; none means the whole perimeter.
 	MowAreas [][]geo.Point
 	// SearchWire is a preferred way for transits (A*), may be empty.
 	SearchWire []geo.Point

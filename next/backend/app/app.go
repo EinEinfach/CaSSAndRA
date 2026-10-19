@@ -16,9 +16,11 @@ import (
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/planner"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/server"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
 )
 
 const (
@@ -46,6 +48,8 @@ type Config struct {
 	PublishInterval time.Duration
 	// Heartbeat keeps idle event streams open through proxies.
 	Heartbeat time.Duration
+	// Planner computes routes; nil = the C++ planner (if built in).
+	Planner tasks.Planner
 }
 
 // DefaultConfig returns the defaults; only DataDir must be set.
@@ -144,7 +148,22 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 		}
 	}
 	publishMaps()
-	mapStore.OnChange(publishMaps)
+
+	if cfg.Planner == nil {
+		cfg.Planner = planner.New()
+	}
+	taskService := tasks.New(cfg.Planner, mapStore, r, tasks.Config{})
+	publishPlan := func(*tasks.Plan) {
+		if b, err := json.Marshal(taskService.PlanJSON()); err == nil {
+			hub.Publish("plan", b)
+		}
+	}
+	publishPlan(nil)
+	taskService.OnChange(publishPlan)
+	mapStore.OnChange(func() {
+		publishMaps()
+		taskService.MapsChanged()
+	})
 
 	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect) })
 	goroutine(func() { r.PublishState(ctx, cfg.PublishInterval, func(b []byte) { hub.Publish("robot", b) }) })
@@ -161,6 +180,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 				"/api/settings": settingsStore.Handler(),
 				"/api/maps":     mapsAPI,
 				"/api/maps/":    mapsAPI,
+				"/api/tasks/":   taskService.Handler(),
 			},
 		}),
 		ReadHeaderTimeout: 5 * time.Second,

@@ -67,7 +67,7 @@ sowie `make lint` sind grün.
 - [x] Im Planner-Repo (in `main`, Release v1.4.0 inkl. PyPI-Wheel): C-API `planner_c.h` (Mähroute + A*-Weg), CMake-Target `planner_core` ohne pybind, GoogleTests (99 grün; drei alte Tests an die halbe Startlinie angepasst), Tippfehler `mowExclusionsBorder` korrigiert (Python behält den alten Namen), Version 1.4
 - [x] Hier: Submodule `third_party/PathPlannerCore`, `planner/` (cgo kompiliert die Quellen selbst, Build-Tag `cpp`), `testkit.FakePlanner`, Golden-Routen aus dem Python-Modul, `make test-cpp`, `cassandra --check-planner`
 - [x] CI: Tests mit und ohne Planner; statische Binaries für amd64 und arm64 (native GitHub-Runner) mit `--check-planner`, als Download
-- [ ] Auf dem Pi starten: `cassandra-linux-arm64 --check-planner` (Artefakt aus der CI)
+- [ ] Auf dem Pi starten: `cassandra-linux-arm64 --check-planner` (Artefakt aus der CI) – zurückgestellt, gerade kein Pi zur Hand
 - [x] Planner-Repo: `c-api` nach `main` gemergt, Tag `v1.4.0` (Wheel auf PyPI); Submodule steht auf dem Tag-Commit
 - [ ] 32-Bit-Pi (armv7): offen, ob nötig
 - **Fertig, wenn:** `make test-cpp` grün und das arm64-Binary auf dem Pi eine Route berechnet.

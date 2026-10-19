@@ -7,6 +7,10 @@ package planner
 #cgo CFLAGS: -I${SRCDIR}/../../third_party/PathPlannerCore/include
 #include <stdlib.h>
 #include "planner_c.h"
+
+// clip.cpp
+int cassandra_clip_areas(planner_line perimeter, const planner_line *areas, size_t area_count,
+                         planner_point **out_points, size_t **out_counts, size_t *out_polys);
 */
 import "C"
 
@@ -89,6 +93,13 @@ func laps(n int) (C.size_t, error) {
 }
 
 func route(area Area, s Settings, start geo.Point) ([]geo.Point, error) {
+	if len(area.MowAreas) > 0 {
+		clipped, err := clipToPerimeter(area)
+		if err != nil {
+			return nil, err
+		}
+		area.MowAreas = clipped
+	}
 	pattern, err := cPattern(s.Pattern)
 	if err != nil {
 		return nil, err
@@ -121,6 +132,49 @@ func route(area Area, s Settings, start geo.Point) ([]geo.Point, error) {
 	return call(&a, func(out *C.planner_path, msg *C.char, n C.size_t) C.planner_status {
 		return C.planner_compute(env, cs, cPoint(start), out, msg, n)
 	})
+}
+
+// clipToPerimeter cuts the mow areas to the perimeter (clip.cpp). Parts
+// outside fall away; an area may split into several.
+func clipToPerimeter(area Area) ([][]geo.Point, error) {
+	if len(area.Perimeter) < 3 {
+		return nil, fmt.Errorf("%w: perimeter needs at least 3 points", ErrInvalid)
+	}
+	for i, m := range area.MowAreas {
+		if len(m) < 3 {
+			return nil, fmt.Errorf("%w: mow area %d needs at least 3 points", ErrInvalid, i)
+		}
+	}
+	var a cArena
+	defer a.free()
+	areas, n := a.lines(area.MowAreas)
+	var pts *C.planner_point
+	var counts *C.size_t
+	var polys C.size_t
+	status := C.cassandra_clip_areas(a.line(area.Perimeter), areas, n, &pts, &counts, &polys) //nolint:gocritic // false positive on the code cgo generates
+	if status != 0 {
+		return nil, fmt.Errorf("%w: clipping the mow areas", ErrFailed)
+	}
+	defer C.free(unsafe.Pointer(pts))
+	defer C.free(unsafe.Pointer(counts))
+	if polys == 0 {
+		return nil, fmt.Errorf("%w: the mow areas lie outside the perimeter", ErrInvalid)
+	}
+	sizes := unsafe.Slice(counts, int(polys))
+	total := 0
+	for _, c := range sizes {
+		total += int(c)
+	}
+	flat := unsafe.Slice(pts, total)
+	out := make([][]geo.Point, len(sizes))
+	for i, c := range sizes {
+		out[i] = make([]geo.Point, int(c))
+		for j := range out[i] {
+			out[i][j] = geo.Point{X: float64(flat[0].x), Y: float64(flat[0].y)}
+			flat = flat[1:]
+		}
+	}
+	return out, nil
 }
 
 func way(area Area, start, goal geo.Point) ([]geo.Point, error) {
