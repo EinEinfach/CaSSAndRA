@@ -26,3 +26,7 @@ export const fetchTrail = (fetchFn: typeof fetch = fetch) =>
 export async function clearTrail(fetchFn: typeof fetch = fetch): Promise<void> {
 	await sendJSON('DELETE', '/api/robot/trail', undefined, fetchFn);
 }
+
+/** Continues at a fraction (0..1) of the uploaded route. */
+export const skipToProgress = (fraction: number, fetchFn: typeof fetch = fetch) =>
+	post('/api/robot/skip-to-progress', { fraction }, fetchFn);

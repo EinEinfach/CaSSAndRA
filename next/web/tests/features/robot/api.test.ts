@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { command, fetchMap, fetchState, move, setMowMotor } from '#features/robot/api.ts';
+import {
+	command,
+	fetchMap,
+	fetchState,
+	move,
+	setMowMotor,
+	skipToProgress
+} from '#features/robot/api.ts';
 
 const ok = () => vi.fn(async () => new Response(null, { status: 204 }));
 
@@ -35,6 +42,15 @@ describe('robot api', () => {
 			2,
 			'/api/robot/mow-motor',
 			expect.objectContaining({ body: '{"on":true}' })
+		);
+	});
+
+	it('jumps to a fraction of the route', async () => {
+		const fetchFn = ok();
+		await skipToProgress(0.7, fetchFn);
+		expect(fetchFn).toHaveBeenCalledWith(
+			'/api/robot/skip-to-progress',
+			expect.objectContaining({ body: '{"fraction":0.7}' })
 		);
 	});
 

@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/EinEinfach/CaSSAndRA/next/backend/geo"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/planner"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tests/testkit"
 )
@@ -106,4 +108,50 @@ func TestPreviewWithTheBuiltInPlanner(t *testing.T) {
 			t.Fatalf("point %d %v outside the selected part", i+1, pt)
 		}
 	}
+}
+
+func TestStartMowingThePlannedRoute(t *testing.T) {
+	cfg := testConfig(t)
+	cfg.Planner = &testkit.FakePlanner{} // start, then every perimeter corner
+	r := startWith(t, cfg)
+	waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.Status == robot.StatusIdle && s.MapCRC != 0 })
+
+	// The dock path ends at the simulator's station, so the route starts at (1, 3).
+	code, body := send(t, http.MethodPost, r.baseURL+"/api/maps", `{"name": "Back",
+		"perimeter": [{"x":0,"y":0},{"x":8,"y":0},{"x":8,"y":8},{"x":0,"y":8}],
+		"dock": [{"x":1,"y":3},{"x":-1,"y":3}]}`)
+	if code != http.StatusCreated {
+		t.Fatalf("POST map = %d %s", code, body)
+	}
+	var m maps.Map
+	_ = json.Unmarshal([]byte(body), &m)
+	if code, body := send(t, http.MethodPut, r.baseURL+"/api/maps/active", `{"id":"`+m.ID+`"}`); code != http.StatusNoContent {
+		t.Fatalf("activate = %d %s", code, body)
+	}
+	if code, body := send(t, http.MethodPost, r.baseURL+"/api/tasks/start", ""); code != http.StatusConflict {
+		t.Errorf("start without plan = %d %s, want 409", code, body)
+	}
+	code, body = send(t, http.MethodPost, r.baseURL+"/api/tasks/preview",
+		`{"parameters":{"pattern":"lines","widthM":0.18,"angleDeg":0,"distanceToBorder":1,"mowArea":true,"borderLaps":1,"mowExclusions":false,"borderCcw":false}}`)
+	if code != http.StatusOK {
+		t.Fatalf("preview = %d %s", code, body)
+	}
+	var p tasks.Plan
+	_ = json.Unmarshal([]byte(body), &p)
+	if p.Start != (geo.Point{X: 1, Y: 3}) {
+		t.Errorf("start = %v, want the start of the dock path", p.Start)
+	}
+
+	if code, body := send(t, http.MethodPost, r.baseURL+"/api/tasks/start", ""); code != http.StatusNoContent {
+		t.Fatalf("start = %d %s", code, body)
+	}
+	waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.Status == robot.StatusMow })
+	var robotMap robot.MapJSON
+	if err := getJSON(r.baseURL+"/api/robot/map", &robotMap); err != nil || len(robotMap.Way) != len(p.Route) || len(robotMap.Perimeter) != 4 {
+		t.Errorf("robot map = %+v (%v), want the map with the route of %d points", robotMap, err, len(p.Route))
+	}
+	if code := post(t, r.baseURL+"/api/robot/stop"); code != http.StatusNoContent {
+		t.Fatalf("stop = %d", code)
+	}
+	waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.Status == robot.StatusIdle })
 }

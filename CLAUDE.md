@@ -199,7 +199,11 @@ trägt `trailId`; der Browser holt die Spur nur bei neuer Id (`GET /api/robot/tr
 (wie `settings.Planner`; Ausschlussrunden = Randrunden, mindestens 1). Start wie Legacy: angedockt (oder < 1 m von der
 Station) am Anfang des Dockpfads, außerhalb des Perimeters an der nächsten Ecke, sonst an der Position. Die Vorschau
 liegt nur im Speicher, geht als Event `plan` an alle Browser und verfällt, wenn sich die aktive Karte ändert. Bei
-überlappenden Anfragen bleibt die zuletzt gestellte.
+überlappenden Anfragen bleibt die zuletzt gestellte. `POST /api/tasks/start` überträgt Karte + Route (`UploadMap`) und
+startet das Mähen (`Mow`), je genau einmal; abgelehnt (409), wenn die Karte sich geändert hat oder der Startpunkt
+sich seit der Vorschau um > 1 m verschoben hat (der Roboter führe sonst geradeaus zum Routenanfang, ggf. durch eine
+Ausschlusszone), und solange ein Start läuft. Fortschritt = `mowPointIndex / Anzahl Wegpunkte` (Live-Seite, mit
+„Jump“ = `skip-to-progress` und „Skip point“).
 
 **Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er
 idempotent ist. `Stop` bricht einen laufenden Karten-Upload ab, statt hinter ihm zu warten.

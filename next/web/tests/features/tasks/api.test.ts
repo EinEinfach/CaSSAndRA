@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { clearPreview, previewRoute } from '#features/tasks/api.ts';
+import { clearPreview, previewRoute, startMowing } from '#features/tasks/api.ts';
 import { parameters, plan } from './fixtures.ts';
 
 const respond = (status: number, body?: unknown) =>
@@ -29,6 +29,15 @@ describe('tasks api', () => {
 		expect(fetchFn).toHaveBeenLastCalledWith(
 			'/api/tasks/preview',
 			expect.objectContaining({ method: 'DELETE' })
+		);
+	});
+
+	it('starts mowing', async () => {
+		const fetchFn = respond(204);
+		await startMowing(fetchFn);
+		expect(fetchFn).toHaveBeenLastCalledWith(
+			'/api/tasks/start',
+			expect.objectContaining({ method: 'POST' })
 		);
 	});
 });

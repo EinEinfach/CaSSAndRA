@@ -38,17 +38,20 @@ const button = (name: string | RegExp) => screen.getByRole('button', { name }) a
 function setup(props: Partial<Parameters<typeof render<typeof TaskPlanner>>[1]> = {}) {
 	const preview = vi.fn(async (req: PreviewRequest) => plan({ selection: req.selection }));
 	const discard = vi.fn(async () => {});
+	const start = vi.fn(async () => {});
 	const result = render(TaskPlanner, {
 		map: garden(),
 		plan: null,
 		planLoaded: true,
 		defaults: parameters(),
 		mowSpeedMps: 0.25,
+		robotStatus: 'idle',
 		preview,
 		discard,
+		start,
 		...props
 	});
-	return { preview, discard, ...result };
+	return { preview, discard, start, ...result };
 }
 
 describe('TaskPlanner', () => {
@@ -117,6 +120,37 @@ describe('TaskPlanner', () => {
 			selection: sel,
 			parameters: parameters({ widthM: 0.3 })
 		});
+	});
+
+	it('starts mowing the planned route', async () => {
+		const { start } = setup({ plan: plan() });
+		await userEvent.click(button('Start mowing'));
+		expect(start).toHaveBeenCalledOnce();
+	});
+
+	it('does not start a route that no longer matches the form', async () => {
+		const { start } = setup({ plan: plan() });
+		await userEvent.click(screen.getByRole('radio', { name: 'Squares' }));
+		expect(button('Start mowing').disabled).toBe(true);
+		await userEvent.click(button('Start mowing'));
+		expect(start).not.toHaveBeenCalled();
+	});
+
+	it('waits for the robot to stand still before starting', async () => {
+		const { rerender } = setup({ plan: plan(), robotStatus: 'mow' });
+		expect(button('Start mowing').disabled).toBe(true);
+		expect(screen.getByText(/idle or in the dock/)).toBeTruthy();
+		await rerender({ robotStatus: 'charging' });
+		expect(button('Start mowing').disabled).toBe(false);
+	});
+
+	it('shows why the robot did not start', async () => {
+		setup({
+			plan: plan(),
+			start: vi.fn(async () => Promise.reject(new Error('robot is offline')))
+		});
+		await userEvent.click(button('Start mowing'));
+		expect(screen.getByRole('alert').textContent).toBe('robot is offline');
 	});
 
 	it('discards the route', async () => {

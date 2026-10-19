@@ -3,7 +3,9 @@
 	import { MapsStore } from '#features/maps/store.svelte.ts';
 	import { RobotStore } from '#features/robot/store.svelte.ts';
 	import type { SettingsView } from '#features/settings/types.ts';
-	import { clearPreview, previewRoute } from '#features/tasks/api.ts';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { clearPreview, previewRoute, startMowing } from '#features/tasks/api.ts';
 	import { PlanStore } from '#features/tasks/store.svelte.ts';
 	import TaskPlanner from '#features/tasks/TaskPlanner.svelte';
 	import type { Parameters } from '#features/tasks/types.ts';
@@ -47,6 +49,11 @@
 	planLoaded={plans.loaded}
 	{defaults}
 	{mowSpeedMps}
+	robotStatus={robot.connected && robot.state ? robot.state.status : 'offline'}
 	preview={(req) => previewRoute(req)}
 	discard={() => clearPreview()}
+	start={async () => {
+		await startMowing();
+		await goto(resolve('/'));
+	}}
 />

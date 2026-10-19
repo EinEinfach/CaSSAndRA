@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
-// Plans a route for part of a garden with the real C++ planner.
+// Plans a route for part of a garden with the real C++ planner and mows it
+// with the simulated robot.
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
 
@@ -24,6 +25,11 @@ test.beforeAll(async ({ request }) => {
 					{ x: 12, y: 8 },
 					{ x: 8, y: 8 }
 				]
+			],
+			// ends at the simulator's station, so the robot leaves along it
+			dock: [
+				{ x: 1, y: 3 },
+				{ x: -1, y: 3 }
 			]
 		}
 	});
@@ -33,8 +39,12 @@ test.beforeAll(async ({ request }) => {
 });
 
 test.afterAll(async ({ request }) => {
+	await request.post('/api/robot/stop');
 	await request.delete('/api/tasks/preview');
 	await request.put('/api/maps/active', { data: { id: previousActive } });
+	// Reconnecting starts a fresh simulator with the demo garden for the other tests.
+	await request.put('/api/settings', { data: { settings: { connection: { kind: 'uart' } } } });
+	await request.put('/api/settings', { data: { settings: { connection: { kind: 'sim' } } } });
 });
 
 test('plan rings for a rectangle across an exclusion', async ({ page }) => {
@@ -63,4 +73,27 @@ test('plan rings for a rectangle across an exclusion', async ({ page }) => {
 
 	await button(page, 'Discard route').click();
 	await expect(page.getByLabel('Planned route')).toHaveCount(0);
+});
+
+test('start mowing the planned route, follow and jump ahead', async ({ page }) => {
+	await page.goto('/tasks');
+	await expect(page.getByRole('radio', { name: 'Whole garden' })).toBeChecked();
+	await button(page, 'Calculate route').click();
+	await expect(page.getByLabel('Planned route')).toContainText(/\d+ points/, { timeout: 15_000 });
+
+	await button(page, 'Start mowing').click();
+	await expect(page).toHaveURL(/\/$/, { timeout: 20_000 });
+	await expect(page.getByTestId('robot-status')).toHaveText('Mowing', { timeout: 10_000 });
+	const progress = page.getByTestId('route-progress');
+	await expect(progress).toHaveText(/^\d+ %$/);
+
+	await page.getByLabel('Jump to progress').fill('60');
+	await button(page, 'Jump').click();
+	await expect
+		.poll(async () => parseInt((await progress.textContent()) ?? '0'), { timeout: 10_000 })
+		.toBeGreaterThanOrEqual(60);
+
+	await button(page, 'Stop').click();
+	await expect(page.getByTestId('robot-status')).toHaveText('Idle', { timeout: 10_000 });
+	await expect(page.getByLabel('Route progress')).toHaveCount(0);
 });

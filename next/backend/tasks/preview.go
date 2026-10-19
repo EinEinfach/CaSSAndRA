@@ -25,9 +25,11 @@ type Maps interface {
 	Get(id string) (maps.Map, error)
 }
 
-// Robot tells where the robot is. *robot.Robot implements it.
+// Robot tells where the robot is and mows a route. *robot.Robot implements it.
 type Robot interface {
 	Snapshot() robot.Snapshot
+	UploadMap(ctx context.Context, m protocol.Map) error
+	Mow(ctx context.Context) error
 }
 
 // Errors besides ErrInvalid; the returned errors wrap them.
@@ -74,6 +76,8 @@ type Service struct {
 	seq       uint64 // number of the latest request
 	planSeq   uint64 // request that computed plan
 	listeners []func(*Plan)
+	// startMu: one start at a time; a second one is refused, not queued.
+	startMu sync.Mutex
 	// notifyMu keeps notifications in order: the last one sees the latest plan.
 	notifyMu sync.Mutex
 }

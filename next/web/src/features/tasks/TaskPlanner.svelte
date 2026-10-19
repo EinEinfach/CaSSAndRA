@@ -2,7 +2,8 @@
 	import MapCanvas, { type MapInteraction } from '#shared/MapCanvas.svelte';
 	import type { MapLayers, RobotPose } from '#shared/drawMap.ts';
 	import type { GardenMap } from '#features/maps/types.ts';
-	import { formatDistance, formatDuration, planMatches } from './plan.ts';
+	import type { RobotStatus } from '#features/robot/types.ts';
+	import { canStartRoute, formatDistance, formatDuration, planMatches } from './plan.ts';
 	import type { Tool } from './selection.ts';
 	import { PlanSession } from './session.svelte.ts';
 	import type { Parameters, Plan, PreviewRequest } from './types.ts';
@@ -14,8 +15,10 @@
 		planLoaded,
 		defaults,
 		mowSpeedMps,
+		robotStatus,
 		preview,
-		discard
+		discard,
+		start
 	}: {
 		/** The active map; null = none. */
 		map: GardenMap | null;
@@ -25,12 +28,15 @@
 		planLoaded: boolean;
 		defaults: Parameters | null;
 		mowSpeedMps: number;
+		robotStatus: RobotStatus;
 		preview: (req: PreviewRequest) => Promise<unknown>;
 		discard: () => Promise<void>;
+		/** Sends the route to the robot and starts mowing. */
+		start: () => Promise<void>;
 	} = $props();
 
 	const session = new PlanSession();
-	let busy = $state(false);
+	let busy = $state<'calculate' | 'start' | 'discard' | null>(null);
 	let error = $state('');
 
 	$effect(() => {
@@ -74,17 +80,19 @@
 		polygon: 'Tap the map to add corners, drag a corner to move it.'
 	};
 
-	async function run(action: () => Promise<unknown>) {
+	async function run(what: NonNullable<typeof busy>, action: () => Promise<unknown>) {
 		error = '';
-		busy = true;
+		busy = what;
 		try {
 			await action();
 		} catch (err) {
 			error = err instanceof Error ? err.message : String(err);
 		} finally {
-			busy = false;
+			busy = null;
 		}
 	}
+
+	const startable = $derived(shownPlan !== null && !outdated && canStartRoute(robotStatus));
 </script>
 
 <div class="planner">
@@ -186,11 +194,11 @@
 			<section>
 				<button
 					type="button"
-					class="primary"
-					disabled={busy || session.request === null}
-					onclick={() => run(() => preview(session.request!))}
+					class:primary={!shownPlan || outdated}
+					disabled={busy !== null || session.request === null}
+					onclick={() => run('calculate', () => preview(session.request!))}
 				>
-					{busy ? 'Calculating…' : 'Calculate route'}
+					{busy === 'calculate' ? 'Calculating…' : 'Calculate route'}
 				</button>
 				{#if session.tool !== 'all' && session.request === null}
 					<p class="hint">Select a part of the garden first.</p>
@@ -208,7 +216,20 @@
 							Area or parameters changed since. Calculate again to update the route.
 						</p>
 					{/if}
-					<button type="button" disabled={busy} onclick={() => run(discard)}>Discard route</button>
+					<button
+						type="button"
+						class:primary={!outdated}
+						disabled={busy !== null || !startable}
+						onclick={() => run('start', start)}
+					>
+						{busy === 'start' ? 'Sending route…' : 'Start mowing'}
+					</button>
+					{#if !outdated && !canStartRoute(robotStatus)}
+						<p class="hint">The robot can start when it is idle or in the dock.</p>
+					{/if}
+					<button type="button" disabled={busy !== null} onclick={() => run('discard', discard)}>
+						Discard route
+					</button>
 				{/if}
 				{#if error}
 					<p class="error" role="alert">{error}</p>

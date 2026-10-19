@@ -1,5 +1,11 @@
 // Describing a computed route.
+import type { RobotStatus } from '#features/robot/types.ts';
 import type { Parameters, Plan, PreviewRequest } from './types.ts';
+
+/** A route can be sent while the robot stands still: idle or in the dock. */
+export function canStartRoute(status: RobotStatus): boolean {
+	return status === 'idle' || status === 'docked' || status === 'charging';
+}
 
 const sameNumbers = (a: { x: number; y: number }[], b: { x: number; y: number }[]) =>
 	a.length === b.length && a.every((p, i) => p.x === b[i].x && p.y === b[i].y);

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { formatDistance, formatDuration, planMatches } from '#features/tasks/plan.ts';
+import {
+	canStartRoute,
+	formatDistance,
+	formatDuration,
+	planMatches
+} from '#features/tasks/plan.ts';
 import { pts } from '../maps/fixtures.ts';
 import { parameters, plan } from './fixtures.ts';
 
@@ -16,6 +21,23 @@ describe('plan', () => {
 		expect(
 			planMatches(p, { selection: p.selection, parameters: parameters({ angleDeg: 45 }) })
 		).toBe(false);
+	});
+
+	it('starts a route only while the robot stands still', () => {
+		expect(canStartRoute('idle')).toBe(true);
+		expect(canStartRoute('docked')).toBe(true);
+		expect(canStartRoute('charging')).toBe(true);
+		for (const s of [
+			'mow',
+			'transit',
+			'move',
+			'docking',
+			'map upload',
+			'offline',
+			'error'
+		] as const) {
+			expect(canStartRoute(s)).toBe(false);
+		}
 	});
 
 	it('formats distances', () => {

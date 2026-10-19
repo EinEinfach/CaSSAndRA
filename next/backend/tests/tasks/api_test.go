@@ -13,6 +13,16 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
 )
 
+func httptestRequest(method, path string) *http.Request {
+	return httptest.NewRequest(method, path, http.NoBody)
+}
+
+func serve(h http.Handler, req *http.Request) *httptest.ResponseRecorder {
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	return rec
+}
+
 // do sends a request to the preview endpoint.
 func do(t *testing.T, h http.Handler, method, body string) *httptest.ResponseRecorder {
 	t.Helper()

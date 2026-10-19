@@ -1,6 +1,7 @@
 package tasks_test
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
@@ -29,10 +30,47 @@ var params = tasks.Parameters{
 	MowArea: true, BorderLaps: 1, MowExclusions: true,
 }
 
-// fakeRobot reports a fixed snapshot.
+// fakeRobot reports a fixed snapshot and records what it is sent.
 type fakeRobot struct {
-	mu   sync.Mutex
-	snap robot.Snapshot
+	mu        sync.Mutex
+	snap      robot.Snapshot
+	uploads   []protocol.Map
+	calls     []string // "upload", "mow" in order
+	uploadErr error
+	mowErr    error
+	// uploading, if set, is closed when an upload starts; the upload then
+	// waits for release.
+	uploading, release chan struct{}
+}
+
+func (f *fakeRobot) UploadMap(ctx context.Context, m protocol.Map) error {
+	f.mu.Lock()
+	f.uploads = append(f.uploads, m)
+	f.calls = append(f.calls, "upload")
+	err, uploading, release := f.uploadErr, f.uploading, f.release
+	f.mu.Unlock()
+	if uploading != nil {
+		close(uploading)
+		select {
+		case <-release:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	return err
+}
+
+func (f *fakeRobot) Mow(context.Context) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.calls = append(f.calls, "mow")
+	return f.mowErr
+}
+
+func (f *fakeRobot) sent() ([]string, []protocol.Map) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]string(nil), f.calls...), append([]protocol.Map(nil), f.uploads...)
 }
 
 func (f *fakeRobot) Snapshot() robot.Snapshot {

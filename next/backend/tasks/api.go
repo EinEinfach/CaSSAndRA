@@ -9,7 +9,12 @@ import (
 	"time"
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/planner"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 )
+
+// startTimeout covers sending a large route over a slow link, the checksum
+// wait and the mow command.
+const startTimeout = 3 * time.Minute
 
 // previewTimeout bounds one route computation, including the wait for the
 // planner (it computes one route at a time).
@@ -47,6 +52,15 @@ func (s *Service) Handler() http.Handler {
 		}
 		writeJSON(w, http.StatusOK, plan)
 	})
+	mux.HandleFunc("POST /api/tasks/start", func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), startTimeout)
+		defer cancel()
+		if err := s.Start(ctx); err != nil {
+			writeError(w, errorStatus(err), err.Error())
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("DELETE /api/tasks/preview", func(w http.ResponseWriter, _ *http.Request) {
 		s.Clear()
 		w.WriteHeader(http.StatusNoContent)
@@ -58,14 +72,14 @@ func errorStatus(err error) int {
 	switch {
 	case errors.Is(err, ErrInvalid), errors.Is(err, ErrNothingToMow), errors.Is(err, planner.ErrInvalid):
 		return http.StatusBadRequest
-	case errors.Is(err, ErrNoMap):
+	case errors.Is(err, ErrNoMap), errors.Is(err, ErrNoPlan), errors.Is(err, ErrStalePlan), errors.Is(err, ErrStarting):
 		return http.StatusConflict
 	case errors.Is(err, planner.ErrUnavailable):
 		return http.StatusNotImplemented
-	case errors.Is(err, context.DeadlineExceeded):
-		return http.StatusGatewayTimeout
-	default:
+	case errors.Is(err, planner.ErrFailed):
 		return http.StatusInternalServerError
+	default:
+		return robot.ErrorStatus(err) // offline 503, timeout 504, busy 409, link 502
 	}
 }
 
