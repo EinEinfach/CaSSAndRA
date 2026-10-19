@@ -243,7 +243,7 @@ Ergebnis ist eine Punktfolge (die Route), die per `AT+W` übertragen wird.
 Quelle: https://github.com/EinEinfach/CaSSAndRA_PathPlannerCore (eigenes Repo, gleicher Autor; Änderungen
 dort sind erlaubt und erwünscht, wenn die Anbindung sie braucht).
 
-Aufbau des Planner-Repos (Stand 1.4, Branch `c-api`):
+Aufbau des Planner-Repos (Stand v1.4.0, Submodule steht auf diesem Tag):
 - C++20, CMake; Kern in `src/` + `include/` (`Geometry`, `Environment`, `PathPlanner`, `PathService`),
   Clipper2 ist mit eingebettet. GoogleTest-Tests in `tests/` (`make test` dort).
 - **C-API** `include/planner_c.h` / `src/planner_c.cpp`: `planner_compute` (= `PathService::computeFullTask`, Mähroute)
