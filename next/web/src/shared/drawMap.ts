@@ -26,6 +26,8 @@ export interface MapLayers {
 	exclusions?: Point[][];
 	dock?: Point[];
 	searchWire?: Point[];
+	/** The part of the garden chosen for mowing. */
+	selection?: Point[];
 	way?: Point[];
 	/** Way points before this index are drawn as done. */
 	wayDoneIndex?: number;
@@ -43,6 +45,8 @@ export interface MapColors {
 	exclusion: string;
 	dock: string;
 	wire: string;
+	selection: string;
+	selectionFill: string;
 	way: string;
 	wayDone: string;
 	trail: string;
@@ -103,6 +107,17 @@ export function drawMap(ctx: MapContext, vp: Viewport, layers: MapLayers, colors
 		path(ctx, vp, ex, true);
 		ctx.fillStyle = colors.exclusion;
 		ctx.fill();
+	}
+
+	if (layers.selection && layers.selection.length > 2) {
+		path(ctx, vp, layers.selection, true);
+		ctx.fillStyle = colors.selectionFill;
+		ctx.fill();
+		ctx.setLineDash([6, 4]);
+		ctx.strokeStyle = colors.selection;
+		ctx.lineWidth = 2;
+		ctx.stroke();
+		ctx.setLineDash([]);
 	}
 
 	const way = layers.way ?? [];

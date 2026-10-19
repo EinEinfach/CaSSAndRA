@@ -57,6 +57,8 @@
 		exclusion: '--map-exclusion',
 		dock: '--map-dock',
 		wire: '--map-wire',
+		selection: '--map-selection',
+		selectionFill: '--map-selection-fill',
 		way: '--map-way',
 		wayDone: '--map-way-done',
 		trail: '--map-trail',

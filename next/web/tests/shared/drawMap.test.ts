@@ -15,6 +15,8 @@ const colors: MapColors = {
 	robot: 'robot',
 	robotOutline: 'outline',
 	wire: 'wire',
+	selection: 'selection',
+	selectionFill: 'selectionFill',
 	handle: 'handle',
 	handleFill: 'handleFill'
 };
@@ -73,6 +75,42 @@ describe('drawMap', () => {
 		);
 		expect(ctx.shapes).toHaveLength(1);
 		expect(ctx.shapes[0]).toMatchObject({ op: 'fill', color: 'exclusion', closed: true });
+	});
+
+	it('draws the selection filled with a dashed outline below the route', () => {
+		const ctx = recordingContext();
+		const selection = [
+			{ x: 0, y: 0 },
+			{ x: 2, y: 0 },
+			{ x: 2, y: 2 }
+		];
+		drawMap(
+			ctx,
+			vp,
+			{
+				selection,
+				way: [
+					{ x: 0, y: 0 },
+					{ x: 1, y: 1 }
+				]
+			},
+			colors
+		);
+		const [fill, outline, way] = ctx.shapes;
+		expect(fill).toMatchObject({ op: 'fill', color: 'selectionFill', closed: true, dashed: false });
+		expect(outline).toMatchObject({ op: 'stroke', color: 'selection', closed: true, dashed: true });
+		expect(way).toMatchObject({ op: 'stroke', color: 'way', dashed: false });
+	});
+
+	it('skips a selection of less than three points and keeps it out of the fit', () => {
+		const ctx = recordingContext();
+		const selection = [
+			{ x: 0, y: 0 },
+			{ x: 2, y: 0 }
+		];
+		drawMap(ctx, vp, { selection }, colors);
+		expect(ctx.shapes).toEqual([]);
+		expect(mapPoints({ selection: [...selection, { x: 9, y: 9 }] })).toEqual([]);
 	});
 
 	it('splits the route into done and open parts that meet at the current point', () => {

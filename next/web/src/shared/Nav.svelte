@@ -4,7 +4,7 @@
 		/** Already resolved by the caller (resolve() from $app/paths). */
 		href: string;
 		label: string;
-		icon: 'live' | 'maps' | 'settings';
+		icon: 'live' | 'tasks' | 'maps' | 'settings';
 	}
 </script>
 
@@ -34,6 +34,8 @@
 						{#if item.icon === 'live'}
 							<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" />
 							<circle cx="12" cy="9.5" r="2.5" />
+						{:else if item.icon === 'tasks'}
+							<path d="M4 5.5h12.5a3.25 3.25 0 0 1 0 6.5h-9a3.25 3.25 0 0 0 0 6.5H20" />
 						{:else if item.icon === 'maps'}
 							<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20Z" />
 							<path d="M9 4v13.5M15 6.5V20" />

@@ -1,9 +1,11 @@
 //go:build cpp
 
-// Clips mow areas to the perimeter with Clipper2 (compiled in core.cpp). The
-// planner expects mow areas inside the perimeter: rings and the distance to
-// the border follow the mow area's own outline, so a selection reaching over
-// the border would put lanes outside the garden.
+// Clips mow areas to the lawn (perimeter minus exclusions) with Clipper2
+// (compiled in core.cpp), as legacy CaSSAndRA did with shapely. The planner
+// needs this: rings and the distance to the border follow the mow area's own
+// outline, so a selection over the border would put lanes outside the garden,
+// and an exclusion across the outline leaves the rings empty. Exclusions
+// fully inside stay holes, which the planner handles itself.
 #include <cstdlib>
 #include <exception>
 
@@ -22,7 +24,8 @@ namespace
     }
 }
 
-extern "C" int cassandra_clip_areas(planner_line perimeter, const planner_line *areas, size_t area_count,
+extern "C" int cassandra_clip_areas(planner_line perimeter, const planner_line *exclusions, size_t exclusion_count,
+                                    const planner_line *areas, size_t area_count,
                                     planner_point **out_points, size_t **out_counts, size_t *out_polys)
 {
     *out_points = nullptr;
@@ -33,9 +36,13 @@ extern "C" int cassandra_clip_areas(planner_line perimeter, const planner_line *
         Clipper2Lib::PathsD subjects;
         for (size_t i = 0; i < area_count; ++i)
             subjects.push_back(toPath(areas[i]));
+        Clipper2Lib::PathsD holes;
+        for (size_t i = 0; i < exclusion_count; ++i)
+            holes.push_back(toPath(exclusions[i]));
+        Clipper2Lib::PathsD lawn = Clipper2Lib::Difference(
+            Clipper2Lib::PathsD{toPath(perimeter)}, holes, Clipper2Lib::FillRule::NonZero, 3);
         // NonZero: a selection drawn around twice still counts once.
-        Clipper2Lib::PathsD clipped = Clipper2Lib::Intersect(
-            subjects, Clipper2Lib::PathsD{toPath(perimeter)}, Clipper2Lib::FillRule::NonZero, 3);
+        Clipper2Lib::PathsD clipped = Clipper2Lib::Intersect(subjects, lawn, Clipper2Lib::FillRule::NonZero, 3);
 
         // Mow areas have no holes; the planner keeps out of exclusions anyway.
         Clipper2Lib::PathsD outer;

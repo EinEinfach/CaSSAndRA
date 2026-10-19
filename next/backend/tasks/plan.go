@@ -111,11 +111,15 @@ func area(m maps.Map, sel []geo.Point) planner.Area {
 	return a
 }
 
+// inStationM: a robot this close to the station leaves along the dock path,
+// even if it does not charge (contacts, simulator).
+const inStationM = 1.0
+
 // startPoint is where the route begins, as in legacy CaSSAndRA: a docked
 // robot leaves the station at the start of the dock path; a robot outside
 // the perimeter starts at the nearest perimeter corner.
 func startPoint(m maps.Map, pos geo.Point, docked bool) geo.Point {
-	if docked && len(m.Dock) > 0 {
+	if n := len(m.Dock); n > 0 && (docked || dist(pos, m.Dock[n-1]) < inStationM) {
 		pos = m.Dock[0]
 	}
 	if inside(m.Perimeter, pos) || len(m.Perimeter) == 0 {

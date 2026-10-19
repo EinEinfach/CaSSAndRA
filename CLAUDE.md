@@ -53,7 +53,7 @@ next/
     robot/           Robot-Zustand, Statusableitung, Befehle (Mähen, Stop, Dock, Goto, Joystick …)
     maps/            Perimeter, Ausschlüsse, Dockpfad, Suchdraht; Kartenspeicher (eine Datei je Karte + active.json), Legacy-Import, API inkl. Upload zum Roboter
     planner/         C++-Planner (Mähroute, A*-Weg) über cgo hinter Build-Tag `cpp`; ohne Tag ErrUnavailable
-    tasks/           Aufgaben (Teilflächen + Parameter), Reihenfolge, Routenberechnung über planner
+    tasks/           Aufgaben (Teilflächen + Parameter), Routenvorschau über planner (Event `plan`), später Reihenfolge und Speicherung
     schedule/        Zeitplan (Wochentag → Zeitfenster), startet Tasks
     settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
     stats/           Statistik und Verlauf (Batterie, Mähzeit, GPS-Qualität)
@@ -195,6 +195,12 @@ stattdessen eine Abweichung < 200. Der Simulator rechnet wie Sunray unter Linux.
 und beginnt sie neu, sobald der Status auf docked/charging wechselt oder über `DELETE /api/robot/trail`. Der Zustand
 trägt `trailId`; der Browser holt die Spur nur bei neuer Id (`GET /api/robot/trail`) und verlängert sie sonst selbst.
 
+**Routenvorschau (`tasks`):** `POST /api/tasks/preview` mit Auswahl (Polygon, leer = ganzer Garten) und Parametern
+(wie `settings.Planner`; Ausschlussrunden = Randrunden, mindestens 1). Start wie Legacy: angedockt (oder < 1 m von der
+Station) am Anfang des Dockpfads, außerhalb des Perimeters an der nächsten Ecke, sonst an der Position. Die Vorschau
+liegt nur im Speicher, geht als Event `plan` an alle Browser und verfällt, wenn sich die aktive Karte ändert. Bei
+überlappenden Anfragen bleibt die zuletzt gestellte.
+
 **Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er
 idempotent ist. `Stop` bricht einen laufenden Karten-Upload ab, statt hinter ihm zu warten.
 
@@ -263,6 +269,9 @@ Go-Anbindung (`backend/planner/`):
   übergebenem Speicher erlaubt) und `core.cpp`, das die Planner-Quellen per `#include` einbindet – cgo kompiliert sie
   selbst, kein CMake-Schritt, Cross-Compiling wie bei jedem cgo-Paket. `nocpp.go` (`!cpp`) liefert `ErrUnavailable`.
 - Features definieren ihr eigenes Interface (`Route`, `Way`); Tests nutzen `testkit.FakePlanner`.
+- `Route` schneidet Mähflächen vorher auf den Rasen zu (`clip.cpp`, Clipper2: Perimeter minus Ausschlusszonen, wie
+  Legacy mit shapely). Der Planner selbst tut das nicht: Ringe und Randabstand folgen dem Umriss der Mähfläche (Bahnen
+  außerhalb des Gartens), und eine Ausschlusszone über dem Umriss liefert bei Ringen eine leere Route.
 - `tests/planner/testdata/golden.json` stammt aus dem Python-Modul des Planners (`make_golden.py`) – unabhängiger
   Weg in denselben Kern. Nach einem Planner-Update neu erzeugen, mit `-ffp-contract=off`.
 - `core.cpp` schaltet FMA per Pragma ab (cgo verbietet `-ffp-contract=off`): Sonst rechnet clang auf arm64 anders als

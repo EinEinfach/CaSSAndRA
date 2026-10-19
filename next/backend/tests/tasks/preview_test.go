@@ -144,7 +144,8 @@ func TestRouteStartsWhereTheRobotLeavesFrom(t *testing.T) {
 		{"on the border", geo.Point{X: 10, Y: 3}, protocol.OpIdle, geo.Point{X: 10, Y: 3}},
 		{"docked: start of the dock path", geo.Point{X: 2, Y: -1}, protocol.OpCharge, geo.Point{X: 2, Y: 1}},
 		{"outside: nearest corner", geo.Point{X: 12, Y: 9}, protocol.OpIdle, geo.Point{X: 10, Y: 10}},
-		{"in the station but not docked", geo.Point{X: 2, Y: -1}, protocol.OpIdle, geo.Point{X: 0, Y: 0}},
+		{"in the station but not charging", geo.Point{X: 2.3, Y: -1.2}, protocol.OpIdle, geo.Point{X: 2, Y: 1}},
+		{"outside, away from the station", geo.Point{X: 2, Y: -3}, protocol.OpIdle, geo.Point{X: 0, Y: 0}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

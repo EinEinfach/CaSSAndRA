@@ -22,6 +22,7 @@
 
 	const items: NavItem[] = [
 		{ href: resolve('/'), label: 'Live', icon: 'live' },
+		{ href: resolve('/tasks'), label: 'Tasks', icon: 'tasks' },
 		{ href: resolve('/maps'), label: 'Maps', icon: 'maps' },
 		{ href: resolve('/settings'), label: 'Settings', icon: 'settings' }
 	];

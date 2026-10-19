@@ -31,6 +31,8 @@
 	--map-wire: #7c4dbd;
 	--map-handle: #e8590c;
 	--map-handle-fill: #ffffff;
+	--map-selection: #e8590c;
+	--map-selection-fill: rgb(232 89 12 / 0.1);
 	--map-way: rgb(0 0 0 / 0.28);
 	--map-way-done: rgb(0 0 0 / 0.08);
 	--map-trail: rgb(232 89 12 / 0.35);
@@ -69,6 +71,8 @@
 		--map-wire: #b391f0;
 		--map-handle: #ff922b;
 		--map-handle-fill: #000000;
+		--map-selection: #ff922b;
+		--map-selection-fill: rgb(255 146 43 / 0.12);
 		--map-way: rgb(255 255 255 / 0.3);
 		--map-way-done: rgb(255 255 255 / 0.08);
 		--map-trail: rgb(255 146 43 / 0.35);
@@ -219,4 +223,35 @@ input.text:focus {
 button:focus-visible {
 	outline: 2px solid var(--accent);
 	outline-offset: 2px;
+}
+
+/* A row of options, one selected (radio inputs inside labels). */
+.segmented {
+	display: flex;
+	padding: 4px;
+	gap: 4px;
+	border-radius: 12px;
+	background: var(--surface-sunken);
+}
+.segmented label {
+	position: relative;
+	flex: 1;
+	text-align: center;
+	padding: 8px;
+	border-radius: 9px;
+	cursor: pointer;
+	font-weight: 500;
+}
+.segmented label.selected {
+	background: var(--surface);
+	box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+}
+.segmented label:has(input:focus-visible) {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+.segmented input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
 }

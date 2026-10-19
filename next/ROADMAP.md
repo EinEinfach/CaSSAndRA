@@ -73,7 +73,7 @@ sowie `make lint` sind grün.
 - **Fertig, wenn:** `make test-cpp` grün und das arm64-Binary auf dem Pi eine Route berechnet.
 
 ## Phase 7 – Aufgaben & Mähen (`tasks`)
-- [ ] Teilflächen wählen, Parameter, Route berechnen, Vorschau in der UI
+- [x] Teilflächen wählen (ganzer Garten, Rechteck, Polygon), Parameter, Route berechnen, Vorschau in der UI (Seite „Tasks“, Event `plan`); Auswahl wird auf den Rasen zugeschnitten (behebt leere Ringe bei angeschnittenen Ausschlusszonen)
 - [ ] Aufgaben speichern, Reihenfolge, mehrere zu einer Route verketten
 - [ ] Mähen starten, Fortschritt, zu Fortschritt springen, Punkt überspringen
 - [ ] Goto mit A*-Wegfindung aus dem Planner

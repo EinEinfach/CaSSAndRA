@@ -437,36 +437,14 @@
 		border-color: var(--accent);
 		background: var(--tone-active);
 	}
-	.tile:has(input:focus-visible),
-	.segmented label:has(input:focus-visible) {
+	.tile:has(input:focus-visible) {
 		outline: 2px solid var(--accent);
 		outline-offset: 2px;
 	}
-	.tile input,
-	.segmented input {
+	.tile input {
 		position: absolute;
 		opacity: 0;
 		pointer-events: none;
-	}
-	.segmented {
-		display: flex;
-		padding: 4px;
-		gap: 4px;
-		border-radius: 12px;
-		background: var(--surface-sunken);
-	}
-	.segmented label {
-		position: relative;
-		flex: 1;
-		text-align: center;
-		padding: 8px;
-		border-radius: 9px;
-		cursor: pointer;
-		font-weight: 500;
-	}
-	.segmented label.selected {
-		background: var(--surface);
-		box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
 	}
 	.savebar {
 		position: fixed;

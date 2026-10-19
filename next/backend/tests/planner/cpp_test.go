@@ -179,6 +179,33 @@ func TestMowAreasAreCutToThePerimeter(t *testing.T) {
 	}
 }
 
+// The planner alone returns no rings when an exclusion crosses the outline
+// of the mow area; cut out of the area, the rings go around it.
+func TestMowAreaAcrossAnExclusion(t *testing.T) {
+	for _, pattern := range []planner.Pattern{planner.PatternLines, planner.PatternRings} {
+		t.Run(string(pattern), func(t *testing.T) {
+			a := square
+			a.MowAreas = [][]geo.Point{{{X: 0, Y: 0}, {X: 5, Y: 0}, {X: 5, Y: 5}, {X: 0, Y: 5}}}
+			s := planner.Settings{Pattern: pattern, LaneWidthM: 0.25, MowArea: true, BorderLaps: 1}
+			got, err := planner.New().Route(context.Background(), a, s, geo.Point{X: 1, Y: 1})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(got) < 20 {
+				t.Fatalf("only %d points", len(got))
+			}
+			for i, p := range got {
+				if p.X > 5+1e-6 || p.Y > 5+1e-6 {
+					t.Fatalf("point %d %v outside the mow area", i, p)
+				}
+				if i > 0 && crossesHole(got[i-1], p) {
+					t.Fatalf("segment %d %v-%v crosses the exclusion", i, got[i-1], p)
+				}
+			}
+		})
+	}
+}
+
 func TestMowAreasOutsideThePerimeter(t *testing.T) {
 	a := square
 	a.MowAreas = [][]geo.Point{{{X: 20, Y: 20}, {X: 30, Y: 20}, {X: 30, Y: 30}}}

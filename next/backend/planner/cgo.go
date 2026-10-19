@@ -9,7 +9,8 @@ package planner
 #include "planner_c.h"
 
 // clip.cpp
-int cassandra_clip_areas(planner_line perimeter, const planner_line *areas, size_t area_count,
+int cassandra_clip_areas(planner_line perimeter, const planner_line *exclusions, size_t exclusion_count,
+                         const planner_line *areas, size_t area_count,
                          planner_point **out_points, size_t **out_counts, size_t *out_polys);
 */
 import "C"
@@ -134,8 +135,9 @@ func route(area Area, s Settings, start geo.Point) ([]geo.Point, error) {
 	})
 }
 
-// clipToPerimeter cuts the mow areas to the perimeter (clip.cpp). Parts
-// outside fall away; an area may split into several.
+// clipToPerimeter cuts the mow areas to the lawn: inside the perimeter and
+// around exclusions that cross their outline (clip.cpp). Parts outside fall
+// away; an area may split into several.
 func clipToPerimeter(area Area) ([][]geo.Point, error) {
 	if len(area.Perimeter) < 3 {
 		return nil, fmt.Errorf("%w: perimeter needs at least 3 points", ErrInvalid)
@@ -147,11 +149,12 @@ func clipToPerimeter(area Area) ([][]geo.Point, error) {
 	}
 	var a cArena
 	defer a.free()
+	exclusions, nex := a.lines(area.Exclusions)
 	areas, n := a.lines(area.MowAreas)
 	var pts *C.planner_point
 	var counts *C.size_t
 	var polys C.size_t
-	status := C.cassandra_clip_areas(a.line(area.Perimeter), areas, n, &pts, &counts, &polys) //nolint:gocritic // false positive on the code cgo generates
+	status := C.cassandra_clip_areas(a.line(area.Perimeter), exclusions, nex, areas, n, &pts, &counts, &polys) //nolint:gocritic // false positive on the code cgo generates
 	if status != 0 {
 		return nil, fmt.Errorf("%w: clipping the mow areas", ErrFailed)
 	}
