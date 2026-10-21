@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Mow, stop and dock as round icon buttons, made to float over the map.
+	// Mow, stop and dock as icon buttons, made to float over the map.
 	import { command, type SimpleCommand } from './api.ts';
 	import { canDock, canStart, canStop } from './format.ts';
 	import type { RobotStatus } from './types.ts';
@@ -32,7 +32,7 @@
 	<div class="buttons">
 		<button
 			type="button"
-			class="round mow"
+			class="tile mow"
 			aria-label="Mow"
 			title="Mow"
 			disabled={!canStart(status) || busy !== null}
@@ -43,7 +43,7 @@
 		<!-- Stop is never blocked by another running command. -->
 		<button
 			type="button"
-			class="round stop"
+			class="tile stop"
 			aria-label="Stop"
 			title="Stop"
 			disabled={!canStop(status)}
@@ -55,7 +55,7 @@
 		</button>
 		<button
 			type="button"
-			class="round dock"
+			class="tile dock"
 			aria-label="Dock"
 			title="Dock"
 			disabled={!canDock(status) || busy !== null}
@@ -78,16 +78,16 @@
 		display: flex;
 		gap: 10px;
 	}
-	.round {
-		width: 56px;
-		height: 56px;
+	.tile {
+		width: 64px;
+		height: 52px;
 		padding: 0;
-		border-radius: 50%;
+		border-radius: 14px;
 		display: grid;
 		place-items: center;
 		box-shadow: var(--shadow);
 	}
-	.round svg {
+	.tile svg {
 		width: 26px;
 		height: 26px;
 		fill: currentColor;
