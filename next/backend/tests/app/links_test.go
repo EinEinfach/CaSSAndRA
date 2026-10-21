@@ -1,13 +1,16 @@
 package app_test
 
 import (
+	"encoding/json"
 	"net/http"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/app"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/geo"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
@@ -105,5 +108,37 @@ func writeSettings(t *testing.T, cfg app.Config, change func(s *settings.Setting
 	change(&s)
 	if err := store.Set(s); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestTheSimulatorStartsWithTheActiveMap(t *testing.T) {
+	r := start(t)
+	waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.MapCRC != 0 }) // demo garden
+	code, body := send(t, http.MethodPost, r.baseURL+"/api/maps", `{"name": "Back",
+		"perimeter": [{"x":0,"y":0},{"x":8,"y":0},{"x":8,"y":8},{"x":0,"y":8}],
+		"dock": [{"x":2,"y":1},{"x":2,"y":-1}]}`)
+	if code != http.StatusCreated {
+		t.Fatalf("POST map = %d %s", code, body)
+	}
+	var m maps.Map
+	_ = json.Unmarshal([]byte(body), &m)
+	if code, body := send(t, http.MethodPut, r.baseURL+"/api/maps/active", `{"id":"`+m.ID+`"}`); code != http.StatusNoContent {
+		t.Fatalf("activate = %d %s", code, body)
+	}
+
+	// A new simulator (connection changed and back) starts in the map's station.
+	for _, kind := range []string{"uart", "sim"} {
+		if code, body := send(t, http.MethodPut, r.baseURL+"/api/settings", `{"settings":{"connection":{"kind":"`+kind+`"}}}`); code != http.StatusOK {
+			t.Fatalf("PUT settings = %d %s", code, body)
+		}
+	}
+	want := protocol.MapChecksum(m.Robot(nil)).Linux
+	s := waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.MapCRC == want })
+	if s.Position != (geo.Point{X: 2, Y: -1}) {
+		t.Errorf("robot at %v, want in the station of the active map", s.Position)
+	}
+	var rm robot.MapJSON
+	if err := getJSON(r.baseURL+"/api/robot/map", &rm); err != nil || len(rm.Perimeter) != 4 || rm.Perimeter[1] != (geo.Point{X: 8, Y: 0}) {
+		t.Errorf("robot map = %+v (%v), want the active map", rm, err)
 	}
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/planner"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/server"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
@@ -177,7 +178,15 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 		}
 	})
 
-	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect) })
+	// The simulated robot starts with the active map, so the live view and the
+	// planning show the same garden; the demo garden only without a map.
+	simMap := func() protocol.Map {
+		if m, err := mapStore.Get(mapStore.ActiveID()); err == nil {
+			return m.Robot(nil)
+		}
+		return link.DemoMap()
+	}
+	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect, simMap) })
 	goroutine(func() { r.PublishState(ctx, cfg.PublishInterval, func(b []byte) { hub.Publish("robot", b) }) })
 
 	mapsAPI := mapStore.Handler(r)

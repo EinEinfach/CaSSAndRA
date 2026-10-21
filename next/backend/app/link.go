@@ -6,7 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/EinEinfach/CaSSAndRA/next/backend/geo"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
 )
@@ -39,13 +41,15 @@ func (s *switchSender) Send(ctx context.Context, payload string) (string, error)
 
 // superviseLink runs the link of the current connection settings and
 // replaces it when they change (signalled on reconnect), until ctx ends.
+//
+// simMap is the map a new simulated robot starts with.
 func superviseLink(ctx context.Context, cfg Config, store *settings.Store, r *robot.Robot,
-	sender *switchSender, reconnect <-chan struct{},
+	sender *switchSender, reconnect <-chan struct{}, simMap func() protocol.Map,
 ) {
 	log := cfg.Logger.With("feature", "link")
 	for {
 		conn := store.Get().Connection
-		stop := startLink(ctx, cfg, conn, r, sender, log)
+		stop := startLink(ctx, cfg, conn, r, sender, log, simMap)
 		for changed := false; !changed; {
 			select {
 			case <-ctx.Done():
@@ -63,9 +67,10 @@ func superviseLink(ctx context.Context, cfg Config, store *settings.Store, r *ro
 // startLink starts the link for conn and returns a function that stops it,
 // waits for its goroutines and releases it.
 func startLink(ctx context.Context, cfg Config, conn settings.Connection, r *robot.Robot,
-	sender *switchSender, log *slog.Logger,
+	sender *switchSender, log *slog.Logger, simMap func() protocol.Map,
 ) (stop func()) {
-	l, release, sim := newLink(cfg, conn, log)
+	m := simMap()
+	l, release, sim := newLink(cfg, conn, log, station(m))
 	sender.set(l)
 	ctx, cancel := context.WithCancel(ctx)
 	var wg sync.WaitGroup
@@ -78,7 +83,7 @@ func startLink(ctx context.Context, cfg Config, conn settings.Connection, r *rob
 	}
 	if sim != nil {
 		goroutine(func() { sim.Run(ctx, cfg.SimTick) })
-		goroutine(func() { uploadDemoMap(ctx, r, log) })
+		goroutine(func() { uploadSimMap(ctx, r, m, log) })
 	}
 	goroutine(func() {
 		if err := l.Run(ctx, r); err != nil {
@@ -95,8 +100,8 @@ func startLink(ctx context.Context, cfg Config, conn settings.Connection, r *rob
 }
 
 // newLink builds the link for conn, a function that releases it and, for
-// the simulator, the simulated robot.
-func newLink(cfg Config, conn settings.Connection, log *slog.Logger) (link.Link, func(), *link.Sim) {
+// the simulator, the simulated robot, standing at simStart.
+func newLink(cfg Config, conn settings.Connection, log *slog.Logger, simStart geo.Point) (link.Link, func(), *link.Sim) {
 	switch conn.Kind {
 	case settings.LinkHTTP:
 		poll := cfg.Poll
@@ -117,15 +122,27 @@ func newLink(cfg Config, conn settings.Connection, log *slog.Logger) (link.Link,
 		}), func() {}, nil
 	}
 	simCfg := link.DefaultSimConfig()
-	simCfg.Start = link.DemoStation
+	simCfg.Start = simStart
 	sim := link.NewSim(simCfg)
 	poll := cfg.Poll
 	poll.StateInterval = min(poll.StateInterval, simStateInterval) // the simulator is local and cheap
 	return link.NewPoller(sim, poll), func() {}, sim
 }
 
-// uploadDemoMap gives the simulated robot something to mow once it is online.
-func uploadDemoMap(ctx context.Context, r *robot.Robot, log *slog.Logger) {
+// station is where a simulated robot with map m starts: in its docking
+// station, or on the perimeter if the map has no dock path.
+func station(m protocol.Map) geo.Point {
+	if n := len(m.Dock); n > 0 {
+		return m.Dock[n-1]
+	}
+	if len(m.Perimeter) > 0 {
+		return m.Perimeter[0]
+	}
+	return geo.Point{}
+}
+
+// uploadSimMap gives the simulated robot its map once it is online.
+func uploadSimMap(ctx context.Context, r *robot.Robot, m protocol.Map, log *slog.Logger) {
 	t := time.NewTicker(100 * time.Millisecond)
 	defer t.Stop()
 	for !r.Snapshot().Online {
@@ -135,7 +152,7 @@ func uploadDemoMap(ctx context.Context, r *robot.Robot, log *slog.Logger) {
 		case <-t.C:
 		}
 	}
-	if err := r.UploadMap(ctx, link.DemoMap()); err != nil && ctx.Err() == nil {
-		log.Error("upload demo map", "err", err)
+	if err := r.UploadMap(ctx, m); err != nil && ctx.Err() == nil {
+		log.Error("upload map to the simulator", "err", err)
 	}
 }

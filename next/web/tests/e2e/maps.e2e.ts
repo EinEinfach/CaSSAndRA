@@ -10,7 +10,15 @@ async function clickCanvas(page: Page, fx: number, fy: number) {
 	await page.mouse.click(box.x + box.width * fx, box.y + box.height * fy);
 }
 
+let previousActive = '';
+
+test.beforeAll(async ({ request }) => {
+	previousActive = (await (await request.get('/api/maps')).json()).activeId;
+});
+
 test.afterAll(async ({ request }) => {
+	// The simulator starts with the active map: give the others the demo garden back.
+	await request.put('/api/maps/active', { data: { id: previousActive } });
 	// Reconnecting starts a fresh simulator with the demo garden for the other tests.
 	await request.put('/api/settings', { data: { settings: { connection: { kind: 'uart' } } } });
 	await request.put('/api/settings', { data: { settings: { connection: { kind: 'sim' } } } });

@@ -123,7 +123,8 @@ backend/tests/
 - Table-driven Tests sind Standard.
 - `tests/protocol`: **Golden-Tests** mit Antwortzeilen in `testdata/` (inkl. alter Firmware-Varianten). Erwartete Werte kommen aus einer unabhängigen Quelle (Firmware-Format, Legacy-Algorithmus), nie aus dem Code unter Test.
 - **Fuzz-Tests** für alles, was Daten von außen parst (`FuzzParseReplies`). Gefundene Abstürze bleiben im Korpus `testdata/fuzz/`. Länger laufen lassen: `go test ./tests/protocol -run XXX -fuzz FuzzParseReplies -fuzztime 60s`.
-- `link/sim.go`: simulierter Roboter als `Transport`. Er läuft durch denselben `Poller` wie HTTP/UART, d. h. Tests mit dem Simulator prüfen den echten Code-Pfad. Für Fehlerfälle gibt es `SetOffline`, `SetBatteryVoltage`, `TriggerRain`.
+- `link/sim.go`: simulierter Roboter als `Transport`. Ein neuer Simulator startet mit der aktiven Karte (ohne Route) in
+  deren Ladestation, ohne aktive Karte mit dem Demo-Garten (`link.DemoMap`, mit Route). Er läuft durch denselben `Poller` wie HTTP/UART, d. h. Tests mit dem Simulator prüfen den echten Code-Pfad. Für Fehlerfälle gibt es `SetOffline`, `SetBatteryVoltage`, `TriggerRain`.
 - Echte Transporte werden gegen echte Gegenstellen getestet, nicht gegen Mocks: HTTP über `testkit.RobotHTTPServer` (Simulator hinter `httptest`), UART über `net.Pipe` mit einem Fake-Roboter, der Konsolenrauschen einstreut, MQTT gegen `testkit.StartBroker` (eingebetteter mochi-Broker).
 - Test-HTTP-Handler, die auf `r.Context().Done()` warten, müssen vorher den Body lesen – sonst bemerkt der Server das Auflegen nicht und `httptest.Server.Close` hängt.
 - Unit-Tests von `robot` nutzen einen Fake-`Sender` (`tests/robot/helpers_test.go`), der Fehler, eigene Antworten und Blockieren pro Befehl simuliert. Zusammenspiel robot + link + sim gehört nach `tests/integration`.
@@ -135,7 +136,8 @@ backend/tests/
 - Svelte 5: Ein `$effect`, der State schreibt, den er auch liest, läuft endlos (`effect_update_depth_exceeded`). Gelesenen-und-geschriebenen State in `untrack(...)` lesen.
 - Svelte 5: Keine Variable oder Prop `state` in einer Komponente, die `$state(...)` nutzt – Svelte liest das sonst als Store-Abo (`store_invalid_shape`). Prop beim Destrukturieren umbenennen (`state: robot`).
 - Dateinamen dürfen sich nicht nur in Groß-/Kleinschreibung unterscheiden (`Joystick.svelte` + `joystick.ts` → gleiche Testdatei auf macOS).
-- E2E: Playwright in `web/tests/e2e/` (`*.e2e.ts`) gegen das echte Binary (`make build`, Port 4173, frisches `--data-dir ../.e2e-data`) mit Simulator und Demo-Garten. Die Tests teilen sich den Roboter und laufen nacheinander (`workers: 1`); wer den Roboter verändert, stellt ihn danach wieder her (Verbindung kurz wechseln = frischer Simulator). Neue E2E-Tests mit `npx playwright test --repeat-each=3` auf Wackeligkeit prüfen.
+- E2E: Playwright in `web/tests/e2e/` (`*.e2e.ts`) gegen das echte Binary (`make build`, Port 4173, frisches `--data-dir ../.e2e-data`) mit Simulator und Demo-Garten. Die Tests teilen sich den Roboter und laufen nacheinander (`workers: 1`); wer den Roboter oder die aktive Karte verändert, stellt beides danach wieder her (erst die aktive Karte, dann
+Verbindung kurz wechseln = frischer Simulator mit dieser Karte). Neue E2E-Tests mit `npx playwright test --repeat-each=3` auf Wackeligkeit prüfen.
 - Testdaten aus echten Installationen nie 1:1 einchecken (Zugangsdaten!): Format nachbauen, Werte erfinden.
 - `go test` läuft im Makefile mit `-timeout 120s`, damit ein hängender Test (Deadlock) nicht den ganzen Lauf blockiert.
 - Bevor eine Aufgabe als erledigt gilt: Tests laufen grün, `go vet` und Linter sauber.
