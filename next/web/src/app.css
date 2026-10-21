@@ -2,6 +2,7 @@
 	color-scheme: light dark;
 	--nav-bottom: 64px; /* tab bar on phones */
 	--nav-left: 88px; /* rail on wide screens */
+	--panel-width: 360px; /* the panel next to the map (MapLayout) */
 	/* Neutral grays in layers: page < sunken < surface. Color only where it means something. */
 	--bg: #f0f0f0;
 	--surface: #ffffff;

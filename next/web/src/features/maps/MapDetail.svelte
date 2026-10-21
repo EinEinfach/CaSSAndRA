@@ -7,7 +7,6 @@
 </script>
 
 <script lang="ts">
-	import MapCanvas from '#shared/MapCanvas.svelte';
 	import { activateMap, deleteMap, uploadMap } from './api.ts';
 	import type { GardenMap } from './types.ts';
 
@@ -35,13 +34,6 @@
 	let message = $state('');
 	let error = $state('');
 	let confirmDelete = $state(false);
-
-	const layers = $derived({
-		perimeter: map.perimeter,
-		exclusions: map.exclusions,
-		dock: map.dock,
-		searchWire: map.searchWire
-	});
 
 	async function run(kind: 'upload' | 'activate' | 'delete', done: string) {
 		busy = kind;
@@ -86,10 +78,6 @@
 		</div>
 		{#if active}<span class="badge">On robot</span>{/if}
 	</header>
-
-	<div class="canvas">
-		<MapCanvas {layers} label="Map {map.name}" />
-	</div>
 
 	<div class="actions">
 		<button
@@ -136,8 +124,6 @@
 	.detail {
 		display: grid;
 		gap: 12px;
-		grid-template-rows: auto minmax(280px, 1fr) auto auto;
-		height: 100%;
 	}
 	header {
 		display: flex;
@@ -161,9 +147,6 @@
 		border-radius: 999px;
 		background: var(--tone-active);
 		white-space: nowrap;
-	}
-	.canvas {
-		min-height: 0;
 	}
 	.actions {
 		display: flex;

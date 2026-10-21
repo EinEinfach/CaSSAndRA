@@ -8,6 +8,8 @@
 	import { MapsStore } from '#features/maps/store.svelte.ts';
 	import type { MapShape } from '#features/maps/types.ts';
 	import { RobotStore } from '#features/robot/store.svelte.ts';
+	import MapCanvas from '#shared/MapCanvas.svelte';
+	import MapLayout from '#shared/MapLayout.svelte';
 	import { useStream } from '#shared/streamContext.ts';
 
 	const stream = useStream();
@@ -38,16 +40,27 @@
 		searchWire: m.searchWire
 	});
 
-	let detail = $state<HTMLElement>();
+	let mapView = $state<HTMLElement>();
 
 	async function select(id: string) {
 		selectedId = id;
-		// On phones the map sits below the list.
+		// On phones the map sits above the list.
 		if (!window.matchMedia('(min-width: 900px)').matches) {
 			await tick();
-			detail?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			mapView?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		}
 	}
+
+	const layers = $derived(
+		selected
+			? {
+					perimeter: selected.perimeter,
+					exclusions: selected.exclusions,
+					dock: selected.dock,
+					searchWire: selected.searchWire
+				}
+			: {}
+	);
 
 	async function save(shape: MapShape) {
 		const saved = editing?.id ? await updateMap(editing.id, shape) : await createMap(shape);
@@ -60,29 +73,25 @@
 	<title>Maps · CaSSAndRA</title>
 </svelte:head>
 
-<div class="page" class:editing={editing !== null}>
-	{#if editing}
-		{#key editing}
-			<MapEditor
-				initial={editing.initial}
-				title={editing.title}
-				{robotPosition}
-				{save}
-				cancel={() => (editing = null)}
-			/>
-		{/key}
-	{:else}
-		<aside>
+{#if editing}
+	{#key editing}
+		<MapEditor
+			initial={editing.initial}
+			title={editing.title}
+			{robotPosition}
+			{save}
+			cancel={() => (editing = null)}
+		/>
+	{/key}
+{:else}
+	<MapLayout label="Maps">
+		{#snippet map()}
+			<div class="view" bind:this={mapView}>
+				<MapCanvas {layers} label={selected ? `Map ${selected.name}` : 'Map'} />
+			</div>
+		{/snippet}
+		{#snippet panel()}
 			<h1>Maps</h1>
-			<MapList
-				maps={store.maps}
-				activeId={store.activeId}
-				selectedId={selected?.id ?? null}
-				onselect={select}
-				oncreate={() => (editing = { id: null, initial: emptyShape(), title: 'New map' })}
-			/>
-		</aside>
-		<main bind:this={detail}>
 			{#if selected}
 				<MapDetail
 					map={selected}
@@ -118,35 +127,30 @@
 					</button>
 				</div>
 			{/if}
-		</main>
-	{/if}
-</div>
+			<MapList
+				maps={store.maps}
+				activeId={store.activeId}
+				selectedId={selected?.id ?? null}
+				onselect={select}
+				oncreate={() => (editing = { id: null, initial: emptyShape(), title: 'New map' })}
+			/>
+		{/snippet}
+	</MapLayout>
+{/if}
 
 <style>
-	.page {
-		display: grid;
-		gap: 20px;
-		padding: 20px 16px;
-		max-width: 1400px;
-		margin: 0 auto;
-	}
 	h1 {
-		margin: 0 0 12px;
+		margin: 0;
 		font-size: 1.6rem;
 	}
-	main {
-		min-height: 60dvh;
-	}
-	.page.editing {
-		height: calc(100dvh - var(--nav-bottom));
-		grid-template-rows: minmax(0, 1fr);
+	.view {
+		height: 100%;
+		scroll-margin-top: 16px;
 	}
 	.empty {
 		display: grid;
 		justify-items: start;
 		gap: 8px;
-		max-width: 480px;
-		padding: 32px 0;
 	}
 	.empty h2 {
 		margin: 0;
@@ -154,17 +158,5 @@
 	.empty p {
 		margin: 0 0 8px;
 		color: var(--text-muted);
-	}
-	@media (min-width: 900px) {
-		.page:not(.editing) {
-			grid-template-columns: 320px 1fr;
-			height: 100dvh;
-		}
-		aside {
-			overflow-y: auto;
-		}
-		main {
-			min-height: 0;
-		}
 	}
 </style>

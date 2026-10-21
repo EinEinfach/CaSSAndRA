@@ -1,5 +1,6 @@
 <script lang="ts">
 	import MapCanvas, { type MapInteraction } from '#shared/MapCanvas.svelte';
+	import MapLayout from '#shared/MapLayout.svelte';
 	import type { MapLayers, RobotPose } from '#shared/drawMap.ts';
 	import type { GardenMap } from '#features/maps/types.ts';
 	import type { RobotStatus } from '#features/robot/types.ts';
@@ -115,15 +116,15 @@
 	}
 </script>
 
-<div class="planner">
-	<div class="map">
+<MapLayout label="Plan a route">
+	{#snippet map()}
 		<MapCanvas
 			{layers}
 			label="Map for planning a route"
 			interact={session.tool === 'all' ? undefined : interact}
 		/>
-	</div>
-	<aside aria-label="Plan a route">
+	{/snippet}
+	{#snippet panel()}
 		{#if !map}
 			<p class="empty">No active map. Choose or draw one under Maps.</p>
 		{:else}
@@ -223,30 +224,10 @@
 				{/if}
 			</section>
 		{/if}
-	</aside>
-</div>
+	{/snippet}
+</MapLayout>
 
 <style>
-	.planner {
-		min-height: calc(100dvh - var(--nav-bottom));
-		display: grid;
-		gap: 16px;
-		padding: 16px;
-		grid-template-columns: 1fr;
-		grid-template-rows: minmax(300px, 55dvh) auto;
-	}
-	.map {
-		min-height: 0;
-	}
-	aside {
-		display: flex;
-		flex-direction: column;
-		gap: 20px;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 16px;
-		padding: 16px;
-	}
 	section {
 		display: flex;
 		flex-direction: column;
@@ -291,15 +272,5 @@
 	.error {
 		margin: 0;
 		color: var(--tone-danger-text);
-	}
-	@media (min-width: 900px) {
-		.planner {
-			height: 100dvh;
-			grid-template-columns: 1fr 360px;
-			grid-template-rows: 1fr;
-		}
-		aside {
-			overflow-y: auto;
-		}
 	}
 </style>

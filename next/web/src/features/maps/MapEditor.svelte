@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import MapCanvas, { type MapInteraction } from '#shared/MapCanvas.svelte';
+	import MapLayout from '#shared/MapLayout.svelte';
 	import type { Point } from '#shared/viewport.ts';
 	import { allLayers, layerName, pointsOf } from './editor.ts';
 	import { EditorSession } from './session.svelte.ts';
@@ -64,104 +65,99 @@
 
 <svelte:window onkeydown={onKey} />
 
-<section class="editor" aria-label="Map editor">
-	<header>
-		<input
-			class="text name"
-			aria-label="Map name"
-			placeholder="Name of the map"
-			bind:value={session.name}
-		/>
-		<div class="buttons">
-			<button type="button" onclick={cancel} disabled={saving}>Cancel</button>
-			<button
-				type="button"
-				class="primary"
-				onclick={submit}
-				disabled={saving || session.problems.length > 0}
-			>
-				{saving ? 'Saving…' : 'Save map'}
-			</button>
+<MapLayout label="Map editor">
+	{#snippet map()}
+		<div class="stage">
+			<MapCanvas {layers} label="Map editor canvas" fitMode="once" {interact} />
+			<div class="tools" role="toolbar" aria-label="Edit tools">
+				<button
+					type="button"
+					onclick={() => session.undo()}
+					disabled={!session.canUndo}
+					title="Undo (Ctrl+Z)">Undo</button
+				>
+				<button
+					type="button"
+					onclick={() => session.redo()}
+					disabled={!session.canRedo}
+					title="Redo (Ctrl+Shift+Z)">Redo</button
+				>
+				<button
+					type="button"
+					onclick={() => session.deleteSelected()}
+					disabled={session.selected === null}
+					title="Delete point (Del)">Delete point</button
+				>
+				<button
+					type="button"
+					onclick={() => robotPosition && session.add(robotPosition)}
+					disabled={!robotPosition}
+					title="Add a point where the robot is">Robot position</button
+				>
+				<button
+					type="button"
+					onclick={() => session.clear()}
+					disabled={pointsOf(session.draft, session.layer).length === 0 &&
+						session.layer.kind !== 'exclusion'}
+				>
+					{session.layer.kind === 'exclusion' ? 'Remove exclusion' : 'Clear'}
+				</button>
+			</div>
 		</div>
-	</header>
-	<p class="title">{title}</p>
+	{/snippet}
+	{#snippet panel()}
+		<p class="title">{title}</p>
+		<header>
+			<input
+				class="text name"
+				aria-label="Map name"
+				placeholder="Name of the map"
+				bind:value={session.name}
+			/>
+			<div class="buttons">
+				<button type="button" onclick={cancel} disabled={saving}>Cancel</button>
+				<button
+					type="button"
+					class="primary"
+					onclick={submit}
+					disabled={saving || session.problems.length > 0}
+				>
+					{saving ? 'Saving…' : 'Save map'}
+				</button>
+			</div>
+		</header>
 
-	<div class="chips" role="tablist" aria-label="Part of the map">
-		{#each allLayers(session.draft) as l (layerName(l))}
-			<button
-				type="button"
-				role="tab"
-				class="chip {l.kind}"
-				aria-selected={session.isLayer(l)}
-				onclick={() => session.selectLayer(l)}
+		<div class="chips" role="tablist" aria-label="Part of the map">
+			{#each allLayers(session.draft) as l (layerName(l))}
+				<button
+					type="button"
+					role="tab"
+					class="chip {l.kind}"
+					aria-selected={session.isLayer(l)}
+					onclick={() => session.selectLayer(l)}
+				>
+					{layerName(l)}
+					<span class="count">{pointsOf(session.draft, l).length}</span>
+				</button>
+			{/each}
+			<button type="button" class="chip add" onclick={() => session.newExclusion()}
+				>+ Exclusion</button
 			>
-				{layerName(l)}
-				<span class="count">{pointsOf(session.draft, l).length}</span>
-			</button>
-		{/each}
-		<button type="button" class="chip add" onclick={() => session.newExclusion()}
-			>+ Exclusion</button
-		>
-	</div>
-
-	<div class="stage">
-		<MapCanvas {layers} label="Map editor canvas" fitMode="once" {interact} />
-		<div class="tools" role="toolbar" aria-label="Edit tools">
-			<button
-				type="button"
-				onclick={() => session.undo()}
-				disabled={!session.canUndo}
-				title="Undo (Ctrl+Z)">Undo</button
-			>
-			<button
-				type="button"
-				onclick={() => session.redo()}
-				disabled={!session.canRedo}
-				title="Redo (Ctrl+Shift+Z)">Redo</button
-			>
-			<button
-				type="button"
-				onclick={() => session.deleteSelected()}
-				disabled={session.selected === null}
-				title="Delete point (Del)">Delete point</button
-			>
-			<button
-				type="button"
-				onclick={() => robotPosition && session.add(robotPosition)}
-				disabled={!robotPosition}
-				title="Add a point where the robot is">Robot position</button
-			>
-			<button
-				type="button"
-				onclick={() => session.clear()}
-				disabled={pointsOf(session.draft, session.layer).length === 0 &&
-					session.layer.kind !== 'exclusion'}
-			>
-				{session.layer.kind === 'exclusion' ? 'Remove exclusion' : 'Clear'}
-			</button>
 		</div>
-	</div>
-
-	<p class="help">
-		Tap to add a point to the {layerName(session.layer).toLowerCase()}, tap a point to select it,
-		drag it to move it. Polygons get new corners on their nearest edge.
-	</p>
-	{#if session.problems.length > 0}
-		<ul class="problems" aria-label="Before saving">
-			{#each session.problems as p (p)}<li>{p}</li>{/each}
-		</ul>
-	{/if}
-	{#if error}<p class="error" role="alert">{error}</p>{/if}
-</section>
+		<p class="help">
+			Tap to add a point to the {layerName(session.layer).toLowerCase()}, tap a point to select it,
+			drag it to move it. Polygons get new corners on their nearest edge.
+		</p>
+		{#if session.problems.length > 0}
+			<ul class="problems" aria-label="Before saving">
+				{#each session.problems as p (p)}<li>{p}</li>{/each}
+			</ul>
+		{/if}
+		{#if error}<p class="error" role="alert">{error}</p>{/if}
+	{/snippet}
+</MapLayout>
 
 <style>
-	.editor {
-		display: grid;
-		gap: 10px;
-		grid-template-rows: auto auto auto minmax(280px, 1fr);
-		grid-auto-rows: auto;
-		height: 100%;
-	}
 	header {
 		display: flex;
 		flex-wrap: wrap;
@@ -178,15 +174,14 @@
 		gap: 8px;
 	}
 	.title {
-		margin: -6px 0 0;
+		margin: 0 0 -12px;
 		color: var(--text-muted);
 		font-size: 0.85rem;
 	}
 	.chips {
 		display: flex;
+		flex-wrap: wrap;
 		gap: 6px;
-		overflow-x: auto;
-		padding-bottom: 2px;
 	}
 	.chip {
 		flex: none;
@@ -231,7 +226,7 @@
 	}
 	.stage {
 		position: relative;
-		min-height: 280px;
+		height: 100%;
 	}
 	.tools {
 		position: absolute;

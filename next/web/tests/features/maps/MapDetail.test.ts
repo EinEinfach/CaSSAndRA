@@ -36,12 +36,12 @@ function setup(active = false) {
 const button = (name: string) => screen.getByRole('button', { name });
 
 describe('MapDetail', () => {
-	it('summarizes the map and draws it', () => {
+	it('summarizes the map (the page draws it)', () => {
 		setup(true);
 		expect(screen.getByRole('heading').textContent).toBe('Garden');
 		expect(screen.getByText(/4 perimeter points · 1 exclusions · dock path 2 points/)).toBeTruthy();
 		expect(screen.getByText('On robot')).toBeTruthy();
-		expect(screen.getByLabelText('Map Garden').tagName).toBe('CANVAS');
+		expect(document.querySelector('canvas')).toBeNull();
 		expect(screen.queryByRole('button', { name: 'Show on live view' })).toBeNull();
 	});
 

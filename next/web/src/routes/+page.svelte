@@ -12,6 +12,7 @@
 	import { gotoPoint } from '#features/tasks/api.ts';
 	import GotoControl from '#features/tasks/GotoControl.svelte';
 	import { GotoPicker } from '#features/tasks/goto.svelte.ts';
+	import MapLayout from '#shared/MapLayout.svelte';
 	import { useStream } from '#shared/streamContext.ts';
 
 	const stream = useStream();
@@ -39,8 +40,8 @@
 	);
 </script>
 
-<div class="page">
-	<div class="map">
+<MapLayout label="Robot">
+	{#snippet map()}
 		<RobotMap
 			state={robot.state}
 			map={shownMap}
@@ -49,8 +50,8 @@
 			interact={picker.picking ? picker.interact : undefined}
 			goal={picker.goal}
 		/>
-	</div>
-	<aside>
+	{/snippet}
+	{#snippet panel()}
 		<StatusPanel state={robot.state} connected={robot.connected} />
 		<Controls {status} />
 		<GotoControl {picker} {status} send={(goal) => gotoPoint(goal)} />
@@ -64,42 +65,12 @@
 		<div class="joystick">
 			<Joystick disabled={!canDriveManually(status)} />
 		</div>
-	</aside>
-</div>
+	{/snippet}
+</MapLayout>
 
 <style>
-	.page {
-		min-height: calc(100dvh - var(--nav-bottom));
-		display: grid;
-		gap: 16px;
-		padding: 16px;
-		grid-template-columns: 1fr;
-		grid-template-rows: minmax(300px, 55dvh) auto;
-	}
-	.map {
-		min-height: 0;
-	}
-	aside {
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 16px;
-		padding: 16px;
-	}
 	.joystick {
 		display: flex;
 		justify-content: center;
-	}
-	@media (min-width: 900px) {
-		.page {
-			height: 100dvh;
-			grid-template-columns: 1fr 340px;
-			grid-template-rows: 1fr;
-		}
-		aside {
-			align-self: start;
-		}
 	}
 </style>
