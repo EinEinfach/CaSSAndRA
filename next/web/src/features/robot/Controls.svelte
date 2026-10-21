@@ -1,4 +1,5 @@
 <script lang="ts">
+	// Mow, stop and dock as round icon buttons, made to float over the map.
 	import { command, type SimpleCommand } from './api.ts';
 	import { canDock, canStart, canStop } from './format.ts';
 	import type { RobotStatus } from './types.ts';
@@ -25,39 +26,96 @@
 </script>
 
 <section class="controls" aria-label="Robot controls">
-	<button
-		type="button"
-		class="primary"
-		disabled={!canStart(status) || busy !== null}
-		onclick={() => run('mow')}
-	>
-		Mow
-	</button>
-	<!-- Stop is never blocked by another running command. -->
-	<button type="button" class="danger" disabled={!canStop(status)} onclick={() => run('stop')}
-		>Stop</button
-	>
-	<button type="button" disabled={!canDock(status) || busy !== null} onclick={() => run('dock')}>
-		Dock
-	</button>
 	{#if error}
 		<p class="error" role="alert">{error}</p>
 	{/if}
+	<div class="buttons">
+		<button
+			type="button"
+			class="round mow"
+			aria-label="Mow"
+			title="Mow"
+			disabled={!canStart(status) || busy !== null}
+			onclick={() => run('mow')}
+		>
+			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5Z" /></svg>
+		</button>
+		<!-- Stop is never blocked by another running command. -->
+		<button
+			type="button"
+			class="round stop"
+			aria-label="Stop"
+			title="Stop"
+			disabled={!canStop(status)}
+			onclick={() => run('stop')}
+		>
+			<svg viewBox="0 0 24 24" aria-hidden="true"
+				><rect x="6.5" y="6.5" width="11" height="11" rx="1.5" /></svg
+			>
+		</button>
+		<button
+			type="button"
+			class="round dock"
+			aria-label="Dock"
+			title="Dock"
+			disabled={!canDock(status) || busy !== null}
+			onclick={() => run('dock')}
+		>
+			<svg viewBox="0 0 24 24" aria-hidden="true"
+				><path d="M4 11.5 12 4.5l8 7V20h-5.5v-5.5h-5V20H4Z" /></svg
+			>
+		</button>
+	</div>
 </section>
 
 <style>
 	.controls {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		display: flex;
+		align-items: flex-end;
 		gap: 8px;
 	}
-	button {
-		min-height: 48px;
-		font-size: 1rem;
+	.buttons {
+		display: flex;
+		gap: 10px;
+	}
+	.round {
+		width: 56px;
+		height: 56px;
+		padding: 0;
+		border-radius: 50%;
+		display: grid;
+		place-items: center;
+		box-shadow: var(--shadow);
+	}
+	.round svg {
+		width: 26px;
+		height: 26px;
+		fill: currentColor;
+	}
+	.mow {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: var(--accent-text);
+	}
+	.stop {
+		background: var(--danger);
+		border-color: var(--danger);
+		color: var(--on-danger);
+	}
+	.dock {
+		background: var(--map-dock);
+		border-color: var(--map-dock);
+		color: #ffffff;
 	}
 	.error {
-		grid-column: 1 / -1;
 		margin: 0;
+		max-width: 260px;
+		padding: 8px 12px;
+		border-radius: 10px;
+		background: var(--surface);
+		border: 1px solid var(--border);
 		color: var(--tone-danger-text);
+		font-size: 0.85rem;
+		box-shadow: var(--shadow);
 	}
 </style>

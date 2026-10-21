@@ -50,10 +50,12 @@
 			interact={picker.picking ? picker.interact : undefined}
 			goal={picker.goal}
 		/>
+		<div class="controls">
+			<Controls {status} />
+		</div>
 	{/snippet}
 	{#snippet panel()}
 		<StatusPanel state={robot.state} connected={robot.connected} />
-		<Controls {status} />
 		<GotoControl {picker} {status} send={(goal) => gotoPoint(goal)} />
 		<Progress
 			{status}
@@ -69,6 +71,13 @@
 </MapLayout>
 
 <style>
+	/* Over the map, bottom right, above the canvas. */
+	.controls {
+		position: absolute;
+		right: 12px;
+		bottom: 12px;
+		z-index: 1;
+	}
 	.joystick {
 		display: flex;
 		justify-content: center;
