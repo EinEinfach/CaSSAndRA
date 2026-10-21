@@ -86,8 +86,8 @@
 		opacity: 0.4;
 	}
 	.knob {
-		width: 56px;
-		height: 56px;
+		width: 112px;
+		height: 112px;
 		border-radius: 50%;
 		background: var(--accent);
 		box-shadow: 0 2px 6px rgb(0 0 0 / 0.3);
