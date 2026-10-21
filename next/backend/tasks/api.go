@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/EinEinfach/CaSSAndRA/next/backend/geo"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/planner"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 )
@@ -26,6 +27,11 @@ const maxBodyBytes = 1 << 20
 // PlanJSON is the response of GET /api/tasks/preview and the "plan" event.
 type PlanJSON struct {
 	Plan *Plan `json:"plan"` // null without a plan
+}
+
+// GotoJSON is the response of POST /api/tasks/goto.
+type GotoJSON struct {
+	Way []geo.Point `json:"way"`
 }
 
 // ListJSON is the response of GET /api/tasks and the "tasks" event.
@@ -107,6 +113,27 @@ func (s *Service) Handler() http.Handler {
 		}
 		w.WriteHeader(http.StatusNoContent)
 	})
+	mux.HandleFunc("POST /api/tasks/goto", func(w http.ResponseWriter, r *http.Request) {
+		var goal struct {
+			X *float64 `json:"x"`
+			Y *float64 `json:"y"`
+		}
+		if !decode(w, r, &goal) {
+			return
+		}
+		if goal.X == nil || goal.Y == nil {
+			writeError(w, http.StatusBadRequest, "missing field x or y")
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), startTimeout)
+		defer cancel()
+		way, err := s.Goto(ctx, geo.Point{X: *goal.X, Y: *goal.Y})
+		if err != nil {
+			writeError(w, errorStatus(err), err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, GotoJSON{Way: way})
+	})
 	mux.HandleFunc("DELETE /api/tasks/preview", func(w http.ResponseWriter, _ *http.Request) {
 		s.Clear()
 		w.WriteHeader(http.StatusNoContent)
@@ -131,7 +158,8 @@ func errorStatus(err error) int {
 		return http.StatusNotFound
 	case errors.Is(err, ErrNameTaken):
 		return http.StatusConflict
-	case errors.Is(err, ErrInvalid), errors.Is(err, ErrNothingToMow), errors.Is(err, planner.ErrInvalid):
+	case errors.Is(err, ErrInvalid), errors.Is(err, ErrNothingToMow), errors.Is(err, planner.ErrInvalid),
+		errors.Is(err, ErrUnreachable):
 		return http.StatusBadRequest
 	case errors.Is(err, ErrNoMap), errors.Is(err, ErrNoPlan), errors.Is(err, ErrStalePlan), errors.Is(err, ErrStarting):
 		return http.StatusConflict

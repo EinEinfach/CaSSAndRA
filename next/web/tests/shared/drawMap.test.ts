@@ -220,6 +220,14 @@ describe('drawMap', () => {
 		expect(ctx.images[0].box).toEqual([-14, -14, 28, 28]);
 	});
 
+	it('draws a picked goal as ring and dot', () => {
+		const ctx = recordingContext();
+		drawMap(ctx, vp, { goal: { x: 2, y: 1 } }, colors);
+		const [ring, dot] = ctx.shapes;
+		expect(ring).toMatchObject({ op: 'stroke', color: 'selection', arcs: [[120, 90, 10]] });
+		expect(dot).toMatchObject({ op: 'fill', color: 'selection', arcs: [[120, 90, 3]] });
+	});
+
 	it('does not draw a trail of one point', () => {
 		const ctx = recordingContext();
 		drawMap(ctx, vp, { trail: [{ x: 0, y: 0 }] }, colors);

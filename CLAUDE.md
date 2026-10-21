@@ -208,7 +208,13 @@ liegt nur im Speicher, geht als Event `plan` an alle Browser und verfällt, wenn
 überlappenden Anfragen bleibt die zuletzt gestellte. `POST /api/tasks/start` überträgt Karte + Route (`UploadMap`) und
 startet das Mähen (`Mow`), je genau einmal; abgelehnt (409), wenn die Karte sich geändert hat oder der Startpunkt
 sich seit der Vorschau um > 1 m verschoben hat (der Roboter führe sonst geradeaus zum Routenanfang, ggf. durch eine
-Ausschlusszone), und solange ein Start läuft. Fortschritt = `mowPointIndex / Anzahl Wegpunkte` (Live-Seite, mit
+Ausschlusszone), und solange ein Start läuft.
+
+**Goto:** `POST /api/tasks/goto {x, y}`: Ziel muss auf dem Rasen liegen (im Perimeter, in keiner Ausschlusszone), der
+Weg kommt aus `planner.Way` (A*, bevorzugt den Suchdraht) vom Startpunkt (wie oben, also im Dock vom Dockpfad aus);
+gesendet werden Karte + Weg und `robot.Goto` (Mähmotor aus), je einmal. Legacy schickte nur den Zielpunkt und ließ die
+Firmware den Weg suchen. In der UI zwei Schritte: Ziel antippen, dann „Drive there“; beim Wählen zeigt die
+Live-Karte die aktive Karte. Fortschritt = `mowPointIndex / Anzahl Wegpunkte` (Live-Seite, mit
 „Jump“ = `skip-to-progress` und „Skip point“).
 
 **Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er

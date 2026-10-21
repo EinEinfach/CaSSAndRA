@@ -26,6 +26,7 @@ beforeEach(() => {
 	document.documentElement.style.setProperty('--map-target', 'target-color');
 	document.documentElement.style.setProperty('--map-way-done', 'done-color');
 	document.documentElement.style.setProperty('--map-trail', 'trail-color');
+	document.documentElement.style.setProperty('--map-selection', 'goal-color');
 });
 
 afterEach(() => {
@@ -124,5 +125,25 @@ describe('RobotMap', () => {
 		);
 		await userEvent.click(screen.getByRole('button', { name: 'Clear trail' }));
 		expect(clearTrail).toHaveBeenCalledOnce();
+	});
+
+	it('shows a picked goal and passes taps on the map', async () => {
+		const tap = vi.fn();
+		render(RobotMap, {
+			state: robotState({ status: 'idle' }),
+			map,
+			trail: [],
+			interact: { tap },
+			goal: { x: 4, y: 4 }
+		});
+		await tick();
+		expect(colorsDrawn()).toContain('goal-color');
+		const canvas = screen.getByLabelText('Garden map with robot position');
+		for (const type of ['pointerdown', 'pointerup']) {
+			const ev = new MouseEvent(type, { clientX: 150, clientY: 150, bubbles: true });
+			Object.defineProperty(ev, 'pointerId', { value: 1 });
+			canvas.dispatchEvent(ev);
+		}
+		expect(tap).toHaveBeenCalledOnce();
 	});
 });

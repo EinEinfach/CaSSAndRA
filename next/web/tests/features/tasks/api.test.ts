@@ -3,6 +3,7 @@ import {
 	clearPreview,
 	createTask,
 	deleteTask,
+	gotoPoint,
 	previewRoute,
 	startMowing,
 	updateTask
@@ -61,6 +62,19 @@ describe('tasks api', () => {
 		expect(del).toHaveBeenLastCalledWith(
 			'/api/tasks/a%20b',
 			expect.objectContaining({ method: 'DELETE' })
+		);
+	});
+
+	it('drives to a point and returns the way', async () => {
+		const way = [
+			{ x: 1, y: 1 },
+			{ x: 4, y: 2 }
+		];
+		const fetchFn = respond(200, { way });
+		await expect(gotoPoint({ x: 4, y: 2 }, fetchFn)).resolves.toEqual(way);
+		expect(fetchFn).toHaveBeenLastCalledWith(
+			'/api/tasks/goto',
+			expect.objectContaining({ method: 'POST', body: '{"x":4,"y":2}' })
 		);
 	});
 });

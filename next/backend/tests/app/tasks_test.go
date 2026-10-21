@@ -193,3 +193,36 @@ func TestTasksOfADeletedMapAreDropped(t *testing.T) {
 		t.Errorf("tasks events %v, want 0, 1, 0", counts)
 	}
 }
+
+func TestGotoDrivesTheSimulatorWithTheMowMotorOff(t *testing.T) {
+	cfg := testConfig(t)
+	cfg.Planner = &testkit.FakePlanner{} // straight way
+	r := startWith(t, cfg)
+	waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.Status == robot.StatusIdle && s.MapCRC != 0 })
+	code, body := send(t, http.MethodPost, r.baseURL+"/api/maps", `{"name": "Back",
+		"perimeter": [{"x":0,"y":0},{"x":8,"y":0},{"x":8,"y":8},{"x":0,"y":8}],
+		"dock": [{"x":1,"y":3},{"x":-1,"y":3}]}`)
+	if code != http.StatusCreated {
+		t.Fatalf("POST map = %d %s", code, body)
+	}
+	var m maps.Map
+	_ = json.Unmarshal([]byte(body), &m)
+	if code, body := send(t, http.MethodPut, r.baseURL+"/api/maps/active", `{"id":"`+m.ID+`"}`); code != http.StatusNoContent {
+		t.Fatalf("activate = %d %s", code, body)
+	}
+	if code, body := send(t, http.MethodPost, r.baseURL+"/api/tasks/goto", `{"x":6,"y":6}`); code != http.StatusOK {
+		t.Fatalf("goto = %d %s", code, body)
+	}
+	s := waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.Status == robot.StatusTransit })
+	if s.MowMotorOn {
+		t.Error("mow motor on during goto")
+	}
+	var robotMap robot.MapJSON
+	if err := getJSON(r.baseURL+"/api/robot/map", &robotMap); err != nil ||
+		len(robotMap.Way) != 2 || robotMap.Way[1] != (geo.Point{X: 6, Y: 6}) {
+		t.Errorf("robot map way = %v (%v), want from the dock path to the goal", robotMap.Way, err)
+	}
+	if code := post(t, r.baseURL+"/api/robot/stop"); code != http.StatusNoContent {
+		t.Fatalf("stop = %d", code)
+	}
+}

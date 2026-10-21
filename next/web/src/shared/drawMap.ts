@@ -33,6 +33,8 @@ export interface MapLayers {
 	wayDoneIndex?: number;
 	trail?: Point[];
 	target?: Point | null;
+	/** A point the user picked, e.g. where the robot should drive. */
+	goal?: Point | null;
 	robot?: RobotPose | null;
 	robotPicture?: RobotPicture | null;
 	edit?: EditOverlay | null;
@@ -163,6 +165,9 @@ export function drawMap(ctx: MapContext, vp: Viewport, layers: MapLayers, colors
 	if (layers.target) {
 		dot(ctx, vp, layers.target, 4, colors.target);
 	}
+	if (layers.goal) {
+		drawGoal(ctx, vp, layers.goal, colors.selection);
+	}
 	if (layers.robot) {
 		if (layers.robotPicture) drawRobotPicture(ctx, vp, layers.robot, layers.robotPicture);
 		else drawRobot(ctx, vp, layers.robot, colors);
@@ -211,6 +216,19 @@ function dot(ctx: MapContext, vp: Viewport, p: Point, radius: number, color: str
 	ctx.arc(s.x, s.y, radius, 0, 2 * Math.PI);
 	ctx.fillStyle = color;
 	ctx.fill();
+}
+
+const GOAL_PX = 10;
+
+/** A ring with a dot, so the picked point stays visible under a finger. */
+function drawGoal(ctx: MapContext, vp: Viewport, p: Point, color: string) {
+	const s = toScreen(vp, p);
+	ctx.beginPath();
+	ctx.arc(s.x, s.y, GOAL_PX, 0, 2 * Math.PI);
+	ctx.strokeStyle = color;
+	ctx.lineWidth = 2.5;
+	ctx.stroke();
+	dot(ctx, vp, p, 3, color);
 }
 
 /** An arrow pointing in the heading direction (0 = +x, counter-clockwise). */

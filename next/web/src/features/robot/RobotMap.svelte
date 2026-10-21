@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy, untrack } from 'svelte';
-	import MapCanvas from '#shared/MapCanvas.svelte';
+	import MapCanvas, { type MapInteraction } from '#shared/MapCanvas.svelte';
 	import type { MapLayers } from '#shared/drawMap.ts';
 	import type { Point } from '#shared/viewport.ts';
 	import { animatesMotion, browserFrames, RobotMotion, type FrameClock } from './motion.svelte.ts';
@@ -12,7 +12,9 @@
 		map,
 		trail,
 		frames = browserFrames,
-		clearTrail
+		clearTrail,
+		interact,
+		goal = null
 	}: {
 		state: RobotState | null;
 		map: RobotMap;
@@ -20,6 +22,9 @@
 		frames?: FrameClock;
 		/** Shows a button that starts a new trail. */
 		clearTrail?: () => Promise<void>;
+		/** Pointer handling, e.g. while picking a goal; without it the map only pans. */
+		interact?: MapInteraction;
+		goal?: Point | null;
 	} = $props();
 
 	let clearing = $state(false);
@@ -63,12 +68,13 @@
 		wayDoneIndex: robot?.status === 'mow' ? robot.mowPointIndex : 0,
 		trail: shownTrail,
 		target: robot && ['mow', 'transit', 'docking'].includes(robot.status) ? robot.target : null,
+		goal,
 		robot: motion.pose
 	});
 </script>
 
 <div class="robot-map">
-	<MapCanvas {layers} label="Garden map with robot position" />
+	<MapCanvas {layers} {interact} label="Garden map with robot position" />
 	{#if clearTrail && trail.length > 1}
 		<button
 			type="button"

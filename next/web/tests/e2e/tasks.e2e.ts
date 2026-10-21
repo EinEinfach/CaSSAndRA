@@ -133,3 +133,22 @@ test('save tasks, plan two of them in order and delete one', async ({ page }) =>
 	await expect(list.getByRole('listitem')).toHaveCount(1);
 	await expect(page.getByText(/changed since/)).toBeVisible();
 });
+
+test('go to a point picked on the live map', async ({ page }) => {
+	await page.goto('/');
+	await expect(page.getByTestId('robot-status')).toHaveText(/Idle|Docked|Charging/, {
+		timeout: 10_000
+	});
+	await button(page, 'Go to a point').click();
+	await expect(page.getByRole('status').filter({ hasText: 'Tap the map' })).toBeVisible();
+
+	const box = (await page.getByLabel('Garden map with robot position').boundingBox())!;
+	await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.5);
+	await expect(page.getByRole('status').filter({ hasText: 'Drive to' })).toBeVisible();
+	await button(page, 'Drive there').click();
+
+	await expect(page.getByTestId('robot-status')).toHaveText('Driving', { timeout: 15_000 });
+	await expect(button(page, 'Go to a point')).toBeDisabled();
+	await button(page, 'Stop').click();
+	await expect(page.getByTestId('robot-status')).toHaveText('Idle', { timeout: 10_000 });
+});

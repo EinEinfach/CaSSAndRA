@@ -36,9 +36,9 @@ type fakeRobot struct {
 	mu        sync.Mutex
 	snap      robot.Snapshot
 	uploads   []protocol.Map
-	calls     []string // "upload", "mow" in order
+	calls     []string // "upload", "mow", "goto" in order
 	uploadErr error
-	mowErr    error
+	mowErr    error // Mow and Goto
 	// uploading, if set, is closed when an upload starts; the upload then
 	// waits for release.
 	uploading, release chan struct{}
@@ -65,6 +65,13 @@ func (f *fakeRobot) Mow(context.Context) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.calls = append(f.calls, "mow")
+	return f.mowErr
+}
+
+func (f *fakeRobot) Goto(context.Context) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.calls = append(f.calls, "goto")
 	return f.mowErr
 }
 

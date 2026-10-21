@@ -1,5 +1,6 @@
 // Tasks API (tasks/api.go).
 import { sendJSON } from '#shared/api.ts';
+import type { Point } from '#shared/viewport.ts';
 import type { Plan, PreviewRequest, Task, TaskShape } from './types.ts';
 
 /** Computes the route and makes it the plan every browser shows. */
@@ -33,4 +34,10 @@ export async function updateTask(
 
 export async function deleteTask(id: string, fetchFn: typeof fetch = fetch): Promise<void> {
 	await sendJSON('DELETE', `/api/tasks/${encodeURIComponent(id)}`, undefined, fetchFn);
+}
+
+/** Drives the robot to goal along a way around the exclusions; returns the way. */
+export async function gotoPoint(goal: Point, fetchFn: typeof fetch = fetch): Promise<Point[]> {
+	const res = await sendJSON<{ way: Point[] }>('POST', '/api/tasks/goto', goal, fetchFn);
+	return res!.way;
 }

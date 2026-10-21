@@ -14,9 +14,10 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 )
 
-// Planner computes routes. *planner.Native implements it.
+// Planner computes routes and ways. *planner.Native implements it.
 type Planner interface {
 	Route(ctx context.Context, area planner.Area, s planner.Settings, start geo.Point) ([]geo.Point, error)
+	Way(ctx context.Context, area planner.Area, start, goal geo.Point) ([]geo.Point, error)
 }
 
 // Maps gives the active map. *maps.Store implements it.
@@ -30,6 +31,7 @@ type Robot interface {
 	Snapshot() robot.Snapshot
 	UploadMap(ctx context.Context, m protocol.Map) error
 	Mow(ctx context.Context) error
+	Goto(ctx context.Context) error
 }
 
 // Errors besides ErrInvalid; the returned errors wrap them.
