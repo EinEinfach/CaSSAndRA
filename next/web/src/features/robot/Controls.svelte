@@ -76,20 +76,20 @@
 	}
 	.buttons {
 		display: flex;
-		gap: 8px;
+		gap: 10px;
 	}
 	.tile {
-		width: 48px;
-		height: 39px;
+		width: 64px;
+		height: 52px;
 		padding: 0;
-		border-radius: 10px;
+		border-radius: 14px;
 		display: grid;
 		place-items: center;
 		box-shadow: var(--shadow);
 	}
 	.tile svg {
-		width: 20px;
-		height: 20px;
+		width: 26px;
+		height: 26px;
 		fill: currentColor;
 	}
 	.mow {
