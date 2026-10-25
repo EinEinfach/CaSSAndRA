@@ -31,6 +31,7 @@ type DockReason string
 const (
 	DockReasonNone        DockReason = ""
 	DockReasonUser        DockReason = "user"
+	DockReasonSchedule    DockReason = "schedule"
 	DockReasonFinished    DockReason = "finished"
 	DockReasonLowBattery  DockReason = "low battery"
 	DockReasonRain        DockReason = "rain"
@@ -157,8 +158,8 @@ func (r *Robot) updateDockReasonLocked(s protocol.State) {
 			return
 		}
 		switch {
-		case r.dockByUser:
-			r.dockReason = DockReasonUser
+		case r.dockAsked != DockReasonNone:
+			r.dockReason = r.dockAsked
 		case s.Sensor == sensorTemperature:
 			r.dockReason = DockReasonTemperature
 		case s.Sensor == sensorRain:
@@ -168,7 +169,7 @@ func (r *Robot) updateDockReasonLocked(s protocol.State) {
 		default:
 			r.dockReason = DockReasonLowBattery
 		}
-		r.dockByUser = false
+		r.dockAsked = DockReasonNone
 	case protocol.OpCharge:
 		// keep the reason while docked
 	default:

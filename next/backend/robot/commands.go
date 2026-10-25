@@ -39,16 +39,21 @@ func (r *Robot) Stop(ctx context.Context) error {
 	return nil
 }
 
-// Dock drives to the docking station.
+// Dock drives to the docking station, sent home by the user.
 func (r *Robot) Dock(ctx context.Context) error {
+	return r.DockFor(ctx, DockReasonUser)
+}
+
+// DockFor drives to the docking station; reason is reported while docking.
+func (r *Robot) DockFor(ctx context.Context, reason DockReason) error {
 	// Mark before sending: the first docking state may arrive before Send returns.
 	r.mu.Lock()
-	r.dockByUser = true
+	r.dockAsked = reason
 	r.mu.Unlock()
 	err := r.command(ctx, "dock", protocol.Dock().Encode(), func() { r.mowMotor = false })
 	if err != nil {
 		r.mu.Lock()
-		r.dockByUser = false
+		r.dockAsked = DockReasonNone
 		r.mu.Unlock()
 	}
 	return err

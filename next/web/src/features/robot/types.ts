@@ -14,7 +14,8 @@ export type RobotStatus =
 	| 'error'
 	| 'unknown';
 
-export type DockReason = '' | 'user' | 'finished' | 'low battery' | 'rain' | 'temperature';
+export type DockReason =
+	'' | 'user' | 'schedule' | 'finished' | 'low battery' | 'rain' | 'temperature';
 
 export interface RobotState {
 	status: RobotStatus;

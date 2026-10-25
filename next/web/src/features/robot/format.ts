@@ -45,6 +45,7 @@ export function statusTone(status: RobotStatus): Tone {
 
 const dockReasonLabels: Record<Exclude<DockReason, ''>, string> = {
 	user: 'sent home by you',
+	schedule: 'schedule ended',
 	finished: 'route finished',
 	'low battery': 'battery low',
 	rain: 'rain',

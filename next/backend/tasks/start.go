@@ -32,6 +32,25 @@ func (s *Service) Start(ctx context.Context) error {
 	if plan == nil {
 		return ErrNoPlan
 	}
+	return s.start(ctx, *plan)
+}
+
+// PlanAndStart computes the route for req, like Preview, and starts mowing
+// exactly that route, even if someone previews another one meanwhile.
+func (s *Service) PlanAndStart(ctx context.Context, req Request) (Plan, error) {
+	if !s.startMu.TryLock() {
+		return Plan{}, ErrStarting
+	}
+	defer s.startMu.Unlock()
+
+	plan, err := s.Preview(ctx, req)
+	if err != nil {
+		return Plan{}, err
+	}
+	return plan, s.start(ctx, plan)
+}
+
+func (s *Service) start(ctx context.Context, plan Plan) error {
 	m, err := s.maps.Get(s.maps.ActiveID())
 	if err != nil || m.ID != plan.MapID || !m.UpdatedAt.Equal(plan.MapUpdatedAt) {
 		return fmt.Errorf("%w: the map changed", ErrStalePlan)

@@ -85,7 +85,7 @@ type Robot struct {
 	mowMotor   bool // last commanded; the robot does not report it
 	moveUntil  time.Time
 	uploading  bool
-	dockByUser bool
+	dockAsked  DockReason // why Dock was sent, until docking shows
 	dockReason DockReason
 	cancelBusy context.CancelFunc
 	uploaded   protocol.Map

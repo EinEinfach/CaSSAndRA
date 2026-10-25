@@ -10,6 +10,7 @@ import (
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/geo"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/planner"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
@@ -162,5 +163,51 @@ func TestAPIStart(t *testing.T) {
 				t.Errorf("status = %d, want %d (%s)", rec.Code, tt.want, rec.Body)
 			}
 		})
+	}
+}
+
+func TestPlanAndStartMowsItsOwnRoute(t *testing.T) {
+	f := newFixture(t)
+	f.planner.RouteFunc = func(area planner.Area, _ planner.Settings, start geo.Point) ([]geo.Point, error) {
+		if len(area.MowAreas) > 0 {
+			return append([]geo.Point{start}, area.MowAreas[0]...), nil
+		}
+		return append([]geo.Point{start}, area.Perimeter...), nil
+	}
+	f.robot.uploading, f.robot.release = make(chan struct{}), make(chan struct{})
+	done := make(chan error, 1)
+	var plan tasks.Plan
+	go func() {
+		var err error
+		plan, err = f.svc.PlanAndStart(context.Background(), one(nil, params))
+		done <- err
+	}()
+	<-f.robot.uploading
+	// Someone previews another route while the first one is being sent.
+	other, err := f.svc.Preview(context.Background(), one([]geo.Point{{X: 1, Y: 1}, {X: 3, Y: 1}, {X: 3, Y: 3}, {X: 1, Y: 3}}, params))
+	if err != nil {
+		t.Fatal(err)
+	}
+	close(f.robot.release)
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	calls, uploads := f.robot.sent()
+	if slices.Equal(other.Route, plan.Route) {
+		t.Fatal("both previews have the same route; the test proves nothing")
+	}
+	if !slices.Equal(calls, []string{"upload", "mow"}) || !slices.Equal(uploads[0].Way, plan.Route) {
+		t.Errorf("calls = %v, want the route of PlanAndStart uploaded once, then mow", calls)
+	}
+}
+
+func TestPlanAndStartSendsNothingWhenPlanningFails(t *testing.T) {
+	f := newFixture(t)
+	_, err := f.svc.PlanAndStart(context.Background(), tasks.Request{TaskIDs: []string{"missing"}})
+	if !errors.Is(err, tasks.ErrNotFound) {
+		t.Errorf("err = %v, want ErrNotFound", err)
+	}
+	if calls, _ := f.robot.sent(); len(calls) != 0 {
+		t.Errorf("sent %v", calls)
 	}
 }

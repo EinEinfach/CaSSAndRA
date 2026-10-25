@@ -143,6 +143,11 @@ func TestDockReason(t *testing.T) {
 			_ = f.robot.Dock(context.Background())
 			f.robot.OnState(docking(0, 42))
 		}, robot.DockReasonUser},
+		{"sent home by the schedule", func(f fixture) {
+			f.online(state(protocol.OpMow))
+			_ = f.robot.DockFor(context.Background(), robot.DockReasonSchedule)
+			f.robot.OnState(docking(0, 42))
+		}, robot.DockReasonSchedule},
 		{"rain", func(f fixture) { f.online(docking(16, 42)) }, robot.DockReasonRain},
 		{"temperature", func(f fixture) { f.online(docking(18, 42)) }, robot.DockReasonTemperature},
 		{"route finished", func(f fixture) { f.online(docking(0, 0)) }, robot.DockReasonFinished},
