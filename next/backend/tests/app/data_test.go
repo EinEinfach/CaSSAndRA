@@ -17,6 +17,7 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/schedule"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tests/testkit"
@@ -102,6 +103,21 @@ func TestFirstStartImportsLegacyData(t *testing.T) {
 	slices.Sort(imported)
 	if !slices.Equal(imported, []string{"Everything@Yard", "Front lawn@Garden"}) {
 		t.Errorf("tasks %v, want Everything@Yard and Front lawn@Garden", imported)
+	}
+	// The schedule names tasks of the active map; it starts switched off.
+	var sched schedule.JSON
+	if err := getJSON(r.baseURL+"/api/schedule", &sched); err != nil {
+		t.Fatal(err)
+	}
+	everything := ""
+	for _, tk := range taskList.Tasks {
+		if tk.Name == "Everything" {
+			everything = tk.ID
+		}
+	}
+	monday := sched.Schedule.Days[0]
+	if sched.Schedule.Active || monday.Start != "09:00" || monday.End != "11:30" || !slices.Equal(monday.TaskIDs, []string{everything}) {
+		t.Errorf("schedule = %+v, want inactive, Monday 09:00-11:30 with Everything (Front lawn is on another map)", sched.Schedule)
 	}
 	r.cancel()
 	<-r.done

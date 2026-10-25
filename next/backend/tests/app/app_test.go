@@ -145,9 +145,14 @@ func TestRunStreamsRobotEvents(t *testing.T) {
 
 	lines := bufio.NewScanner(res.Body)
 	deadline := time.Now().Add(5 * time.Second)
+	event := ""
 	for lines.Scan() && time.Now().Before(deadline) {
+		if name, ok := strings.CutPrefix(lines.Text(), "event: "); ok {
+			event = name
+			continue
+		}
 		data, ok := strings.CutPrefix(lines.Text(), "data: ")
-		if !ok {
+		if !ok || event != "robot" {
 			continue
 		}
 		var s robot.StateJSON

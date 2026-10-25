@@ -54,7 +54,7 @@ next/
     maps/            Perimeter, Ausschlüsse, Dockpfad, Suchdraht; Kartenspeicher (eine Datei je Karte + active.json), Legacy-Import, API inkl. Upload zum Roboter
     planner/         C++-Planner (Mähroute, A*-Weg) über cgo hinter Build-Tag `cpp`; ohne Tag ErrUnavailable
     tasks/           Aufgaben (Teile aus Fläche + Parametern, tasks.json), Legacy-Import, Routenvorschau über planner (Event `plan`), Start
-    schedule/        Zeitplan (Wochentag → Zeitfenster), startet Tasks
+    schedule/        Wochenplan (je Tag ein Zeitfenster + Aufgaben, schedule.json), Legacy-Import, Runner (startet/dockt), API + Event `schedule`
     settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
     stats/           Statistik und Verlauf (Batterie, Mähzeit, GPS-Qualität)
     mqttapi/         Externe MQTT-API (kompatibel zur Legacy-API, siehe unten)
@@ -220,6 +220,16 @@ gesendet werden Karte + Weg und `robot.Goto` (Mähmotor aus), je einmal. Legacy 
 Firmware den Weg suchen. In der UI zwei Schritte: Ziel antippen, dann „Drive there“; beim Wählen zeigt die
 Live-Karte die aktive Karte. Fortschritt = `mowPointIndex / Anzahl Wegpunkte` (Live-Seite, mit
 „Jump“ = `skip-to-progress` und „Skip point“).
+
+**Zeitplan (`schedule`):** Je Wochentag ein Fenster `"HH:MM"`–`"HH:MM"` (Ortszeit, Ende bis `24:00`, Anfang = Ende
+heißt frei) und Aufgaben einer Karte in Reihenfolge; ohne Aufgaben fährt der Roboter seine vorhandene Route weiter
+(Legacy „resume“). Der Runner prüft jede Minute (wie Legacy): im Fenster und Roboter idle/docked/charging →
+`tasks.PlanAndStart` (rechnet und startet genau diese Route, auch wenn jemand inzwischen eine andere Vorschau macht);
+ist der Roboter beschäftigt/offline, wartet er bis zu 5 Prüfungen und gibt den Tag dann auf. Am Fensterende (auch um
+Mitternacht) schickt er den Roboter heim (`robot.DockFor`, Grund `schedule`), aber nur, wenn er selbst gestartet hat
+und der Roboter noch mäht. Start und Heimschicken je höchstens einmal pro Tag, auch nach Fehlern. Der Legacy-Import
+(`user/schedulecfg.json`, Aufgabennamen der aktiven Karte) kommt immer **ausgeschaltet** an, damit der Roboter nicht
+losfährt, nur weil die neue App gestartet wurde. Gelöschte Aufgaben verschwinden aus dem Plan.
 
 **Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er
 idempotent ist. `Stop` bricht einen laufenden Karten-Upload ab, statt hinter ihm zu warten.

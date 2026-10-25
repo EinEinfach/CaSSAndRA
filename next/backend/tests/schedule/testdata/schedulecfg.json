@@ -1,0 +1,5 @@
+{"use_schedule": true,
+ "time_range": [{"monday": [9.5, 12]}, {"tuesday": [12, 12]}, {"wednesday": [7.25, 20.5]}, {"thursday": [12, 12]},
+                {"friday": [0, 24]}, {"saturday": [12, 12]}, {"sunday": [12, 12]}],
+ "tasks": [{"monday": ["front lawn", "back lawn"]}, {"tuesday": []}, {"wednesday": ["gone", "front lawn"]},
+           {"thursday": []}, {"friday": []}, {"saturday": []}, {"sunday": []}]}

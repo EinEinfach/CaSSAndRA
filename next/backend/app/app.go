@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/planner"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/schedule"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/server"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
@@ -51,6 +53,9 @@ type Config struct {
 	Heartbeat time.Duration
 	// Planner computes routes; nil = the C++ planner (if built in).
 	Planner tasks.Planner
+	// Schedule sets the clock and interval of the schedule (defaults: wall
+	// clock, one minute).
+	Schedule schedule.Config
 }
 
 // DefaultConfig returns the defaults; only DataDir must be set.
@@ -96,7 +101,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	if err != nil {
 		return err
 	}
-	settingsStore, mapStore, taskStore := data.settings, data.maps, data.tasks
+	settingsStore, mapStore, taskStore, scheduleStore := data.settings, data.maps, data.tasks, data.schedule
 
 	// Deferred in reverse: cancel the background goroutines, then wait for them.
 	var wg sync.WaitGroup
@@ -162,6 +167,12 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	}
 	publishTasks()
 	taskStore.OnChange(publishTasks)
+	taskStore.OnChange(func() {
+		exists := func(id string) bool { _, err := taskStore.Get(id); return err == nil }
+		if err := scheduleStore.KeepTasks(exists); err != nil {
+			log.Warn("remove deleted tasks from the schedule", "err", err)
+		}
+	})
 	publishPlan := func(*tasks.Plan) {
 		if b, err := json.Marshal(taskService.PlanJSON()); err == nil {
 			hub.Publish("plan", b)
@@ -186,6 +197,19 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 		}
 		return link.DemoMap()
 	}
+	scheduleCfg := cfg.Schedule
+	scheduleCfg.Logger = log
+	runner := schedule.NewRunner(scheduleStore, r, taskService, taskStore, scheduleCfg)
+	publishSchedule := func() {
+		if b, err := json.Marshal(runner.JSON()); err == nil {
+			hub.Publish("schedule", b)
+		}
+	}
+	publishSchedule()
+	scheduleStore.OnChange(publishSchedule)
+	runner.OnChange(publishSchedule)
+	goroutine(func() { runner.Run(ctx) })
+
 	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect, simMap) })
 	goroutine(func() { r.PublishState(ctx, cfg.PublishInterval, func(b []byte) { hub.Publish("robot", b) }) })
 
@@ -204,6 +228,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 				"/api/maps/":    mapsAPI,
 				"/api/tasks":    tasksAPI,
 				"/api/tasks/":   tasksAPI,
+				"/api/schedule": runner.Handler(),
 			},
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
@@ -238,6 +263,7 @@ type stores struct {
 	settings *settings.Store
 	maps     *maps.Store
 	tasks    *tasks.Store
+	schedule *schedule.Store
 }
 
 // openData opens settings, maps and tasks. On the first start it imports the
@@ -299,7 +325,47 @@ func openData(dir string, log *slog.Logger) (stores, error) {
 			log.Info("legacy tasks imported", "tasks", n)
 		}
 	}
-	return stores{settings: settingsStore, maps: mapStore, tasks: taskStore}, nil
+	scheduleStore, err := schedule.OpenStore(filepath.Join(dir, "schedule.json"))
+	if err != nil {
+		return stores{}, err
+	}
+	if legacy := filepath.Join(dir, "user", "schedulecfg.json"); !scheduleStore.Exists() && fileExists(legacy) {
+		importSchedule(scheduleStore, taskStore, mapStore.ActiveID(), legacy, log)
+	}
+	return stores{settings: settingsStore, maps: mapStore, tasks: taskStore, schedule: scheduleStore}, nil
+}
+
+// importSchedule imports the legacy schedule, whose task names refer to the
+// map that was active. It is imported switched off: the robot should not
+// start mowing on its own just because the new app was started.
+func importSchedule(store *schedule.Store, taskStore *tasks.Store, activeMap, path string, log *slog.Logger) {
+	li, err := schedule.ImportLegacy(path, func(name string) (string, bool) {
+		for _, t := range taskStore.List() {
+			if t.MapID == activeMap && t.Name == name {
+				return t.ID, true
+			}
+		}
+		return "", false
+	})
+	if err != nil {
+		log.Warn("legacy schedule import", "err", err)
+		li.Schedule = schedule.Default()
+	}
+	for _, w := range li.Warnings {
+		log.Warn("legacy schedule import", "problem", w)
+	}
+	wasActive := li.Schedule.Active
+	li.Schedule.Active = false
+	if err := store.Set(li.Schedule); err != nil {
+		log.Warn("legacy schedule import", "err", err)
+		return
+	}
+	log.Info("legacy schedule imported, switched off", "wasActive", wasActive)
+}
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }
 
 func robotSettings(s settings.Settings) robot.Settings {
