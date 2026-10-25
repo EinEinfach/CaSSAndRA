@@ -80,8 +80,8 @@ sowie `make lint` sind grün.
 - **Fertig, wenn:** eine komplette Mähaufgabe vom Planen bis zum Docken auf dem echten Roboter läuft.
 
 ## Phase 8 – Zeitplan & Statistik (`schedule`, `stats`)
-- [ ] Wochenplan mit `Clock`-Interface (Tests mit `FakeClock`), Start/Docken nach Plan
-- [ ] Verlauf Batterie, Mähzeit, GPS-Qualität; Speicherung (JSON oder SQLite – entscheiden), Diagramme
+- [x] Wochenplan mit `Clock`-Interface (Tests mit `FakeClock`), Start/Docken nach Plan (Seite „Schedule“, Legacy-Import ausgeschaltet)
+- [ ] Verlauf Batterie, Mähzeit, GPS-Qualität; Speicherung in SQLite (entschieden, reines Go), Diagramme
 - **Fertig, wenn:** der Zeitplan an einem realen Tag automatisch mäht.
 
 ## Phase 9 – MQTT-API (`mqttapi`)
@@ -97,4 +97,4 @@ sowie `make lint` sind grün.
 ## Offene Entscheidungen
 - UI-Sprache / Mehrsprachigkeit (vorerst Englisch wie Legacy)
 - Eigenes Tag-Schema für den Neubau (Version kommt noch aus Legacy-Tags `v2.0.0-…`)
-- Statistik-Speicherung: JSON oder SQLite (bis Phase 8)
+- Statistik-Speicherung: SQLite (entschieden in Phase 8)
