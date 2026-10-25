@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fetchBrokerStatus, fetchSettings, saveSettings } from './api.ts';
+	import { fetchBrokerStatus, fetchSettings, saveSettings, sendTestMessage } from './api.ts';
 	import { emptyEdits, isDirty, passwordUpdate, type PasswordEdits } from './form.ts';
 	import { robotPictureURL } from '#shared/robotPicture.svelte.ts';
 	import {
@@ -17,8 +17,11 @@
 		load = () => fetchSettings(),
 		save = (u: SettingsUpdate) => saveSettings(u),
 		loadBroker = () => fetchBrokerStatus(),
-		brokerRefreshMs = 5000
+		brokerRefreshMs = 5000,
+		testMessage = () => sendTestMessage()
 	}: {
+		/** Sends a test message; returns the Telegram chat id. */
+		testMessage?: () => Promise<string>;
 		load?: () => Promise<SettingsView>;
 		save?: (u: SettingsUpdate) => Promise<SettingsView>;
 		loadBroker?: () => Promise<BrokerStatus>;
@@ -27,6 +30,25 @@
 	} = $props();
 
 	let broker = $state<BrokerStatus | null>(null);
+	let testResult = $state<{ ok: boolean; text: string } | null>(null);
+	let testing = $state(false);
+	async function test() {
+		testing = true;
+		testResult = null;
+		try {
+			const chat = await testMessage();
+			testResult = { ok: true, text: 'Sent. Check your phone.' };
+			// a chat id found on the way is stored by the backend
+			if (chat && saved && draft && !draft.notify.telegramChatId) {
+				saved.notify.telegramChatId = chat;
+				draft.notify.telegramChatId = chat;
+			}
+		} catch (err) {
+			testResult = { ok: false, text: err instanceof Error ? err.message : String(err) };
+		} finally {
+			testing = false;
+		}
+	}
 	function refreshBroker() {
 		loadBroker()
 			.then((b) => (broker = b))
@@ -378,6 +400,46 @@
 
 		<section class="card">
 			<header>
+				<h2>Notifications</h2>
+				<p>A message when the robot goes offline or reports an error.</p>
+			</header>
+			<div class="segmented" role="radiogroup" aria-label="Message service">
+				{#each [{ v: '', l: 'Off' }, { v: 'telegram', l: 'Telegram' }, { v: 'pushover', l: 'Pushover' }] as o (o.v)}
+					<label class:selected={draft.notify.service === o.v}>
+						<input type="radio" name="notify" value={o.v} bind:group={draft.notify.service} />
+						{o.l}
+					</label>
+				{/each}
+			</div>
+			{#if draft.notify.service === 'telegram'}
+				<div class="grid">
+					<div class="stack">{@render password('telegramToken', 'Bot token')}</div>
+					<label class="field">
+						Chat ID <span class="hint">empty: found from your last message to the bot</span>
+						<input autocomplete="off" bind:value={draft.notify.telegramChatId} />
+					</label>
+				</div>
+			{:else if draft.notify.service === 'pushover'}
+				<div class="grid">
+					<div class="stack">{@render password('pushoverToken', 'Application token')}</div>
+					<label class="field">
+						User key
+						<input autocomplete="off" bind:value={draft.notify.pushoverUser} />
+					</label>
+				</div>
+			{/if}
+			{#if saved?.notify.service && !dirty}
+				<div class="row">
+					<button type="button" disabled={testing} onclick={test}>Send a test message</button>
+				</div>
+			{/if}
+			{#if testResult}
+				<p class="test-result" class:failed={!testResult.ok} role="status">{testResult.text}</p>
+			{/if}
+		</section>
+
+		<section class="card">
+			<header>
 				<h2>Built-in MQTT broker</h2>
 				<p>
 					For the CaSSAndRA app and home automation without a broker of your own. Only for your home
@@ -574,8 +636,18 @@
 		color: var(--text-muted);
 		font-size: 0.9rem;
 	}
+	.test-result {
+		margin: 0;
+		font-size: 0.9rem;
+		color: var(--text-muted);
+	}
+	.test-result.failed,
 	.broker-status.failed {
 		color: var(--tone-danger-text);
+	}
+	.row {
+		display: flex;
+		gap: 8px;
 	}
 	.load-error {
 		color: var(--tone-danger-text);

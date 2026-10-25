@@ -88,7 +88,8 @@ sowie `make lint` sind grün.
 - [x] Kompatibel zur Legacy-API (alle Topics, Payloads), auch zur nativen App (CaSSAndRA_native)
 - [x] Kompatibilitätstests: Golden-Payloads nach dem Legacy-Code (erfundene Werte); Schlüssel und Typen lokal mit den mitgeschnittenen Payloads aus `~/.cassandra/log/cassandra.log*` abgeglichen (nicht eingecheckt)
 - [ ] Test mit der nativen App gegen den echten Broker (Nutzer)
-- [ ] Nachrichtendienst (Telegram/Pushover) für `server sendMessage` und Ereignisse
+- [x] Nachrichtendienst (Telegram/Pushover) für `server sendMessage` und Ereignisse (offline, Fehler)
+- [x] Eingebauter MQTT-Broker für Nutzer ohne eigenen (native App direkt an CaSSAndRA)
 - **Fertig, wenn:** die bestehende Home-Automation ohne Änderung funktioniert.
 
 ## Phase 10 – Abschluss

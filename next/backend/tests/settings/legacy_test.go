@@ -105,6 +105,16 @@ func TestImportLegacyCommVariants(t *testing.T) {
 			func(s settings.Settings) bool {
 				return s.Connection.Kind == settings.LinkUART && s.Connection.UARTBaud == 9600
 			}, false},
+		{"telegram", `{"MESSAGE_SERVICE": "Telegram", "TELEGRAM": [{"TOKEN": "123:abc"}, {"CHAT_ID": 987654321}]}`,
+			func(s settings.Settings) bool {
+				return s.Notify == settings.Notify{Service: settings.NotifyTelegram, TelegramToken: "123:abc", TelegramChatID: "987654321"}
+			}, false},
+		{"pushover", `{"MESSAGE_SERVICE": "Pushover", "PUSHOVER": [{"TOKEN": "app"}, {"USER": "u1"}]}`,
+			func(s settings.Settings) bool {
+				return s.Notify == settings.Notify{Service: settings.NotifyPushover, PushoverToken: "app", PushoverUser: "u1"}
+			}, false},
+		{"telegram without token is off", `{"MESSAGE_SERVICE": "Telegram", "TELEGRAM": [{"TOKEN": null}, {"CHAT_ID": null}]}`,
+			func(s settings.Settings) bool { return s.Notify == settings.Notify{} }, false},
 		{"unknown connection", `{"USE": "BLUETOOTH"}`, nil, true},
 		{"password not a number", `{"USE": "HTTP", "HTTP": [{"IP": "h"}, {"PASSWORD": "abc"}]}`, nil, true},
 		{"list is not a list", `{"HTTP": {"IP": "h"}}`, nil, true},

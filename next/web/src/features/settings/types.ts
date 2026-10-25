@@ -63,6 +63,18 @@ export interface Broker {
 	password: string;
 }
 
+export type NotifyService = '' | 'telegram' | 'pushover';
+
+/** Messages when the robot goes offline or reports an error. */
+export interface Notify {
+	service: NotifyService;
+	telegramToken: string;
+	/** Found from the bot's last message when empty. */
+	telegramChatId: string;
+	pushoverToken: string;
+	pushoverUser: string;
+}
+
 /** GET /api/broker */
 export interface BrokerStatus {
 	enabled: boolean;
@@ -91,6 +103,7 @@ export interface Settings {
 	planner: Planner;
 	api: Api;
 	broker: Broker;
+	notify: Notify;
 	appearance: Appearance;
 }
 
@@ -100,6 +113,8 @@ export interface Secrets {
 	mqttPassword: boolean;
 	apiPassword: boolean;
 	brokerPassword: boolean;
+	telegramToken: boolean;
+	pushoverToken: boolean;
 }
 
 export interface SettingsView {
@@ -115,5 +130,7 @@ export interface SettingsUpdate {
 		mqttPassword?: string;
 		apiPassword?: string;
 		brokerPassword?: string;
+		telegramToken?: string;
+		pushoverToken?: string;
 	};
 }

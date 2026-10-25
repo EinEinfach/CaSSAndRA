@@ -13,7 +13,9 @@ export const emptyEdits = (): PasswordEdits => ({
 	httpPassword: { value: '', remove: false },
 	mqttPassword: { value: '', remove: false },
 	apiPassword: { value: '', remove: false },
-	brokerPassword: { value: '', remove: false }
+	brokerPassword: { value: '', remove: false },
+	telegramToken: { value: '', remove: false },
+	pushoverToken: { value: '', remove: false }
 });
 
 /** The password part of the update. Throws if the HTTP password is not a number. */
@@ -28,7 +30,13 @@ export function passwordUpdate(edits: PasswordEdits): SettingsUpdate['passwords'
 		}
 		out.httpPassword = Number(http.value.trim());
 	}
-	for (const key of ['mqttPassword', 'apiPassword', 'brokerPassword'] as const) {
+	for (const key of [
+		'mqttPassword',
+		'apiPassword',
+		'brokerPassword',
+		'telegramToken',
+		'pushoverToken'
+	] as const) {
 		const e = edits[key];
 		if (e.remove) out[key] = '';
 		else if (e.value !== '') out[key] = e.value;

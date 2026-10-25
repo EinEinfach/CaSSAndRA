@@ -21,6 +21,8 @@ type Secrets struct {
 	MQTTPassword   bool `json:"mqttPassword"`
 	APIPassword    bool `json:"apiPassword"`
 	BrokerPassword bool `json:"brokerPassword"`
+	TelegramToken  bool `json:"telegramToken"`
+	PushoverToken  bool `json:"pushoverToken"`
 }
 
 // ViewOf returns s without passwords.
@@ -30,11 +32,15 @@ func ViewOf(s Settings) View {
 		MQTTPassword:   s.Connection.MQTTPassword != "",
 		APIPassword:    s.API.Password != "",
 		BrokerPassword: s.Broker.Password != "",
+		TelegramToken:  s.Notify.TelegramToken != "",
+		PushoverToken:  s.Notify.PushoverToken != "",
 	}}
 	v.Settings.Connection.HTTPPassword = 0
 	v.Settings.Connection.MQTTPassword = ""
 	v.Settings.API.Password = ""
 	v.Settings.Broker.Password = ""
+	v.Settings.Notify.TelegramToken = ""
+	v.Settings.Notify.PushoverToken = ""
 	return v
 }
 
@@ -49,6 +55,8 @@ type Update struct {
 		MQTTPassword   *string `json:"mqttPassword"`
 		APIPassword    *string `json:"apiPassword"`
 		BrokerPassword *string `json:"brokerPassword"`
+		TelegramToken  *string `json:"telegramToken"`
+		PushoverToken  *string `json:"pushoverToken"`
 	} `json:"passwords"`
 }
 
@@ -75,6 +83,8 @@ func (s *Store) Handler() http.Handler {
 		next.Connection.MQTTPassword = keep(u.Passwords.MQTTPassword, cur.Connection.MQTTPassword)
 		next.API.Password = keep(u.Passwords.APIPassword, cur.API.Password)
 		next.Broker.Password = keep(u.Passwords.BrokerPassword, cur.Broker.Password)
+		next.Notify.TelegramToken = keep(u.Passwords.TelegramToken, cur.Notify.TelegramToken)
+		next.Notify.PushoverToken = keep(u.Passwords.PushoverToken, cur.Notify.PushoverToken)
 		if err := s.Set(next); err != nil {
 			status := http.StatusInternalServerError
 			if errors.Is(err, ErrInvalid) {

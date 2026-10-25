@@ -177,7 +177,22 @@ func applyComm(raw map[string]json.RawMessage, s *Settings) error {
 	if name := api.str("API_SERVER_NAME"); name != "" {
 		a.ServerName = name
 	}
-	for _, sub := range []*decoder{d, httpCfg, uart, mqtt, api} {
+	n := &s.Notify
+	switch strings.ToLower(d.str("MESSAGE_SERVICE")) {
+	case "telegram":
+		n.Service = NotifyTelegram
+	case "pushover":
+		n.Service = NotifyPushover
+	}
+	telegram, pushover := d.list("TELEGRAM"), d.list("PUSHOVER")
+	n.TelegramToken, n.TelegramChatID = telegram.str("TOKEN"), telegram.str("CHAT_ID")
+	n.PushoverToken, n.PushoverUser = pushover.str("TOKEN"), pushover.str("USER")
+	// A service without its token could not send; it is imported switched off.
+	if n.Service == NotifyTelegram && n.TelegramToken == "" ||
+		n.Service == NotifyPushover && (n.PushoverToken == "" || n.PushoverUser == "") {
+		n.Service = NotifyOff
+	}
+	for _, sub := range []*decoder{d, httpCfg, uart, mqtt, api, telegram, pushover} {
 		if sub.err != nil {
 			return sub.err
 		}

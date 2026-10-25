@@ -92,6 +92,14 @@ func TestValidate(t *testing.T) {
 		{"api on a switched off built-in broker", func(s *settings.Settings) {
 			s.API.Enabled, s.API.UseBuiltinBroker = true, true
 		}, "api.useBuiltinBroker"},
+		{"telegram", func(s *settings.Settings) {
+			s.Notify = settings.Notify{Service: settings.NotifyTelegram, TelegramToken: "t"}
+		}, ""},
+		{"telegram without token", func(s *settings.Settings) { s.Notify.Service = settings.NotifyTelegram }, "notify.telegramToken"},
+		{"pushover without user", func(s *settings.Settings) {
+			s.Notify = settings.Notify{Service: settings.NotifyPushover, PushoverToken: "t"}
+		}, "notify.pushoverToken"},
+		{"unknown message service", func(s *settings.Settings) { s.Notify.Service = "pigeon" }, "notify.service"},
 		{"api without client id", func(s *settings.Settings) {
 			s.API.Enabled, s.API.Broker, s.API.ClientID = true, "tcp://h:1", ""
 		}, "api.clientId"},

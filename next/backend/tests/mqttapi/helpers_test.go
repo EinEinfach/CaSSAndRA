@@ -241,6 +241,12 @@ type fixture struct {
 	system   *fakeSystem
 	restarts int
 	powerOff []string
+	messages []string
+}
+
+func (f *fixture) Send(_ context.Context, text string) error {
+	f.messages = append(f.messages, text)
+	return nil
 }
 
 // fakeSystem reports fixed values.
@@ -270,7 +276,7 @@ func newFixture(t *testing.T) *fixture {
 		saved: saved, schedule: sched, settings: st, system: &fakeSystem{},
 	}
 	f.api = mqttapi.New(mqttapi.Deps{
-		Robot: r, Tasks: f.tasks, Maps: f.maps, Saved: saved, Schedule: sched, Settings: st, System: f.system,
+		Robot: r, Tasks: f.tasks, Maps: f.maps, Saved: saved, Schedule: sched, Settings: st, System: f.system, Notifier: f,
 		Defaults: defaults,
 	}, mqttapi.Config{
 		Version: "test",

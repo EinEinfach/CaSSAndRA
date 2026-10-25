@@ -171,4 +171,49 @@ describe('SettingsForm', () => {
 			'Not running: broker: port 1883: address already in use'
 		);
 	});
+
+	it('chooses Telegram and keeps the token secret', async () => {
+		const save = setup();
+		await userEvent.click(await screen.findByLabelText('Telegram'));
+		await userEvent.type(screen.getByLabelText('Bot token'), '123:abc');
+		await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+		const u = save.mock.calls[0][0];
+		expect(u.settings.notify.service).toBe('telegram');
+		expect(u.settings.notify.telegramToken).toBe('');
+		expect(u.passwords.telegramToken).toBe('123:abc');
+	});
+
+	it('sends a test message and shows the chat found', async () => {
+		const v = view();
+		v.settings.notify.service = 'telegram';
+		v.secrets.telegramToken = true;
+		const testMessage = vi.fn(async () => '4242');
+		render(SettingsForm, {
+			load: async () => v,
+			loadBroker: async () => stopped,
+			brokerRefreshMs: 0,
+			testMessage
+		});
+		await userEvent.click(await screen.findByRole('button', { name: 'Send a test message' }));
+		expect(testMessage).toHaveBeenCalled();
+		expect((await screen.findByText('Sent. Check your phone.')).getAttribute('role')).toBe(
+			'status'
+		);
+		expect((screen.getByLabelText(/Chat ID/) as HTMLInputElement).value).toBe('4242');
+		expect(screen.queryByText('Unsaved changes')).toBeNull();
+	});
+
+	it('says why the test message failed', async () => {
+		const v = view();
+		v.settings.notify = { ...v.settings.notify, service: 'pushover', pushoverUser: 'u1' };
+		render(SettingsForm, {
+			load: async () => v,
+			loadBroker: async () => stopped,
+			brokerRefreshMs: 0,
+			testMessage: async () =>
+				Promise.reject(new Error('pushover: 400 Bad Request user key is invalid'))
+		});
+		await userEvent.click(await screen.findByRole('button', { name: 'Send a test message' }));
+		expect(await screen.findByText(/user key is invalid/)).toBeTruthy();
+	});
 });

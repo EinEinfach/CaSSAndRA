@@ -37,6 +37,7 @@ type Settings struct {
 	Planner    Planner    `json:"planner"`
 	API        API        `json:"api"`
 	Broker     Broker     `json:"broker"`
+	Notify     Notify     `json:"notify"`
 	Appearance Appearance `json:"appearance"`
 }
 
@@ -112,6 +113,25 @@ type Broker struct {
 	Port     int    `json:"port"`
 	User     string `json:"user"`
 	Password string `json:"password"`
+}
+
+// The message services of Notify.
+const (
+	NotifyOff      = ""
+	NotifyTelegram = "telegram"
+	NotifyPushover = "pushover"
+)
+
+// Notify sends a message when the robot goes offline or reports an error,
+// and the native app's "sendMessage", like legacy CaSSAndRA.
+type Notify struct {
+	Service string `json:"service"` // NotifyOff, NotifyTelegram or NotifyPushover
+	// TelegramToken is the bot token; TelegramChatID is found from the
+	// bot's last message when empty.
+	TelegramToken  string `json:"telegramToken"`
+	TelegramChatID string `json:"telegramChatId"`
+	PushoverToken  string `json:"pushoverToken"` // the application token
+	PushoverUser   string `json:"pushoverUser"`  // the user key
 }
 
 // Appearance is how the robot is drawn on the map.
@@ -211,6 +231,17 @@ func (s Settings) Validate() error {
 	if a.Enabled {
 		check(strings.TrimSpace(a.ServerName) != "", "api.serverName must be set")
 		check(a.ClientID != "", "api.clientId must be set")
+	}
+
+	n := s.Notify
+	switch n.Service {
+	case NotifyOff:
+	case NotifyTelegram:
+		check(n.TelegramToken != "", "notify.telegramToken must be set for Telegram")
+	case NotifyPushover:
+		check(n.PushoverToken != "" && n.PushoverUser != "", "notify.pushoverToken and notify.pushoverUser must be set for Pushover")
+	default:
+		check(false, "notify.service must be empty, telegram or pushover, got %q", n.Service)
 	}
 
 	ap := s.Appearance

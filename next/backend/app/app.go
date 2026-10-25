@@ -19,6 +19,7 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/mqttapi"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/notify"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/planner"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
@@ -254,10 +255,13 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	recorder := stats.NewRecorder(statsStore, r, statsCfg)
 	goroutine(func() { recorder.Run(ctx) })
 
+	notifier := notify.New(settingsStore, r, notify.Config{Logger: log.With("feature", "notify")})
+	goroutine(func() { notifier.Run(ctx) })
+
 	restart := make(chan struct{}, 1)
 	api := mqttapi.New(mqttapi.Deps{
 		Robot: r, Tasks: taskService, Maps: mapStore, Saved: taskStore, Schedule: scheduleStore,
-		Settings: settingsStore, System: system.NewMonitor(os.DirFS("/"), cfg.DataDir),
+		Settings: settingsStore, System: system.NewMonitor(os.DirFS("/"), cfg.DataDir), Notifier: notifier,
 		Defaults: tasks.Parameters(settingsStore.Get().Planner),
 	}, mqttapi.Config{
 		Version: cfg.Version, Logger: log.With("feature", "mqttapi"),
@@ -292,6 +296,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 				"/api/schedule": runner.Handler(),
 				"/api/stats":    statsStore.Handler(cfg.Stats.Now),
 				"/api/broker":   brokerSvc.Handler(),
+				"/api/notify/":  notifier.Handler(),
 			},
 		}),
 		ReadHeaderTimeout: 5 * time.Second,

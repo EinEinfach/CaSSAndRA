@@ -45,8 +45,22 @@ export function view(): SettingsView {
 				useBuiltinBroker: false
 			},
 			broker: { enabled: false, port: 1883, user: 'cassandra', password: '' },
+			notify: {
+				service: '',
+				telegramToken: '',
+				telegramChatId: '',
+				pushoverToken: '',
+				pushoverUser: ''
+			},
 			appearance: { robotPicture: 'default', robotSizeCm: 100 }
 		},
-		secrets: { httpPassword: true, mqttPassword: false, apiPassword: false, brokerPassword: false }
+		secrets: {
+			httpPassword: true,
+			mqttPassword: false,
+			apiPassword: false,
+			brokerPassword: false,
+			telegramToken: false,
+			pushoverToken: false
+		}
 	};
 }

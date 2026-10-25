@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchBrokerStatus, fetchSettings, saveSettings } from '#features/settings/api.ts';
+import {
+	fetchBrokerStatus,
+	fetchSettings,
+	saveSettings,
+	sendTestMessage
+} from '#features/settings/api.ts';
 import { view } from './fixtures.ts';
 
 const respond = (status: number, body: unknown) =>
@@ -17,6 +22,18 @@ describe('settings api', () => {
 		const fetchFn = respond(200, status);
 		await expect(fetchBrokerStatus(fetchFn)).resolves.toEqual(status);
 		expect(fetchFn).toHaveBeenCalledWith('/api/broker', expect.anything());
+	});
+
+	it('sends a test message', async () => {
+		const fetchFn = respond(200, { telegramChatId: '4242' });
+		await expect(sendTestMessage(fetchFn)).resolves.toBe('4242');
+		expect(fetchFn).toHaveBeenCalledWith(
+			'/api/notify/test',
+			expect.objectContaining({ method: 'POST' })
+		);
+		await expect(
+			sendTestMessage(respond(502, { error: 'telegram: chat not found' }))
+		).rejects.toThrow('chat not found');
 	});
 
 	it('saves with PUT and returns the new view', async () => {

@@ -8,6 +8,11 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/system"
 )
 
+// Notifier sends a message to the user (Telegram, Pushover).
+type Notifier interface {
+	Send(ctx context.Context, text string) error
+}
+
 // System reports the load of the computer.
 type System interface {
 	Read() system.Info
@@ -55,8 +60,14 @@ func (a *API) serverCommand(ctx context.Context, c command) error {
 		a.log.Warn("mqtt api: shutting the computer down")
 		return a.cfg.PowerOff(ctx)
 	case "sendMessage":
-		a.log.Info("mqtt api: sendMessage is not supported yet (Telegram/Pushover)")
-		return nil
+		v, err := c.strings()
+		if err != nil || len(v) == 0 {
+			return fmt.Errorf("%w: server sendMessage wants [\"text\"]", ErrInvalid)
+		}
+		if a.notifier == nil {
+			return fmt.Errorf("%w: no message service", ErrUnknown)
+		}
+		return a.notifier.Send(ctx, v[0])
 	}
 	return fmt.Errorf("%w: server command %q", ErrUnknown, c.Command)
 }

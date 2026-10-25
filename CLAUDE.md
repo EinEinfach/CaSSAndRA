@@ -57,6 +57,7 @@ next/
     schedule/        Wochenplan (je Tag ein Zeitfenster + Aufgaben, schedule.json), Legacy-Import, Runner (startet/dockt), API + Event `schedule`
     settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
     broker/          Eingebauter MQTT-Broker (mochi) für Nutzer ohne eigenen: ein Benutzer mit Passwort, Status `GET /api/broker`
+    notify/          Nachrichten per Telegram/Pushover: Roboter offline/Fehler (je einmal), `sendMessage` der App, Testnachricht
     system/          Last des Rechners (CPU, Temperatur, RAM, Disk aus /proc und /sys) und Herunterfahren
     stats/           Verlauf in SQLite (stats.db): Messwerte je Minute, Zuwachs der AT+T-Zähler je Stunde; Recorder, API
     mqttapi/         Externe MQTT-API, kompatibel zur Legacy-API und zur nativen App (CaSSAndRA_native), siehe unten
@@ -243,6 +244,12 @@ App-Neustarts); ein kleinerer Wert heißt Roboterneustart und zählt ab 0. `max*
 `GET /api/stats?from&to&points` mittelt die Proben in höchstens `points` Eimer; Summen gelten für ganze Stunden.
 Alte Legacy-Messdaten (pickle) werden nicht importiert.
 
+**Nachrichten (`notify`):** Einstellungen `notify` (Dienst `telegram`/`pushover`, Tokens als Geheimnisse wie Passwörter;
+Import aus Legacy `commcfg.json`, ohne Token ausgeschaltet). Der Wächter schaut alle 5 s auf den Roboter (wie Legacy):
+„offline“ und „Fehler“ je eine Nachricht, bis der Zustand wieder normal ist; der Zustand beim Start löst nichts aus.
+Ohne Telegram-Chat-Id wird sie aus der letzten Nachricht an den Bot ermittelt (`getUpdates`) und gespeichert.
+Fehlermeldungen enthalten nie die URL (das Token steckt im Pfad). `POST /api/notify/test` schickt eine Testnachricht.
+
 **Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er
 idempotent ist. `Stop` bricht einen laufenden Karten-Upload ab, statt hinter ihm zu warten.
 
@@ -352,7 +359,8 @@ zeichengenau wie Legacy (`CaSSAndRA/src/backend/comm/api.py`, `apitopics/`):
 - `server`: CPU-Last, Temperatur, RAM, Disk aus `system` (`null` außerhalb von Linux). `server restart` lässt `app.Run`
   mit `app.ErrRestart` enden, `main` startet die App im selben Prozess neu (wie Legacy). `server shutdown` fährt den
   Rechner mit `sudo -n shutdown -h now` herunter (bei UART erst den Roboter, wie Legacy); in Tests ist `PowerOff`
-  injiziert. `sendMessage` (Telegram/Pushover) wird nur geloggt, bis es den Nachrichtendienst gibt.
+  injiziert. `sendMessage` geht über `notify`; die Nachrichtenfelder von `settings` (Dienst, Chat-Id, Pushover-User)
+  liest und setzt die App, die Tokens nie.
 - **Eingebauter Broker** (`broker`, Einstellungen `broker`): für Nutzer ohne eigenen MQTT-Server; die native App
   verbindet sich mit der IP des Rechners. Nur ein Benutzer, Passwort mindestens 8 Zeichen (sonst startet er nicht),
   Vergleich in konstanter Zeit; gedacht fürs Heimnetz, nicht fürs Internet (kein TLS). `api.useBuiltinBroker` lässt die

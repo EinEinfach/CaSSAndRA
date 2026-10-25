@@ -13,11 +13,15 @@ describe('passwordUpdate', () => {
 		e.mqttPassword.value = 'secret';
 		e.apiPassword = { value: 'ignored', remove: true };
 		e.brokerPassword.value = 'mow-the-lawn';
+		e.telegramToken.value = '123:abc';
+		e.pushoverToken.remove = true;
 		expect(passwordUpdate(e)).toEqual({
 			httpPassword: 4711,
 			mqttPassword: 'secret',
 			apiPassword: '',
-			brokerPassword: 'mow-the-lawn'
+			brokerPassword: 'mow-the-lawn',
+			telegramToken: '123:abc',
+			pushoverToken: ''
 		});
 	});
 

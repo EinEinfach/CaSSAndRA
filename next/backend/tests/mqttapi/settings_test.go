@@ -72,6 +72,25 @@ func TestSetComm(t *testing.T) {
 	}
 }
 
+func TestSetCommMessageService(t *testing.T) {
+	f := newFixture(t)
+	handle(t, f.api, `{"settings": {"command": "setComm", "value": {"messageServiceType": "telegram",
+		"telegramApiToken": "123:abc", "telegramChatId": "77", "pushoverApiToken": "", "pushoverAppName": ""}}}`)
+	n := f.settings.Get().Notify
+	if n.Service != settings.NotifyTelegram || n.TelegramToken != "123:abc" || n.TelegramChatID != "77" {
+		t.Errorf("notify = %+v", n)
+	}
+	got := payloads(handle(t, f.api, `{"settings": {"command": "update", "value": []}}`), "settings")[0]
+	if !strings.Contains(got, `"messageServiceType":"telegram","telegramApiToken":"","telegramChatId":"77"`) {
+		t.Errorf("settings = %s", got)
+	}
+	// An empty token keeps the stored one; null switches the service off.
+	handle(t, f.api, `{"settings": {"command": "setComm", "value": {"messageServiceType": null, "telegramApiToken": ""}}}`)
+	if n := f.settings.Get().Notify; n.Service != settings.NotifyOff || n.TelegramToken != "123:abc" {
+		t.Errorf("notify = %+v", n)
+	}
+}
+
 func TestSetRoverAndApp(t *testing.T) {
 	f := newFixture(t)
 	handle(t, f.api, `{"settings": {"command": "setRover", "value": {"robotPositionMode": "absolute", "longtitude": 13.5, "latitude": "52.4"}}}`)
@@ -112,6 +131,9 @@ func TestServerTopicAndCommands(t *testing.T) {
 	handle(t, f.api, `{"server": {"command": "restart", "value": []}}`)
 	handle(t, f.api, `{"server": {"command": "sendMessage", "value": ["hi"]}}`)
 	handle(t, f.api, `{"server": {"command": "shutdown", "value": []}}`)
+	if !slices.Equal(f.messages, []string{"hi"}) {
+		t.Errorf("messages = %v", f.messages)
+	}
 	if f.restarts != 1 || !slices.Equal(f.powerOff, []string{"power off"}) || len(f.robot.recorded()) != 0 {
 		t.Errorf("restarts %d, power off %v, robot %v", f.restarts, f.powerOff, f.robot.recorded())
 	}

@@ -102,7 +102,12 @@ func (a *API) settingsJSON() SettingsJSON {
 	if r.AbsolutePosition {
 		mode = "absolute"
 	}
+	var service *string
+	if n := s.Notify.Service; n != settings.NotifyOff {
+		service = &n
+	}
 	return SettingsJSON{
+		MessageServiceType: service, TelegramChatID: s.Notify.TelegramChatID, PushoverAppName: s.Notify.PushoverUser,
 		RobotConnectionType: legacyKind(c.Kind),
 		HTTPRobotIPAdress:   httpHost,
 		MQTTClientID:        c.MQTTClientID, MQTTUser: c.MQTTUser, MQTTServer: mqttHost, MQTTPort: mqttPort,
@@ -237,6 +242,8 @@ func setComm(s *settings.Settings, raw map[string]json.RawMessage) error {
 		f.str("apiMqttClientId", &s.API.ClientID), f.str("apiMqttUser", &s.API.User), f.secret("apiMqttPassword", &s.API.Password),
 		f.str("apiMqttServer", &apiHost), f.integer("apiMqttPort", &apiPort),
 		f.str("apiMqttCassandraServerName", &s.API.ServerName),
+		f.secret("telegramApiToken", &s.Notify.TelegramToken), f.str("telegramChatId", &s.Notify.TelegramChatID),
+		f.secret("pushoverApiToken", &s.Notify.PushoverToken), f.str("pushoverAppName", &s.Notify.PushoverUser),
 	}
 	for _, err := range errs {
 		if err != nil {
@@ -249,6 +256,18 @@ func setComm(s *settings.Settings, raw map[string]json.RawMessage) error {
 			return fmt.Errorf("%w: httpRobotPassword must be a number", ErrInvalid)
 		}
 		c.HTTPPassword = p
+	}
+	if _, ok := raw["messageServiceType"]; ok {
+		var t string
+		_ = f.str("messageServiceType", &t)
+		switch strings.ToLower(t) {
+		case "telegram":
+			s.Notify.Service = settings.NotifyTelegram
+		case "pushover":
+			s.Notify.Service = settings.NotifyPushover
+		default:
+			s.Notify.Service = settings.NotifyOff
+		}
 	}
 	if _, ok := raw["apiType"]; ok {
 		var t string

@@ -50,7 +50,8 @@ type Deps struct {
 	Saved    SavedTasks
 	Schedule Schedule
 	Settings Settings
-	System   System // nil: no load reported
+	System   System   // nil: no load reported
+	Notifier Notifier // nil: sendMessage is refused
 	// Defaults are the mow parameters the API starts with (the planner
 	// settings); "map setMowParameters" changes them until the next start.
 	Defaults tasks.Parameters
@@ -76,6 +77,7 @@ type API struct {
 	schedule Schedule
 	settings Settings
 	system   System
+	notifier Notifier
 	cfg      Config
 	log      *slog.Logger
 
@@ -95,7 +97,7 @@ func New(d Deps, cfg Config) *API {
 	}
 	return &API{
 		robot: d.Robot, tasks: d.Tasks, maps: d.Maps, saved: d.Saved, schedule: d.Schedule,
-		settings: d.Settings, system: d.System,
+		settings: d.Settings, system: d.System, notifier: d.Notifier,
 		parameters: d.Defaults, cfg: cfg, log: cfg.Logger,
 	}
 }
