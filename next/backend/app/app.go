@@ -237,7 +237,10 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	recorder := stats.NewRecorder(statsStore, r, statsCfg)
 	goroutine(func() { recorder.Run(ctx) })
 
-	api := mqttapi.New(r, taskService, mqttapi.Config{Version: cfg.Version, Logger: log.With("feature", "mqttapi")})
+	api := mqttapi.New(mqttapi.Deps{
+		Robot: r, Tasks: taskService, Maps: mapStore,
+		Defaults: tasks.Parameters(settingsStore.Get().Planner),
+	}, mqttapi.Config{Version: cfg.Version, Logger: log.With("feature", "mqttapi")})
 	goroutine(func() { superviseAPI(ctx, api, settingsStore, apiChanged, log.With("feature", "mqttapi")) })
 
 	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect, simMap) })

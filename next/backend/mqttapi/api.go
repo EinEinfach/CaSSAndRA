@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/geo"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
 )
 
 // Errors of commands; the returned errors wrap them.
@@ -34,6 +35,19 @@ type Message struct {
 // Tasks is what the API needs from the tasks feature.
 type Tasks interface {
 	Goto(ctx context.Context, goal geo.Point) ([]geo.Point, error)
+	Current() *tasks.Plan
+	Clear()
+	PlanAndStart(ctx context.Context, req tasks.Request) (tasks.Plan, error)
+}
+
+// Deps are the features the API works with.
+type Deps struct {
+	Robot Robot
+	Tasks Tasks
+	Maps  Maps
+	// Defaults are the mow parameters the API starts with (the planner
+	// settings); "map setMowParameters" changes them until the next start.
+	Defaults tasks.Parameters
 }
 
 // Config holds the injectable parts of the API.
@@ -47,20 +61,24 @@ type Config struct {
 type API struct {
 	robot Robot
 	tasks Tasks
+	maps  Maps
 	cfg   Config
 	log   *slog.Logger
 
-	mu     sync.Mutex
-	motion motion
-	busy   bool
+	mu            sync.Mutex
+	motion        motion
+	busy          bool
+	selection     []geo.Point      // map setSelection
+	parameters    tasks.Parameters // for mow all and mow selection
+	selectedTasks []string         // ids, tasks select
 }
 
 // New returns the API; Run connects it to a broker.
-func New(r Robot, t Tasks, cfg Config) *API {
+func New(d Deps, cfg Config) *API {
 	if cfg.Logger == nil {
 		cfg.Logger = slog.New(slog.DiscardHandler)
 	}
-	return &API{robot: r, tasks: t, cfg: cfg, log: cfg.Logger}
+	return &API{robot: d.Robot, tasks: d.Tasks, maps: d.Maps, parameters: d.Defaults, cfg: cfg, log: cfg.Logger}
 }
 
 // State returns the topics published every two seconds.
@@ -73,11 +91,14 @@ func (a *API) State() []Message {
 	if a.busy {
 		status = "busy"
 	}
+	params := parametersJSON(a.parameters)
 	a.mu.Unlock()
 	return []Message{
 		{"status", []byte(status)},
 		{"server", mustJSON(a.serverJSON())},
 		{"robot", mustJSON(robotJSON)},
+		{"mowParameters", mustJSON(params)},
+		{"map", mustJSON(a.mapJSON())},
 	}
 }
 
@@ -186,8 +207,13 @@ func (a *API) Handle(ctx context.Context, payload []byte) ([]Message, error) {
 	}
 	ctx, cancel := context.WithTimeout(ctx, commandTimeout)
 	defer cancel()
-	if c.Object == "robot" {
+	switch c.Object {
+	case "robot":
 		return nil, a.robotCommand(ctx, c)
+	case "map":
+		return nil, a.mapCommand(c)
+	case "coords":
+		return a.coordsCommand(c)
 	}
 	return nil, fmt.Errorf("%w: %s %s", ErrUnknown, c.Object, c.Command)
 }
@@ -201,7 +227,7 @@ func (a *API) mow(ctx context.Context, c command) error {
 	if v[0] == "resume" {
 		return a.robot.Mow(ctx)
 	}
-	return fmt.Errorf("%w: robot mow %q", ErrUnknown, v[0])
+	return a.mowPlanned(ctx, v[0])
 }
 
 func (a *API) setBusy(b bool) {

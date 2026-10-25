@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"g1-1793005260000000000","name":"current preview"}},{"type":"Feature","properties":{"name":"preview"},"geometry":{"type":"LineString","coordinates":[[[1.0,-1.5],[2.5,1.0],[9.0,1.0]]]}}]}

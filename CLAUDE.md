@@ -331,7 +331,13 @@ zeichengenau wie Legacy (`CaSSAndRA/src/backend/comm/api.py`, `apitopics/`):
 - **Zahlen wie Python:** Floats immer mit Dezimalpunkt (`mqttapi.Float`: `27.0`, nie `27`). Dart liest `27` als int, das
   passt in kein `double`-Feld, und die App verwirft die ganze Nachricht. Golden-Tests vergleichen den Text.
 - Roboter-Texte wie Legacy: Sensor (`"bumper error"`), Dock-Grund (`"operator"` statt `user`), GPS-Alter (`"0.6s"`).
-- Bewusste Abweichungen: `skipNextPoint` überspringt nur (Legacy: Stop, Skip, nach 3 s Resume); `goTo` fährt über A*.
+- „Aktuelle Karte“ der App (`map`, `coords`): `mapId` = aktive Karte + Änderungszeit, `previewId` = Vorschau
+  (`tasks.Current`), `mowPathId` = Route auf dem Roboter (`robot.Map().Way`), `obstaclesId` = Hindernisse; jede Id
+  ändert sich mit ihren Koordinaten, die App holt sie dann per `coords update`. GeoJSON mit den Legacy-Eigenheiten
+  (`geojson.go`: geschlossene Ringe, LineString von Vorschau/Mähpfad mit Extra-Klammer, `idx` an Ausschlusszonen).
+- API-Mähparameter (`mowParameters`, `map setMowParameters`, Legacy-Wertebereiche) gelten für `mow all`/`selection`,
+  starten mit den Planner-Einstellungen und leben nur im Speicher. Gestartet wird immer über `tasks.PlanAndStart`.
+- Bewusste Abweichungen: `resetRoute` verwirft nur die Vorschau (die Route gehört dem Roboter); `skipNextPoint` überspringt nur (Legacy: Stop, Skip, nach 3 s Resume); `goTo` fährt über A*.
 
 ## Kompatibilität
 

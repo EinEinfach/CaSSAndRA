@@ -203,6 +203,9 @@ type Robot interface {
 	Reboot(ctx context.Context) error
 	RebootGPS(ctx context.Context) error
 	Shutdown(ctx context.Context) error
+	// Map is the map last sent to the robot, with the route it follows.
+	Map() protocol.Map
+	ClearObstacles()
 }
 
 // robotCommand runs a command of the robot topic. Movement commands are

@@ -72,3 +72,11 @@ func (r *Robot) OnObstacles(o [][]geo.Point) {
 	defer r.mu.Unlock()
 	r.obstacles = o
 }
+
+// ClearObstacles forgets the obstacles until the robot reports them again
+// (legacy "resetObstacles" only clears the display).
+func (r *Robot) ClearObstacles() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.obstacles = nil
+}

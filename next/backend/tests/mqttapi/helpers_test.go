@@ -2,17 +2,24 @@ package mqttapi_test
 
 import (
 	"context"
+	"errors"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/geo"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/mqttapi"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
 )
 
 // fakeRobot records the commands and reports the snapshot it is given.
 type fakeRobot struct {
 	mu    sync.Mutex
 	snap  robot.Snapshot
+	route protocol.Map // the map on the robot
 	calls []string
 	err   error
 	// block makes Mow wait until it is closed (a long command).
@@ -74,12 +81,86 @@ func (r *fakeRobot) SkipToProgress(_ context.Context, f float64) error {
 func (r *fakeRobot) Reboot(context.Context) error    { return r.record("reboot") }
 func (r *fakeRobot) RebootGPS(context.Context) error { return r.record("reboot gps") }
 func (r *fakeRobot) Shutdown(context.Context) error  { return r.record("shutdown") }
+func (r *fakeRobot) Map() protocol.Map {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.route
+}
+func (r *fakeRobot) ClearObstacles() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.snap.Obstacles = nil
+	r.calls = append(r.calls, "clear obstacles")
+}
 
-// fakeTasks records goto goals on the robot's call list.
-type fakeTasks struct{ robot *fakeRobot }
+// fakeTasks records its commands on the robot's call list.
+type fakeTasks struct {
+	robot    *fakeRobot
+	mu       sync.Mutex
+	plan     *tasks.Plan
+	requests []tasks.Request
+	err      error
+}
 
 func (t *fakeTasks) Goto(_ context.Context, goal geo.Point) ([]geo.Point, error) {
 	return []geo.Point{goal}, t.robot.record("goto " + ftoa(goal.X) + "," + ftoa(goal.Y))
+}
+
+func (t *fakeTasks) Current() *tasks.Plan {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.plan
+}
+
+func (t *fakeTasks) Clear() {
+	t.mu.Lock()
+	t.plan = nil
+	t.mu.Unlock()
+	_ = t.robot.record("clear plan")
+}
+
+func (t *fakeTasks) PlanAndStart(_ context.Context, req tasks.Request) (tasks.Plan, error) {
+	t.mu.Lock()
+	t.requests = append(t.requests, req)
+	err := t.err
+	t.mu.Unlock()
+	return tasks.Plan{}, errors.Join(t.robot.record("plan and start"), err)
+}
+
+// fakeMaps holds maps by id.
+type fakeMaps struct {
+	active string
+	maps   map[string]maps.Map
+}
+
+func (m *fakeMaps) ActiveID() string { return m.active }
+func (m *fakeMaps) Get(id string) (maps.Map, error) {
+	if mm, ok := m.maps[id]; ok {
+		return mm, nil
+	}
+	return maps.Map{}, maps.ErrNotFound
+}
+
+// garden is a map with every kind of line.
+func garden() maps.Map {
+	return maps.Map{
+		ID: "g1", Name: "Garden", UpdatedAt: t0,
+		Perimeter:  []geo.Point{{X: 0, Y: 0}, {X: 10, Y: 0}, {X: 10, Y: 8}, {X: 0, Y: 8}},
+		Exclusions: [][]geo.Point{{{X: 2, Y: 2}, {X: 3, Y: 2}, {X: 3, Y: 3}}},
+		Dock:       []geo.Point{{X: 1, Y: 1}, {X: 1, Y: -1.5}},
+		SearchWire: []geo.Point{{X: 5, Y: 0}, {X: 5, Y: 4}},
+	}
+}
+
+var defaults = tasks.Parameters{Pattern: "lines", WidthM: 0.18, MowArea: true, BorderLaps: 1, DistanceToBorder: 1}
+
+// newAPI is the API with a robot mowing in the garden.
+func newAPI(t *testing.T) (*mqttapi.API, *fakeRobot, *fakeTasks, *fakeMaps) {
+	t.Helper()
+	r := &fakeRobot{snap: mowing()}
+	ft := &fakeTasks{robot: r}
+	fm := &fakeMaps{active: "g1", maps: map[string]maps.Map{"g1": garden()}}
+	return mqttapi.New(mqttapi.Deps{Robot: r, Tasks: ft, Maps: fm, Defaults: defaults}, mqttapi.Config{Version: "test"}), r, ft, fm
 }
 
 func ftoa(f float64) string {

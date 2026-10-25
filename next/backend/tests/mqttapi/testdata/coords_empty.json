@@ -1,0 +1,4 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"","name":"current preview"}},{"type":"Feature","properties":{"name":"preview"},"geometry":{"type":"LineString","coordinates":[]}}]}
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"","name":"current mow path"}},{"type":"Feature","properties":{"name":"mow path"},"geometry":{"type":"LineString","coordinates":[]}}]}
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"","name":"obstacles"}},{"type":"Feature","properties":{"name":"obstacle"},"geometry":{"type":"Polygon","coordinates":[]}}]}
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"","name":"current map"}},{"type":"Feature","properties":{"name":"perimeter"},"geometry":{"type":"Polygon","coordinates":[]}}]}

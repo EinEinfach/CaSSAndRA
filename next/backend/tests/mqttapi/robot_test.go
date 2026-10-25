@@ -45,7 +45,7 @@ func TestRobotTopicIsLikeLegacy(t *testing.T) {
 		t.Fatal(err)
 	}
 	r := &fakeRobot{snap: mowing()}
-	api := mqttapi.New(r, &fakeTasks{r}, mqttapi.Config{Version: "test"})
+	api := mqttapi.New(mqttapi.Deps{Robot: r, Tasks: &fakeTasks{robot: r}, Maps: &fakeMaps{}}, mqttapi.Config{Version: "test"})
 	got := topic(t, api.State(), "robot")
 	if !bytes.Equal(got, bytes.TrimSpace(want)) {
 		t.Errorf("robot topic\n got %s\nwant %s", got, bytes.TrimSpace(want))
@@ -88,7 +88,7 @@ func TestRobotTopicTexts(t *testing.T) {
 			s := mowing()
 			tt.change(&s)
 			r := &fakeRobot{snap: s}
-			got := robotJSON(t, mqttapi.New(r, &fakeTasks{r}, mqttapi.Config{}))
+			got := robotJSON(t, mqttapi.New(mqttapi.Deps{Robot: r, Tasks: &fakeTasks{robot: r}, Maps: &fakeMaps{}}, mqttapi.Config{}))
 			dock := ""
 			if got.DockReason != nil {
 				dock = *got.DockReason
@@ -103,7 +103,7 @@ func TestRobotTopicTexts(t *testing.T) {
 
 func TestRobotTopicMeasuresSpeedAndTimePerPoint(t *testing.T) {
 	r := &fakeRobot{snap: mowing()}
-	api := mqttapi.New(r, &fakeTasks{r}, mqttapi.Config{})
+	api := mqttapi.New(mqttapi.Deps{Robot: r, Tasks: &fakeTasks{robot: r}, Maps: &fakeMaps{}}, mqttapi.Config{})
 	api.State()
 	r.set(func(s *robot.Snapshot) {
 		s.UpdatedAt = t0.Add(2 * time.Second)
@@ -154,7 +154,7 @@ func TestRobotCommands(t *testing.T) {
 	}
 	for _, tt := range tests {
 		r := &fakeRobot{snap: mowing()}
-		api := mqttapi.New(r, &fakeTasks{r}, mqttapi.Config{})
+		api := mqttapi.New(mqttapi.Deps{Robot: r, Tasks: &fakeTasks{robot: r}, Maps: &fakeMaps{}}, mqttapi.Config{})
 		if _, err := api.Handle(context.Background(), []byte(tt.cmd)); err != nil {
 			t.Errorf("%s: %v", tt.cmd, err)
 		}
@@ -182,7 +182,7 @@ func TestInvalidCommandsSendNothing(t *testing.T) {
 	}
 	for _, tt := range tests {
 		r := &fakeRobot{snap: mowing()}
-		api := mqttapi.New(r, &fakeTasks{r}, mqttapi.Config{})
+		api := mqttapi.New(mqttapi.Deps{Robot: r, Tasks: &fakeTasks{robot: r}, Maps: &fakeMaps{}}, mqttapi.Config{})
 		if _, err := api.Handle(context.Background(), []byte(tt.cmd)); !errors.Is(err, tt.want) {
 			t.Errorf("%s: err = %v, want %v", tt.cmd, err, tt.want)
 		}
