@@ -58,6 +58,13 @@ describe('frontend architecture', () => {
 			.filter((name) => !tested.has(name));
 	};
 
+	it('keeps every event the backend sends from the start of the stream', async () => {
+		const app = readFileSync(join(root, '..', 'backend', 'app', 'app.go'), 'utf8');
+		const sent = [...app.matchAll(/hub\.Publish\("([a-z]+)"/g)].map((m) => m[1]);
+		const { eventNames } = await import('#shared/events.ts');
+		expect([...eventNames].sort()).toEqual([...new Set(sent)].sort());
+	});
+
 	it('mirrors shared/ code with tests', () => {
 		expect(untested(join(src, 'shared'), join(tests, 'shared'))).toEqual([]);
 	});

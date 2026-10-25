@@ -50,6 +50,18 @@ describe('EventStream', () => {
 		expect(other).not.toHaveBeenCalled();
 	});
 
+	it('keeps the backend events sent before a page subscribes', () => {
+		const { source, stream } = setup();
+		source.emit('tasks', '{"tasks":[]}');
+		source.emit('unknown', '{}');
+		const tasks = vi.fn();
+		const unknown = vi.fn();
+		stream.on('tasks', tasks);
+		stream.on('unknown', unknown);
+		expect(tasks).toHaveBeenCalledWith({ tasks: [] });
+		expect(unknown).not.toHaveBeenCalled();
+	});
+
 	it('stops delivering after unsubscribe', () => {
 		const { source, stream } = setup();
 		const fn = vi.fn();
