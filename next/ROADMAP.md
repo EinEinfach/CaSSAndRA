@@ -81,7 +81,7 @@ sowie `make lint` sind grün.
 
 ## Phase 8 – Zeitplan & Statistik (`schedule`, `stats`)
 - [x] Wochenplan mit `Clock`-Interface (Tests mit `FakeClock`), Start/Docken nach Plan (Seite „Schedule“, Legacy-Import ausgeschaltet)
-- [ ] Verlauf Batterie, Mähzeit, GPS-Qualität; Speicherung in SQLite (entschieden, reines Go), Diagramme
+- [x] Verlauf Batterie, Mähzeit, GPS-Qualität; Speicherung in SQLite (reines Go), Diagramme (Seite „Stats“)
 - **Fertig, wenn:** der Zeitplan an einem realen Tag automatisch mäht.
 
 ## Phase 9 – MQTT-API (`mqttapi`)

@@ -4,7 +4,7 @@
 		/** Already resolved by the caller (resolve() from $app/paths). */
 		href: string;
 		label: string;
-		icon: 'live' | 'tasks' | 'schedule' | 'maps' | 'settings';
+		icon: 'live' | 'tasks' | 'schedule' | 'maps' | 'stats' | 'settings';
 	}
 </script>
 
@@ -42,6 +42,8 @@
 						{:else if item.icon === 'maps'}
 							<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20Z" />
 							<path d="M9 4v13.5M15 6.5V20" />
+						{:else if item.icon === 'stats'}
+							<path d="M4 20V4M4 20h16M8 16v-5M12 16V8M16 16v-3" />
 						{:else}
 							<circle cx="12" cy="12" r="3" />
 							<path
@@ -89,6 +91,7 @@
 	}
 	li {
 		flex: 1;
+		min-width: 0;
 	}
 	a {
 		height: 100%;
@@ -99,8 +102,14 @@
 		gap: 2px;
 		color: var(--text-muted);
 		text-decoration: none;
-		font-size: 0.75rem;
+		font-size: 0.68rem; /* seven items on a phone */
 		font-weight: 500;
+	}
+	a span {
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	a[aria-current='page'] {
 		color: var(--accent);
