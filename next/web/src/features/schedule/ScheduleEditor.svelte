@@ -301,8 +301,22 @@
 		line-height: 1;
 		color: var(--text-muted);
 	}
-	.add {
-		width: auto;
+	select {
+		font: inherit;
+		color: var(--text);
+		background: var(--surface-sunken);
+		border: 1px solid transparent;
+		border-radius: 10px;
+		padding: 8px 10px;
+		font-variant-numeric: tabular-nums;
+	}
+	select:focus {
+		outline: none;
+		border-color: var(--accent);
+		background: var(--surface);
+	}
+	.day.off strong {
+		font-weight: 500;
 	}
 	.hint {
 		margin: 0;
