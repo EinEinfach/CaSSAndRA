@@ -37,14 +37,18 @@ type Tasks interface {
 	Goto(ctx context.Context, goal geo.Point) ([]geo.Point, error)
 	Current() *tasks.Plan
 	Clear()
+	Preview(ctx context.Context, req tasks.Request) (tasks.Plan, error)
+	Compute(ctx context.Context, req tasks.Request) (tasks.Plan, error)
 	PlanAndStart(ctx context.Context, req tasks.Request) (tasks.Plan, error)
 }
 
 // Deps are the features the API works with.
 type Deps struct {
-	Robot Robot
-	Tasks Tasks
-	Maps  Maps
+	Robot    Robot
+	Tasks    Tasks
+	Maps     Maps
+	Saved    SavedTasks
+	Schedule Schedule
 	// Defaults are the mow parameters the API starts with (the planner
 	// settings); "map setMowParameters" changes them until the next start.
 	Defaults tasks.Parameters
@@ -59,11 +63,13 @@ type Config struct {
 
 // API turns the app's state into the legacy topics and runs the commands.
 type API struct {
-	robot Robot
-	tasks Tasks
-	maps  Maps
-	cfg   Config
-	log   *slog.Logger
+	robot    Robot
+	tasks    Tasks
+	maps     Maps
+	saved    SavedTasks
+	schedule Schedule
+	cfg      Config
+	log      *slog.Logger
 
 	mu            sync.Mutex
 	motion        motion
@@ -71,6 +77,7 @@ type API struct {
 	selection     []geo.Point      // map setSelection
 	parameters    tasks.Parameters // for mow all and mow selection
 	selectedTasks []string         // ids, tasks select
+	loadedTasks   []string         // ids, tasks load
 }
 
 // New returns the API; Run connects it to a broker.
@@ -78,7 +85,10 @@ func New(d Deps, cfg Config) *API {
 	if cfg.Logger == nil {
 		cfg.Logger = slog.New(slog.DiscardHandler)
 	}
-	return &API{robot: d.Robot, tasks: d.Tasks, maps: d.Maps, parameters: d.Defaults, cfg: cfg, log: cfg.Logger}
+	return &API{
+		robot: d.Robot, tasks: d.Tasks, maps: d.Maps, saved: d.Saved, schedule: d.Schedule,
+		parameters: d.Defaults, cfg: cfg, log: cfg.Logger,
+	}
 }
 
 // State returns the topics published every two seconds.
@@ -99,6 +109,9 @@ func (a *API) State() []Message {
 		{"robot", mustJSON(robotJSON)},
 		{"mowParameters", mustJSON(params)},
 		{"map", mustJSON(a.mapJSON())},
+		{"maps", mustJSON(a.mapsJSON())},
+		{"tasks", mustJSON(a.tasksJSON())},
+		{"schedule", mustJSON(a.scheduleJSON())},
 	}
 }
 
@@ -214,6 +227,12 @@ func (a *API) Handle(ctx context.Context, payload []byte) ([]Message, error) {
 		return nil, a.mapCommand(c)
 	case "coords":
 		return a.coordsCommand(c)
+	case "maps":
+		return a.mapsCommand(ctx, c)
+	case "tasks":
+		return a.tasksCommand(ctx, c)
+	case "schedule":
+		return nil, a.scheduleCommand(c)
 	}
 	return nil, fmt.Errorf("%w: %s %s", ErrUnknown, c.Object, c.Command)
 }

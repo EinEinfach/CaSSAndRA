@@ -16,6 +16,11 @@ import (
 type Maps interface {
 	ActiveID() string
 	Get(id string) (maps.Map, error)
+	List() []maps.Map
+	Create(m maps.Map) (maps.Map, error)
+	Update(m maps.Map) (maps.Map, error)
+	Delete(id string) error
+	SetActive(id string) error
 }
 
 // MapJSON is the payload of <prefix>/map (legacy maptopic.py). The ids

@@ -98,6 +98,29 @@ func New(p Planner, m Maps, r Robot, store *Store, cfg Config) *Service {
 // robot is, and makes it the current plan. When previews overlap, the one
 // requested last stays, even if it finishes first.
 func (s *Service) Preview(ctx context.Context, req Request) (Plan, error) {
+	s.mu.Lock()
+	s.seq++
+	seq := s.seq
+	s.mu.Unlock()
+
+	plan, err := s.Compute(ctx, req)
+	if err != nil {
+		return Plan{}, err
+	}
+	s.mu.Lock()
+	if seq < s.planSeq {
+		s.mu.Unlock()
+		return plan, nil // a newer preview is already shown
+	}
+	s.plan, s.planSeq = &plan, seq
+	s.mu.Unlock()
+	s.changed()
+	return plan, nil
+}
+
+// Compute computes the route for req like Preview, without making it the
+// current plan.
+func (s *Service) Compute(ctx context.Context, req Request) (Plan, error) {
 	id := s.maps.ActiveID()
 	if id == "" {
 		return Plan{}, ErrNoMap
@@ -112,11 +135,6 @@ func (s *Service) Preview(ctx context.Context, req Request) (Plan, error) {
 	}
 	snap := s.robot.Snapshot()
 	start := startPoint(m, snap.Position, snap.Op == protocol.OpCharge)
-
-	s.mu.Lock()
-	s.seq++
-	seq := s.seq
-	s.mu.Unlock()
 
 	// Each part starts where the previous one ended (legacy calc_task).
 	var route []geo.Point
@@ -150,15 +168,6 @@ func (s *Service) Preview(ctx context.Context, req Request) (Plan, error) {
 		DistanceM:    length(route),
 		CreatedAt:    s.now(),
 	}
-
-	s.mu.Lock()
-	if seq < s.planSeq {
-		s.mu.Unlock()
-		return plan, nil // a newer preview is already shown
-	}
-	s.plan, s.planSeq = &plan, seq
-	s.mu.Unlock()
-	s.changed()
 	return plan, nil
 }
 

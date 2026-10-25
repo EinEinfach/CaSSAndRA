@@ -24,7 +24,7 @@ func eventually(t *testing.T, what string, cond func() bool) {
 func runAPI(t *testing.T, r *fakeRobot) *testkit.Broker {
 	t.Helper()
 	b := testkit.StartBroker(t, "127.0.0.1:0")
-	api := mqttapi.New(mqttapi.Deps{Robot: r, Tasks: &fakeTasks{robot: r}, Maps: &fakeMaps{}}, mqttapi.Config{Version: "v-test", Logger: testkit.Logger(t)})
+	api := mqttapi.New(deps(t, r), mqttapi.Config{Version: "v-test", Logger: testkit.Logger(t)})
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan struct{})
 	go func() {
@@ -44,7 +44,7 @@ func TestTheAPIPublishesAndRunsCommands(t *testing.T) {
 	robotMsgs := b.Collect(t, "Garden/robot")
 	status := b.Collect(t, "Garden/status")
 	server := b.Collect(t, "Garden/server")
-	api := mqttapi.New(mqttapi.Deps{Robot: r, Tasks: &fakeTasks{robot: r}, Maps: &fakeMaps{}}, mqttapi.Config{Version: "v-test", Logger: testkit.Logger(t)})
+	api := mqttapi.New(deps(t, r), mqttapi.Config{Version: "v-test", Logger: testkit.Logger(t)})
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan struct{})
 	go func() {

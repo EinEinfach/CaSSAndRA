@@ -337,7 +337,14 @@ zeichengenau wie Legacy (`CaSSAndRA/src/backend/comm/api.py`, `apitopics/`):
   (`geojson.go`: geschlossene Ringe, LineString von Vorschau/Mähpfad mit Extra-Klammer, `idx` an Ausschlusszonen).
 - API-Mähparameter (`mowParameters`, `map setMowParameters`, Legacy-Wertebereiche) gelten für `mow all`/`selection`,
   starten mit den Planner-Einstellungen und leben nur im Speicher. Gestartet wird immer über `tasks.PlanAndStart`.
-- Bewusste Abweichungen: `resetRoute` verwirft nur die Vorschau (die Route gehört dem Roboter); `skipNextPoint` überspringt nur (Legacy: Stop, Skip, nach 3 s Resume); `goTo` fährt über A*.
+- Karten und Aufgaben werden per **Name** angesprochen (Aufgaben: die der aktiven Karte), intern auf Ids abgebildet.
+  `maps save`/`tasks save` legen nur unter neuem Namen an (wie Legacy); `maps save` mit `oldName` kopiert die Aufgaben
+  der alten Karte. `maps load` = aktivieren + Karte ohne Route senden; `tasks load` = Vorschau + Karte mit Route senden,
+  ohne Mähen; `tasks calculate` rechnet nur (`tasks.Compute`, ändert die Vorschau der Browser nicht) und schickt die
+  Anfrage zurück (Zahlen unverändert per `UseNumber`), Name `taskPreview`, Geometrie = Route. Gespeicherte Aufgaben
+  haben keine Route mehr: die Koordinaten einer Aufgabe (`tasks select`) rechnen die Route je Teil neu.
+- `schedule`: Zeiten in Stunden (`[9.5, 12.0]`), Aufgabennamen; beim Speichern gelten die Namen der aktiven Karte.
+- Bewusste Abweichungen: `maps load` setzt den Zeitplan nicht zurück (Legacy tat das); `resetRoute` verwirft nur die Vorschau (die Route gehört dem Roboter); `skipNextPoint` überspringt nur (Legacy: Stop, Skip, nach 3 s Resume); `goTo` fährt über A*.
 
 ## Kompatibilität
 

@@ -238,7 +238,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	goroutine(func() { recorder.Run(ctx) })
 
 	api := mqttapi.New(mqttapi.Deps{
-		Robot: r, Tasks: taskService, Maps: mapStore,
+		Robot: r, Tasks: taskService, Maps: mapStore, Saved: taskStore, Schedule: scheduleStore,
 		Defaults: tasks.Parameters(settingsStore.Get().Planner),
 	}, mqttapi.Config{Version: cfg.Version, Logger: log.With("feature", "mqttapi")})
 	goroutine(func() { superviseAPI(ctx, api, settingsStore, apiChanged, log.With("feature", "mqttapi")) })

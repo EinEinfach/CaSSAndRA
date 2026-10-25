@@ -399,3 +399,16 @@ func TestPreviewOfTasksRefuses(t *testing.T) {
 		})
 	}
 }
+
+func TestComputeLeavesThePlanAlone(t *testing.T) {
+	f := newFixture(t)
+	changes := 0
+	f.svc.OnChange(func(*tasks.Plan) { changes++ })
+	p, err := f.svc.Compute(context.Background(), one(nil, params))
+	if err != nil || len(p.Route) < 2 {
+		t.Fatalf("compute: %+v (%v)", p, err)
+	}
+	if f.svc.Current() != nil || changes != 0 {
+		t.Errorf("compute made a plan: current %v, %d changes", f.svc.Current(), changes)
+	}
+}

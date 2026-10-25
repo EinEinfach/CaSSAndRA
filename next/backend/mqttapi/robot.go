@@ -206,6 +206,7 @@ type Robot interface {
 	// Map is the map last sent to the robot, with the route it follows.
 	Map() protocol.Map
 	ClearObstacles()
+	UploadMap(ctx context.Context, m protocol.Map) error
 }
 
 // robotCommand runs a command of the robot topic. Movement commands are
