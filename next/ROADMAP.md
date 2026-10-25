@@ -85,8 +85,10 @@ sowie `make lint` sind grün.
 - **Fertig, wenn:** der Zeitplan an einem realen Tag automatisch mäht.
 
 ## Phase 9 – MQTT-API (`mqttapi`)
-- [ ] Kompatibel zur Legacy-API (alle Topics, Payloads)
-- [ ] Kompatibilitätstests mit mitgeschnittenen Legacy-Payloads (Beispiele für alle Topics stehen in `~/.cassandra/log/cassandra.log*`, Zeilen „API failed to publish“)
+- [x] Kompatibel zur Legacy-API (alle Topics, Payloads), auch zur nativen App (CaSSAndRA_native)
+- [x] Kompatibilitätstests: Golden-Payloads nach dem Legacy-Code (erfundene Werte); Schlüssel und Typen lokal mit den mitgeschnittenen Payloads aus `~/.cassandra/log/cassandra.log*` abgeglichen (nicht eingecheckt)
+- [ ] Test mit der nativen App gegen den echten Broker (Nutzer)
+- [ ] Nachrichtendienst (Telegram/Pushover) für `server sendMessage` und Ereignisse
 - **Fertig, wenn:** die bestehende Home-Automation ohne Änderung funktioniert.
 
 ## Phase 10 – Abschluss

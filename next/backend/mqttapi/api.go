@@ -49,6 +49,8 @@ type Deps struct {
 	Maps     Maps
 	Saved    SavedTasks
 	Schedule Schedule
+	Settings Settings
+	System   System // nil: no load reported
 	// Defaults are the mow parameters the API starts with (the planner
 	// settings); "map setMowParameters" changes them until the next start.
 	Defaults tasks.Parameters
@@ -59,6 +61,10 @@ type Config struct {
 	// Version is reported on the server topic.
 	Version string
 	Logger  *slog.Logger
+	// Restart restarts CaSSAndRA ("server restart"); nil = not available.
+	Restart func()
+	// PowerOff shuts the computer down ("server shutdown"); nil = not available.
+	PowerOff func(ctx context.Context) error
 }
 
 // API turns the app's state into the legacy topics and runs the commands.
@@ -68,6 +74,8 @@ type API struct {
 	maps     Maps
 	saved    SavedTasks
 	schedule Schedule
+	settings Settings
+	system   System
 	cfg      Config
 	log      *slog.Logger
 
@@ -87,6 +95,7 @@ func New(d Deps, cfg Config) *API {
 	}
 	return &API{
 		robot: d.Robot, tasks: d.Tasks, maps: d.Maps, saved: d.Saved, schedule: d.Schedule,
+		settings: d.Settings, system: d.System,
 		parameters: d.Defaults, cfg: cfg, log: cfg.Logger,
 	}
 }
@@ -123,10 +132,6 @@ type ServerJSON struct {
 	CPUTemp  *Float `json:"cpuTemp"`
 	MemUsage *Float `json:"memUsage"`
 	HDDUsage *Float `json:"hddUsage"`
-}
-
-func (a *API) serverJSON() ServerJSON {
-	return ServerJSON{Software: "CaSSAndRA", Version: a.cfg.Version}
 }
 
 func mustJSON(v any) []byte {
@@ -233,6 +238,10 @@ func (a *API) Handle(ctx context.Context, payload []byte) ([]Message, error) {
 		return a.tasksCommand(ctx, c)
 	case "schedule":
 		return nil, a.scheduleCommand(c)
+	case "settings":
+		return a.settingsCommand(c)
+	case "server":
+		return nil, a.serverCommand(ctx, c)
 	}
 	return nil, fmt.Errorf("%w: %s %s", ErrUnknown, c.Object, c.Command)
 }

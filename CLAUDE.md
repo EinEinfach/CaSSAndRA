@@ -56,6 +56,7 @@ next/
     tasks/           Aufgaben (Teile aus Fläche + Parametern, tasks.json), Legacy-Import, Routenvorschau über planner (Event `plan`), Start
     schedule/        Wochenplan (je Tag ein Zeitfenster + Aufgaben, schedule.json), Legacy-Import, Runner (startet/dockt), API + Event `schedule`
     settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
+    system/          Last des Rechners (CPU, Temperatur, RAM, Disk aus /proc und /sys) und Herunterfahren
     stats/           Verlauf in SQLite (stats.db): Messwerte je Minute, Zuwachs der AT+T-Zähler je Stunde; Recorder, API
     mqttapi/         Externe MQTT-API, kompatibel zur Legacy-API und zur nativen App (CaSSAndRA_native), siehe unten
     server/          HTTP-Handler, SSE-Hub, eingebettetes Frontend (`server/dist/`, Build-Ausgabe, gitignored); montiert die Routen der Features (`Options.Routes`)
@@ -344,6 +345,13 @@ zeichengenau wie Legacy (`CaSSAndRA/src/backend/comm/api.py`, `apitopics/`):
   Anfrage zurück (Zahlen unverändert per `UseNumber`), Name `taskPreview`, Geometrie = Route. Gespeicherte Aufgaben
   haben keine Route mehr: die Koordinaten einer Aufgabe (`tasks select`) rechnen die Route je Teil neu.
 - `schedule`: Zeiten in Stunden (`[9.5, 12.0]`), Aufgabennamen; beim Speichern gelten die Namen der aktiven Karte.
+- `settings update` schickt die Einstellungen im Legacy-Format, **Passwörter und Tokens immer leer** (Legacy schickte
+  sie im Klartext); ein leeres Passwort bei `setComm` behält das gespeicherte. Die App kennt keinen Simulator: er wird
+  als `HTTP` gemeldet, und die Verbindungsart ändert sich nur, wenn die App einen anderen Typ schickt.
+- `server`: CPU-Last, Temperatur, RAM, Disk aus `system` (`null` außerhalb von Linux). `server restart` lässt `app.Run`
+  mit `app.ErrRestart` enden, `main` startet die App im selben Prozess neu (wie Legacy). `server shutdown` fährt den
+  Rechner mit `sudo -n shutdown -h now` herunter (bei UART erst den Roboter, wie Legacy); in Tests ist `PowerOff`
+  injiziert. `sendMessage` (Telegram/Pushover) wird nur geloggt, bis es den Nachrichtendienst gibt.
 - Bewusste Abweichungen: `maps load` setzt den Zeitplan nicht zurück (Legacy tat das); `resetRoute` verwirft nur die Vorschau (die Route gehört dem Roboter); `skipNextPoint` überspringt nur (Legacy: Stop, Skip, nach 3 s Resume); `goTo` fährt über A*.
 
 ## Kompatibilität

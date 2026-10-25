@@ -17,6 +17,8 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/schedule"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/system"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
 )
 
@@ -235,7 +237,16 @@ type fixture struct {
 	maps     *fakeMaps
 	saved    *tasks.Store
 	schedule *schedule.Store
+	settings *settings.Store
+	system   *fakeSystem
+	restarts int
+	powerOff []string
 }
+
+// fakeSystem reports fixed values.
+type fakeSystem struct{ info system.Info }
+
+func (s *fakeSystem) Read() system.Info { return s.info }
 
 func newFixture(t *testing.T) *fixture {
 	t.Helper()
@@ -248,15 +259,27 @@ func newFixture(t *testing.T) *fixture {
 	if err != nil {
 		t.Fatal(err)
 	}
+	st, err := settings.Open(filepath.Join(dir, "settings.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
 	r := &fakeRobot{snap: mowing()}
 	f := &fixture{
 		robot: r, tasks: &fakeTasks{robot: r},
 		maps:  &fakeMaps{active: "g1", maps: map[string]maps.Map{"g1": garden()}},
-		saved: saved, schedule: sched,
+		saved: saved, schedule: sched, settings: st, system: &fakeSystem{},
 	}
 	f.api = mqttapi.New(mqttapi.Deps{
-		Robot: r, Tasks: f.tasks, Maps: f.maps, Saved: saved, Schedule: sched, Defaults: defaults,
-	}, mqttapi.Config{Version: "test"})
+		Robot: r, Tasks: f.tasks, Maps: f.maps, Saved: saved, Schedule: sched, Settings: st, System: f.system,
+		Defaults: defaults,
+	}, mqttapi.Config{
+		Version: "test",
+		Restart: func() { f.restarts++ },
+		PowerOff: func(context.Context) error {
+			f.powerOff = append(f.powerOff, "power off")
+			return nil
+		},
+	})
 	return f
 }
 
@@ -291,5 +314,8 @@ var t0 = time.Date(2026, 10, 26, 9, 0, 0, 0, time.UTC)
 func deps(t *testing.T, r *fakeRobot) mqttapi.Deps {
 	t.Helper()
 	f := newFixture(t)
-	return mqttapi.Deps{Robot: r, Tasks: &fakeTasks{robot: r}, Maps: &fakeMaps{maps: map[string]maps.Map{}}, Saved: f.saved, Schedule: f.schedule}
+	return mqttapi.Deps{
+		Robot: r, Tasks: &fakeTasks{robot: r}, Maps: &fakeMaps{maps: map[string]maps.Map{}},
+		Saved: f.saved, Schedule: f.schedule, Settings: f.settings,
+	}
 }

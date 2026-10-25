@@ -25,6 +25,7 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/server"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/stats"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/system"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
 )
 
@@ -58,10 +59,17 @@ type Config struct {
 	// Schedule sets the clock and interval of the schedule (defaults: wall
 	// clock, one minute).
 	Schedule schedule.Config
+	// PowerOff shuts the computer down (MQTT API "server shutdown"); nil =
+	// not available. main sets system.PowerOff.
+	PowerOff func(ctx context.Context) error
 	// Stats sets the clock and interval of the statistics (defaults: wall
 	// clock, one sample per minute).
 	Stats stats.Config
 }
+
+// ErrRestart is returned by Run when a restart was asked for (MQTT API
+// "server restart"); the caller runs the app again.
+var ErrRestart = errors.New("restart requested")
 
 // DefaultConfig returns the defaults; only DataDir must be set.
 func DefaultConfig() Config {
@@ -237,10 +245,21 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	recorder := stats.NewRecorder(statsStore, r, statsCfg)
 	goroutine(func() { recorder.Run(ctx) })
 
+	restart := make(chan struct{}, 1)
 	api := mqttapi.New(mqttapi.Deps{
 		Robot: r, Tasks: taskService, Maps: mapStore, Saved: taskStore, Schedule: scheduleStore,
+		Settings: settingsStore, System: system.NewMonitor(os.DirFS("/"), cfg.DataDir),
 		Defaults: tasks.Parameters(settingsStore.Get().Planner),
-	}, mqttapi.Config{Version: cfg.Version, Logger: log.With("feature", "mqttapi")})
+	}, mqttapi.Config{
+		Version: cfg.Version, Logger: log.With("feature", "mqttapi"),
+		Restart: func() {
+			select {
+			case restart <- struct{}{}:
+			default:
+			}
+		},
+		PowerOff: cfg.PowerOff,
+	})
 	goroutine(func() { superviseAPI(ctx, api, settingsStore, apiChanged, log.With("feature", "mqttapi")) })
 
 	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect, simMap) })
@@ -274,10 +293,15 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	go func() { serveErr <- srv.Serve(ln) }()
 	log.Info("CaSSAndRA started", "addr", ln.Addr().String(), "version", cfg.Version, "data", cfg.DataDir)
 
+	var result error
 	select {
 	case err := <-serveErr:
 		return fmt.Errorf("serve http: %w", err)
 	case <-ctx.Done():
+	case <-restart:
+		log.Info("restarting")
+		result = ErrRestart
+		cancel() // ends the event streams, which would hold up the shutdown
 	}
 
 	log.Info("shutting down")
@@ -289,7 +313,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	if err := <-serveErr; !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("serve http: %w", err)
 	}
-	return nil
+	return result
 }
 
 // stores are the files of the data directory.
