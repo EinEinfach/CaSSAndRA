@@ -111,6 +111,19 @@ func TestSimMapUpload(t *testing.T) {
 	}
 }
 
+func TestSimLoadMapIsLikeAnUpload(t *testing.T) {
+	uploaded, loaded := newSim(t), newSim(t)
+	upload(t, uploaded, garden)
+	loaded.LoadMap(garden)
+	if got, want := loaded.State().MapCRC, uploaded.State().MapCRC; got != want || got == 0 {
+		t.Errorf("MapCRC after LoadMap = %d, want %d as after an upload", got, want)
+	}
+	send(t, loaded, protocol.Mow(0.5, 60, false).Encode())
+	if st := loaded.State(); st.Op != protocol.OpMow {
+		t.Errorf("mowing the loaded route: op %v, want mow", st.Op)
+	}
+}
+
 func TestSimMowsRouteThenDocksAndCharges(t *testing.T) {
 	s := newSim(t)
 	upload(t, s, garden)

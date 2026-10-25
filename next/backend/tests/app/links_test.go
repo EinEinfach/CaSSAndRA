@@ -132,10 +132,12 @@ func TestTheSimulatorStartsWithTheActiveMap(t *testing.T) {
 			t.Fatalf("PUT settings = %d %s", code, body)
 		}
 	}
+	// The map is there with the first report: an upload after going online
+	// would clear a route started in the meantime.
 	want := protocol.MapChecksum(m.Robot(nil)).Linux
-	s := waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.MapCRC == want })
-	if s.Position != (geo.Point{X: 2, Y: -1}) {
-		t.Errorf("robot at %v, want in the station of the active map", s.Position)
+	s := waitForRobot(t, r.baseURL, func(s robot.StateJSON) bool { return s.Online && s.Position == geo.Point{X: 2, Y: -1} })
+	if s.MapCRC != want {
+		t.Errorf("first report in the station has map_crc %d, want %d", s.MapCRC, want)
 	}
 	var rm robot.MapJSON
 	if err := getJSON(r.baseURL+"/api/robot/map", &rm); err != nil || len(rm.Perimeter) != 4 || rm.Perimeter[1] != (geo.Point{X: 8, Y: 0}) {

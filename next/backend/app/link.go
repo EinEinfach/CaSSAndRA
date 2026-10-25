@@ -82,8 +82,11 @@ func startLink(ctx context.Context, cfg Config, conn settings.Connection, r *rob
 		}()
 	}
 	if sim != nil {
+		// The map is there before the robot is online: an upload afterwards
+		// would clear a route that someone started in the meantime.
+		sim.LoadMap(m)
+		r.AdoptMap(m)
 		goroutine(func() { sim.Run(ctx, cfg.SimTick) })
-		goroutine(func() { uploadSimMap(ctx, r, m, log) })
 	}
 	goroutine(func() {
 		if err := l.Run(ctx, r); err != nil {
@@ -139,20 +142,4 @@ func station(m protocol.Map) geo.Point {
 		return m.Perimeter[0]
 	}
 	return geo.Point{}
-}
-
-// uploadSimMap gives the simulated robot its map once it is online.
-func uploadSimMap(ctx context.Context, r *robot.Robot, m protocol.Map, log *slog.Logger) {
-	t := time.NewTicker(100 * time.Millisecond)
-	defer t.Stop()
-	for !r.Snapshot().Online {
-		select {
-		case <-ctx.Done():
-			return
-		case <-t.C:
-		}
-	}
-	if err := r.UploadMap(ctx, m); err != nil && ctx.Err() == nil {
-		log.Error("upload map to the simulator", "err", err)
-	}
 }

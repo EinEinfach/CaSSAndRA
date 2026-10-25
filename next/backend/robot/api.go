@@ -266,7 +266,15 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, map[string]string{"error": msg})
 }
 
-// Map returns the map last uploaded with UploadMap.
+// AdoptMap records m as the robot's map without sending it, for a robot that
+// already has it (the simulator starts with its map).
+func (r *Robot) AdoptMap(m protocol.Map) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.uploaded = m
+}
+
+// Map returns the map last uploaded with UploadMap or adopted with AdoptMap.
 func (r *Robot) Map() protocol.Map {
 	r.mu.Lock()
 	defer r.mu.Unlock()

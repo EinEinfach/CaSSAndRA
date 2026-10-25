@@ -81,6 +81,18 @@ func TestAPIMap(t *testing.T) {
 	}
 }
 
+func TestAdoptMapSendsNothing(t *testing.T) {
+	f := newFixture(t)
+	m := protocol.Map{Perimeter: pts(0, 0, 1, 0, 1, 1), Way: pts(0.5, 0.5)}
+	f.robot.AdoptMap(m)
+	if got := f.robot.Map(); len(got.Perimeter) != 3 || len(got.Way) != 1 {
+		t.Errorf("Map() = %+v, want the adopted map", got)
+	}
+	if sent := f.sender.payloads(); len(sent) != 0 {
+		t.Errorf("sent %q, want nothing", sent)
+	}
+}
+
 func TestAPICommands(t *testing.T) {
 	tests := []struct {
 		path, body, want string

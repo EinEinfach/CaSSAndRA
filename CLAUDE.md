@@ -124,7 +124,9 @@ backend/tests/
 - `tests/protocol`: **Golden-Tests** mit Antwortzeilen in `testdata/` (inkl. alter Firmware-Varianten). Erwartete Werte kommen aus einer unabhängigen Quelle (Firmware-Format, Legacy-Algorithmus), nie aus dem Code unter Test.
 - **Fuzz-Tests** für alles, was Daten von außen parst (`FuzzParseReplies`). Gefundene Abstürze bleiben im Korpus `testdata/fuzz/`. Länger laufen lassen: `go test ./tests/protocol -run XXX -fuzz FuzzParseReplies -fuzztime 60s`.
 - `link/sim.go`: simulierter Roboter als `Transport`. Ein neuer Simulator startet mit der aktiven Karte (ohne Route) in
-  deren Ladestation, ohne aktive Karte mit dem Demo-Garten (`link.DemoMap`, mit Route). Er läuft durch denselben `Poller` wie HTTP/UART, d. h. Tests mit dem Simulator prüfen den echten Code-Pfad. Für Fehlerfälle gibt es `SetOffline`, `SetBatteryVoltage`, `TriggerRain`.
+  deren Ladestation, ohne aktive Karte mit dem Demo-Garten (`link.DemoMap`, mit Route). Die Karte ist schon vor dem ersten
+  Bericht geladen (`Sim.LoadMap`, `robot.AdoptMap`) – ein Upload nach dem Online-Gehen würde eine inzwischen gestartete
+  Route löschen. Er läuft durch denselben `Poller` wie HTTP/UART, d. h. Tests mit dem Simulator prüfen den echten Code-Pfad. Für Fehlerfälle gibt es `SetOffline`, `SetBatteryVoltage`, `TriggerRain`.
 - Echte Transporte werden gegen echte Gegenstellen getestet, nicht gegen Mocks: HTTP über `testkit.RobotHTTPServer` (Simulator hinter `httptest`), UART über `net.Pipe` mit einem Fake-Roboter, der Konsolenrauschen einstreut, MQTT gegen `testkit.StartBroker` (eingebetteter mochi-Broker).
 - Test-HTTP-Handler, die auf `r.Context().Done()` warten, müssen vorher den Body lesen – sonst bemerkt der Server das Auflegen nicht und `httptest.Server.Close` hängt.
 - Unit-Tests von `robot` nutzen einen Fake-`Sender` (`tests/robot/helpers_test.go`), der Fehler, eigene Antworten und Blockieren pro Befehl simuliert. Zusammenspiel robot + link + sim gehört nach `tests/integration`.

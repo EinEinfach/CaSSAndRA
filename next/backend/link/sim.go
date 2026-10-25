@@ -108,6 +108,16 @@ func (s *Sim) Run(ctx context.Context, tick time.Duration) {
 	}
 }
 
+// LoadMap gives the robot map m as if it had been uploaded, before anyone
+// can send it a command. It runs the same AT+W/N/X handling as an upload.
+func (s *Sim) LoadMap(m protocol.Map) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, msg := range protocol.MapUpload(m) {
+		s.handle(msg)
+	}
+}
+
 // SetOffline makes every exchange fail, like an unreachable robot.
 func (s *Sim) SetOffline(offline bool) {
 	s.mu.Lock()
