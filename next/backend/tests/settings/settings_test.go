@@ -74,6 +74,24 @@ func TestValidate(t *testing.T) {
 		{"api without name", func(s *settings.Settings) {
 			s.API.Enabled, s.API.Broker, s.API.ServerName = true, "tcp://h:1", ""
 		}, "api.serverName"},
+		{"broker", func(s *settings.Settings) {
+			s.Broker = settings.Broker{Enabled: true, Port: 1883, User: "cassandra", Password: "mow-the-lawn"}
+		}, ""},
+		{"broker without password", func(s *settings.Settings) { s.Broker.Enabled = true }, "broker.password"},
+		{"broker with a short password", func(s *settings.Settings) {
+			s.Broker.Enabled, s.Broker.Password = true, "1234567"
+		}, "broker.password"},
+		{"broker without user", func(s *settings.Settings) {
+			s.Broker = settings.Broker{Enabled: true, Port: 1883, Password: "mow-the-lawn"}
+		}, "broker.user"},
+		{"broker port", func(s *settings.Settings) { s.Broker.Port = 70000 }, "broker.port"},
+		{"api on the built-in broker", func(s *settings.Settings) {
+			s.Broker = settings.Broker{Enabled: true, Port: 1883, User: "cassandra", Password: "mow-the-lawn"}
+			s.API.Enabled, s.API.UseBuiltinBroker = true, true
+		}, ""},
+		{"api on a switched off built-in broker", func(s *settings.Settings) {
+			s.API.Enabled, s.API.UseBuiltinBroker = true, true
+		}, "api.useBuiltinBroker"},
 		{"api without client id", func(s *settings.Settings) {
 			s.API.Enabled, s.API.Broker, s.API.ClientID = true, "tcp://h:1", ""
 		}, "api.clientId"},

@@ -21,6 +21,7 @@ func newStoreWithSecrets(t *testing.T) *settings.Store {
 	cur.Connection.HTTPPassword = 1234
 	cur.Connection.MQTTPassword = "mqttpw"
 	cur.API.Password = "apipw"
+	cur.Broker.Enabled, cur.Broker.Password = true, "brokerpw-long"
 	if err := s.Set(cur); err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +43,7 @@ func TestAPIGetHidesPasswords(t *testing.T) {
 		t.Fatalf("status %d, content type %q", rec.Code, rec.Header().Get("Content-Type"))
 	}
 	body := rec.Body.String()
-	for _, secret := range []string{"1234", "mqttpw", "apipw"} {
+	for _, secret := range []string{"1234", "mqttpw", "apipw", "brokerpw"} {
 		if strings.Contains(body, secret) {
 			t.Errorf("response contains password %q: %s", secret, body)
 		}
@@ -51,7 +52,7 @@ func TestAPIGetHidesPasswords(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &v); err != nil {
 		t.Fatal(err)
 	}
-	if v.Secrets != (settings.Secrets{HTTPPassword: true, MQTTPassword: true, APIPassword: true}) {
+	if v.Secrets != (settings.Secrets{HTTPPassword: true, MQTTPassword: true, APIPassword: true, BrokerPassword: true}) {
 		t.Errorf("secrets = %+v, want all set", v.Secrets)
 	}
 }
@@ -84,25 +85,25 @@ func TestAPIPutViewBackKeepsPasswords(t *testing.T) {
 	if rec := call(t, s.Handler(), http.MethodPut, string(body)); rec.Code != http.StatusOK {
 		t.Fatalf("status %d: %s", rec.Code, rec.Body)
 	}
-	if got := s.Get(); got.Connection.HTTPPassword != 1234 || got.Connection.MQTTPassword != "mqttpw" || got.API.Password != "apipw" {
+	if got := s.Get(); got.Connection.HTTPPassword != 1234 || got.Connection.MQTTPassword != "mqttpw" || got.API.Password != "apipw" || got.Broker.Password != "brokerpw-long" {
 		t.Errorf("passwords were cleared: %+v %+v", got.Connection, got.API)
 	}
 }
 
 func TestAPIPutPasswords(t *testing.T) {
 	s := newStoreWithSecrets(t)
-	rec := call(t, s.Handler(), http.MethodPut, `{"passwords": {"httpPassword": 0, "mqttPassword": "new", "apiPassword": null}}`)
+	rec := call(t, s.Handler(), http.MethodPut, `{"passwords": {"httpPassword": 0, "mqttPassword": "new", "apiPassword": null, "brokerPassword": "another-long"}}`)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status %d: %s", rec.Code, rec.Body)
 	}
 	got := s.Get()
-	if got.Connection.HTTPPassword != 0 || got.Connection.MQTTPassword != "new" || got.API.Password != "apipw" {
+	if got.Connection.HTTPPassword != 0 || got.Connection.MQTTPassword != "new" || got.API.Password != "apipw" || got.Broker.Password != "another-long" {
 		t.Errorf("got http %d, mqtt %q, api %q; want removed, new, kept",
 			got.Connection.HTTPPassword, got.Connection.MQTTPassword, got.API.Password)
 	}
 	var v settings.View
 	_ = json.Unmarshal(rec.Body.Bytes(), &v)
-	if v.Secrets != (settings.Secrets{MQTTPassword: true, APIPassword: true}) {
+	if v.Secrets != (settings.Secrets{MQTTPassword: true, APIPassword: true, BrokerPassword: true}) {
 		t.Errorf("secrets = %+v", v.Secrets)
 	}
 }

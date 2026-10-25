@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fetchSettings, saveSettings } from './api.ts';
+	import { fetchBrokerStatus, fetchSettings, saveSettings } from './api.ts';
 	import { emptyEdits, isDirty, passwordUpdate, type PasswordEdits } from './form.ts';
 	import { robotPictureURL } from '#shared/robotPicture.svelte.ts';
 	import {
 		robotPictures,
+		type BrokerStatus,
 		type LinkKind,
 		type Secrets,
 		type Settings,
@@ -14,11 +15,29 @@
 
 	let {
 		load = () => fetchSettings(),
-		save = (u: SettingsUpdate) => saveSettings(u)
+		save = (u: SettingsUpdate) => saveSettings(u),
+		loadBroker = () => fetchBrokerStatus(),
+		brokerRefreshMs = 5000
 	}: {
 		load?: () => Promise<SettingsView>;
 		save?: (u: SettingsUpdate) => Promise<SettingsView>;
+		loadBroker?: () => Promise<BrokerStatus>;
+		/** How often the broker status is asked for; 0 = only after loading and saving. */
+		brokerRefreshMs?: number;
 	} = $props();
+
+	let broker = $state<BrokerStatus | null>(null);
+	function refreshBroker() {
+		loadBroker()
+			.then((b) => (broker = b))
+			.catch(() => (broker = null));
+	}
+	onMount(() => {
+		refreshBroker();
+		if (brokerRefreshMs <= 0) return;
+		const t = setInterval(refreshBroker, brokerRefreshMs);
+		return () => clearInterval(t);
+	});
 
 	let saved = $state<Settings | null>(null);
 	let draft = $state<Settings | null>(null);
@@ -59,6 +78,7 @@
 		try {
 			apply(await save({ settings: $state.snapshot(draft), passwords: passwordUpdate(passwords) }));
 			justSaved = true;
+			refreshBroker();
 		} catch (err) {
 			error = err instanceof Error ? err.message : String(err);
 		} finally {
@@ -308,11 +328,35 @@
 				<input type="checkbox" bind:checked={draft.api.enabled} />
 			</label>
 			{#if draft.api.enabled}
+				{#if draft.broker.enabled || draft.api.useBuiltinBroker}
+					<div class="segmented" role="radiogroup" aria-label="Broker of the API">
+						<label class:selected={draft.api.useBuiltinBroker}>
+							<input
+								type="radio"
+								name="api-broker"
+								value={true}
+								bind:group={draft.api.useBuiltinBroker}
+							/>
+							Built-in broker
+						</label>
+						<label class:selected={!draft.api.useBuiltinBroker}>
+							<input
+								type="radio"
+								name="api-broker"
+								value={false}
+								bind:group={draft.api.useBuiltinBroker}
+							/>
+							Other broker
+						</label>
+					</div>
+				{/if}
 				<div class="grid">
-					<label class="field">
-						Broker
-						<input placeholder="tcp://192.168.1.10:1883" bind:value={draft.api.broker} />
-					</label>
+					{#if !draft.api.useBuiltinBroker}
+						<label class="field">
+							Broker
+							<input placeholder="tcp://192.168.1.10:1883" bind:value={draft.api.broker} />
+						</label>
+					{/if}
 					<label class="field">
 						Server name <span class="hint">topic prefix</span>
 						<input bind:value={draft.api.serverName} />
@@ -321,12 +365,56 @@
 						Client ID
 						<input bind:value={draft.api.clientId} />
 					</label>
+					{#if !draft.api.useBuiltinBroker}
+						<label class="field">
+							User
+							<input autocomplete="off" bind:value={draft.api.user} />
+						</label>
+						<div class="stack">{@render password('apiPassword', 'API password')}</div>
+					{/if}
+				</div>
+			{/if}
+		</section>
+
+		<section class="card">
+			<header>
+				<h2>Built-in MQTT broker</h2>
+				<p>
+					For the CaSSAndRA app and home automation without a broker of your own. Only for your home
+					network: do not open the port to the internet.
+				</p>
+			</header>
+			<label class="switch">
+				Broker enabled
+				<input type="checkbox" bind:checked={draft.broker.enabled} />
+			</label>
+			{#if draft.broker.enabled}
+				<div class="grid">
+					<label class="field">
+						Port
+						<input type="number" min="1" max="65535" bind:value={draft.broker.port} />
+					</label>
 					<label class="field">
 						User
-						<input autocomplete="off" bind:value={draft.api.user} />
+						<input autocomplete="off" bind:value={draft.broker.user} />
 					</label>
-					<div class="stack">{@render password('apiPassword', 'API password')}</div>
+					<div class="stack">
+						{@render password('brokerPassword', 'Broker password')}
+						<p class="hint">At least 8 characters: whoever gets in can drive the mower.</p>
+					</div>
 				</div>
+			{/if}
+			{#if broker && (broker.enabled || broker.running || broker.error)}
+				<p class="broker-status" class:failed={!!broker.error} data-testid="broker-status">
+					{#if broker.running}
+						Running on port {broker.port} · {broker.clients}
+						{broker.clients === 1 ? 'client' : 'clients'} connected
+					{:else if broker.error}
+						Not running: {broker.error}
+					{:else}
+						Not running
+					{/if}
+				</p>
 			{/if}
 		</section>
 
@@ -480,6 +568,14 @@
 	.savebar.error {
 		background: var(--danger);
 		color: var(--on-danger);
+	}
+	.broker-status {
+		margin: 4px 0 0;
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+	.broker-status.failed {
+		color: var(--tone-danger-text);
 	}
 	.load-error {
 		color: var(--tone-danger-text);

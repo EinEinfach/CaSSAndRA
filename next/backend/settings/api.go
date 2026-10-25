@@ -17,21 +17,24 @@ type View struct {
 
 // Secrets tells which passwords are set.
 type Secrets struct {
-	HTTPPassword bool `json:"httpPassword"`
-	MQTTPassword bool `json:"mqttPassword"`
-	APIPassword  bool `json:"apiPassword"`
+	HTTPPassword   bool `json:"httpPassword"`
+	MQTTPassword   bool `json:"mqttPassword"`
+	APIPassword    bool `json:"apiPassword"`
+	BrokerPassword bool `json:"brokerPassword"`
 }
 
 // ViewOf returns s without passwords.
 func ViewOf(s Settings) View {
 	v := View{Settings: s, Secrets: Secrets{
-		HTTPPassword: s.Connection.HTTPPassword != 0,
-		MQTTPassword: s.Connection.MQTTPassword != "",
-		APIPassword:  s.API.Password != "",
+		HTTPPassword:   s.Connection.HTTPPassword != 0,
+		MQTTPassword:   s.Connection.MQTTPassword != "",
+		APIPassword:    s.API.Password != "",
+		BrokerPassword: s.Broker.Password != "",
 	}}
 	v.Settings.Connection.HTTPPassword = 0
 	v.Settings.Connection.MQTTPassword = ""
 	v.Settings.API.Password = ""
+	v.Settings.Broker.Password = ""
 	return v
 }
 
@@ -42,9 +45,10 @@ func ViewOf(s Settings) View {
 type Update struct {
 	Settings  json.RawMessage `json:"settings"`
 	Passwords struct {
-		HTTPPassword *int    `json:"httpPassword"`
-		MQTTPassword *string `json:"mqttPassword"`
-		APIPassword  *string `json:"apiPassword"`
+		HTTPPassword   *int    `json:"httpPassword"`
+		MQTTPassword   *string `json:"mqttPassword"`
+		APIPassword    *string `json:"apiPassword"`
+		BrokerPassword *string `json:"brokerPassword"`
 	} `json:"passwords"`
 }
 
@@ -70,6 +74,7 @@ func (s *Store) Handler() http.Handler {
 		next.Connection.HTTPPassword = keep(u.Passwords.HTTPPassword, cur.Connection.HTTPPassword)
 		next.Connection.MQTTPassword = keep(u.Passwords.MQTTPassword, cur.Connection.MQTTPassword)
 		next.API.Password = keep(u.Passwords.APIPassword, cur.API.Password)
+		next.Broker.Password = keep(u.Passwords.BrokerPassword, cur.Broker.Password)
 		if err := s.Set(next); err != nil {
 			status := http.StatusInternalServerError
 			if errors.Is(err, ErrInvalid) {

@@ -12,7 +12,8 @@ export type PasswordEdits = Record<keyof Secrets, PasswordEdit>;
 export const emptyEdits = (): PasswordEdits => ({
 	httpPassword: { value: '', remove: false },
 	mqttPassword: { value: '', remove: false },
-	apiPassword: { value: '', remove: false }
+	apiPassword: { value: '', remove: false },
+	brokerPassword: { value: '', remove: false }
 });
 
 /** The password part of the update. Throws if the HTTP password is not a number. */
@@ -27,7 +28,7 @@ export function passwordUpdate(edits: PasswordEdits): SettingsUpdate['passwords'
 		}
 		out.httpPassword = Number(http.value.trim());
 	}
-	for (const key of ['mqttPassword', 'apiPassword'] as const) {
+	for (const key of ['mqttPassword', 'apiPassword', 'brokerPassword'] as const) {
 		const e = edits[key];
 		if (e.remove) out[key] = '';
 		else if (e.value !== '') out[key] = e.value;

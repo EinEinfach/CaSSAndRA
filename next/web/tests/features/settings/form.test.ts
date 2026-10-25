@@ -12,10 +12,12 @@ describe('passwordUpdate', () => {
 		e.httpPassword.value = ' 4711 ';
 		e.mqttPassword.value = 'secret';
 		e.apiPassword = { value: 'ignored', remove: true };
+		e.brokerPassword.value = 'mow-the-lawn';
 		expect(passwordUpdate(e)).toEqual({
 			httpPassword: 4711,
 			mqttPassword: 'secret',
-			apiPassword: ''
+			apiPassword: '',
+			brokerPassword: 'mow-the-lawn'
 		});
 	});
 

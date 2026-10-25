@@ -74,6 +74,20 @@ bin/cassandra --data-dir /tmp/cassandra-test
 Importiert werden dann Karten und Aufgaben der Legacy-App (ohne `user/` keine Zugangsdaten). Der Roboter bleibt der
 Simulator, bis unter Settings etwas anderes eingestellt wird.
 
+## Die native App (CaSSAndRA_native) anbinden
+
+Die App spricht die MQTT-API. Wer keinen eigenen MQTT-Broker (z. B. Mosquitto) hat, nimmt den eingebauten:
+
+1. Settings → **Built-in MQTT broker**: einschalten, Port (Standard 1883), Benutzer, Passwort (mind. 8 Zeichen).
+2. Settings → **Home automation**: MQTT API einschalten, „Built-in broker“ wählen, Server name merken (z. B. `CaSSAndRA`).
+3. In der App einen Server anlegen: Adresse = IP des Rechners mit CaSSAndRA, Port, Benutzer, Passwort, Prefix = Server name.
+
+Unter Settings steht, ob der Broker läuft und wie viele Clients verbunden sind. Läuft schon ein anderer Broker auf
+dem Port, steht dort der Fehler; dann einen anderen Port wählen oder den vorhandenen Broker nutzen („Other broker“).
+
+**Nur im Heimnetz verwenden.** Wer verbunden ist, kann den Mäher fahren lassen. Den Port nicht ins Internet freigeben;
+für unterwegs ein VPN nehmen.
+
 ## Raspberry Pi
 
 Die CI baut bei jedem Push statische Binaries für `linux/amd64` und `linux/arm64` (Job `release-build`, Artefakte

@@ -28,6 +28,7 @@ var allowedDeps = map[string][]string{
 	"link":     {"geo", "protocol"},
 	"planner":  {"geo"},
 	"system":   {},
+	"broker":   {},
 }
 
 // topLevel features may only be imported by app (and main).

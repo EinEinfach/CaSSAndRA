@@ -36,6 +36,7 @@ type Settings struct {
 	Battery    Battery    `json:"battery"`
 	Planner    Planner    `json:"planner"`
 	API        API        `json:"api"`
+	Broker     Broker     `json:"broker"`
 	Appearance Appearance `json:"appearance"`
 }
 
@@ -99,6 +100,18 @@ type API struct {
 	ClientID   string `json:"clientId"`
 	User       string `json:"user"`
 	Password   string `json:"password"`
+	// UseBuiltinBroker connects the API to the built-in broker; Broker,
+	// User and Password above are not used then.
+	UseBuiltinBroker bool `json:"useBuiltinBroker"`
+}
+
+// Broker is the MQTT broker built into CaSSAndRA, for users without one:
+// the native app connects to it with User and Password.
+type Broker struct {
+	Enabled  bool   `json:"enabled"`
+	Port     int    `json:"port"`
+	User     string `json:"user"`
+	Password string `json:"password"`
 }
 
 // Appearance is how the robot is drawn on the map.
@@ -117,9 +130,13 @@ func Default() Settings {
 		Battery:    Battery{EmptyV: 22, FullV: 28, ChargingBelowA: -0.03, OfflineAfterSec: 60},
 		Planner:    Planner{Pattern: PatternLines, WidthM: 0.18, DistanceToBorder: 1, MowArea: true, BorderLaps: 1, MowExclusions: true},
 		API:        API{ServerName: "CaSSAndRA", ClientID: "CaSSAndRA-API"},
+		Broker:     Broker{Port: 1883, User: "cassandra"},
 		Appearance: Appearance{RobotPicture: "default", RobotSizeCm: 100},
 	}
 }
+
+// BrokerMinPasswordLen is the shortest password the built-in broker takes.
+const BrokerMinPasswordLen = 8
 
 // ErrInvalid wraps every validation error.
 var ErrInvalid = errors.New("invalid settings")
@@ -174,11 +191,24 @@ func (s Settings) Validate() error {
 	check(p.DistanceToBorder >= 0 && p.DistanceToBorder <= 10, "planner.distanceToBorder must be between 0 and 10")
 	check(p.BorderLaps >= 0 && p.BorderLaps <= 10, "planner.borderLaps must be between 0 and 10")
 
+	bk := s.Broker
+	check(bk.Port >= 1 && bk.Port <= 65535, "broker.port must be between 1 and 65535")
+	if bk.Enabled {
+		check(strings.TrimSpace(bk.User) != "", "broker.user must be set")
+		check(len(bk.Password) >= BrokerMinPasswordLen,
+			"broker.password needs at least %d characters: everyone who gets in can drive the mower", BrokerMinPasswordLen)
+	}
+
 	a := s.API
-	if a.Enabled {
+	if a.Enabled && a.UseBuiltinBroker {
+		check(bk.Enabled, "api.useBuiltinBroker needs the built-in broker (broker.enabled)")
+	}
+	if a.Enabled && !a.UseBuiltinBroker {
 		u, err := url.Parse(a.Broker)
 		check(err == nil && u.Scheme != "" && u.Host != "",
 			"api.broker must be a URL like tcp://192.168.1.10:1883, got %q", a.Broker)
+	}
+	if a.Enabled {
 		check(strings.TrimSpace(a.ServerName) != "", "api.serverName must be set")
 		check(a.ClientID != "", "api.clientId must be set")
 	}

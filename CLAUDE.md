@@ -56,6 +56,7 @@ next/
     tasks/           Aufgaben (Teile aus Fläche + Parametern, tasks.json), Legacy-Import, Routenvorschau über planner (Event `plan`), Start
     schedule/        Wochenplan (je Tag ein Zeitfenster + Aufgaben, schedule.json), Legacy-Import, Runner (startet/dockt), API + Event `schedule`
     settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
+    broker/          Eingebauter MQTT-Broker (mochi) für Nutzer ohne eigenen: ein Benutzer mit Passwort, Status `GET /api/broker`
     system/          Last des Rechners (CPU, Temperatur, RAM, Disk aus /proc und /sys) und Herunterfahren
     stats/           Verlauf in SQLite (stats.db): Messwerte je Minute, Zuwachs der AT+T-Zähler je Stunde; Recorder, API
     mqttapi/         Externe MQTT-API, kompatibel zur Legacy-API und zur nativen App (CaSSAndRA_native), siehe unten
@@ -352,6 +353,12 @@ zeichengenau wie Legacy (`CaSSAndRA/src/backend/comm/api.py`, `apitopics/`):
   mit `app.ErrRestart` enden, `main` startet die App im selben Prozess neu (wie Legacy). `server shutdown` fährt den
   Rechner mit `sudo -n shutdown -h now` herunter (bei UART erst den Roboter, wie Legacy); in Tests ist `PowerOff`
   injiziert. `sendMessage` (Telegram/Pushover) wird nur geloggt, bis es den Nachrichtendienst gibt.
+- **Eingebauter Broker** (`broker`, Einstellungen `broker`): für Nutzer ohne eigenen MQTT-Server; die native App
+  verbindet sich mit der IP des Rechners. Nur ein Benutzer, Passwort mindestens 8 Zeichen (sonst startet er nicht),
+  Vergleich in konstanter Zeit; gedacht fürs Heimnetz, nicht fürs Internet (kein TLS). `api.useBuiltinBroker` lässt die
+  API über `127.0.0.1:<port>` mit diesen Zugangsdaten verbinden. Ein belegter Port (z. B. Mosquitto) erscheint als Fehler
+  im Status und in den Settings; gleiche Einstellungen erneut speichern versucht den Start noch einmal. mochi v2.7.9 kann
+  in `Close` hängen: Port zuerst schließen, `Close` mit Frist (wie `testkit.Broker`).
 - Bewusste Abweichungen: `maps load` setzt den Zeitplan nicht zurück (Legacy tat das); `resetRoute` verwirft nur die Vorschau (die Route gehört dem Roboter); `skipNextPoint` überspringt nur (Legacy: Stop, Skip, nach 3 s Resume); `goTo` fährt über A*.
 
 ## Kompatibilität

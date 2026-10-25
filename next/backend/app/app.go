@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/EinEinfach/CaSSAndRA/next/backend/broker"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/mqttapi"
@@ -119,6 +120,9 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	if err != nil {
 		return err
 	}
+	// The built-in broker, for the API, the robot's bridge and the native app.
+	brokerSvc := broker.New(log.With("feature", "broker"))
+	defer brokerSvc.Close() // registered before the goroutines, so it runs after them
 	// Registered first, so it runs after the goroutines have stopped.
 	defer func() {
 		if err := statsStore.Close(); err != nil {
@@ -154,6 +158,8 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	}
 	publishSettings(settingsStore.Get())
 
+	_ = brokerSvc.Apply(brokerOf(settingsStore.Get().Broker)) // before the API and the link use it
+
 	reconnect := make(chan struct{}, 1)
 	apiChanged := make(chan struct{}, 1)
 	settingsStore.OnChange(func(old, next settings.Settings) {
@@ -172,7 +178,10 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 			default: // a reconnect is pending anyway
 			}
 		}
-		if old.API != next.API {
+		if old.Broker != next.Broker {
+			_ = brokerSvc.Apply(brokerOf(next.Broker)) // the reason is in its status
+		}
+		if old.API != next.API || old.Broker != next.Broker {
 			select {
 			case apiChanged <- struct{}{}:
 			default:
@@ -282,6 +291,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 				"/api/tasks/":   tasksAPI,
 				"/api/schedule": runner.Handler(),
 				"/api/stats":    statsStore.Handler(cfg.Stats.Now),
+				"/api/broker":   brokerSvc.Handler(),
 			},
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
@@ -424,6 +434,10 @@ func importSchedule(store *schedule.Store, taskStore *tasks.Store, activeMap, pa
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+func brokerOf(b settings.Broker) broker.Config {
+	return broker.Config{Enabled: b.Enabled, Port: b.Port, User: b.User, Password: b.Password}
 }
 
 func robotSettings(s settings.Settings) robot.Settings {

@@ -51,6 +51,27 @@ export interface Api {
 	clientId: string;
 	user: string;
 	password: string;
+	/** Publish to the built-in broker; broker, user and password are not used then. */
+	useBuiltinBroker: boolean;
+}
+
+/** The MQTT broker built into CaSSAndRA, for users without one. */
+export interface Broker {
+	enabled: boolean;
+	port: number;
+	user: string;
+	password: string;
+}
+
+/** GET /api/broker */
+export interface BrokerStatus {
+	enabled: boolean;
+	running: boolean;
+	port: number;
+	/** Connected now, CaSSAndRA's own API included. */
+	clients: number;
+	/** Why it does not run, e.g. the port is taken. */
+	error: string;
 }
 
 /** Robot pictures in static/rovers, as in settings.RobotPictures. */
@@ -69,6 +90,7 @@ export interface Settings {
 	battery: Battery;
 	planner: Planner;
 	api: Api;
+	broker: Broker;
 	appearance: Appearance;
 }
 
@@ -77,6 +99,7 @@ export interface Secrets {
 	httpPassword: boolean;
 	mqttPassword: boolean;
 	apiPassword: boolean;
+	brokerPassword: boolean;
 }
 
 export interface SettingsView {
@@ -91,5 +114,6 @@ export interface SettingsUpdate {
 		httpPassword?: number;
 		mqttPassword?: string;
 		apiPassword?: string;
+		brokerPassword?: string;
 	};
 }

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import SettingsForm from '#features/settings/SettingsForm.svelte';
-import type { SettingsUpdate, SettingsView } from '#features/settings/types.ts';
+import type { BrokerStatus, SettingsUpdate, SettingsView } from '#features/settings/types.ts';
 import { view } from './fixtures.ts';
 
 function setup(
@@ -11,9 +11,16 @@ function setup(
 		settings: u.settings
 	}))
 ) {
-	render(SettingsForm, { load: async () => view(), save });
+	render(SettingsForm, {
+		load: async () => view(),
+		save,
+		loadBroker: async () => stopped,
+		brokerRefreshMs: 0
+	});
 	return save;
 }
+
+const stopped: BrokerStatus = { enabled: false, running: false, port: 1883, clients: 0, error: '' };
 
 describe('SettingsForm', () => {
 	it('shows the loaded settings and the fields of the connection', async () => {
@@ -96,7 +103,11 @@ describe('SettingsForm', () => {
 	});
 
 	it('shows load errors', async () => {
-		render(SettingsForm, { load: () => Promise.reject(new Error('offline')) });
+		render(SettingsForm, {
+			load: () => Promise.reject(new Error('offline')),
+			loadBroker: async () => stopped,
+			brokerRefreshMs: 0
+		});
 		expect((await screen.findByRole('alert')).textContent).toBe('offline');
 	});
 
@@ -110,5 +121,54 @@ describe('SettingsForm', () => {
 		expect(screen.queryByLabelText(/Server name/)).toBeNull();
 		await userEvent.click(screen.getByLabelText('MQTT API enabled'));
 		expect(screen.getByLabelText(/Server name/)).toBeTruthy();
+	});
+
+	it('runs the built-in broker and lets the API use it', async () => {
+		const save = setup();
+		await userEvent.click(await screen.findByLabelText('Broker enabled'));
+		await userEvent.clear(screen.getByLabelText('Port'));
+		await userEvent.type(screen.getByLabelText('Port'), '1884');
+		await userEvent.type(screen.getByLabelText('Broker password'), 'mow-the-lawn');
+		await userEvent.click(screen.getByLabelText('MQTT API enabled'));
+		await userEvent.click(screen.getByLabelText('Built-in broker'));
+		expect(screen.queryByLabelText('Broker')).toBeNull(); // the URL of another broker
+		await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+		const u = save.mock.calls[0][0];
+		expect(u.settings.broker).toEqual({
+			enabled: true,
+			port: 1884,
+			user: 'cassandra',
+			password: ''
+		});
+		expect(u.settings.api).toMatchObject({ enabled: true, useBuiltinBroker: true });
+		expect(u.passwords.brokerPassword).toBe('mow-the-lawn');
+	});
+
+	it('shows whether the broker runs', async () => {
+		const status = (b: Partial<BrokerStatus>) => async () => ({ ...stopped, enabled: true, ...b });
+		render(SettingsForm, {
+			load: async () => view(),
+			loadBroker: status({ running: true, clients: 2 }),
+			brokerRefreshMs: 0
+		});
+		expect(
+			(await screen.findByTestId('broker-status')).textContent?.replace(/\s+/g, ' ').trim()
+		).toBe('Running on port 1883 · 2 clients connected');
+	});
+
+	it('says why the broker does not run', async () => {
+		render(SettingsForm, {
+			load: async () => view(),
+			loadBroker: async () => ({
+				...stopped,
+				enabled: true,
+				error: 'broker: port 1883: address already in use'
+			}),
+			brokerRefreshMs: 0
+		});
+		expect((await screen.findByTestId('broker-status')).textContent).toContain(
+			'Not running: broker: port 1883: address already in use'
+		);
 	});
 });

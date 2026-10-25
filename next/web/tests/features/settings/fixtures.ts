@@ -41,10 +41,12 @@ export function view(): SettingsView {
 				serverName: 'CaSSAndRA',
 				clientId: 'CaSSAndRA-API',
 				user: '',
-				password: ''
+				password: '',
+				useBuiltinBroker: false
 			},
+			broker: { enabled: false, port: 1883, user: 'cassandra', password: '' },
 			appearance: { robotPicture: 'default', robotSizeCm: 100 }
 		},
-		secrets: { httpPassword: true, mqttPassword: false, apiPassword: false }
+		secrets: { httpPassword: true, mqttPassword: false, apiPassword: false, brokerPassword: false }
 	};
 }
