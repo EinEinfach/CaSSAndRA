@@ -46,6 +46,7 @@ describe('status texts', () => {
 		expect(dockReasonLabel('')).toBe('');
 		expect(dockReasonLabel('rain')).toBe('rain');
 		expect(dockReasonLabel('user')).toBe('sent home by you');
+		expect(dockReasonLabel('schedule')).toBe('schedule ended');
 		expect(dockReasonLabel('finished')).toBe('route finished');
 	});
 });
