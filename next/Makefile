@@ -63,7 +63,7 @@ build-static: build-web ## Static Linux binary -> bin/cassandra-linux-$(shell go
 
 dev: ## Backend on :8050 and Vite dev server with hot reload
 	@trap 'kill 0' INT TERM; \
-	(cd backend && go run . --host 127.0.0.1 --port 8050 --log-level debug --data-dir ../.dev-data) & \
+	(cd backend && go run -tags "$(GO_TAGS)" . --host 127.0.0.1 --port 8050 --log-level debug --data-dir ../.dev-data) & \
 	(cd web && npm run dev) & \
 	wait
 
