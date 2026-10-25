@@ -57,7 +57,7 @@ next/
     schedule/        Wochenplan (je Tag ein Zeitfenster + Aufgaben, schedule.json), Legacy-Import, Runner (startet/dockt), API + Event `schedule`
     settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
     stats/           Verlauf in SQLite (stats.db): Messwerte je Minute, Zuwachs der AT+T-Zähler je Stunde; Recorder, API
-    mqttapi/         Externe MQTT-API (kompatibel zur Legacy-API, siehe unten)
+    mqttapi/         Externe MQTT-API, kompatibel zur Legacy-API und zur nativen App (CaSSAndRA_native), siehe unten
     server/          HTTP-Handler, SSE-Hub, eingebettetes Frontend (`server/dist/`, Build-Ausgabe, gitignored); montiert die Routen der Features (`Options.Routes`)
     tests/           Spiegelt die Feature-Ordner, siehe „Testen“
   web/
@@ -319,6 +319,19 @@ Go-Anbindung (`backend/planner/`):
 - `make build` baut mit Planner; `make build-static` (auf Linux) ein statisches Binary, das auf jedem Linux läuft
   (CI-Job `release-build` für amd64 und arm64). Ein Segfault im C++-Code beendet den ganzen Prozess; falls das in der
   Praxis vorkommt, Planner als separaten Prozess aufrufen.
+
+## MQTT-API (`mqttapi`)
+
+Auf ihr setzt die native App [CaSSAndRA_native](https://github.com/EinEinfach/CaSSAndRA_native) (Flutter) auf, daher
+zeichengenau wie Legacy (`CaSSAndRA/src/backend/comm/api.py`, `apitopics/`):
+- Zustand alle 2 s auf `<prefix>/status|server|robot|…` (QoS 0, nicht retained); `status` ist `ready`/`busy`, Last Will
+  `offline`. Die App meldet den Server nach 20 s ohne Nachricht offline.
+- Befehle als JSON auf `<prefix>/api_cmd`: `{"<objekt>": {"command": …, "value": …}}`. Sie laufen nacheinander (wie
+  Legacy), nur `robot stop` überholt die Warteschlange. Ungültige Befehle werden geloggt, nie beantwortet.
+- **Zahlen wie Python:** Floats immer mit Dezimalpunkt (`mqttapi.Float`: `27.0`, nie `27`). Dart liest `27` als int, das
+  passt in kein `double`-Feld, und die App verwirft die ganze Nachricht. Golden-Tests vergleichen den Text.
+- Roboter-Texte wie Legacy: Sensor (`"bumper error"`), Dock-Grund (`"operator"` statt `user`), GPS-Alter (`"0.6s"`).
+- Bewusste Abweichungen: `skipNextPoint` überspringt nur (Legacy: Stop, Skip, nach 3 s Resume); `goTo` fährt über A*.
 
 ## Kompatibilität
 

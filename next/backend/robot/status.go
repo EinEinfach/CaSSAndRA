@@ -70,6 +70,8 @@ type Snapshot struct {
 	MapCRC          int64
 	UpdatedAt       time.Time // last state report; zero if none yet
 	LateralErrorM   float64   // distance from the line to the target
+	DGPSAgeSec      float64   // age of the correction data
+	SatellitesDGPS  int
 	StatsAt         time.Time // last AT+T report; zero if none yet
 	TrailID         int64     // changes when the trail starts anew
 	Stats           protocol.Stats
@@ -105,6 +107,8 @@ func (r *Robot) Snapshot() Snapshot {
 		MapCRC:          s.MapCRC,
 		UpdatedAt:       r.stateAt,
 		LateralErrorM:   s.LateralErrorM,
+		DGPSAgeSec:      s.DGPSAgeSec,
+		SatellitesDGPS:  s.SatellitesDGPS,
 		StatsAt:         r.statsAt,
 		TrailID:         r.trail.id,
 		Stats:           r.stats,

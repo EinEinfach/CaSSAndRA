@@ -17,6 +17,7 @@ import (
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/mqttapi"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/planner"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
@@ -146,6 +147,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	publishSettings(settingsStore.Get())
 
 	reconnect := make(chan struct{}, 1)
+	apiChanged := make(chan struct{}, 1)
 	settingsStore.OnChange(func(old, next settings.Settings) {
 		publishSettings(next)
 		r.SetSettings(robotSettings(next))
@@ -160,6 +162,12 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 			select {
 			case reconnect <- struct{}{}:
 			default: // a reconnect is pending anyway
+			}
+		}
+		if old.API != next.API {
+			select {
+			case apiChanged <- struct{}{}:
+			default:
 			}
 		}
 	})
@@ -228,6 +236,9 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	statsCfg.Logger = log
 	recorder := stats.NewRecorder(statsStore, r, statsCfg)
 	goroutine(func() { recorder.Run(ctx) })
+
+	api := mqttapi.New(r, taskService, mqttapi.Config{Version: cfg.Version, Logger: log.With("feature", "mqttapi")})
+	goroutine(func() { superviseAPI(ctx, api, settingsStore, apiChanged, log.With("feature", "mqttapi")) })
 
 	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect, simMap) })
 	goroutine(func() { r.PublishState(ctx, cfg.PublishInterval, func(b []byte) { hub.Publish("robot", b) }) })
