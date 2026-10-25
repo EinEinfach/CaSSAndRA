@@ -23,6 +23,7 @@ import (
 	"github.com/EinEinfach/CaSSAndRA/next/backend/schedule"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/server"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/settings"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/stats"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/tasks"
 )
 
@@ -56,6 +57,9 @@ type Config struct {
 	// Schedule sets the clock and interval of the schedule (defaults: wall
 	// clock, one minute).
 	Schedule schedule.Config
+	// Stats sets the clock and interval of the statistics (defaults: wall
+	// clock, one sample per minute).
+	Stats stats.Config
 }
 
 // DefaultConfig returns the defaults; only DataDir must be set.
@@ -102,6 +106,16 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 		return err
 	}
 	settingsStore, mapStore, taskStore, scheduleStore := data.settings, data.maps, data.tasks, data.schedule
+	statsStore, err := stats.Open(filepath.Join(cfg.DataDir, "stats.db"))
+	if err != nil {
+		return err
+	}
+	// Registered first, so it runs after the goroutines have stopped.
+	defer func() {
+		if err := statsStore.Close(); err != nil {
+			log.Warn("close stats", "err", err)
+		}
+	}()
 
 	// Deferred in reverse: cancel the background goroutines, then wait for them.
 	var wg sync.WaitGroup
@@ -210,6 +224,11 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	runner.OnChange(publishSchedule)
 	goroutine(func() { runner.Run(ctx) })
 
+	statsCfg := cfg.Stats
+	statsCfg.Logger = log
+	recorder := stats.NewRecorder(statsStore, r, statsCfg)
+	goroutine(func() { recorder.Run(ctx) })
+
 	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect, simMap) })
 	goroutine(func() { r.PublishState(ctx, cfg.PublishInterval, func(b []byte) { hub.Publish("robot", b) }) })
 
@@ -229,6 +248,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 				"/api/tasks":    tasksAPI,
 				"/api/tasks/":   tasksAPI,
 				"/api/schedule": runner.Handler(),
+				"/api/stats":    statsStore.Handler(cfg.Stats.Now),
 			},
 		}),
 		ReadHeaderTimeout: 5 * time.Second,

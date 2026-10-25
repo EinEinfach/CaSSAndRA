@@ -196,7 +196,7 @@ func TestSnapshotReportsEverything(t *testing.T) {
 	s := protocol.State{
 		BatteryVoltage: 27.1, X: 1.5, Y: -2, HeadingRad: 0.7, Solution: protocol.SolutionFloat,
 		Op: protocol.OpMow, MowPointIndex: 12, Sensor: 2, TargetX: 3, TargetY: 4, AccuracyM: 0.05,
-		Satellites: 21, Amps: 0.6, MapCRC: 4711,
+		Satellites: 21, Amps: 0.6, MapCRC: 4711, LateralErrorM: 0.03,
 	}
 	f.online(s)
 	f.robot.OnStats(protocol.Stats{DurationMowSec: 99})
@@ -208,8 +208,8 @@ func TestSnapshotReportsEverything(t *testing.T) {
 		Position: geo.Point{X: 1.5, Y: -2}, HeadingRad: 0.7, Target: geo.Point{X: 3, Y: 4},
 		BatteryV: 27.1, SoCPercent: 85, Amps: 0.6, Solution: protocol.SolutionFloat, AccuracyM: 0.05,
 		Satellites: 21, Op: protocol.OpMow, Sensor: 2, MowPointIndex: 12, MapCRC: 4711, UpdatedAt: t0,
-		TrailID: t0.UnixMilli(),
-		Stats:   protocol.Stats{DurationMowSec: 99}, Obstacles: [][]geo.Point{pts(1, 1, 2, 2, 3, 1)},
+		TrailID: t0.UnixMilli(), LateralErrorM: 0.03, StatsAt: t0,
+		Stats: protocol.Stats{DurationMowSec: 99}, Obstacles: [][]geo.Point{pts(1, 1, 2, 2, 3, 1)},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("snapshot\n got %+v\nwant %+v", got, want)

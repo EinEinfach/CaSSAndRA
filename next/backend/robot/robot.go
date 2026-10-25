@@ -81,6 +81,7 @@ type Robot struct {
 	stateAt    time.Time
 	stateSeen  chan struct{} // closed and replaced on every state report
 	stats      protocol.Stats
+	statsAt    time.Time
 	obstacles  [][]geo.Point
 	mowMotor   bool // last commanded; the robot does not report it
 	moveUntil  time.Time

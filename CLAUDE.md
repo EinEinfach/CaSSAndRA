@@ -32,7 +32,7 @@ Struktur nicht übernehmen. Relevante Legacy-Stellen:
 - **Live-Daten:** Server-Sent Events auf `GET /api/events` (Backend → UI: Zustand, Position, Fortschritt), Befehle per REST (JSON). Bewusst kein WebSocket: Daten fließen nur in eine Richtung, SSE braucht keine Go-Bibliothek, der Browser verbindet sich selbst neu, und es ist mit `httptest` testbar. Neue Clients bekommen sofort das letzte Event jedes Typs.
 - **Kartendarstellung:** Canvas-basiert im Browser, Koordinaten in Metern (lokales System des Roboters).
 - **Bahnplanung:** C++-Planner aus dem eigenen Repo [CaSSAndRA_PathPlannerCore](https://github.com/EinEinfach/CaSSAndRA_PathPlannerCore), angebunden über **cgo**. Das ist das einzige Stück, das nicht neu geschrieben wird (siehe „Planner-Anbindung“).
-- **Persistenz:** Dateien im Datenverzeichnis (Standard `~/.cassandra`), JSON für Config/Karten/Tasks. Kein pickle, keine DataFrames. Zeitreihen ggf. später SQLite.
+- **Persistenz:** Dateien im Datenverzeichnis (Standard `~/.cassandra`), JSON für Config/Karten/Tasks/Zeitplan. Kein pickle, keine DataFrames. Zeitreihen (Statistik) in SQLite über `modernc.org/sqlite` (reines Go, kein cgo).
 
 ## Architektur: flach und feature-basiert
 
@@ -56,7 +56,7 @@ next/
     tasks/           Aufgaben (Teile aus Fläche + Parametern, tasks.json), Legacy-Import, Routenvorschau über planner (Event `plan`), Start
     schedule/        Wochenplan (je Tag ein Zeitfenster + Aufgaben, schedule.json), Legacy-Import, Runner (startet/dockt), API + Event `schedule`
     settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
-    stats/           Statistik und Verlauf (Batterie, Mähzeit, GPS-Qualität)
+    stats/           Verlauf in SQLite (stats.db): Messwerte je Minute, Zuwachs der AT+T-Zähler je Stunde; Recorder, API
     mqttapi/         Externe MQTT-API (kompatibel zur Legacy-API, siehe unten)
     server/          HTTP-Handler, SSE-Hub, eingebettetes Frontend (`server/dist/`, Build-Ausgabe, gitignored); montiert die Routen der Features (`Options.Routes`)
     tests/           Spiegelt die Feature-Ordner, siehe „Testen“
@@ -232,6 +232,14 @@ Mitternacht) schickt er den Roboter heim (`robot.DockFor`, Grund `schedule`), ab
 und der Roboter noch mäht. Start und Heimschicken je höchstens einmal pro Tag, auch nach Fehlern. Der Legacy-Import
 (`user/schedulecfg.json`, Aufgabennamen der aktiven Karte) kommt immer **ausgeschaltet** an, damit der Roboter nicht
 losfährt, nur weil die neue App gestartet wurde. Gelöschte Aufgaben verschwinden aus dem Plan.
+
+**Statistik (`stats`):** `stats.db` (SQLite, WAL, Schema-Version in `PRAGMA user_version`, unbekannte Version → Start
+schlägt fehl). Der Recorder schreibt jede Minute eine Probe (Batterie, Strom, Satelliten, Genauigkeit, Spurabweichung),
+nur bei frischem Bericht eines Online-Roboters; Proben älter als ein Jahr werden gelöscht. Die AT+T-Zähler sind
+Summen seit dem Roboterstart: gespeichert wird je Stunde ihr Zuwachs gegenüber dem letzten Bericht (`baseline`, übersteht
+App-Neustarts); ein kleinerer Wert heißt Roboterneustart und zählt ab 0. `max*`-Werte als Maximum je Stunde.
+`GET /api/stats?from&to&points` mittelt die Proben in höchstens `points` Eimer; Summen gelten für ganze Stunden.
+Alte Legacy-Messdaten (pickle) werden nicht importiert.
 
 **Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er
 idempotent ist. `Stop` bricht einen laufenden Karten-Upload ab, statt hinter ihm zu warten.

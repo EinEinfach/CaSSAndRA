@@ -63,6 +63,7 @@ func (r *Robot) OnStats(s protocol.Stats) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.stats = s
+	r.statsAt = r.cfg.Now()
 }
 
 // OnObstacles implements link.Handler.
