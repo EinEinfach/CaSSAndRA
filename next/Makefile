@@ -7,7 +7,7 @@ BIN     := bin/cassandra
 # The binary includes the C++ planner (cgo, third_party/PathPlannerCore). GO_TAGS= builds without it.
 GO_TAGS ?= cpp
 
-.PHONY: help setup test test-go test-cpp test-web test-e2e coverage lint lint-go lint-web fmt build build-static build-web dev clean
+.PHONY: help setup test test-go test-cpp test-web test-e2e coverage lint lint-go lint-web fmt build build-static build-static-armv7 test-armv7 build-web dev clean
 
 help: ## List all targets
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -60,6 +60,19 @@ build-static: build-web ## Static Linux binary -> bin/cassandra-linux-$(shell go
 	cd backend && CGO_ENABLED=1 go build -tags "$(GO_TAGS) netgo osusergo" \
 		-ldflags "$(LDFLAGS) -linkmode external -extldflags -static" \
 		-o ../bin/cassandra-linux-$$(go env GOARCH) .
+
+# 32-bit Raspberry Pi OS (armv7, e.g. Pi 2/3), cross-compiled on Linux with
+# g++-arm-linux-gnueabihf. The tests run through qemu-user (binfmt), hence static,
+# without -race (not supported on 32-bit ARM) and with a longer timeout.
+ARMV7  := GOOS=linux GOARCH=arm GOARM=7 CGO_ENABLED=1 CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++
+STATIC := -linkmode external -extldflags -static
+
+build-static-armv7: build-web ## Static armv7 binary (cross-compiled) -> bin/cassandra-linux-armv7
+	cd backend && $(ARMV7) go build -tags "$(GO_TAGS) netgo osusergo" \
+		-ldflags "$(LDFLAGS) $(STATIC)" -o ../bin/cassandra-linux-armv7 .
+
+test-armv7: ## Backend tests including the planner, cross-compiled for armv7 and run via qemu-user
+	cd backend && $(ARMV7) go test -timeout 300s -tags "cpp netgo osusergo" -ldflags "$(STATIC)" ./tests/...
 
 dev: ## Backend on :8050 and Vite dev server with hot reload
 	@trap 'kill 0' INT TERM; \

@@ -163,6 +163,8 @@ make coverage     # Backend-Coverage über alle Features (-coverpkg=./...)
 make dev          # Backend :8050 mit Simulator + Vite-Devserver (Proxy /api → Backend)
 make build        # Frontend bauen, nach backend/server/dist kopieren, bin/cassandra mit Planner bauen (GO_TAGS= ohne)
 make build-static # auf Linux: statisches bin/cassandra-linux-<arch> (läuft z. B. auf Raspberry Pi OS)
+make build-static-armv7 # auf Linux mit g++-arm-linux-gnueabihf: bin/cassandra-linux-armv7 (32-Bit-Pi-OS, z. B. Pi 3)
+make test-armv7   # Backend-Tests inkl. Planner für armv7, über qemu-user (binfmt), ohne -race
 ```
 
 Daten: `bin/cassandra --data-dir <dir>` (Standard `~/.cassandra`). Beim ersten Start (kein `settings.json` bzw. kein
@@ -326,8 +328,9 @@ Go-Anbindung (`backend/planner/`):
 - `core.cpp` schaltet FMA per Pragma ab (cgo verbietet `-ffp-contract=off`): Sonst rechnet clang auf arm64 anders als
   gcc auf x86, und eine Rundung kann die Wahl der nächsten Bahn kippen – andere Route je Plattform.
 - `make build` baut mit Planner; `make build-static` (auf Linux) ein statisches Binary, das auf jedem Linux läuft
-  (CI-Job `release-build` für amd64 und arm64). Ein Segfault im C++-Code beendet den ganzen Prozess; falls das in der
-  Praxis vorkommt, Planner als separaten Prozess aufrufen.
+  (CI-Job `release-build` für amd64 und arm64, nativ). 32-Bit-Pi-OS (armv7, verbreitet auf Pi 2/3) hat keinen Runner:
+  `release-build-armv7` kompiliert mit `g++-arm-linux-gnueabihf` und testet unter qemu-user. Ein Segfault im C++-Code
+  beendet den ganzen Prozess; falls das in der Praxis vorkommt, Planner als separaten Prozess aufrufen.
 
 ## MQTT-API (`mqttapi`)
 

@@ -118,3 +118,46 @@ jobs:
         with:
           name: cassandra-linux-${{ runner.arch == 'ARM64' && 'arm64' || 'amd64' }}
           path: next/bin/cassandra-linux-*
+
+  # 32-bit Raspberry Pi OS (armv7, e.g. Pi 3): there is no native runner, so the
+  # binary is cross-compiled and tested through qemu-user.
+  release-build-armv7:
+    needs: [backend, web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: next/backend/go.mod
+          cache-dependency-path: next/backend/go.sum
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: next/web/package-lock.json
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends g++-arm-linux-gnueabihf
+      - run: cd web && npm ci
+      - run: make test-armv7
+      - run: make build-static-armv7
+      - name: Check the binary is static armv7 and starts
+        run: |
+          bin=bin/cassandra-linux-armv7
+          file $bin
+          file $bin | grep -q "ARM, EABI5"
+          file $bin | grep -q "statically linked"
+          $bin --version
+          $bin --check-planner
+          $bin --port 4180 --data-dir "$RUNNER_TEMP/data" &
+          for i in $(seq 1 100); do curl -sf http://127.0.0.1:4180/api/health && break; sleep 0.2; done
+          curl -sf http://127.0.0.1:4180/api/health
+          kill %1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cassandra-linux-armv7
+          path: next/bin/cassandra-linux-armv7

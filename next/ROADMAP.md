@@ -69,7 +69,7 @@ sowie `make lint` sind grün.
 - [x] CI: Tests mit und ohne Planner; statische Binaries für amd64 und arm64 (native GitHub-Runner) mit `--check-planner`, als Download
 - [ ] Auf dem Pi starten: `cassandra-linux-arm64 --check-planner` (Artefakt aus der CI) – zurückgestellt, gerade kein Pi zur Hand
 - [x] Planner-Repo: `c-api` nach `main` gemergt, Tag `v1.4.0` (Wheel auf PyPI); Submodule steht auf dem Tag-Commit
-- [ ] 32-Bit-Pi (armv7): offen, ob nötig
+- [x] 32-Bit-Pi (armv7): nötig (der Pi des Autors: Pi 3, Raspbian 11, 32 Bit). CI-Job `release-build-armv7` (Cross-Compiler + qemu), alle reinen Go-Tests auch direkt auf dem Pi grün
 - **Fertig, wenn:** `make test-cpp` grün und das arm64-Binary auf dem Pi eine Route berechnet.
 
 ## Phase 7 – Aufgaben & Mähen (`tasks`)
@@ -94,7 +94,7 @@ sowie `make lint` sind grün.
 
 ## Phase 10 – Abschluss
 - [ ] Log-Ansicht mit eigener Befehlseingabe, Systeminfos (CPU, RAM, Temperatur), Feinschliff mobile Ansicht
-- [ ] Releases: Binaries amd64/arm64, Docker-Image, systemd-Unit, Installationsanleitung
+- [ ] Releases: Binaries amd64/arm64/armv7, Docker-Image, systemd-Unit, Installationsanleitung
 - [ ] Testlauf parallel zur Legacy-App, dann Umstieg; `CaSSAndRA/` erst danach entfernen
 
 ## Offene Entscheidungen

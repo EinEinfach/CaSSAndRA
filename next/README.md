@@ -13,7 +13,7 @@ Architektur, Regeln und Hintergründe stehen in [`../CLAUDE.md`](../CLAUDE.md), 
 | am Code arbeiten (Hot Reload) | `make dev` | http://localhost:5173 |
 | die App so starten, wie sie ausgeliefert wird | `make build` und `bin/cassandra --data-dir ../.dev-data` | http://localhost:8050 |
 | alle Tests laufen lassen | `make test` (dazu `make test-cpp`, `make test-e2e`) | – |
-| ein Binary für den Raspberry Pi | CI-Artefakt `cassandra-linux-arm64` (oder `make build-static` auf Linux) | http://&lt;pi&gt;:8050 |
+| ein Binary für den Raspberry Pi | CI-Artefakt `cassandra-linux-arm64` bzw. `-armv7` für 32-Bit-Pi-OS | http://&lt;pi&gt;:8050 |
 
 **Wichtig:** Ohne `--data-dir` benutzt das Binary `~/.cassandra` – das Datenverzeichnis der echten Installation
 (Legacy-Daten werden beim ersten Start daraus importiert). Zum Ausprobieren immer ein eigenes Verzeichnis angeben.
@@ -90,8 +90,10 @@ für unterwegs ein VPN nehmen.
 
 ## Raspberry Pi
 
-Die CI baut bei jedem Push statische Binaries für `linux/amd64` und `linux/arm64` (Job `release-build`, Artefakte
-`cassandra-linux-amd64` / `cassandra-linux-arm64` im GitHub-Actions-Lauf). Auf dem Pi (64-Bit-OS):
+Die CI baut bei jedem Push statische Binaries für `linux/amd64`, `linux/arm64` und `linux/arm` (armv7) (Jobs
+`release-build` und `release-build-armv7`, Artefakte `cassandra-linux-amd64|arm64|armv7` im GitHub-Actions-Lauf).
+Welches passt, zeigt `uname -m` auf dem Pi: `aarch64` → arm64, `armv7l` → armv7 (32-Bit-Raspberry-Pi-OS, z. B. auf
+einem Pi 3). Auf dem Pi (Beispiel 64 Bit):
 
 ```sh
 chmod +x cassandra-linux-arm64
@@ -99,7 +101,8 @@ chmod +x cassandra-linux-arm64
 ./cassandra-linux-arm64 --data-dir ~/cassandra-next
 ```
 
-Selbst bauen geht mit `make build-static` auf einem Linux-Rechner derselben Architektur.
+Selbst bauen geht mit `make build-static` auf einem Linux-Rechner derselben Architektur, armv7 mit
+`make build-static-armv7` auf Linux (Cross-Compiler `g++-arm-linux-gnueabihf`).
 
 ## Tests und Prüfungen
 
