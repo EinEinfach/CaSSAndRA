@@ -67,10 +67,10 @@ sowie `make lint` sind grün.
 - [x] Im Planner-Repo (in `main`, Release v1.4.0 inkl. PyPI-Wheel): C-API `planner_c.h` (Mähroute + A*-Weg), CMake-Target `planner_core` ohne pybind, GoogleTests (99 grün; drei alte Tests an die halbe Startlinie angepasst), Tippfehler `mowExclusionsBorder` korrigiert (Python behält den alten Namen), Version 1.4
 - [x] Hier: Submodule `third_party/PathPlannerCore`, `planner/` (cgo kompiliert die Quellen selbst, Build-Tag `cpp`), `testkit.FakePlanner`, Golden-Routen aus dem Python-Modul, `make test-cpp`, `cassandra --check-planner`
 - [x] CI: Tests mit und ohne Planner; statische Binaries für amd64 und arm64 (native GitHub-Runner) mit `--check-planner`, als Download
-- [ ] Auf dem Pi starten: `cassandra-linux-arm64 --check-planner` (Artefakt aus der CI) – zurückgestellt, gerade kein Pi zur Hand
+- [x] Auf dem Pi gestartet (Pi 3, 32 Bit): `cassandra-linux-armv7 --check-planner` rechnet den Demo-Garten in 9 ms; Server mit Simulator ca. 12 MB RSS
 - [x] Planner-Repo: `c-api` nach `main` gemergt, Tag `v1.4.0` (Wheel auf PyPI); Submodule steht auf dem Tag-Commit
 - [x] 32-Bit-Pi (armv7): nötig (der Pi des Autors: Pi 3, Raspbian 11, 32 Bit). CI-Job `release-build-armv7` (Cross-Compiler + qemu), alle reinen Go-Tests auch direkt auf dem Pi grün
-- **Fertig, wenn:** `make test-cpp` grün und das arm64-Binary auf dem Pi eine Route berechnet.
+- **Fertig, wenn:** `make test-cpp` grün und das Binary auf dem Pi eine Route berechnet. (erledigt, armv7)
 
 ## Phase 7 – Aufgaben & Mähen (`tasks`)
 - [x] Teilflächen wählen (ganzer Garten, Rechteck, Polygon), Parameter, Route berechnen, Vorschau in der UI (Seite „Tasks“, Event `plan`); Auswahl wird auf den Rasen zugeschnitten (behebt leere Ringe bei angeschnittenen Ausschlusszonen)
