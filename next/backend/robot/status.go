@@ -65,6 +65,7 @@ type Snapshot struct {
 	Op              protocol.Op
 	Sensor          protocol.Sensor
 	MowMotorOn      bool
+	SpeedMps        float64 // last commanded speed of mowing or goto
 	MowPointIndex   int
 	DockReason      DockReason
 	MapCRC          int64
@@ -85,8 +86,9 @@ func (r *Robot) Snapshot() Snapshot {
 	s := r.state
 	obstacles := make([][]geo.Point, len(r.obstacles))
 	copy(obstacles, r.obstacles)
+	status := r.statusLocked()
 	return Snapshot{
-		Status:          r.statusLocked(),
+		Status:          status,
 		Online:          r.online,
 		Firmware:        r.version.Firmware,
 		FirmwareVersion: r.version.Version,
@@ -102,6 +104,7 @@ func (r *Robot) Snapshot() Snapshot {
 		Op:              s.Op,
 		Sensor:          s.Sensor,
 		MowMotorOn:      r.mowMotor,
+		SpeedMps:        r.speedLocked(status),
 		MowPointIndex:   s.MowPointIndex,
 		DockReason:      r.dockReason,
 		MapCRC:          s.MapCRC,
@@ -113,6 +116,22 @@ func (r *Robot) Snapshot() Snapshot {
 		TrailID:         r.trail.id,
 		Stats:           r.stats,
 		Obstacles:       obstacles,
+	}
+}
+
+// speedLocked is the last commanded speed. Before the first command (e.g. the
+// app restarted while the robot mows) it is the speed from the settings.
+func (r *Robot) speedLocked(status Status) float64 {
+	if r.speedMps > 0 {
+		return r.speedMps
+	}
+	switch status {
+	case StatusMow:
+		return r.cfg.MowSpeedMps
+	case StatusTransit:
+		return r.cfg.GotoSpeedMps
+	default:
+		return 0
 	}
 }
 

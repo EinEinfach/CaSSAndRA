@@ -17,14 +17,19 @@ export function robotState(overrides: Partial<RobotState> = {}): RobotState {
 		solution: 'fix',
 		accuracyM: 0.02,
 		satellites: 28,
+		satellitesDgps: 20,
+		dgpsAgeSec: 0.6,
+		lateralErrorM: 0.03,
 		op: 'idle',
 		sensor: 'none',
 		mowMotorOn: false,
+		speedMps: 0,
 		mowPointIndex: 0,
 		dockReason: '',
 		mapCrc: 1234,
 		updatedAt: '2026-06-01T12:00:00Z',
 		trailId: 1,
+		obstacles: [],
 		...overrides
 	};
 }

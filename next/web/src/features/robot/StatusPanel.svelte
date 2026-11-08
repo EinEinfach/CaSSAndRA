@@ -1,5 +1,15 @@
 <script lang="ts">
-	import { dockReasonLabel, gpsLabel, statusLabel, statusTone } from './format.ts';
+	import {
+		batteryLabel,
+		dockReasonLabel,
+		formatAmps,
+		formatMeters,
+		formatPoint,
+		gpsLabel,
+		satellitesLabel,
+		statusLabel,
+		statusTone
+	} from './format.ts';
 	import type { RobotState } from './types.ts';
 
 	let { state, connected }: { state: RobotState | null; connected: boolean } = $props();
@@ -22,15 +32,19 @@
 		<dl>
 			<div>
 				<dt>Battery</dt>
-				<dd data-testid="robot-battery">{state.socPercent} % · {state.batteryV.toFixed(1)} V</dd>
+				<dd data-testid="robot-battery">{batteryLabel(state.socPercent, state.batteryV)}</dd>
+			</div>
+			<div>
+				<dt>Current</dt>
+				<dd>{formatAmps(state.amps)}</dd>
 			</div>
 			<div>
 				<dt>GPS</dt>
 				<dd>{gpsLabel(state.solution, state.accuracyM, state.satellites)}</dd>
 			</div>
 			<div>
-				<dt>Mow motor</dt>
-				<dd>{state.mowMotorOn ? 'on' : 'off'}</dd>
+				<dt>DGPS satellites · age</dt>
+				<dd>{satellitesLabel(state.satellitesDgps, state.satellites, state.dgpsAgeSec)}</dd>
 			</div>
 			{#if state.sensor !== 'none'}
 				<div>
@@ -39,6 +53,31 @@
 				</div>
 			{/if}
 		</dl>
+		<details>
+			<summary>Details</summary>
+			<dl>
+				<div>
+					<dt>Position</dt>
+					<dd>{formatPoint(state.position)}</dd>
+				</div>
+				<div>
+					<dt>Target</dt>
+					<dd>{formatPoint(state.target)}</dd>
+				</div>
+				<div>
+					<dt>Mow point</dt>
+					<dd>{state.mowPointIndex}</dd>
+				</div>
+				<div>
+					<dt>Off the line</dt>
+					<dd>{formatMeters(state.lateralErrorM)}</dd>
+				</div>
+				<div>
+					<dt>Firmware</dt>
+					<dd>{state.firmware} {state.firmwareVersion}</dd>
+				</div>
+			</dl>
+		</details>
 	{/if}
 </section>
 
@@ -93,5 +132,13 @@
 	}
 	.warn {
 		color: var(--tone-danger-text);
+	}
+	summary {
+		cursor: pointer;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+	}
+	details[open] summary {
+		margin-bottom: 8px;
 	}
 </style>

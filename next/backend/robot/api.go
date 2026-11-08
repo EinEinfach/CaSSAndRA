@@ -33,14 +33,20 @@ type StateJSON struct {
 	Solution        string     `json:"solution"`
 	AccuracyM       float64    `json:"accuracyM"`
 	Satellites      int        `json:"satellites"`
+	SatellitesDGPS  int        `json:"satellitesDgps"`
+	DGPSAgeSec      float64    `json:"dgpsAgeSec"`
+	LateralErrorM   float64    `json:"lateralErrorM"`
 	Op              string     `json:"op"`
 	Sensor          string     `json:"sensor"`
 	MowMotorOn      bool       `json:"mowMotorOn"`
+	SpeedMps        float64    `json:"speedMps"` // last commanded speed of mowing or goto
 	MowPointIndex   int        `json:"mowPointIndex"`
 	DockReason      DockReason `json:"dockReason"`
 	MapCRC          int64      `json:"mapCrc"`
 	UpdatedAt       *time.Time `json:"updatedAt"`
 	TrailID         int64      `json:"trailId"`
+	// Obstacles the robot found on its way, as polygons.
+	Obstacles [][]geo.Point `json:"obstacles"`
 }
 
 // MapJSON is the map last uploaded to the robot.
@@ -63,9 +69,10 @@ func (r *Robot) StateJSON() StateJSON {
 		Position: s.Position, HeadingRad: finite(s.HeadingRad), Target: s.Target,
 		BatteryV: finite(s.BatteryV), SoCPercent: s.SoCPercent, Amps: finite(s.Amps),
 		Solution: s.Solution.String(), AccuracyM: finite(s.AccuracyM), Satellites: s.Satellites,
-		Op: s.Op.String(), Sensor: s.Sensor.String(), MowMotorOn: s.MowMotorOn,
+		SatellitesDGPS: s.SatellitesDGPS, DGPSAgeSec: finite(s.DGPSAgeSec), LateralErrorM: finite(s.LateralErrorM),
+		Op: s.Op.String(), Sensor: s.Sensor.String(), MowMotorOn: s.MowMotorOn, SpeedMps: finite(s.SpeedMps),
 		MowPointIndex: s.MowPointIndex, DockReason: s.DockReason, MapCRC: s.MapCRC, UpdatedAt: updated,
-		TrailID: s.TrailID,
+		TrailID: s.TrailID, Obstacles: nonNilRings(s.Obstacles),
 	}
 }
 
@@ -79,11 +86,19 @@ func (r *Robot) MapJSON() MapJSON {
 		}
 		return p
 	}
-	ex := make([][]geo.Point, len(m.Exclusions))
-	for i, e := range m.Exclusions {
-		ex[i] = nonNil(e)
+	return MapJSON{Perimeter: nonNil(m.Perimeter), Exclusions: nonNilRings(m.Exclusions), Dock: nonNil(m.Dock), Way: nonNil(m.Way)}
+}
+
+// nonNilRings copies rings so that neither the list nor a ring is null in JSON.
+func nonNilRings(rings [][]geo.Point) [][]geo.Point {
+	out := make([][]geo.Point, len(rings))
+	for i, r := range rings {
+		if r == nil {
+			r = []geo.Point{}
+		}
+		out[i] = r
 	}
-	return MapJSON{Perimeter: nonNil(m.Perimeter), Exclusions: ex, Dock: nonNil(m.Dock), Way: nonNil(m.Way)}
+	return out
 }
 
 // finite replaces NaN/Inf (e.g. GPS accuracy without fix), which JSON cannot encode.
@@ -148,6 +163,11 @@ func (r *Robot) Handler() http.Handler {
 			run(w, req, cmd)
 		})
 	}
+
+	mux.HandleFunc("DELETE /api/robot/obstacles", func(w http.ResponseWriter, _ *http.Request) {
+		r.ClearObstacles()
+		w.WriteHeader(http.StatusNoContent)
+	})
 
 	mux.HandleFunc("POST /api/robot/move", func(w http.ResponseWriter, req *http.Request) {
 		var body struct {

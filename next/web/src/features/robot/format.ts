@@ -62,6 +62,24 @@ export function gpsLabel(solution: string, accuracyM: number, satellites: number
 	return `${name} · ±${formatMeters(accuracyM)} · ${satellites} sat`;
 }
 
+/** Satellites with correction data of all visible ones, and how old the correction is (legacy "12/20(0.6s)"). */
+export function satellitesLabel(dgps: number, total: number, ageSec: number): string {
+	return `${dgps}/${total} · ${ageSec.toFixed(1)} s`;
+}
+
+export function batteryLabel(socPercent: number, volts: number): string {
+	return `${socPercent} % · ${volts.toFixed(1)} V`;
+}
+
+/** Charging current is negative, as the firmware reports it. */
+export function formatAmps(amps: number): string {
+	return `${amps.toFixed(1)} A`;
+}
+
+export function formatPoint(p: { x: number; y: number }): string {
+	return `${p.x.toFixed(2)}, ${p.y.toFixed(2)} m`;
+}
+
 export function formatMeters(m: number): string {
 	return m < 1 ? `${Math.round(m * 100)} cm` : `${m.toFixed(1)} m`;
 }

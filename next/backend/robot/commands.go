@@ -63,14 +63,14 @@ func (r *Robot) DockFor(ctx context.Context, reason DockReason) error {
 func (r *Robot) Mow(ctx context.Context) error {
 	s := r.settings()
 	cmd := protocol.Mow(s.MowSpeedMps, s.FixTimeoutSec, s.FinishAndRestart)
-	return r.command(ctx, "mow", cmd.Encode(), func() { r.mowMotor = true })
+	return r.command(ctx, "mow", cmd.Encode(), func() { r.mowMotor, r.speedMps = true, s.MowSpeedMps })
 }
 
 // Goto drives along the uploaded route with the mow motor off.
 func (r *Robot) Goto(ctx context.Context) error {
 	s := r.settings()
 	cmd := protocol.Goto(s.GotoSpeedMps, s.FixTimeoutSec)
-	return r.command(ctx, "goto", cmd.Encode(), func() { r.mowMotor = false })
+	return r.command(ctx, "goto", cmd.Encode(), func() { r.mowMotor, r.speedMps = false, s.GotoSpeedMps })
 }
 
 // Move drives manually (joystick). Move(ctx, 0, 0) stops.
@@ -90,7 +90,7 @@ func (r *Robot) SetMowMotor(ctx context.Context, on bool) error {
 
 // SetSpeed changes the speed of the running operation.
 func (r *Robot) SetSpeed(ctx context.Context, mps float64) error {
-	return r.command(ctx, "speed", protocol.Speed(mps).Encode(), nil)
+	return r.command(ctx, "speed", protocol.Speed(mps).Encode(), func() { r.speedMps = mps })
 }
 
 // SkipNextPoint continues with the next mow point.

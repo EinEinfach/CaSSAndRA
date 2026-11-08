@@ -62,6 +62,8 @@
 		way: '--map-way',
 		wayDone: '--map-way-done',
 		trail: '--map-trail',
+		obstacle: '--map-obstacle',
+		obstacleFill: '--map-obstacle-fill',
 		target: '--map-target',
 		robot: '--map-robot',
 		robotOutline: '--map-robot-outline',

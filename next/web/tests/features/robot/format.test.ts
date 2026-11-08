@@ -4,8 +4,12 @@ import {
 	canStart,
 	canStop,
 	dockReasonLabel,
+	batteryLabel,
+	formatAmps,
 	formatMeters,
+	formatPoint,
 	gpsLabel,
+	satellitesLabel,
 	statusLabel,
 	statusTone
 } from '#features/robot/format.ts';
@@ -84,4 +88,13 @@ describe('allowed commands', () => {
 			expect(canDock(status)).toBe(dock);
 		}
 	);
+});
+
+describe('satellites, battery and points', () => {
+	it('formats like the legacy status cards', () => {
+		expect(satellitesLabel(12, 20, 0.64)).toBe('12/20 · 0.6 s');
+		expect(batteryLabel(85, 27.14)).toBe('85 % · 27.1 V');
+		expect(formatAmps(-1.25)).toBe('-1.3 A');
+		expect(formatPoint({ x: -1, y: 2.345 })).toBe('-1.00, 2.35 m');
+	});
 });

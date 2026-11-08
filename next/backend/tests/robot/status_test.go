@@ -211,7 +211,8 @@ func TestSnapshotReportsEverything(t *testing.T) {
 		Satellites: 21, Op: protocol.OpMow, Sensor: 2, MowPointIndex: 12, MapCRC: 4711, UpdatedAt: t0,
 		TrailID: t0.UnixMilli(), LateralErrorM: 0.03, StatsAt: t0,
 		DGPSAgeSec: 1.5, SatellitesDGPS: 12,
-		Stats: protocol.Stats{DurationMowSec: 99}, Obstacles: [][]geo.Point{pts(1, 1, 2, 2, 3, 1)},
+		SpeedMps: 0.3, // transit, nothing commanded yet: the goto speed from the settings
+		Stats:    protocol.Stats{DurationMowSec: 99}, Obstacles: [][]geo.Point{pts(1, 1, 2, 2, 3, 1)},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("snapshot\n got %+v\nwant %+v", got, want)

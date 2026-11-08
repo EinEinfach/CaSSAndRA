@@ -14,6 +14,10 @@ export const move = (linear: number, angular: number, fetchFn: typeof fetch = fe
 export const setMowMotor = (on: boolean, fetchFn: typeof fetch = fetch) =>
 	post('/api/robot/mow-motor', { on }, fetchFn);
 
+/** Changes the speed of the running mowing or goto. */
+export const setSpeed = (mps: number, fetchFn: typeof fetch = fetch) =>
+	post('/api/robot/speed', { mps }, fetchFn);
+
 export const fetchState = (fetchFn: typeof fetch = fetch) =>
 	getJSON<RobotState>('/api/robot/state', fetchFn);
 
@@ -30,3 +34,8 @@ export async function clearTrail(fetchFn: typeof fetch = fetch): Promise<void> {
 /** Continues at a fraction (0..1) of the uploaded route. */
 export const skipToProgress = (fraction: number, fetchFn: typeof fetch = fetch) =>
 	post('/api/robot/skip-to-progress', { fraction }, fetchFn);
+
+/** Forgets the obstacles until the robot reports them again. */
+export async function clearObstacles(fetchFn: typeof fetch = fetch): Promise<void> {
+	await sendJSON('DELETE', '/api/robot/obstacles', undefined, fetchFn);
+}

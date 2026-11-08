@@ -13,6 +13,7 @@
 		trail,
 		frames = browserFrames,
 		clearTrail,
+		clearObstacles,
 		interact,
 		goal = null
 	}: {
@@ -22,22 +23,26 @@
 		frames?: FrameClock;
 		/** Shows a button that starts a new trail. */
 		clearTrail?: () => Promise<void>;
+		/** Shows a button that forgets the obstacles while there are some. */
+		clearObstacles?: () => Promise<void>;
 		/** Pointer handling, e.g. while picking a goal; without it the map only pans. */
 		interact?: MapInteraction;
 		goal?: Point | null;
 	} = $props();
 
 	let clearing = $state(false);
-	async function clear() {
+	async function clear(what: string, action?: () => Promise<void>) {
 		clearing = true;
 		try {
-			await clearTrail?.();
+			await action?.();
 		} catch (err) {
-			console.error('clearing the trail failed', err);
+			console.error(`clearing the ${what} failed`, err);
 		} finally {
 			clearing = false;
 		}
 	}
+
+	const obstacles = $derived(robot?.obstacles ?? []);
 
 	const motion = new RobotMotion(untrack(() => frames));
 	onDestroy(() => motion.stop());
@@ -67,6 +72,7 @@
 		way: map.way,
 		wayDoneIndex: robot?.status === 'mow' ? robot.mowPointIndex : 0,
 		trail: shownTrail,
+		obstacles,
 		target: robot && ['mow', 'transit', 'docking'].includes(robot.status) ? robot.target : null,
 		goal,
 		robot: motion.pose
@@ -75,17 +81,28 @@
 
 <div class="robot-map">
 	<MapCanvas {layers} {interact} label="Garden map with robot position" />
-	{#if clearTrail && trail.length > 1}
-		<button
-			type="button"
-			class="clear"
-			onclick={clear}
-			disabled={clearing}
-			title="Remove the driven path; it also starts anew when the robot docks"
-		>
-			Clear trail
-		</button>
-	{/if}
+	<div class="tools">
+		{#if clearTrail && trail.length > 1}
+			<button
+				type="button"
+				onclick={() => clear('trail', clearTrail)}
+				disabled={clearing}
+				title="Remove the driven path; it also starts anew when the robot docks"
+			>
+				Clear trail
+			</button>
+		{/if}
+		{#if clearObstacles && obstacles.length > 0}
+			<button
+				type="button"
+				onclick={() => clear('obstacles', clearObstacles)}
+				disabled={clearing}
+				title="Forget the obstacles until the robot reports them again"
+			>
+				Clear obstacles
+			</button>
+		{/if}
+	</div>
 </div>
 
 <style>
@@ -93,9 +110,11 @@
 		position: relative;
 		height: 100%;
 	}
-	.clear {
+	.tools {
 		position: absolute;
 		top: 8px;
 		left: 8px;
+		display: flex;
+		gap: 8px;
 	}
 </style>

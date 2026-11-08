@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+	clearObstacles,
 	command,
 	fetchMap,
 	fetchState,
 	move,
 	setMowMotor,
+	setSpeed,
 	skipToProgress
 } from '#features/robot/api.ts';
 
@@ -42,6 +44,24 @@ describe('robot api', () => {
 			2,
 			'/api/robot/mow-motor',
 			expect.objectContaining({ body: '{"on":true}' })
+		);
+	});
+
+	it('changes the speed', async () => {
+		const fetchFn = ok();
+		await setSpeed(0.27, fetchFn);
+		expect(fetchFn).toHaveBeenCalledWith(
+			'/api/robot/speed',
+			expect.objectContaining({ method: 'POST', body: '{"mps":0.27}' })
+		);
+	});
+
+	it('clears the obstacles', async () => {
+		const fetchFn = ok();
+		await clearObstacles(fetchFn);
+		expect(fetchFn).toHaveBeenCalledWith(
+			'/api/robot/obstacles',
+			expect.objectContaining({ method: 'DELETE' })
 		);
 	});
 

@@ -32,6 +32,34 @@ test('mow, stop and dock the simulated robot', async ({ page }) => {
 	await expect(page.getByText('sent home by you')).toBeVisible();
 });
 
+test('the remote control changes speed and mow motor', async ({ page }) => {
+	await page.goto('/');
+	await button(page, 'Stop').click(); // the test before leaves it docking
+	await expect(status(page)).toHaveText('Idle', { timeout: 10_000 });
+
+	// System commands only after confirmation; cancelled here, the simulator stays up.
+	await button(page, 'Reboot').click();
+	await expect(page.getByRole('alertdialog')).toContainText('Restart the Sunray firmware');
+	await button(page, 'Cancel').click();
+	await expect(page.getByRole('alertdialog')).toBeHidden();
+
+	await button(page, 'Mow').click();
+	await expect(status(page)).toHaveText('Mowing');
+	const speed = page.getByTestId('robot-speed');
+	const before = parseFloat((await speed.textContent())!);
+	await button(page, 'Faster').click();
+	await expect(speed).toHaveText(`${(before + 0.01).toFixed(2)} m/s`);
+
+	const motor = page.getByRole('switch', { name: 'Mow motor' });
+	await expect(motor).toBeChecked();
+	await motor.click(); // switching off needs no confirmation
+	await expect(motor).not.toBeChecked();
+
+	await button(page, 'Stop').click();
+	await expect(status(page)).toHaveText('Idle');
+	await expect(speed).toBeHidden();
+});
+
 test('the joystick drives the robot', async ({ page }) => {
 	await page.goto('/');
 	await button(page, 'Stop').click();

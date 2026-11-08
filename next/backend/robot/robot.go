@@ -83,7 +83,8 @@ type Robot struct {
 	stats      protocol.Stats
 	statsAt    time.Time
 	obstacles  [][]geo.Point
-	mowMotor   bool // last commanded; the robot does not report it
+	mowMotor   bool    // last commanded; the robot does not report it
+	speedMps   float64 // last commanded speed of mowing or goto; the robot does not report it
 	moveUntil  time.Time
 	uploading  bool
 	dockAsked  DockReason // why Dock was sent, until docking shows

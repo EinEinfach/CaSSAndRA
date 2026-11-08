@@ -41,6 +41,7 @@ func TestAPIState(t *testing.T) {
 
 	s := state(protocol.OpMow)
 	s.X, s.Y, s.AccuracyM, s.HeadingRad = 1.5, 2.5, math.NaN(), 1.2
+	s.SatellitesDGPS, s.DGPSAgeSec, s.LateralErrorM = 5, 1.5, 0.12
 	f.online(s)
 	rec = call(t, h, http.MethodGet, "/api/robot/state", "")
 	var got map[string]any
@@ -51,10 +52,61 @@ func TestAPIState(t *testing.T) {
 		"status": "transit", "online": true, "position": map[string]any{"x": 1.5, "y": 2.5},
 		"accuracyM": 0.0, "headingRad": 1.2, "op": "mow", "solution": "fix", "sensor": "none",
 		"socPercent": 67.0, "mowMotorOn": false, "updatedAt": t0.Format(time.RFC3339),
+		"satellitesDgps": 5.0, "dgpsAgeSec": 1.5, "lateralErrorM": 0.12,
+		"speedMps":  0.3, // nothing sent yet: the goto speed from the settings
+		"obstacles": []any{},
 	}
 	for k, v := range want {
 		if !reflect.DeepEqual(got[k], v) {
 			t.Errorf("%s = %#v, want %#v", k, got[k], v)
+		}
+	}
+}
+
+func TestAPIObstacles(t *testing.T) {
+	f := newFixture(t)
+	h := f.robot.Handler()
+	f.online(state(protocol.OpMow))
+	f.robot.OnObstacles([][]geo.Point{pts(1, 1, 2, 1, 2, 2), nil})
+
+	var got robot.StateJSON
+	if err := json.Unmarshal(call(t, h, http.MethodGet, "/api/robot/state", "").Body.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if len(got.Obstacles) != 2 || len(got.Obstacles[0]) != 3 || got.Obstacles[1] == nil {
+		t.Errorf("obstacles = %v, want both, none null", got.Obstacles)
+	}
+
+	before := len(f.sender.payloads())
+	if rec := call(t, h, http.MethodDelete, "/api/robot/obstacles", ""); rec.Code != http.StatusNoContent {
+		t.Fatalf("clear: status %d", rec.Code)
+	}
+	if body := call(t, h, http.MethodGet, "/api/robot/state", "").Body.String(); !strings.Contains(body, `"obstacles":[]`) {
+		t.Errorf("after clearing: %s", body)
+	}
+	if sent := f.sender.payloads()[before:]; len(sent) != 0 {
+		t.Errorf("sent %q, want nothing: clearing only forgets them", sent)
+	}
+}
+
+func TestSpeedFollowsCommands(t *testing.T) {
+	f := newFixture(t)
+	h := f.robot.Handler()
+	speed := func() float64 { return f.robot.Snapshot().SpeedMps }
+	steps := []struct {
+		path, body string
+		want       float64
+	}{
+		{"/api/robot/mow", "", 0.25},
+		{"/api/robot/speed", `{"mps":0.4}`, 0.4},
+		{"/api/robot/goto", "", 0.3},
+	}
+	for _, st := range steps {
+		if rec := call(t, h, http.MethodPost, st.path, st.body); rec.Code != http.StatusNoContent {
+			t.Fatalf("%s: status %d", st.path, rec.Code)
+		}
+		if got := speed(); got != st.want {
+			t.Errorf("after %s: speed %v, want %v", st.path, got, st.want)
 		}
 	}
 }

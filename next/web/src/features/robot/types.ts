@@ -31,15 +31,25 @@ export interface RobotState {
 	solution: string;
 	accuracyM: number;
 	satellites: number;
+	/** Satellites with correction data. */
+	satellitesDgps: number;
+	/** Age of the correction data. */
+	dgpsAgeSec: number;
+	/** Distance from the line to the target. */
+	lateralErrorM: number;
 	op: string;
 	sensor: string;
 	mowMotorOn: boolean;
+	/** Speed of mowing or goto as last commanded (the robot does not report it); 0 otherwise. */
+	speedMps: number;
 	mowPointIndex: number;
 	dockReason: DockReason;
 	mapCrc: number;
 	updatedAt: string | null;
 	/** Changes when the trail starts anew (docked or cleared): fetch it again. */
 	trailId: number;
+	/** Obstacles the robot found on its way, as polygons. */
+	obstacles: Point[][];
 }
 
 export interface RobotMap {

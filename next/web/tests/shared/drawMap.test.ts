@@ -11,6 +11,8 @@ const colors: MapColors = {
 	way: 'way',
 	wayDone: 'done',
 	trail: 'trail',
+	obstacle: 'obstacle',
+	obstacleFill: 'obstacleFill',
 	target: 'target',
 	robot: 'robot',
 	robotOutline: 'outline',
@@ -75,6 +77,38 @@ describe('drawMap', () => {
 		);
 		expect(ctx.shapes).toHaveLength(1);
 		expect(ctx.shapes[0]).toMatchObject({ op: 'fill', color: 'exclusion', closed: true });
+	});
+
+	it('draws obstacles filled and outlined above the trail, below the robot', () => {
+		const ctx = recordingContext();
+		drawMap(
+			ctx,
+			vp,
+			{
+				trail: [
+					{ x: 0, y: 0 },
+					{ x: 1, y: 1 }
+				],
+				obstacles: [
+					[],
+					[
+						{ x: 1, y: 1 },
+						{ x: 2, y: 1 },
+						{ x: 2, y: 2 }
+					]
+				],
+				robot: { position: { x: 1, y: 1 }, headingRad: 0 }
+			},
+			colors
+		);
+		expect(ctx.shapes.map((s) => s.color)).toEqual([
+			'trail',
+			'obstacleFill',
+			'obstacle',
+			'robot',
+			'outline'
+		]);
+		expect(ctx.shapes[1]).toMatchObject({ op: 'fill', closed: true });
 	});
 
 	it('draws the selection filled with a dashed outline below the route', () => {

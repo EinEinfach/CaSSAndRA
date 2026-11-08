@@ -32,6 +32,8 @@ export interface MapLayers {
 	/** Way points before this index are drawn as done. */
 	wayDoneIndex?: number;
 	trail?: Point[];
+	/** Obstacles the robot found on its way. */
+	obstacles?: Point[][];
 	target?: Point | null;
 	/** A point the user picked, e.g. where the robot should drive. */
 	goal?: Point | null;
@@ -52,6 +54,8 @@ export interface MapColors {
 	way: string;
 	wayDone: string;
 	trail: string;
+	obstacle: string;
+	obstacleFill: string;
 	target: string;
 	robot: string;
 	robotOutline: string;
@@ -160,6 +164,15 @@ export function drawMap(ctx: MapContext, vp: Viewport, layers: MapLayers, colors
 		path(ctx, vp, layers.trail, false);
 		ctx.strokeStyle = colors.trail;
 		ctx.lineWidth = 1.5; // a hint of where the robot went, not more than the map
+		ctx.stroke();
+	}
+	for (const ob of layers.obstacles ?? []) {
+		if (ob.length === 0) continue;
+		path(ctx, vp, ob, true);
+		ctx.fillStyle = colors.obstacleFill;
+		ctx.fill();
+		ctx.strokeStyle = colors.obstacle;
+		ctx.lineWidth = 1.5;
 		ctx.stroke();
 	}
 	if (layers.target) {

@@ -27,6 +27,7 @@ beforeEach(() => {
 	document.documentElement.style.setProperty('--map-way-done', 'done-color');
 	document.documentElement.style.setProperty('--map-trail', 'trail-color');
 	document.documentElement.style.setProperty('--map-selection', 'goal-color');
+	document.documentElement.style.setProperty('--map-obstacle', 'obstacle-color');
 });
 
 afterEach(() => {
@@ -125,6 +126,32 @@ describe('RobotMap', () => {
 		);
 		await userEvent.click(screen.getByRole('button', { name: 'Clear trail' }));
 		expect(clearTrail).toHaveBeenCalledOnce();
+	});
+
+	it('draws the obstacles and offers to clear them', async () => {
+		const clearObstacles = vi.fn(async () => {});
+		const props = (obstacles: { x: number; y: number }[][]) => ({
+			state: robotState({ status: 'mow', obstacles }),
+			map,
+			trail: [],
+			clearObstacles
+		});
+		const { rerender } = render(RobotMap, props([]));
+		expect(screen.queryByRole('button', { name: 'Clear obstacles' })).toBeNull();
+
+		await rerender(
+			props([
+				[
+					{ x: 1, y: 1 },
+					{ x: 2, y: 1 },
+					{ x: 2, y: 2 }
+				]
+			])
+		);
+		await tick();
+		expect(ctx.shapes.some((s) => s.color === 'obstacle-color')).toBe(true);
+		await userEvent.click(screen.getByRole('button', { name: 'Clear obstacles' }));
+		expect(clearObstacles).toHaveBeenCalledOnce();
 	});
 
 	it('shows a picked goal and passes taps on the map', async () => {

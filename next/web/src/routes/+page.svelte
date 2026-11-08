@@ -5,7 +5,8 @@
 	import { canDriveManually } from '#features/robot/drive.ts';
 	import Joystick from '#features/robot/Joystick.svelte';
 	import Progress from '#features/robot/Progress.svelte';
-	import { command, skipToProgress } from '#features/robot/api.ts';
+	import { clearObstacles, command, skipToProgress } from '#features/robot/api.ts';
+	import RemoteControl from '#features/robot/RemoteControl.svelte';
 	import RobotMap from '#features/robot/RobotMap.svelte';
 	import StatusPanel from '#features/robot/StatusPanel.svelte';
 	import { RobotStore } from '#features/robot/store.svelte.ts';
@@ -47,6 +48,7 @@
 			map={shownMap}
 			trail={robot.trail}
 			clearTrail={() => robot.clearTrail()}
+			clearObstacles={() => clearObstacles()}
 			interact={picker.picking ? picker.interact : undefined}
 			goal={picker.goal}
 		/>
@@ -63,6 +65,11 @@
 			routeLength={robot.map.way.length}
 			skipNext={() => command('skip-next-point')}
 			skipTo={(f) => skipToProgress(f)}
+		/>
+		<RemoteControl
+			{status}
+			mowMotorOn={robot.state?.mowMotorOn ?? false}
+			speedMps={robot.state?.speedMps ?? 0}
 		/>
 		<div class="joystick">
 			<Joystick disabled={!canDriveManually(status)} />
