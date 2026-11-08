@@ -1,7 +1,6 @@
 package testkit
 
 import (
-	"errors"
 	"io"
 	"log/slog"
 	"net"
@@ -103,12 +102,14 @@ func (b *Broker) Collect(t testing.TB, topic string) func() []string {
 
 // DropClients cuts the connection of every client whose ID starts with
 // prefix, without a DISCONNECT, like a lost network: the broker sends their
-// last will.
+// last will. Only the connection is closed: cl.Stop would race with the
+// client's read loop, which treats a stopped client as a clean disconnect and
+// drops the will.
 func (b *Broker) DropClients(prefix string) int {
 	n := 0
 	for id, cl := range b.server.Clients.GetAll() {
-		if strings.HasPrefix(id, prefix) && !cl.Closed() {
-			cl.Stop(errors.New("dropped by the test"))
+		if strings.HasPrefix(id, prefix) && !cl.Closed() && cl.Net.Conn != nil {
+			_ = cl.Net.Conn.Close()
 			n++
 		}
 	}
