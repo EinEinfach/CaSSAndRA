@@ -7,15 +7,18 @@
 		busy,
 		toggle,
 		edit,
-		remove
+		remove,
+		empty = 'No saved tasks for this map yet. Draw one below and save it.'
 	}: {
 		tasks: Task[];
 		/** IDs in the order they are mowed. */
 		chosen: string[];
 		busy: boolean;
 		toggle: (id: string) => void;
-		edit: (task: Task) => void;
-		remove: (id: string) => void;
+		/** Without edit and remove the tasks can only be chosen. */
+		edit?: (task: Task) => void;
+		remove?: (id: string) => void;
+		empty?: string;
 	} = $props();
 
 	// The task whose delete button was pressed once; a second press deletes.
@@ -23,7 +26,7 @@
 </script>
 
 {#if tasks.length === 0}
-	<p class="hint">No saved tasks for this map yet. Draw one below and save it.</p>
+	<p class="hint">{empty}</p>
 {:else}
 	<ul aria-label="Saved tasks">
 		{#each tasks as task (task.id)}
@@ -42,32 +45,34 @@
 						<span class="hint">{task.parts.length} parts</span>
 					{/if}
 				</label>
-				<div class="actions">
-					{#if confirming === task.id}
-						<button
-							type="button"
-							class="danger"
-							disabled={busy}
-							onclick={() => {
-								confirming = null;
-								remove(task.id);
-							}}
-						>
-							Delete {task.name}?
-						</button>
-						<button type="button" onclick={() => (confirming = null)}>Keep</button>
-					{:else}
-						<button type="button" disabled={busy} onclick={() => edit(task)}>Edit</button>
-						<button
-							type="button"
-							disabled={busy}
-							onclick={() => (confirming = task.id)}
-							aria-label="Delete {task.name}"
-						>
-							Delete
-						</button>
-					{/if}
-				</div>
+				{#if edit && remove}
+					<div class="actions">
+						{#if confirming === task.id}
+							<button
+								type="button"
+								class="danger"
+								disabled={busy}
+								onclick={() => {
+									confirming = null;
+									remove(task.id);
+								}}
+							>
+								Delete {task.name}?
+							</button>
+							<button type="button" onclick={() => (confirming = null)}>Keep</button>
+						{:else}
+							<button type="button" disabled={busy} onclick={() => edit(task)}>Edit</button>
+							<button
+								type="button"
+								disabled={busy}
+								onclick={() => (confirming = task.id)}
+								aria-label="Delete {task.name}"
+							>
+								Delete
+							</button>
+						{/if}
+					</div>
+				{/if}
 			</li>
 		{/each}
 	</ul>

@@ -15,7 +15,9 @@
 		clearTrail,
 		clearObstacles,
 		interact,
-		goal = null
+		goal = null,
+		planned = null,
+		overlay = {}
 	}: {
 		state: RobotState | null;
 		map: RobotMap;
@@ -28,6 +30,10 @@
 		/** Pointer handling, e.g. while picking a goal; without it the map only pans. */
 		interact?: MapInteraction;
 		goal?: Point | null;
+		/** A route not yet sent, drawn instead of the robot's way. */
+		planned?: Point[] | null;
+		/** A selection being drawn, e.g. the area to mow. */
+		overlay?: Pick<MapLayers, 'selection' | 'edit'>;
 	} = $props();
 
 	let clearing = $state(false);
@@ -69,13 +75,14 @@
 		perimeter: map.perimeter,
 		exclusions: map.exclusions,
 		dock: map.dock,
-		way: map.way,
-		wayDoneIndex: robot?.status === 'mow' ? robot.mowPointIndex : 0,
+		way: planned ?? map.way,
+		wayDoneIndex: !planned && robot?.status === 'mow' ? robot.mowPointIndex : 0,
 		trail: shownTrail,
 		obstacles,
 		target: robot && ['mow', 'transit', 'docking'].includes(robot.status) ? robot.target : null,
 		goal,
-		robot: motion.pose
+		robot: motion.pose,
+		...overlay
 	});
 </script>
 

@@ -152,3 +152,38 @@ test('go to a point picked on the live map', async ({ page }) => {
 	await button(page, 'Stop').click();
 	await expect(page.getByTestId('robot-status')).toHaveText('Idle', { timeout: 10_000 });
 });
+
+test('plan an area with own mow settings on the live page and mow it', async ({ page }) => {
+	await page.goto('/');
+	await expect(page.getByTestId('robot-status')).toHaveText(/Idle|Docked|Charging/, {
+		timeout: 10_000
+	});
+	await button(page, 'Plan mowing').click();
+	// The previous test planned saved tasks, so the planner opens with them.
+	await expect(page.getByRole('radio', { name: 'Saved tasks' })).toBeChecked();
+	await page.getByRole('radio', { name: 'Garden or area' }).check({ force: true });
+	await page.getByRole('radio', { name: 'Rectangle' }).check({ force: true });
+
+	const box = (await page.getByLabel('Garden map with robot position').boundingBox())!;
+	await page.mouse.move(box.x + box.width * 0.25, box.y + box.height * 0.3);
+	await page.mouse.down();
+	await page.mouse.move(box.x + box.width * 0.45, box.y + box.height * 0.6, { steps: 5 });
+	await page.mouse.up();
+
+	await page.getByText('Mow settings').click();
+	await page.getByRole('radio', { name: 'Rings' }).check({ force: true });
+	await button(page, 'Calculate route').click();
+	await expect(page.getByLabel('Planned route')).toContainText(/\d+ points/, { timeout: 15_000 });
+	const plan = (await (await page.request.get('/api/tasks/preview')).json()).plan;
+	expect(plan.parts[0].parameters.pattern).toBe('rings');
+	expect(plan.parts[0].selection).toHaveLength(4);
+	// Only this route: the planner defaults stay as they were.
+	const settings = (await (await page.request.get('/api/settings')).json()).settings;
+	expect(settings.planner.pattern).not.toBe('rings');
+
+	await button(page, 'Start mowing').click();
+	await expect(page.getByTestId('robot-status')).toHaveText('Mowing', { timeout: 20_000 });
+	await expect(button(page, 'Plan mowing')).toBeVisible();
+	await button(page, 'Stop').click();
+	await expect(page.getByTestId('robot-status')).toHaveText('Idle', { timeout: 10_000 });
+});

@@ -219,7 +219,10 @@ liegt nur im Speicher, geht als Event `plan` an alle Browser und verfällt, wenn
 überlappenden Anfragen bleibt die zuletzt gestellte. `POST /api/tasks/start` überträgt Karte + Route (`UploadMap`) und
 startet das Mähen (`Mow`), je genau einmal; abgelehnt (409), wenn die Karte sich geändert hat oder der Startpunkt
 sich seit der Vorschau um > 1 m verschoben hat (der Roboter führe sonst geradeaus zum Routenanfang, ggf. durch eine
-Ausschlusszone), und solange ein Start läuft.
+Ausschlusszone), und solange ein Start läuft. Dieselbe Vorschau plant auch die Live-Seite („Plan mowing“,
+`tasks/livePlan.svelte.ts`): ganzer Garten oder gezeichnete Fläche mit Mäheinstellungen nur für diese Route (Start mit
+`settings.planner`, nicht gespeichert, wie Legacy `pathplannercfgstate`) oder gespeicherte Aufgaben; Formularteile
+(`AreaTools`, `ParametersForm`, `TaskList`) teilt sie mit der Tasks-Seite.
 
 **Goto:** `POST /api/tasks/goto {x, y}`: Ziel muss auf dem Rasen liegen (im Perimeter, in keiner Ausschlusszone), der
 Weg kommt aus `planner.Way` (A*, bevorzugt den Suchdraht) vom Startpunkt (wie oben, also im Dock vom Dockpfad aus);

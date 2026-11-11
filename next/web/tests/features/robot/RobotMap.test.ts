@@ -173,4 +173,26 @@ describe('RobotMap', () => {
 		}
 		expect(tap).toHaveBeenCalledOnce();
 	});
+
+	it('draws a planned route and a selection instead of the robot progress', async () => {
+		render(RobotMap, {
+			state: robotState({ status: 'mow', mowPointIndex: 1 }),
+			map,
+			trail: [],
+			planned: [
+				{ x: 2, y: 2 },
+				{ x: 3, y: 3 }
+			],
+			overlay: {
+				selection: [
+					{ x: 1, y: 1 },
+					{ x: 5, y: 1 },
+					{ x: 5, y: 5 }
+				]
+			}
+		});
+		await tick();
+		expect(colorsDrawn()).not.toContain('done-color');
+		expect(colorsDrawn()).toContain('goal-color');
+	});
 });
