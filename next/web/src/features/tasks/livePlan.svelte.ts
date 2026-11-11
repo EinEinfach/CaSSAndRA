@@ -9,6 +9,29 @@ import type { Plan, PreviewRequest } from './types.ts';
 /** What the route covers: a part of the garden drawn here, or saved tasks. */
 export type LiveMode = 'area' | 'tasks';
 
+/**
+ * What the play button does. A choice in the open planner wins; without one an
+ * interrupted route goes on, otherwise the whole garden is planned.
+ */
+export type PlayAction =
+	{ kind: 'tasks' | 'area' | 'garden'; request: PreviewRequest } | { kind: 'resume' };
+
+export function describePlay(action: PlayAction | null): string {
+	if (!action) return 'Mow';
+	switch (action.kind) {
+		case 'resume':
+			return 'Mow: the route on the robot';
+		case 'tasks': {
+			const n = action.request.taskIds!.length;
+			return n === 1 ? 'Mow: the chosen task' : `Mow: the ${n} chosen tasks`;
+		}
+		case 'area':
+			return 'Mow: the drawn area';
+		case 'garden':
+			return 'Mow: the whole garden';
+	}
+}
+
 export class LivePlan {
 	open = $state(false);
 	mode = $state<LiveMode>('area');
@@ -33,6 +56,26 @@ export class LivePlan {
 	/** Whether the map draws a selection while the planner is open. */
 	get drawing(): boolean {
 		return this.open && this.mode === 'area' && this.editable && this.session.tool !== 'all';
+	}
+
+	/**
+	 * The play button's action; null until the mow settings are known.
+	 * resumable: the robot holds a route it left before the end. Without an
+	 * active map there is nothing to plan: the robot mows the route it has.
+	 */
+	play(resumable: boolean, hasMap = true): PlayAction | null {
+		const chosen = this.open ? this.request : null;
+		if (chosen?.taskIds) return { kind: 'tasks', request: chosen };
+		if (chosen?.parts && (!this.editable || this.session.tool !== 'all')) {
+			return { kind: 'area', request: chosen };
+		}
+		if (resumable || !hasMap) return { kind: 'resume' };
+		const p = this.session.parts[0];
+		if (!p) return null;
+		return {
+			kind: 'garden',
+			request: { parts: [{ selection: [], parameters: $state.snapshot(p.parameters) }] }
+		};
 	}
 
 	/** Whether plan was calculated for exactly the current choice. */

@@ -4,6 +4,7 @@ import {
 	formatDistance,
 	formatDuration,
 	planMatchesParts,
+	planFits,
 	planMatchesTasks
 } from '#features/tasks/plan.ts';
 import { pts } from '../maps/fixtures.ts';
@@ -66,5 +67,15 @@ describe('plan', () => {
 		expect(formatDuration(100, 0.25)).toBe('5 min');
 		expect(formatDuration(30, 0.25)).toBe('5 min');
 		expect(formatDuration(100, 0)).toBe('');
+	});
+});
+
+describe('planFits', () => {
+	it('compares tasks or parts with the request', () => {
+		const p = plan();
+		expect(planFits(p, { parts: p.parts })).toBe(true);
+		expect(planFits(p, { taskIds: ['t1'] })).toBe(false);
+		expect(planFits(plan({ taskIds: ['t1'] }), { taskIds: ['t1'] })).toBe(true);
+		expect(planFits(p, {})).toBe(false);
 	});
 });

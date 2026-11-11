@@ -181,9 +181,20 @@ test('plan an area with own mow settings on the live page and mow it', async ({ 
 	const settings = (await (await page.request.get('/api/settings')).json()).settings;
 	expect(settings.planner.pattern).not.toBe('rings');
 
-	await button(page, 'Start mowing').click();
+	await expect(button(page, 'Mow')).toHaveAttribute('title', 'Mow: the drawn area');
+	await button(page, 'Mow').click();
 	await expect(page.getByTestId('robot-status')).toHaveText('Mowing', { timeout: 20_000 });
 	await expect(button(page, 'Plan mowing')).toBeVisible();
+	const resumable = async () =>
+		(await (await page.request.get('/api/robot/state')).json()).resumable;
+	await expect.poll(resumable, { timeout: 10_000 }).toBe(true);
+	await button(page, 'Stop').click();
+	await expect(page.getByTestId('robot-status')).toHaveText('Idle', { timeout: 10_000 });
+
+	// Nothing chosen any more: play goes on with the interrupted route.
+	await expect(button(page, 'Mow')).toHaveAttribute('title', 'Mow: the route on the robot');
+	await button(page, 'Mow').click();
+	await expect(page.getByTestId('robot-status')).toHaveText('Mowing', { timeout: 10_000 });
 	await button(page, 'Stop').click();
 	await expect(page.getByTestId('robot-status')).toHaveText('Idle', { timeout: 10_000 });
 });

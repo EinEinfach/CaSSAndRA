@@ -67,6 +67,7 @@ type Snapshot struct {
 	MowMotorOn      bool
 	SpeedMps        float64 // last commanded speed of mowing or goto
 	MowPointIndex   int
+	Resumable       bool // a mow route on the robot was left before its end; Mow continues it
 	DockReason      DockReason
 	MapCRC          int64
 	UpdatedAt       time.Time // last state report; zero if none yet
@@ -106,6 +107,7 @@ func (r *Robot) Snapshot() Snapshot {
 		MowMotorOn:      r.mowMotor,
 		SpeedMps:        r.speedLocked(status),
 		MowPointIndex:   s.MowPointIndex,
+		Resumable:       r.resumableLocked(),
 		DockReason:      r.dockReason,
 		MapCRC:          s.MapCRC,
 		UpdatedAt:       r.stateAt,
@@ -202,4 +204,11 @@ func (r *Robot) updateDockReasonLocked(s protocol.State) {
 	default:
 		r.dockReason = DockReasonNone
 	}
+}
+
+// resumableLocked reports whether the robot holds a mow route it left before
+// the end. The firmware starts the index at 0 again after the last point.
+func (r *Robot) resumableLocked() bool {
+	i := r.state.MowPointIndex
+	return !r.wayGoto && i > 0 && i < len(r.uploaded.Way)
 }

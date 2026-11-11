@@ -218,3 +218,54 @@ func TestSnapshotReportsEverything(t *testing.T) {
 		t.Errorf("snapshot\n got %+v\nwant %+v", got, want)
 	}
 }
+
+func TestResumable(t *testing.T) {
+	route := protocol.Map{Way: pts(0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0)}
+	tests := []struct {
+		name  string
+		way   protocol.Map
+		index int
+		goto_ bool
+		want  bool
+	}{
+		{"left in the middle", route, 7, false, true},
+		{"not started or finished", route, 0, false, false},
+		{"index beyond the route", route, 10, false, false},
+		{"no route", protocol.Map{}, 7, false, false},
+		{"goto way", route, 7, true, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := newFixture(t)
+			f.robot.AdoptMap(tt.way)
+			s := state(protocol.OpIdle)
+			s.MowPointIndex = tt.index
+			f.online(s)
+			if tt.goto_ {
+				if err := f.robot.Goto(context.Background()); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if got := f.robot.Snapshot().Resumable; got != tt.want {
+				t.Errorf("Resumable = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAMowRouteAfterAGotoIsResumable(t *testing.T) {
+	f := newFixture(t)
+	f.online(state(protocol.OpIdle))
+	if err := f.robot.Goto(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.robot.UploadMap(context.Background(), square); err != nil {
+		t.Fatal(err)
+	}
+	s := state(protocol.OpIdle)
+	s.MowPointIndex = 1
+	f.robot.OnState(s)
+	if !f.robot.Snapshot().Resumable {
+		t.Error("a new mow route after a goto is not resumable")
+	}
+}

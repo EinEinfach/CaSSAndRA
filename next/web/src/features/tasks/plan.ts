@@ -1,6 +1,6 @@
 // Describing a computed route.
 import type { RobotStatus } from '#features/robot/types.ts';
-import type { Parameters, Part, Plan } from './types.ts';
+import type { Parameters, Part, Plan, PreviewRequest } from './types.ts';
 
 /** A route can be sent while the robot stands still: idle or in the dock. */
 export function canStartRoute(status: RobotStatus): boolean {
@@ -29,6 +29,12 @@ export function planMatchesParts(plan: Plan, parts: Part[]): boolean {
 /** Whether the plan was computed for these saved tasks, in this order. */
 export function planMatchesTasks(plan: Plan, taskIds: string[]): boolean {
 	return plan.taskIds.length === taskIds.length && plan.taskIds.every((id, i) => id === taskIds[i]);
+}
+
+/** Whether the plan was computed for exactly this request. */
+export function planFits(plan: Plan, req: PreviewRequest): boolean {
+	if (req.taskIds) return planMatchesTasks(plan, req.taskIds);
+	return req.parts !== undefined && planMatchesParts(plan, req.parts);
 }
 
 export function formatDistance(m: number): string {

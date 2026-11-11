@@ -25,6 +25,7 @@ export function robotState(overrides: Partial<RobotState> = {}): RobotState {
 		mowMotorOn: false,
 		speedMps: 0,
 		mowPointIndex: 0,
+		resumable: false,
 		dockReason: '',
 		mapCrc: 1234,
 		updatedAt: '2026-06-01T12:00:00Z',

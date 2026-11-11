@@ -91,6 +91,7 @@ type Robot struct {
 	dockReason DockReason
 	cancelBusy context.CancelFunc
 	uploaded   protocol.Map
+	wayGoto    bool // the uploaded way leads to a goto goal; it is no mow route to resume
 	trail      trail
 }
 

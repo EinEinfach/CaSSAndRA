@@ -1,21 +1,17 @@
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import type { RobotStatus } from '#features/robot/types.ts';
 import { LivePlan } from '#features/tasks/livePlan.svelte.ts';
 import MowPlanner from '#features/tasks/MowPlanner.svelte';
 import type { Plan } from '#features/tasks/types.ts';
 import { parameters, plan, task } from './fixtures.ts';
 
-function setup(
-	opts: { plan?: Plan | null; status?: RobotStatus; open?: boolean; hasMap?: boolean } = {}
-) {
+function setup(opts: { plan?: Plan | null; open?: boolean; hasMap?: boolean } = {}) {
 	const live = new LivePlan();
 	live.session.useDefaults(parameters());
 	if (opts.open ?? true) live.start();
 	const actions = {
 		preview: vi.fn(async () => {}),
-		start: vi.fn(async () => {}),
 		discard: vi.fn(async () => {})
 	};
 	render(MowPlanner, {
@@ -23,7 +19,7 @@ function setup(
 		plan: opts.plan ?? null,
 		tasks: [task('t1', 'Front'), task('t2', 'Back')],
 		mowSpeedMps: 0.25,
-		status: opts.status ?? 'docked',
+		playLabel: 'Mow: the drawn area',
 		hasMap: opts.hasMap ?? true,
 		...actions
 	});
@@ -68,37 +64,27 @@ describe('MowPlanner', () => {
 		expect(preview).toHaveBeenCalledWith({ taskIds: ['t2', 't1'] });
 	});
 
-	it('starts the calculated route and closes', async () => {
-		const { start, live } = setup({ plan: plan() });
-		expect(screen.getByLabelText('Planned route').textContent).toContain('1.4 km');
-		await userEvent.click(button('Start mowing'));
-		expect(start).toHaveBeenCalledOnce();
-		expect(live.open).toBe(false);
+	it('tells what the play button does', () => {
+		setup();
+		expect(screen.getByRole('status').textContent).toBe('▶ mows the drawn area');
 	});
 
-	it('does not start a route for another choice', async () => {
+	it('shows the calculated route and whether it fits the choice', async () => {
 		setup({ plan: plan({ taskIds: ['t1'] }) });
-		expect(button('Start mowing').disabled).toBe(true);
+		expect(screen.getByLabelText('Planned route').textContent).toContain('1.4 km');
 		expect(screen.getByText(/changed since/)).toBeTruthy();
 	});
 
-	it('starts only while the robot stands still', () => {
-		setup({ plan: plan(), status: 'mow' });
-		expect(button('Start mowing').disabled).toBe(true);
-		expect(screen.getByText(/idle or in the dock/)).toBeTruthy();
-	});
-
-	it('shows why the start failed and stays open', async () => {
-		const { start, live } = setup({ plan: plan() });
-		start.mockRejectedValueOnce(new Error('map changed'));
-		await userEvent.click(button('Start mowing'));
-		expect((await screen.findByRole('alert')).textContent).toBe('map changed');
-		expect(live.open).toBe(true);
+	it('shows why the calculation failed', async () => {
+		const { preview } = setup();
+		preview.mockRejectedValueOnce(new Error('no active map'));
+		await userEvent.click(button('Calculate route'));
+		expect((await screen.findByRole('alert')).textContent).toBe('no active map');
 	});
 
 	it('discards the route', async () => {
 		const { discard } = setup({ plan: plan() });
-		await userEvent.click(button('Discard'));
+		await userEvent.click(button('Discard route'));
 		expect(discard).toHaveBeenCalledOnce();
 	});
 });

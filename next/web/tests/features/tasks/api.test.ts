@@ -4,6 +4,7 @@ import {
 	createTask,
 	deleteTask,
 	gotoPoint,
+	planAndStart,
 	previewRoute,
 	startMowing,
 	updateTask
@@ -21,6 +22,15 @@ describe('tasks api', () => {
 		expect(fetchFn).toHaveBeenLastCalledWith(
 			'/api/tasks/preview',
 			expect.objectContaining({ method: 'POST', body: JSON.stringify(req) })
+		);
+	});
+
+	it('plans and starts in one step', async () => {
+		const fetchFn = respond(200, plan());
+		await expect(planAndStart({ taskIds: ['a'] }, fetchFn)).resolves.toEqual(plan());
+		expect(fetchFn).toHaveBeenLastCalledWith(
+			'/api/tasks/mow',
+			expect.objectContaining({ method: 'POST', body: '{"taskIds":["a"]}' })
 		);
 	});
 

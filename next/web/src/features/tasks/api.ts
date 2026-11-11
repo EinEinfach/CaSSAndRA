@@ -20,6 +20,14 @@ export async function startMowing(fetchFn: typeof fetch = fetch): Promise<void> 
 	await sendJSON('POST', '/api/tasks/start', undefined, fetchFn);
 }
 
+/** Computes the route, makes it the plan, sends it and starts mowing in one step. */
+export async function planAndStart(
+	req: PreviewRequest,
+	fetchFn: typeof fetch = fetch
+): Promise<Plan> {
+	return (await sendJSON<Plan>('POST', '/api/tasks/mow', req, fetchFn))!;
+}
+
 export async function createTask(t: TaskShape, fetchFn: typeof fetch = fetch): Promise<Task> {
 	return (await sendJSON<Task>('POST', '/api/tasks', t, fetchFn))!;
 }

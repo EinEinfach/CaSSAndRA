@@ -222,7 +222,11 @@ sich seit der Vorschau um > 1 m verschoben hat (der Roboter führe sonst geradea
 Ausschlusszone), und solange ein Start läuft. Dieselbe Vorschau plant auch die Live-Seite („Plan mowing“,
 `tasks/livePlan.svelte.ts`): ganzer Garten oder gezeichnete Fläche mit Mäheinstellungen nur für diese Route (Start mit
 `settings.planner`, nicht gespeichert, wie Legacy `pathplannercfgstate`) oder gespeicherte Aufgaben; Formularteile
-(`AreaTools`, `ParametersForm`, `TaskList`) teilt sie mit der Tasks-Seite.
+(`AreaTools`, `ParametersForm`, `TaskList`) teilt sie mit der Tasks-Seite. Gestartet wird über den Play-Button
+(`LivePlan.play`): Aufgaben oder gezeichnete Fläche im offenen Planer → nur diese; sonst eine unterbrochene Route
+fortsetzen (`resumable` im Robot-Zustand: Index > 0 und < Wegpunkte, kein Goto-Weg – nach dem letzten Punkt setzt die
+Firmware den Index auf 0) oder ohne aktive Karte die Route des Roboters; sonst den ganzen Garten mit den Mäheinstellungen
+des Planers. Passt die Vorschau, wird sie gestartet, sonst rechnet `POST /api/tasks/mow` (`PlanAndStart`) neu.
 
 **Goto:** `POST /api/tasks/goto {x, y}`: Ziel muss auf dem Rasen liegen (im Perimeter, in keiner Ausschlusszone), der
 Weg kommt aus `planner.Way` (A*, bevorzugt den Suchdraht) vom Startpunkt (wie oben, also im Dock vom Dockpfad aus);

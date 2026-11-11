@@ -6,8 +6,17 @@
 
 	let {
 		status,
-		send = (name: SimpleCommand) => command(name)
-	}: { status: RobotStatus; send?: (name: SimpleCommand) => Promise<void> } = $props();
+		send = (name: SimpleCommand) => command(name),
+		mow,
+		mowLabel = 'Mow'
+	}: {
+		status: RobotStatus;
+		send?: (name: SimpleCommand) => Promise<void>;
+		/** What the play button does instead of the plain mow command. */
+		mow?: () => Promise<void>;
+		/** Tells what the play button will do. */
+		mowLabel?: string;
+	} = $props();
 
 	let busy = $state<SimpleCommand | null>(null);
 	let error = $state('');
@@ -16,7 +25,7 @@
 		busy = name;
 		error = '';
 		try {
-			await send(name);
+			await (name === 'mow' && mow ? mow() : send(name));
 		} catch (err) {
 			error = err instanceof Error ? err.message : String(err);
 		} finally {
@@ -34,7 +43,7 @@
 			type="button"
 			class="tile mow"
 			aria-label="Mow"
-			title="Mow"
+			title={mowLabel}
 			disabled={!canStart(status) || busy !== null}
 			onclick={() => run('mow')}
 		>

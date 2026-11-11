@@ -70,7 +70,9 @@ func (r *Robot) Mow(ctx context.Context) error {
 func (r *Robot) Goto(ctx context.Context) error {
 	s := r.settings()
 	cmd := protocol.Goto(s.GotoSpeedMps, s.FixTimeoutSec)
-	return r.command(ctx, "goto", cmd.Encode(), func() { r.mowMotor, r.speedMps = false, s.GotoSpeedMps })
+	return r.command(ctx, "goto", cmd.Encode(), func() {
+		r.mowMotor, r.speedMps, r.wayGoto = false, s.GotoSpeedMps, true
+	})
 }
 
 // Move drives manually (joystick). Move(ctx, 0, 0) stops.
@@ -180,7 +182,7 @@ func (r *Robot) UploadMap(ctx context.Context, m protocol.Map) error {
 		return fmt.Errorf("upload map: %w", err)
 	}
 	r.mu.Lock()
-	r.uploaded = m
+	r.uploaded, r.wayGoto = m, false
 	r.mu.Unlock()
 	return nil
 }

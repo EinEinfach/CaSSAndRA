@@ -2,9 +2,12 @@ package tasks_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
+	"net/http/httptest"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -209,5 +212,43 @@ func TestPlanAndStartSendsNothingWhenPlanningFails(t *testing.T) {
 	}
 	if calls, _ := f.robot.sent(); len(calls) != 0 {
 		t.Errorf("sent %v", calls)
+	}
+}
+
+func TestAPIPlanAndStart(t *testing.T) {
+	tests := []struct {
+		name      string
+		body      string
+		setup     func(f *fixture)
+		want      int
+		wantCalls []string
+	}{
+		{"started", previewBody, func(*fixture) {}, http.StatusOK, []string{"upload", "mow"}},
+		{"bad request", `{"parts":`, func(*fixture) {}, http.StatusBadRequest, nil},
+		{"nothing to plan", `{}`, func(*fixture) {}, http.StatusBadRequest, nil},
+		{"robot driving", previewBody, func(f *fixture) { f.robot.uploadErr = robot.ErrBusy }, http.StatusConflict, []string{"upload"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := newFixture(t)
+			tt.setup(f)
+			req := httptest.NewRequest(http.MethodPost, "/api/tasks/mow", strings.NewReader(tt.body))
+			rec := serve(f.svc.Handler(), req)
+			if rec.Code != tt.want {
+				t.Fatalf("status = %d, want %d (%s)", rec.Code, tt.want, rec.Body)
+			}
+			if calls, _ := f.robot.sent(); !slices.Equal(calls, tt.wantCalls) {
+				t.Errorf("calls = %v, want %v", calls, tt.wantCalls)
+			}
+			if rec.Code == http.StatusOK {
+				var plan tasks.Plan
+				if err := json.Unmarshal(rec.Body.Bytes(), &plan); err != nil || len(plan.Route) == 0 {
+					t.Errorf("plan = %s (%v)", rec.Body, err)
+				}
+				if cur := f.svc.Current(); cur == nil || len(cur.Route) != len(plan.Route) {
+					t.Error("the started route is not the plan every browser shows")
+				}
+			}
+		})
 	}
 }

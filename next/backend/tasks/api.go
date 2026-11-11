@@ -113,6 +113,21 @@ func (s *Service) Handler() http.Handler {
 		}
 		w.WriteHeader(http.StatusNoContent)
 	})
+	// One step for the live page's play button: compute, show and start.
+	mux.HandleFunc("POST /api/tasks/mow", func(w http.ResponseWriter, r *http.Request) {
+		var req Request
+		if !decode(w, r, &req) {
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), previewTimeout+startTimeout)
+		defer cancel()
+		plan, err := s.PlanAndStart(ctx, req)
+		if err != nil {
+			writeError(w, errorStatus(err), err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, plan)
+	})
 	mux.HandleFunc("POST /api/tasks/goto", func(w http.ResponseWriter, r *http.Request) {
 		var goal struct {
 			X *float64 `json:"x"`

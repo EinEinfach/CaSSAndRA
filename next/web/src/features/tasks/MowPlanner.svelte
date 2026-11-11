@@ -1,10 +1,10 @@
 <script lang="ts">
-	// Mowing from the live page (legacy "mow all or selected area" and "select task").
-	import type { RobotStatus } from '#features/robot/types.ts';
+	// Choosing what the play button mows (legacy "mow all or selected area" and
+	// "select task"); the route can be previewed before.
 	import AreaTools from './AreaTools.svelte';
 	import type { LivePlan } from './livePlan.svelte.ts';
 	import ParametersForm from './ParametersForm.svelte';
-	import { canStartRoute, formatDistance, formatDuration } from './plan.ts';
+	import { formatDistance, formatDuration } from './plan.ts';
 	import TaskList from './TaskList.svelte';
 	import type { Plan, PreviewRequest, Task } from './types.ts';
 
@@ -13,10 +13,9 @@
 		plan,
 		tasks,
 		mowSpeedMps,
-		status,
+		playLabel,
 		hasMap,
 		preview,
-		start,
 		discard
 	}: {
 		live: LivePlan;
@@ -25,28 +24,25 @@
 		/** Saved tasks of the active map. */
 		tasks: Task[];
 		mowSpeedMps: number;
-		status: RobotStatus;
+		/** What the play button does now, e.g. "Mow: the drawn area". */
+		playLabel: string;
 		hasMap: boolean;
 		preview: (req: PreviewRequest) => Promise<unknown>;
-		/** Sends the route to the robot and starts mowing. */
-		start: () => Promise<void>;
 		discard: () => Promise<void>;
 	} = $props();
 
-	type Action = 'calculate' | 'start' | 'discard';
+	type Action = 'calculate' | 'discard';
 	let busy = $state<Action | null>(null);
 	let error = $state('');
 
 	const request = $derived(live.request);
 	const current = $derived(plan !== null && live.matches(plan));
-	const ready = $derived(canStartRoute(status));
 
 	async function run(what: Action, action: () => Promise<unknown>) {
 		busy = what;
 		error = '';
 		try {
 			await action();
-			if (what === 'start') live.close();
 		} catch (err) {
 			error = err instanceof Error ? err.message : String(err);
 		} finally {
@@ -101,9 +97,9 @@
 			</details>
 		{/if}
 
+		<p class="play" role="status">▶ {playLabel.replace(/^Mow: /, 'mows ')}</p>
 		<button
 			type="button"
-			class:primary={request !== null && !current}
 			disabled={busy !== null || request === null}
 			onclick={() => run('calculate', () => preview(request!))}
 		>
@@ -111,7 +107,9 @@
 		</button>
 		{#if request === null}
 			<p class="hint">
-				{live.mode === 'tasks' ? 'Choose at least one task.' : 'Draw the area on the map first.'}
+				{live.mode === 'tasks'
+					? 'Choose tasks to mow only them.'
+					: 'Draw the area on the map to mow only it.'}
 			</p>
 		{/if}
 
@@ -124,23 +122,11 @@
 				{/if}
 			</div>
 			{#if !current}
-				<p class="hint">The choice changed since. Calculate again to update the route.</p>
-			{:else if !ready}
-				<p class="hint">The robot can start when it is idle or in the dock.</p>
+				<p class="hint">The choice changed since. Calculate again to see its route.</p>
 			{/if}
-			<div class="buttons">
-				<button
-					type="button"
-					class="primary"
-					disabled={busy !== null || !current || !ready}
-					onclick={() => run('start', start)}
-				>
-					{busy === 'start' ? 'Sending route…' : 'Start mowing'}
-				</button>
-				<button type="button" disabled={busy !== null} onclick={() => run('discard', discard)}>
-					Discard
-				</button>
-			</div>
+			<button type="button" disabled={busy !== null} onclick={() => run('discard', discard)}>
+				Discard route
+			</button>
 		{/if}
 	{/if}
 	{#if error}
@@ -199,10 +185,9 @@
 	.result span {
 		color: var(--text-muted);
 	}
-	.buttons {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 8px;
+	.play {
+		margin: 0;
+		font-weight: 600;
 	}
 	.error {
 		margin: 0;

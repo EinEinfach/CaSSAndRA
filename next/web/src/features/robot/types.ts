@@ -43,6 +43,8 @@ export interface RobotState {
 	/** Speed of mowing or goto as last commanded (the robot does not report it); 0 otherwise. */
 	speedMps: number;
 	mowPointIndex: number;
+	/** A mow route on the robot was left before its end; "mow" continues it. */
+	resumable: boolean;
 	dockReason: DockReason;
 	mapCrc: number;
 	updatedAt: string | null;

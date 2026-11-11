@@ -17,6 +17,16 @@ describe('Controls', () => {
 		expect(send.mock.calls.map((c) => c[0])).toEqual(['mow', 'dock', 'stop']);
 	});
 
+	it('lets the page decide what the play button does', async () => {
+		const send = vi.fn(async () => {});
+		const mow = vi.fn(async () => {});
+		render(Controls, { status: 'docked', send, mow, mowLabel: 'Mow: the whole garden' });
+		expect(button('Mow').title).toBe('Mow: the whole garden');
+		await userEvent.click(button('Mow'));
+		expect(mow).toHaveBeenCalledOnce();
+		expect(send).not.toHaveBeenCalled();
+	});
+
 	it.each([
 		['idle', false, false, false],
 		['mow', true, false, false],

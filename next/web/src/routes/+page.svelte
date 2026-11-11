@@ -11,10 +11,17 @@
 	import StatusPanel from '#features/robot/StatusPanel.svelte';
 	import { RobotStore } from '#features/robot/store.svelte.ts';
 	import type { SettingsView } from '#features/settings/types.ts';
-	import { clearPreview, gotoPoint, previewRoute, startMowing } from '#features/tasks/api.ts';
+	import {
+		clearPreview,
+		gotoPoint,
+		planAndStart,
+		previewRoute,
+		startMowing
+	} from '#features/tasks/api.ts';
 	import GotoControl from '#features/tasks/GotoControl.svelte';
 	import { GotoPicker } from '#features/tasks/goto.svelte.ts';
-	import { LivePlan } from '#features/tasks/livePlan.svelte.ts';
+	import { describePlay, LivePlan } from '#features/tasks/livePlan.svelte.ts';
+	import { planFits } from '#features/tasks/plan.ts';
 	import MowPlanner from '#features/tasks/MowPlanner.svelte';
 	import { PlanStore, TaskStore } from '#features/tasks/store.svelte.ts';
 	import MapLayout from '#shared/MapLayout.svelte';
@@ -58,6 +65,20 @@
 
 	const status = $derived(robot.connected && robot.state ? robot.state.status : 'offline');
 	// What the robot has wins; before it reports a map, show the active one.
+	const play = $derived(live.play(robot.state?.resumable ?? false, maps.active !== null));
+
+	/** The play button: go on, or plan (unless the preview already fits) and start. */
+	async function mow() {
+		const action = play;
+		if (!action || action.kind === 'resume') {
+			await command('mow');
+			return;
+		}
+		if (plan && planFits(plan, action.request)) await startMowing();
+		else await planAndStart(action.request);
+		live.close();
+	}
+
 	// Picking a goal or planning a route shows the active map: the way is planned on it.
 	const planning = $derived(picker.picking || live.open);
 	const shownMap = $derived(
@@ -86,7 +107,7 @@
 			overlay={live.drawing ? live.session.canvasLayers : {}}
 		/>
 		<div class="controls">
-			<Controls {status} />
+			<Controls {status} {mow} mowLabel={describePlay(play)} />
 		</div>
 	{/snippet}
 	{#snippet panel()}
@@ -100,10 +121,9 @@
 				{plan}
 				tasks={mapTasks}
 				{mowSpeedMps}
-				{status}
+				playLabel={describePlay(play)}
 				hasMap={maps.active !== null}
 				preview={(req) => previewRoute(req)}
-				start={() => startMowing()}
 				discard={() => clearPreview()}
 			/>
 		{/if}

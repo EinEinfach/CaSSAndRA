@@ -41,6 +41,7 @@ type StateJSON struct {
 	MowMotorOn      bool       `json:"mowMotorOn"`
 	SpeedMps        float64    `json:"speedMps"` // last commanded speed of mowing or goto
 	MowPointIndex   int        `json:"mowPointIndex"`
+	Resumable       bool       `json:"resumable"`
 	DockReason      DockReason `json:"dockReason"`
 	MapCRC          int64      `json:"mapCrc"`
 	UpdatedAt       *time.Time `json:"updatedAt"`
@@ -71,7 +72,7 @@ func (r *Robot) StateJSON() StateJSON {
 		Solution: s.Solution.String(), AccuracyM: finite(s.AccuracyM), Satellites: s.Satellites,
 		SatellitesDGPS: s.SatellitesDGPS, DGPSAgeSec: finite(s.DGPSAgeSec), LateralErrorM: finite(s.LateralErrorM),
 		Op: s.Op.String(), Sensor: s.Sensor.String(), MowMotorOn: s.MowMotorOn, SpeedMps: finite(s.SpeedMps),
-		MowPointIndex: s.MowPointIndex, DockReason: s.DockReason, MapCRC: s.MapCRC, UpdatedAt: updated,
+		MowPointIndex: s.MowPointIndex, Resumable: s.Resumable, DockReason: s.DockReason, MapCRC: s.MapCRC, UpdatedAt: updated,
 		TrailID: s.TrailID, Obstacles: nonNilRings(s.Obstacles),
 	}
 }
@@ -291,7 +292,7 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 func (r *Robot) AdoptMap(m protocol.Map) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.uploaded = m
+	r.uploaded, r.wayGoto = m, false
 }
 
 // Map returns the map last uploaded with UploadMap or adopted with AdoptMap.
