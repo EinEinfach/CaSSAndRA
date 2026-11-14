@@ -209,6 +209,13 @@ Perimeter. Gerechnet wird im Backend mit Clipper2 (`planner.Reshape`, `clip.cpp`
 ohne Build-Tag `cpp` 501), Ergebnis in cm; der Rasen muss ein Stück bleiben (sonst 400). Der Entwurf samt Undo liegt im
 Browser, die Fläche wird nie gespeichert. „Robot position“ fragt ohne RTK-Fix nach (wie Legacy).
 
+**Karten-Import/-Export** (`web/src/features/maps/transfer.ts`, reine Funktionen im Browser, kein Backend): Import liest
+den Export der Sunray-App (Liste von Slots mit `perimeter`/`exclusions`/`dockpoints`, Punkte `{"X","Y",…}` in Metern;
+leere Slots übersprungen, bei mehreren Karten Auswahl) oder GeoJSON wie Legacy (Features mit `properties.name`
+`perimeter`/`exclusion`/`dockpoints`/`search wire`, Koordinaten `[lon, lat]`). Umrechnung wie Legacy mit 111111 m je Grad
+um den Ursprung aus den Rover-Einstellungen (`lon`/`lat`). Importiertes öffnet sich im Editor und wird erst mit „Save map“
+gespeichert. Export schreibt dieses GeoJSON (Ringe geschlossen, `idx` an Ausschlusszonen).
+
 **Gefahrene Spur:** `robot` führt sie (`robot/trail.go`: 5 cm Mindestabstand, neue Spur nach Sprung > 5 m, max. 2000 Punkte)
 und beginnt sie neu, sobald der Status auf docked/charging wechselt oder über `DELETE /api/robot/trail`. Der Zustand
 trägt `trailId`; der Browser holt die Spur nur bei neuer Id (`GET /api/robot/trail`) und verlängert sie sonst selbst.

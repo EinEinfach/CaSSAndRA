@@ -1,12 +1,21 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
+	import ImportChoice from '#features/maps/ImportChoice.svelte';
 	import MapDetail from '#features/maps/MapDetail.svelte';
 	import MapEditor from '#features/maps/MapEditor.svelte';
 	import MapList from '#features/maps/MapList.svelte';
 	import { createMap, updateMap } from '#features/maps/api.ts';
-	import { emptyShape } from '#features/maps/editor.ts';
+	import { emptyShape, shapeOf } from '#features/maps/editor.ts';
 	import { MapsStore } from '#features/maps/store.svelte.ts';
+	import {
+		downloadText,
+		exportFileName,
+		exportGeoJSON,
+		importMaps,
+		type Origin
+	} from '#features/maps/transfer.ts';
 	import type { MapShape } from '#features/maps/types.ts';
+	import type { SettingsView } from '#features/settings/types.ts';
 	import { RobotStore } from '#features/robot/store.svelte.ts';
 	import MapCanvas from '#shared/MapCanvas.svelte';
 	import MapLayout from '#shared/MapLayout.svelte';
@@ -27,17 +36,35 @@
 		robot.state && robot.state.status !== 'offline' ? robot.state.position : null
 	);
 
-	onMount(() => {
-		const stops = [store.connect(stream), robot.connect(stream)];
-		return () => stops.forEach((stop) => stop());
-	});
+	// GeoJSON files hold longitude and latitude: the origin of the robot's meters is a setting.
+	let origin = $state<Origin>({ lon: 0, lat: 0 });
+	let imported = $state<{ fileName: string; maps: MapShape[] } | null>(null);
+	let importError = $state('');
 
-	const shapeOf = (m: MapShape): MapShape => ({
-		name: m.name,
-		perimeter: m.perimeter,
-		exclusions: m.exclusions,
-		dock: m.dock,
-		searchWire: m.searchWire
+	const openImported = (m: MapShape) =>
+		(editing = { id: null, initial: m, title: `Imported ${m.name}` });
+
+	async function importFile(file: File) {
+		importError = '';
+		imported = null;
+		try {
+			const maps = importMaps(await file.text(), file.name, origin);
+			if (maps.length === 1) openImported(maps[0]);
+			else imported = { fileName: file.name, maps };
+		} catch (err) {
+			importError = err instanceof Error ? err.message : String(err);
+		}
+	}
+
+	onMount(() => {
+		const stops = [
+			store.connect(stream),
+			robot.connect(stream),
+			stream.on<SettingsView>('settings', ({ settings }) => {
+				origin = { lon: settings.rover.lon, lat: settings.rover.lat };
+			})
+		];
+		return () => stops.forEach((stop) => stop());
 	});
 
 	let mapView = $state<HTMLElement>();
@@ -109,6 +136,8 @@
 							initial: { ...shapeOf(selected), name: `${selected.name} (copy)` },
 							title: `Copy of ${selected.name}`
 						})}
+					onexport={() =>
+						downloadText(exportFileName(selected.name), exportGeoJSON(shapeOf(selected), origin))}
 					ondeleted={() => (selectedId = null)}
 				/>
 			{:else if store.loaded}
@@ -128,12 +157,22 @@
 					</button>
 				</div>
 			{/if}
+			{#if imported}
+				<ImportChoice
+					fileName={imported.fileName}
+					maps={imported.maps}
+					onpick={openImported}
+					ondismiss={() => (imported = null)}
+				/>
+			{/if}
+			{#if importError}<p class="error" role="alert">{importError}</p>{/if}
 			<MapList
 				maps={store.maps}
 				activeId={store.activeId}
 				selectedId={selected?.id ?? null}
 				onselect={select}
 				oncreate={() => (editing = { id: null, initial: emptyShape(), title: 'New map' })}
+				onimport={importFile}
 			/>
 		{/snippet}
 	</MapLayout>
@@ -147,6 +186,10 @@
 	.view {
 		height: 100%;
 		scroll-margin-top: 16px;
+	}
+	.error {
+		margin: 0;
+		color: var(--tone-danger-text);
 	}
 	.empty {
 		display: grid;

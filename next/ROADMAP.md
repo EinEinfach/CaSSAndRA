@@ -60,7 +60,7 @@ sowie `make lint` sind grün.
 - [x] Upload gegen echte Sunray-Firmware geprüft: Karte „mika“ (127 Perimeterpunkte, 53 Ausschlüsse) an Sunray 1.0.324 (Linux-Simulation); gemeldete map_crc = Arduino-Variante, Prüfung bestanden
 - [x] Live-Ansicht nachgeschärft: graue Palette, Rover-Bilder aus der Legacy-App (wählbar, Größe in cm, per SSE `settings` in allen Browsern), Roboter gleitet zwischen Meldungen (wie CaSSAndRA_native), Spur im Backend (neu beim Andocken oder per „Clear trail“), Joystick auch im Dock und nach Fehlern, Seiten bekommen beim Wiederöffnen sofort die letzten Events
 - [ ] Optimierung: Zustandsabfragen während eines Uploads pausieren (Simulator ~0,5 s/Anfrage → Upload von „mika“ dauerte 27 s)
-- [ ] Später: GeoJSON-/Sunray-Kartenimport und -export wie im Legacy-Code
+- [x] GeoJSON-/Sunray-Kartenimport und GeoJSON-Export wie im Legacy-Code
 - **Fertig, wenn:** die echte Karte importiert, angezeigt und zum Roboter übertragen wird. (erledigt)
 
 ## Phase 6 – Planner
@@ -96,7 +96,7 @@ sowie `make lint` sind grün.
 UI auf den Stand der Legacy-App bringen (Abgleich Seite für Seite), zuerst die Live-Seite:
 - [x] Live: Fernsteuerung (Mähmotor mit Bestätigung beim Einschalten, Geschwindigkeit ±1 cm/s während Mähen/Fahrt, Reboot, GPS-Reboot, Shutdown mit Bestätigung), Status mit Strom, DGPS-Satelliten und Korrekturalter, Details (Position, Ziel, Mähpunkt, Spurabweichung, Firmware), Hindernisse auf der Karte + „Clear obstacles“
 - [x] Live: Mähen direkt von der Live-Seite (ganzer Garten, eingekreiste Fläche, gespeicherte Aufgabe) mit vorübergehenden Mäheinstellungen
-- [ ] Karten: Fläche zum Perimeter hinzufügen/abziehen, Import/Export (Sunray, GeoJSON), Warnung ohne RTK-Fix beim Aufnehmen
+- [x] Karten: Fläche zum Perimeter hinzufügen/abziehen, Import/Export (Sunray, GeoJSON), Warnung ohne RTK-Fix beim Aufnehmen
 - [ ] Aufgaben: kopieren/umbenennen prüfen
 - [ ] Hell/Dunkel-Schalter (bisher nur Systemeinstellung)
 - [ ] Log-Ansicht mit eigener Befehlseingabe, Systeminfos (CPU, RAM, Temperatur), Feinschliff mobile Ansicht

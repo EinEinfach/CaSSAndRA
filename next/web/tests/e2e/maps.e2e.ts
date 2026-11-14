@@ -107,3 +107,69 @@ test('build a lawn from areas: add, cut out an exclusion, refuse a split', async
 	await button(page, 'Cancel').click();
 	await expect(page.getByRole('heading', { name: 'Maps' })).toBeVisible();
 });
+
+test('import a Sunray export, save one of its maps and export it as GeoJSON', async ({ page }) => {
+	const stamp = Date.now();
+	const square = (size: number) => [
+		{ X: 0, Y: 0, delta: 0.1, timestamp: 1, sol: 2 },
+		{ X: size, Y: 0 },
+		{ X: size, Y: size },
+		{ X: 0, Y: size }
+	];
+	const file = [
+		{
+			perimeter: square(10),
+			exclusions: [square(2).map((p) => ({ X: p.X + 4, Y: p.Y + 4 }))],
+			dockpoints: []
+		},
+		null,
+		{
+			perimeter: square(6),
+			exclusions: [],
+			dockpoints: [
+				{ X: 1, Y: 1 },
+				{ X: 1, Y: -1 }
+			]
+		}
+	];
+
+	await page.goto('/maps');
+	await page.getByLabel('Map file to import').setInputFiles({
+		name: `yard ${stamp}.json`,
+		mimeType: 'application/json',
+		buffer: Buffer.from(JSON.stringify(file))
+	});
+	const choice = page.getByRole('region', { name: `Maps in yard ${stamp}.json` });
+	await expect(choice.getByRole('listitem')).toHaveCount(2);
+	await choice.getByRole('button', { name: new RegExp(`yard ${stamp} 3`) }).click();
+
+	// The editor opens with the imported map; nothing is saved before "Save map".
+	await expect(page.getByLabel('Map name')).toHaveValue(`yard ${stamp} 3`);
+	await expect(page.getByRole('tab', { name: /Perimeter/ })).toContainText('4');
+	await expect(page.getByRole('tab', { name: /Dock path/ })).toContainText('2');
+	await button(page, 'Save map').click();
+	await expect(page.getByRole('heading', { name: `yard ${stamp} 3` })).toBeVisible();
+
+	const [download] = await Promise.all([
+		page.waitForEvent('download'),
+		button(page, 'Export').click()
+	]);
+	expect(download.suggestedFilename()).toBe(`yard ${stamp} 3.geojson`);
+	const stream = await download.createReadStream();
+	let text = '';
+	for await (const chunk of stream) text += chunk;
+	const doc = JSON.parse(text);
+	expect(doc.features.map((f: { properties: { name: string } }) => f.properties.name)).toEqual([
+		'perimeter',
+		'dockpoints',
+		'search wire'
+	]);
+	expect(doc.features[0].geometry.coordinates[0]).toHaveLength(5); // closed ring
+
+	await page.getByLabel('Map file to import').setInputFiles({
+		name: 'broken.json',
+		mimeType: 'application/json',
+		buffer: Buffer.from('{"type":"Feature"}')
+	});
+	await expect(page.getByRole('alert')).toContainText('neither a Sunray export nor GeoJSON');
+});

@@ -90,4 +90,19 @@ describe('MapDetail', () => {
 		await rerender({ map: garden('m2', 'Yard') });
 		expect(screen.queryByRole('status')).toBeNull();
 	});
+
+	it('offers the export only when it can', async () => {
+		setup();
+		expect(screen.queryByRole('button', { name: 'Export' })).toBeNull();
+		const onexport = vi.fn();
+		render(MapDetail, {
+			map: garden('m2', 'Yard'),
+			active: false,
+			onedit: vi.fn(),
+			onduplicate: vi.fn(),
+			onexport
+		});
+		await userEvent.click(screen.getByRole('button', { name: 'Export' }));
+		expect(onexport).toHaveBeenCalledOnce();
+	});
 });

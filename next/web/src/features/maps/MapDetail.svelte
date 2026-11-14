@@ -15,6 +15,7 @@
 		active,
 		onedit,
 		onduplicate,
+		onexport,
 		ondeleted = () => {},
 		actions = {
 			upload: (id) => uploadMap(id),
@@ -26,6 +27,8 @@
 		active: boolean;
 		onedit: () => void;
 		onduplicate: () => void;
+		/** Shows "Export" (GeoJSON file). */
+		onexport?: () => void;
 		ondeleted?: () => void;
 		actions?: DetailActions;
 	} = $props();
@@ -90,6 +93,14 @@
 		</button>
 		<button type="button" disabled={busy !== ''} onclick={onedit}>Edit</button>
 		<button type="button" disabled={busy !== ''} onclick={onduplicate}>Duplicate</button>
+		{#if onexport}
+			<button
+				type="button"
+				disabled={busy !== ''}
+				onclick={onexport}
+				title="Save the map as a GeoJSON file">Export</button
+			>
+		{/if}
 		{#if !active}
 			<button
 				type="button"

@@ -7,20 +7,48 @@
 		activeId,
 		selectedId,
 		onselect,
-		oncreate
+		oncreate,
+		onimport
 	}: {
 		maps: GardenMap[];
 		activeId: string;
 		selectedId: string | null;
 		onselect: (id: string) => void;
 		oncreate: () => void;
+		/** Shows "Import" for a Sunray export or GeoJSON file. */
+		onimport?: (file: File) => void;
 	} = $props();
+
+	let picker = $state<HTMLInputElement>();
+
+	function picked() {
+		const file = picker?.files?.[0];
+		if (file) onimport?.(file);
+		if (picker) picker.value = ''; // the same file can be chosen again
+	}
 
 	const SIZE = 56;
 </script>
 
 <div class="list">
-	<button type="button" class="primary new" onclick={oncreate}>+ New map</button>
+	<div class="new">
+		<button type="button" class="primary" onclick={oncreate}>+ New map</button>
+		{#if onimport}
+			<button
+				type="button"
+				onclick={() => picker?.click()}
+				title="Import maps from a Sunray app export or a GeoJSON file">Import</button
+			>
+			<input
+				bind:this={picker}
+				type="file"
+				accept=".json,.geojson,application/json,application/geo+json"
+				aria-label="Map file to import"
+				hidden
+				onchange={picked}
+			/>
+		{/if}
+	</div>
 	{#if maps.length === 0}
 		<p class="empty">No maps yet. Draw your first one.</p>
 	{/if}
@@ -60,7 +88,8 @@
 		gap: 10px;
 	}
 	.new {
-		justify-self: start;
+		display: flex;
+		gap: 8px;
 	}
 	.empty {
 		color: var(--text-muted);
