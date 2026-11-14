@@ -32,8 +32,25 @@ describe('TaskList', () => {
 		const { toggle, edit, two } = setup();
 		await userEvent.click(screen.getByLabelText('Mow Front'));
 		expect(toggle).toHaveBeenCalledWith('a');
-		await userEvent.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
+		await userEvent.click(screen.getByRole('button', { name: 'Edit Back' }));
 		expect(edit).toHaveBeenCalledWith(two);
+	});
+
+	it('offers Copy only when it can copy', async () => {
+		setup();
+		expect(screen.queryByRole('button', { name: /^Copy/ })).toBeNull();
+		const copy = vi.fn();
+		render(TaskList, {
+			tasks: [task('c', 'Side')],
+			chosen: [],
+			busy: false,
+			toggle: vi.fn(),
+			edit: vi.fn(),
+			copy,
+			remove: vi.fn()
+		});
+		await userEvent.click(screen.getByRole('button', { name: 'Copy Side' }));
+		expect(copy).toHaveBeenCalledWith(task('c', 'Side'));
 	});
 
 	it('deletes only after a second press', async () => {

@@ -130,7 +130,7 @@ describe('TaskPlanner', () => {
 
 	it('changes a saved task', async () => {
 		const { save } = setup({ tasks: [task('t1', 'Back')] });
-		await userEvent.click(button('Edit'));
+		await userEvent.click(button('Edit Back'));
 		expect(screen.getByRole('heading', { name: 'Edit Back' })).toBeTruthy();
 		await userEvent.click(screen.getByRole('radio', { name: 'Rings' }));
 		await userEvent.click(button('Save changes'));
@@ -141,6 +141,32 @@ describe('TaskPlanner', () => {
 				parts: [{ selection: [], parameters: parameters({ pattern: 'rings' }) }]
 			},
 			't1'
+		);
+	});
+
+	it('renames a saved task', async () => {
+		const { save } = setup({ tasks: [task('t1', 'Back')] });
+		await userEvent.click(button('Edit Back'));
+		const name = screen.getByLabelText('Task name');
+		await userEvent.clear(name);
+		await userEvent.type(name, 'Rear');
+		await userEvent.click(button('Save changes'));
+		expect(save).toHaveBeenCalledWith(expect.objectContaining({ name: 'Rear' }), 't1');
+		expect(screen.getByRole('status').textContent).toBe('Saved Rear.');
+	});
+
+	it('copies a saved task under a new name', async () => {
+		const back = task('t1', 'Back', {
+			parts: [{ selection: pts(1, 1, 4, 1, 4, 4), parameters: parameters({ pattern: 'rings' }) }]
+		});
+		const { save } = setup({ tasks: [back] });
+		await userEvent.click(button('Copy Back'));
+		expect(screen.getByRole('heading', { name: 'New task' })).toBeTruthy();
+		expect((screen.getByLabelText('Task name') as HTMLInputElement).value).toBe('Back (copy)');
+		await userEvent.click(button('Save task'));
+		expect(save).toHaveBeenCalledWith(
+			{ name: 'Back (copy)', mapId: 'm1', parts: back.parts },
+			null
 		);
 	});
 

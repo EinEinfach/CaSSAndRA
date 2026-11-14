@@ -7,6 +7,7 @@
 		busy,
 		toggle,
 		edit,
+		copy,
 		remove,
 		empty = 'No saved tasks for this map yet. Draw one below and save it.'
 	}: {
@@ -17,6 +18,7 @@
 		toggle: (id: string) => void;
 		/** Without edit and remove the tasks can only be chosen. */
 		edit?: (task: Task) => void;
+		copy?: (task: Task) => void;
 		remove?: (id: string) => void;
 		empty?: string;
 	} = $props();
@@ -61,7 +63,21 @@
 							</button>
 							<button type="button" onclick={() => (confirming = null)}>Keep</button>
 						{:else}
-							<button type="button" disabled={busy} onclick={() => edit(task)}>Edit</button>
+							<button
+								type="button"
+								disabled={busy}
+								onclick={() => edit(task)}
+								aria-label="Edit {task.name}"
+								title="Change parts or name">Edit</button
+							>
+							{#if copy}
+								<button
+									type="button"
+									disabled={busy}
+									onclick={() => copy(task)}
+									aria-label="Copy {task.name}">Copy</button
+								>
+							{/if}
 							<button
 								type="button"
 								disabled={busy}

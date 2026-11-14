@@ -184,4 +184,18 @@ describe('PlanSession', () => {
 		s.adopt(plan());
 		expect(s.parts).toEqual([]);
 	});
+
+	it('copies a saved task as a new one', () => {
+		const s = new PlanSession();
+		s.useDefaults(parameters());
+		const t = task('t1', 'Back', {
+			parts: [{ selection: pts(1, 1, 4, 1, 4, 4), parameters: parameters({ widthM: 0.2 }) }]
+		});
+		s.copy(t);
+		expect(s.editing).toBeNull();
+		expect(s.name).toBe('Back (copy)');
+		expect(s.toTask('m1')).toEqual({ name: 'Back (copy)', mapId: 'm1', parts: t.parts });
+		s.part!.parameters.widthM = 0.3;
+		expect(t.parts[0].parameters.widthM).toBe(0.2); // the saved task stays untouched
+	});
 });

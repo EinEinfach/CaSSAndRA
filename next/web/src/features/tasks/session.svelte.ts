@@ -125,6 +125,13 @@ export class PlanSession {
 		this.editing = task.id;
 	}
 
+	/** Loads a saved task as a new one (legacy "copy"): saving creates it under the new name. */
+	copy(task: Task): void {
+		this.edit(task);
+		this.name = `${task.name} (copy)`;
+		this.editing = null;
+	}
+
 	/** Starts a new task from the defaults. */
 	reset(): void {
 		this.parts = this.defaults ? [this.newPart()] : [];

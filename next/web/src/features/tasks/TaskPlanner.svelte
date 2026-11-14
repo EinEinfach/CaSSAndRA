@@ -136,6 +136,7 @@
 					busy={busy !== null}
 					toggle={(id) => session.toggle(id)}
 					edit={(t) => session.edit(t)}
+					copy={(t) => session.copy(t)}
 					remove={(id) => run('delete', () => remove(id))}
 				/>
 				{#if tasks.length > 0}

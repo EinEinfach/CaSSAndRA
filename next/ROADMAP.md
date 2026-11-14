@@ -97,7 +97,7 @@ UI auf den Stand der Legacy-App bringen (Abgleich Seite für Seite), zuerst die 
 - [x] Live: Fernsteuerung (Mähmotor mit Bestätigung beim Einschalten, Geschwindigkeit ±1 cm/s während Mähen/Fahrt, Reboot, GPS-Reboot, Shutdown mit Bestätigung), Status mit Strom, DGPS-Satelliten und Korrekturalter, Details (Position, Ziel, Mähpunkt, Spurabweichung, Firmware), Hindernisse auf der Karte + „Clear obstacles“
 - [x] Live: Mähen direkt von der Live-Seite (ganzer Garten, eingekreiste Fläche, gespeicherte Aufgabe) mit vorübergehenden Mäheinstellungen
 - [x] Karten: Fläche zum Perimeter hinzufügen/abziehen, Import/Export (Sunray, GeoJSON), Warnung ohne RTK-Fix beim Aufnehmen
-- [ ] Aufgaben: kopieren/umbenennen prüfen
+- [x] Aufgaben: kopieren (neu: „Copy“) und umbenennen (über „Edit“)
 - [ ] Hell/Dunkel-Schalter (bisher nur Systemeinstellung)
 - [ ] Log-Ansicht mit eigener Befehlseingabe, Systeminfos (CPU, RAM, Temperatur), Feinschliff mobile Ansicht
 - [ ] Releases: Binaries amd64/arm64/armv7, Docker-Image, systemd-Unit, Installationsanleitung
