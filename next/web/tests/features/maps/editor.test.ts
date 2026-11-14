@@ -98,6 +98,15 @@ describe('addPoint', () => {
 		expect(addPoint(garden(), perimeterLayer, { x: -0.2, y: 5 }).index).toBe(4);
 	});
 
+	it('appends to a polygon when asked, however close an edge is', () => {
+		const m = garden(); // perimeter (0,0) (10,0) (10,10) (0,10)
+		const near = { x: 5, y: 0.1 }; // next to the first edge
+		expect(addPoint(m, perimeterLayer, near).index).toBe(1);
+		const { map, index } = addPoint(m, perimeterLayer, near, true);
+		expect(index).toBe(4);
+		expect(map.perimeter.at(-1)).toEqual(near);
+	});
+
 	it('rounds to centimeters and leaves the input untouched', () => {
 		const m = garden();
 		const r = addPoint(m, wire, { x: 1.23456, y: -0.005 });

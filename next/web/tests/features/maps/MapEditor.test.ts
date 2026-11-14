@@ -204,6 +204,32 @@ describe('MapEditor', () => {
 		expect(screen.getByRole('tab', { name: /Area/ }).textContent).toContain('3');
 	});
 
+	it('adds robot positions in the order of the drive, taps on the nearest edge', async () => {
+		const save = vi.fn(async () => {});
+		render(MapEditor, {
+			initial: garden(),
+			robotPosition: { x: 5, y: 0.1 }, // next to the first edge
+			robotSolution: 'fix',
+			save,
+			cancel: vi.fn()
+		});
+		await userEvent.click(button(/Robot position/));
+		await tap(10, 5); // on the second edge
+		await userEvent.click(button('Save map'));
+		expect(save).toHaveBeenCalledWith(
+			expect.objectContaining({
+				perimeter: [
+					{ x: 0, y: 0 },
+					{ x: 10, y: 0 },
+					{ x: 10, y: 5 },
+					{ x: 10, y: 10 },
+					{ x: 0, y: 10 },
+					{ x: 5, y: 0.1 }
+				]
+			})
+		);
+	});
+
 	it('cannot add the robot position without a robot', () => {
 		render(MapEditor, { initial: emptyShape('x'), save: vi.fn(), cancel: vi.fn() });
 		expect(button(/Robot position/).disabled).toBe(true);

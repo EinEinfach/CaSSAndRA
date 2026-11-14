@@ -207,7 +207,8 @@ eine Fläche (Ebene „Area“, auch aus Roboterpositionen), die zum Rasen hinzu
 abgezogen = neue Ausschlusszone, über einer Ausschlusszone hinzugefügt = gefüllt, die erste Fläche einer leeren Karte =
 Perimeter. Gerechnet wird im Backend mit Clipper2 (`planner.Reshape`, `clip.cpp`; `POST /api/maps/reshape`, zustandslos,
 ohne Build-Tag `cpp` 501), Ergebnis in cm; der Rasen muss ein Stück bleiben (sonst 400). Der Entwurf samt Undo liegt im
-Browser, die Fläche wird nie gespeichert. „Robot position“ fragt ohne RTK-Fix nach (wie Legacy).
+Browser, die Fläche wird nie gespeichert. „Robot position“ fragt ohne RTK-Fix nach (wie Legacy). Sie hängt den Punkt immer
+ans Ende an (Reihenfolge der Fahrt, wie Legacy); ein Tippen setzt ihn bei Polygonen auf die nächste Kante.
 
 **Karten-Import/-Export** (`web/src/features/maps/transfer.ts`, reine Funktionen im Browser, kein Backend): Import liest
 den Export der Sunray-App (Liste von Slots mit `perimeter`/`exclusions`/`dockpoints`, Punkte `{"X","Y",…}` in Metern;

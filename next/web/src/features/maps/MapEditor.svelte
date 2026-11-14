@@ -54,7 +54,7 @@
 			return;
 		}
 		confirmingNoFix = false;
-		session.add(robotPosition);
+		session.add(robotPosition, true); // in the order of the drive, not on the nearest edge
 	}
 
 	let reshaping = $state(false);
@@ -129,7 +129,7 @@
 					type="button"
 					onclick={() => addRobotPosition()}
 					disabled={!robotPosition}
-					title="Add a point where the robot is">Robot position</button
+					title="Add a point where the robot is, after the last point">Robot position</button
 				>
 				<button
 					type="button"

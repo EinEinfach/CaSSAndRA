@@ -90,12 +90,20 @@ export const roundPoint = (p: Point): Point => ({
  * Adds p to the layer and returns the new map and the index of the new point.
  * Polygons with at least 3 points get the point on their nearest edge, so a
  * click near an edge adds a corner there; lines and new polygons grow at the end.
+ * With atEnd the point always goes to the end: positions recorded while the
+ * robot drives along a border come in the order of the drive, and a winding
+ * border passes close to its own earlier edges.
  */
-export function addPoint(m: Draft, layer: Layer, p: Point): { map: Draft; index: number } {
+export function addPoint(
+	m: Draft,
+	layer: Layer,
+	p: Point,
+	atEnd = false
+): { map: Draft; index: number } {
 	const pts = pointsOf(m, layer);
 	const pt = roundPoint(p);
 	let index = pts.length;
-	if (isClosed(layer) && pts.length >= 3) {
+	if (!atEnd && isClosed(layer) && pts.length >= 3) {
 		let best = Infinity;
 		for (let i = 0; i < pts.length; i++) {
 			const d = distanceToSegment(pt, pts[i], pts[(i + 1) % pts.length]);

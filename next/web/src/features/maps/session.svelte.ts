@@ -103,8 +103,9 @@ export class EditorSession {
 		this.add(world);
 	}
 
-	add(world: Point): void {
-		const { map, index } = addPoint(this.draft, this.layer, world);
+	/** Adds a point: on the nearest edge of a polygon, or with atEnd after its last point. */
+	add(world: Point, atEnd = false): void {
+		const { map, index } = addPoint(this.draft, this.layer, world, atEnd);
 		this.commit(map);
 		this.selected = index;
 	}
