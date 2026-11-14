@@ -16,6 +16,7 @@
 	import { onMount, untrack } from 'svelte';
 	import { drawMap, mapPoints, type MapColors, type MapLayers } from './drawMap.ts';
 	import { useRobotPicture } from './robotPicture.svelte.ts';
+	import { useTheme } from './theme.svelte.ts';
 	import { fit, pan, resize, toWorld, zoomAt, type Viewport } from './viewport.ts';
 
 	interface Props {
@@ -71,6 +72,8 @@
 		handleFill: '--map-handle-fill'
 	};
 
+	const theme = useTheme();
+
 	function colors(): MapColors {
 		const style = getComputedStyle(canvas);
 		const c = {} as MapColors;
@@ -110,6 +113,7 @@
 		canvas.width = Math.round(vp.width * dpr);
 		canvas.height = Math.round(vp.height * dpr);
 		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		void theme?.resolved; // redraw with the other colors when the theme changes
 		drawMap(ctx, vp, { ...layers, robotPicture: robotPicture?.current }, colors());
 	});
 

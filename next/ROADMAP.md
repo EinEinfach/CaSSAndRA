@@ -98,7 +98,7 @@ UI auf den Stand der Legacy-App bringen (Abgleich Seite für Seite), zuerst die 
 - [x] Live: Mähen direkt von der Live-Seite (ganzer Garten, eingekreiste Fläche, gespeicherte Aufgabe) mit vorübergehenden Mäheinstellungen
 - [x] Karten: Fläche zum Perimeter hinzufügen/abziehen, Import/Export (Sunray, GeoJSON), Warnung ohne RTK-Fix beim Aufnehmen
 - [x] Aufgaben: kopieren (neu: „Copy“) und umbenennen (über „Edit“)
-- [ ] Hell/Dunkel-Schalter (bisher nur Systemeinstellung)
+- [x] Hell/Dunkel-Schalter (pro Gerät: System, Hell, Dunkel)
 - [ ] Log-Ansicht mit eigener Befehlseingabe, Systeminfos (CPU, RAM, Temperatur), Feinschliff mobile Ansicht
 - [ ] Releases: Binaries amd64/arm64/armv7, Docker-Image, systemd-Unit, Installationsanleitung
 - [ ] Testlauf parallel zur Legacy-App, dann Umstieg; `CaSSAndRA/` erst danach entfernen

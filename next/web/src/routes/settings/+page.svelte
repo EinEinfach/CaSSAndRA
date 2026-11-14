@@ -1,5 +1,9 @@
 <script lang="ts">
 	import SettingsForm from '#features/settings/SettingsForm.svelte';
+	import ThemePicker from '#features/settings/ThemePicker.svelte';
+	import { useTheme } from '#shared/theme.svelte.ts';
+
+	const theme = useTheme();
 </script>
 
 <svelte:head>
@@ -8,6 +12,7 @@
 
 <div class="page">
 	<h1>Settings</h1>
+	{#if theme}<ThemePicker {theme} />{/if}
 	<SettingsForm />
 </div>
 

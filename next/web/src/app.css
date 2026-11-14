@@ -1,5 +1,5 @@
 :root {
-	color-scheme: light dark;
+	color-scheme: light;
 	--nav-bottom: 64px; /* tab bar on phones */
 	--nav-left: 88px; /* rail on wide screens */
 	--panel-width: 360px; /* the panel next to the map (MapLayout) */
@@ -44,47 +44,47 @@
 	--map-robot-outline: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--bg: #000000;
-		--surface: #111111;
-		--surface-sunken: #1c1c1c;
-		--border: #2a2a2a;
-		--text: #f2f2f2;
-		--text-muted: #8c8c8c;
-		--accent: #f2f2f2;
-		--accent-text: #000000;
-		--tone-text: #f2f2f2;
-		--tone-neutral: #1f1f1f;
-		--tone-active: #333333;
-		--tone-good: #1a2430;
-		--tone-warning: #2f2814;
-		--tone-danger: #3b1512;
-		--tone-danger-text: #ff6b60;
-		--danger: #d93025;
-		--ok: #40c057;
-		--on-danger: #ffffff;
-		--shadow: 0 8px 24px rgb(0 0 0 / 0.6);
+/* Set by app.html before the first paint and by shared/theme.svelte.ts: system, light or dark. */
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--bg: #000000;
+	--surface: #111111;
+	--surface-sunken: #1c1c1c;
+	--border: #2a2a2a;
+	--text: #f2f2f2;
+	--text-muted: #8c8c8c;
+	--accent: #f2f2f2;
+	--accent-text: #000000;
+	--tone-text: #f2f2f2;
+	--tone-neutral: #1f1f1f;
+	--tone-active: #333333;
+	--tone-good: #1a2430;
+	--tone-warning: #2f2814;
+	--tone-danger: #3b1512;
+	--tone-danger-text: #ff6b60;
+	--danger: #d93025;
+	--ok: #40c057;
+	--on-danger: #ffffff;
+	--shadow: 0 8px 24px rgb(0 0 0 / 0.6);
 
-		--map-bg: #0b0b0b;
-		--map-lawn: #1d1d1d;
-		--map-border: #d6d6d6;
-		--map-exclusion: #383838;
-		--map-dock: #58a6ff;
-		--map-wire: #b391f0;
-		--map-handle: #ff922b;
-		--map-handle-fill: #000000;
-		--map-selection: #ff922b;
-		--map-selection-fill: rgb(255 146 43 / 0.12);
-		--map-way: rgb(255 255 255 / 0.3);
-		--map-way-done: rgb(255 255 255 / 0.08);
-		--map-trail: rgb(255 146 43 / 0.35);
-		--map-obstacle: #ff6b60;
-		--map-obstacle-fill: rgb(255 107 96 / 0.25);
-		--map-target: #ff6b60;
-		--map-robot: #ffffff;
-		--map-robot-outline: #000000;
-	}
+	--map-bg: #0b0b0b;
+	--map-lawn: #1d1d1d;
+	--map-border: #d6d6d6;
+	--map-exclusion: #383838;
+	--map-dock: #58a6ff;
+	--map-wire: #b391f0;
+	--map-handle: #ff922b;
+	--map-handle-fill: #000000;
+	--map-selection: #ff922b;
+	--map-selection-fill: rgb(255 146 43 / 0.12);
+	--map-way: rgb(255 255 255 / 0.3);
+	--map-way-done: rgb(255 255 255 / 0.08);
+	--map-trail: rgb(255 146 43 / 0.35);
+	--map-obstacle: #ff6b60;
+	--map-obstacle-fill: rgb(255 107 96 / 0.25);
+	--map-target: #ff6b60;
+	--map-robot: #ffffff;
+	--map-robot-outline: #000000;
 }
 
 * {

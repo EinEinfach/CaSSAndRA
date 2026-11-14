@@ -43,3 +43,27 @@ test('robot pictures are served and the choice is kept', async ({ page }) => {
 	await page.getByRole('button', { name: 'Save' }).click();
 	await expect(page.getByRole('status')).toHaveText('Saved');
 });
+
+test('the theme follows the system until one is chosen for this device', async ({ browser }) => {
+	const context = await browser.newContext({ colorScheme: 'dark' });
+	const page = await context.newPage();
+	const theme = () => page.evaluate(() => document.documentElement.dataset.theme);
+	const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+	await page.goto('/settings');
+	expect(await theme()).toBe('dark');
+	expect(await background()).toBe('rgb(0, 0, 0)');
+
+	await page.getByRole('radio', { name: 'Light' }).check({ force: true });
+	expect(await theme()).toBe('light');
+	expect(await background()).not.toBe('rgb(0, 0, 0)');
+
+	// Set before the first paint on the next load, without waiting for the app.
+	await page.reload();
+	expect(await theme()).toBe('light');
+	await expect(page.getByRole('radio', { name: 'Light' })).toBeChecked();
+
+	await page.getByRole('radio', { name: 'System' }).check({ force: true });
+	expect(await theme()).toBe('dark');
+	await context.close();
+});

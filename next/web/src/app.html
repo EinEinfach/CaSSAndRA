@@ -4,6 +4,19 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<script>
+			// Before the first paint, so a dark page does not flash white (see shared/theme.svelte.ts).
+			(function () {
+				var t;
+				try {
+					t = localStorage.getItem('cassandra.theme');
+				} catch (e) {}
+				if (t !== 'light' && t !== 'dark') {
+					t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				}
+				document.documentElement.dataset.theme = t;
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

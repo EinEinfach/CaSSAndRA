@@ -8,6 +8,7 @@
 	import { EventStream } from '#shared/events.ts';
 	import { provideRobotPicture, RobotPictureSource } from '#shared/robotPicture.svelte.ts';
 	import { provideStream } from '#shared/streamContext.ts';
+	import { browserThemeEnv, provideTheme, Theme } from '#shared/theme.svelte.ts';
 	import type { SettingsView } from '#features/settings/types.ts';
 	import type { LayoutProps } from './$types';
 
@@ -19,6 +20,8 @@
 	provideStream(stream);
 	const robotPicture = new RobotPictureSource();
 	provideRobotPicture(robotPicture);
+	const theme = new Theme(browserThemeEnv());
+	provideTheme(theme);
 
 	const items: NavItem[] = [
 		{ href: resolve('/'), label: 'Live', icon: 'live' },
@@ -42,6 +45,7 @@
 		return () => {
 			stops.forEach((stop) => stop());
 			stream.close();
+			theme.stop();
 		};
 	});
 </script>

@@ -3,7 +3,9 @@ import { tick } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MapCanvas from '#shared/MapCanvas.svelte';
 import { RobotPictureSource } from '#shared/robotPicture.svelte.ts';
+import { Theme } from '#shared/theme.svelte.ts';
 import PictureMapHarness from './PictureMapHarness.svelte';
+import ThemeMapHarness from './ThemeMapHarness.svelte';
 import { recordingContext } from './recordingContext.ts';
 
 let ctx: ReturnType<typeof recordingContext>;
@@ -61,6 +63,16 @@ describe('MapCanvas', () => {
 		await tick();
 
 		expect(ctx.images.at(-1)?.image).toBe(image);
+	});
+
+	it('redraws with the colors of a new theme', async () => {
+		const root = document.createElement('html');
+		const theme = new Theme({ storage: null, media: null, root });
+		render(ThemeMapHarness, { theme, layers: { perimeter } });
+		const before = ctx.shapes.length;
+		theme.set('dark');
+		await tick();
+		expect(ctx.shapes.length).toBeGreaterThan(before);
 	});
 
 	it('redraws when the layers change', async () => {
