@@ -160,7 +160,8 @@ button.danger {
 }
 .field input,
 .field select,
-input.text {
+input.text,
+select.text {
 	font: inherit;
 	font-size: 1rem;
 	color: var(--text);
@@ -176,7 +177,8 @@ input.text {
 }
 .field input:focus,
 .field select:focus,
-input.text:focus {
+input.text:focus,
+select.text:focus {
 	outline: none;
 	border-color: var(--accent);
 	background: var(--surface);

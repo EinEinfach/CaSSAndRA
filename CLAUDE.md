@@ -58,7 +58,8 @@ next/
     settings/        Verbindungs-, Rover-, Batterie-, Planner- und API-Einstellungen (settings.json); Import aus Legacy-Daten; API ohne Passwörter
     broker/          Eingebauter MQTT-Broker (mochi) für Nutzer ohne eigenen: ein Benutzer mit Passwort, Status `GET /api/broker`
     notify/          Nachrichten per Telegram/Pushover: Roboter offline/Fehler (je einmal), `sendMessage` der App, Testnachricht
-    system/          Last des Rechners (CPU, Temperatur, RAM, Disk aus /proc und /sys) und Herunterfahren
+    system/          Last des Rechners (CPU, Temperatur, RAM, Disk aus /proc und /sys, `GET /api/system`) und Herunterfahren
+    logs/            Log-Puffer: slog-Handler, der die letzten 1000 Einträge behält (`GET /api/logs?after=<seq>`) und alles weiterreicht
     stats/           Verlauf in SQLite (stats.db): Messwerte je Minute, Zuwachs der AT+T-Zähler je Stunde; Recorder, API
     mqttapi/         Externe MQTT-API, kompatibel zur Legacy-API und zur nativen App (CaSSAndRA_native), siehe unten
     server/          HTTP-Handler, SSE-Hub, eingebettetes Frontend (`server/dist/`, Build-Ausgabe, gitignored); montiert die Routen der Features (`Options.Routes`)
@@ -273,6 +274,11 @@ Import aus Legacy `commcfg.json`, ohne Token ausgeschaltet). Der Wächter schaut
 „offline“ und „Fehler“ je eine Nachricht, bis der Zustand wieder normal ist; der Zustand beim Start löst nichts aus.
 Ohne Telegram-Chat-Id wird sie aus der letzten Nachricht an den Bot ermittelt (`getUpdates`) und gespeichert.
 Fehlermeldungen enthalten nie die URL (das Token steckt im Pfad). `POST /api/notify/test` schickt eine Testnachricht.
+
+**Log-Ansicht (Seite „Log“):** `app` hängt `logs.Buffer` vor den Logger, die Seite fragt alle 2 s nach Einträgen
+nach der letzten `seq` (`LogFeed`, Pause/Leeren nur im Browser). Eigene Befehle gehen über `POST /api/robot/raw
+{"line"}` (`robot.SendRaw`): nur `AT+…`, höchstens 200 druckbare ASCII-Zeichen, genau einmal gesendet, Befehl und
+Antwort landen im Log. Manche Befehle bewegen den Roboter – darum nie wiederholen; über MQTT ist die Antwort leer.
 
 **Befehle wiederholen:** `Link.Send` wiederholt nie. Nur `robot.Stop` versucht es bis zu 3×, weil er
 idempotent ist. `Stop` bricht einen laufenden Karten-Upload ab, statt hinter ihm zu warten.
