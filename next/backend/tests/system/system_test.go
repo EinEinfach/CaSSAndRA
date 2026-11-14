@@ -2,6 +2,8 @@ package system_test
 
 import (
 	"math"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"testing/fstest"
 
@@ -80,4 +82,18 @@ func deref(p *float64) any {
 		return nil
 	}
 	return *p
+}
+
+func TestAPI(t *testing.T) {
+	root := fstest.MapFS{
+		"proc/meminfo":                         {Data: []byte(meminfo)},
+		"sys/class/thermal/thermal_zone0/temp": {Data: []byte("48351\n")},
+	}
+	h := system.NewMonitor(root, "").Handler()
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/system", http.NoBody))
+	want := `{"cpuLoadPercent":null,"cpuTempC":48.4,"memUsedPercent":25,"diskUsedPercent":null}` + "\n"
+	if rec.Code != http.StatusOK || rec.Body.String() != want {
+		t.Errorf("GET /api/system = %d %s, want %s", rec.Code, rec.Body, want)
+	}
 }

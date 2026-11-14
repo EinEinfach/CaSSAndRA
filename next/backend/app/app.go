@@ -17,6 +17,7 @@ import (
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/broker"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/link"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/logs"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/maps"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/mqttapi"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/notify"
@@ -110,6 +111,9 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	if cfg.Logger == nil {
 		cfg.Logger = slog.New(slog.DiscardHandler)
 	}
+	// Keeps the latest records for the log view; everything still goes to cfg.Logger.
+	logBuffer := logs.NewBuffer(cfg.Logger.Handler(), logs.DefaultSize)
+	cfg.Logger = slog.New(logBuffer)
 	log := cfg.Logger
 
 	data, err := openData(cfg.DataDir, log)
@@ -259,9 +263,10 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	goroutine(func() { notifier.Run(ctx) })
 
 	restart := make(chan struct{}, 1)
+	monitor := system.NewMonitor(os.DirFS("/"), cfg.DataDir)
 	api := mqttapi.New(mqttapi.Deps{
 		Robot: r, Tasks: taskService, Maps: mapStore, Saved: taskStore, Schedule: scheduleStore,
-		Settings: settingsStore, System: system.NewMonitor(os.DirFS("/"), cfg.DataDir), Notifier: notifier,
+		Settings: settingsStore, System: monitor, Notifier: notifier,
 		Defaults: tasks.Parameters(settingsStore.Get().Planner),
 	}, mqttapi.Config{
 		Version: cfg.Version, Logger: log.With("feature", "mqttapi"),
@@ -297,6 +302,8 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 				"/api/stats":    statsStore.Handler(cfg.Stats.Now),
 				"/api/broker":   brokerSvc.Handler(),
 				"/api/notify/":  notifier.Handler(),
+				"/api/logs":     logBuffer.Handler(),
+				"/api/system":   monitor.Handler(),
 			},
 		}),
 		ReadHeaderTimeout: 5 * time.Second,

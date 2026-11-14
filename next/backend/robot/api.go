@@ -77,6 +77,11 @@ func (r *Robot) StateJSON() StateJSON {
 	}
 }
 
+// RawJSON is the reply to POST /api/robot/raw; empty over MQTT.
+type RawJSON struct {
+	Reply string `json:"reply"`
+}
+
 // MapJSON returns the last uploaded map in browser format. Lists are never
 // null, so the browser does not need to check.
 func (r *Robot) MapJSON() MapJSON {
@@ -205,6 +210,23 @@ func (r *Robot) Handler() http.Handler {
 		}
 		run(w, req, func(ctx context.Context) error { return r.SetSpeed(ctx, *body.Mps) })
 	})
+	// A command typed in the log view, sent once; the reply goes back.
+	mux.HandleFunc("POST /api/robot/raw", func(w http.ResponseWriter, req *http.Request) {
+		var body struct {
+			Line *string `json:"line"`
+		}
+		if !decode(w, req, &body) || !required(w, body.Line) {
+			return
+		}
+		ctx, cancel := context.WithTimeout(req.Context(), commandTimeout)
+		defer cancel()
+		reply, err := r.SendRaw(ctx, *body.Line)
+		if err != nil {
+			writeError(w, ErrorStatus(err), err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, RawJSON{Reply: reply})
+	})
 	mux.HandleFunc("POST /api/robot/skip-to-progress", func(w http.ResponseWriter, req *http.Request) {
 		var body struct {
 			Fraction *float64 `json:"fraction"`
@@ -236,6 +258,8 @@ func run(w http.ResponseWriter, req *http.Request, cmd func(context.Context) err
 // timeout 504, any other link or robot error 502.
 func ErrorStatus(err error) int {
 	switch {
+	case errors.Is(err, ErrInvalidCommand):
+		return http.StatusBadRequest
 	case errors.Is(err, ErrBusy):
 		return http.StatusConflict
 	case errors.Is(err, link.ErrOffline):

@@ -75,6 +75,41 @@ func (r *Robot) Goto(ctx context.Context) error {
 	})
 }
 
+// maxRawLen keeps a typed command within what the firmware's line buffer takes.
+const maxRawLen = 200
+
+// ErrInvalidCommand: a raw command that is not a single printable AT+ line.
+var ErrInvalidCommand = errors.New("invalid command")
+
+// SendRaw sends a command typed in the log view (legacy "custom" command) once
+// and returns the robot's reply ("" over MQTT, which has no replies). The
+// checksum is added like for every command. It can be anything the firmware
+// knows, also commands that move the robot: it is never repeated.
+func (r *Robot) SendRaw(ctx context.Context, line string) (string, error) {
+	line = strings.TrimSpace(line)
+	if !strings.HasPrefix(line, "AT+") || len(line) <= len("AT+") {
+		return "", fmt.Errorf("%w: it must start with AT+ and name a command", ErrInvalidCommand)
+	}
+	if len(line) > maxRawLen {
+		return "", fmt.Errorf("%w: longer than %d characters", ErrInvalidCommand, maxRawLen)
+	}
+	for _, c := range line {
+		if c < 32 || c > 126 {
+			return "", fmt.Errorf("%w: only printable ASCII characters", ErrInvalidCommand)
+		}
+	}
+	r.cmdMu.Lock()
+	defer r.cmdMu.Unlock()
+	r.log.Info("command", "cmd", "raw", "line", line)
+	reply, err := r.link.Send(ctx, line)
+	if err != nil {
+		r.log.Warn("raw command failed", "line", line, "err", err)
+		return "", fmt.Errorf("raw: %w", err)
+	}
+	r.log.Info("raw command reply", "reply", reply)
+	return reply, nil
+}
+
 // Move drives manually (joystick). Move(ctx, 0, 0) stops.
 func (r *Robot) Move(ctx context.Context, linearMps, angularRadps float64) error {
 	return r.command(ctx, "move", protocol.Move(linearMps, angularRadps), func() {

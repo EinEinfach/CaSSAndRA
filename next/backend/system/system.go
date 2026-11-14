@@ -4,9 +4,13 @@ package system
 
 import (
 	"bufio"
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/fs"
+	"math"
+	"net/http"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -70,6 +74,45 @@ func (m *Monitor) Read() Info {
 		}
 	}
 	return info
+}
+
+// InfoJSON is the response of GET /api/system; null = unknown here
+// (e.g. no temperature sensor, or not Linux).
+type InfoJSON struct {
+	CPULoadPercent  *float64 `json:"cpuLoadPercent"`
+	CPUTempC        *float64 `json:"cpuTempC"`
+	MemUsedPercent  *float64 `json:"memUsedPercent"`
+	DiskUsedPercent *float64 `json:"diskUsedPercent"`
+}
+
+// Handler serves GET /api/system with a fresh reading, rounded to one decimal.
+func (m *Monitor) Handler() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /api/system", func(w http.ResponseWriter, _ *http.Request) {
+		info := m.Read()
+		body := InfoJSON{
+			CPULoadPercent:  round1(info.CPULoadPercent),
+			CPUTempC:        round1(info.CPUTempC),
+			MemUsedPercent:  round1(info.MemUsedPercent),
+			DiskUsedPercent: round1(info.DiskUsedPercent),
+		}
+		var buf bytes.Buffer
+		if err := json.NewEncoder(&buf).Encode(body); err != nil {
+			http.Error(w, `{"error":"encode response"}`, http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(buf.Bytes()) // the client is gone if this fails
+	})
+	return mux
+}
+
+func round1(v *float64) *float64 {
+	if v == nil || math.IsNaN(*v) || math.IsInf(*v, 0) {
+		return nil
+	}
+	r := math.Round(*v*10) / 10
+	return &r
 }
 
 // ParseStat returns idle and total jiffies of the "cpu" line of /proc/stat.
