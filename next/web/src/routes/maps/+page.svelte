@@ -79,6 +79,7 @@
 			initial={editing.initial}
 			title={editing.title}
 			{robotPosition}
+			robotSolution={robot.state?.solution ?? null}
 			{save}
 			cancel={() => (editing = null)}
 		/>

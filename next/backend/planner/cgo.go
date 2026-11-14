@@ -12,6 +12,9 @@ package planner
 int cassandra_clip_areas(planner_line perimeter, const planner_line *exclusions, size_t exclusion_count,
                          const planner_line *areas, size_t area_count,
                          planner_point **out_points, size_t **out_counts, size_t *out_polys);
+int cassandra_reshape_lawn(planner_line perimeter, const planner_line *exclusions, size_t exclusion_count,
+                           planner_line figure, int add,
+                           planner_point **out_points, size_t **out_counts, size_t *out_polys);
 */
 import "C"
 
@@ -163,6 +166,11 @@ func clipToPerimeter(area Area) ([][]geo.Point, error) {
 	if polys == 0 {
 		return nil, fmt.Errorf("%w: the mow areas lie outside the perimeter", ErrInvalid)
 	}
+	return goRings(pts, counts, polys), nil
+}
+
+// goRings copies the rings a clip.cpp function returned.
+func goRings(pts *C.planner_point, counts *C.size_t, polys C.size_t) [][]geo.Point {
 	sizes := unsafe.Slice(counts, int(polys))
 	total := 0
 	for _, c := range sizes {
@@ -177,7 +185,30 @@ func clipToPerimeter(area Area) ([][]geo.Point, error) {
 			flat = flat[1:]
 		}
 	}
-	return out, nil
+	return out
+}
+
+func reshape(area Area, figure []geo.Point, add bool) ([][]geo.Point, error) {
+	var a cArena
+	defer a.free()
+	exclusions, nex := a.lines(area.Exclusions)
+	mode := C.int(0)
+	if add {
+		mode = 1
+	}
+	var pts *C.planner_point
+	var counts *C.size_t
+	var polys C.size_t
+	status := C.cassandra_reshape_lawn(a.line(area.Perimeter), exclusions, nex, a.line(figure), mode, &pts, &counts, &polys) //nolint:gocritic // false positive on the code cgo generates
+	if status != 0 {
+		return nil, fmt.Errorf("%w: reshaping the lawn", ErrFailed)
+	}
+	defer C.free(unsafe.Pointer(pts))
+	defer C.free(unsafe.Pointer(counts))
+	if polys == 0 {
+		return nil, nil
+	}
+	return goRings(pts, counts, polys), nil
 }
 
 func way(area Area, start, goal geo.Point) ([]geo.Point, error) {

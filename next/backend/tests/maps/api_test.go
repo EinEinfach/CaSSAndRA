@@ -45,7 +45,7 @@ func toJSON(t *testing.T, v any) string {
 
 func TestAPICreateGetListUpdateDelete(t *testing.T) {
 	f := newStore(t)
-	h := f.store.Handler(&fakeUploader{})
+	h := f.store.Handler(&fakeUploader{}, &fakeReshaper{})
 
 	rec := call(t, h, http.MethodPost, "/api/maps", `{"name": "Garden", "perimeter": [{"x":0,"y":0},{"x":1,"y":0},{"x":1,"y":1}]}`)
 	if rec.Code != http.StatusCreated {
@@ -85,7 +85,7 @@ func TestAPICreateGetListUpdateDelete(t *testing.T) {
 
 func TestAPIActive(t *testing.T) {
 	f := newStore(t)
-	h := f.store.Handler(&fakeUploader{})
+	h := f.store.Handler(&fakeUploader{}, &fakeReshaper{})
 	m, _ := f.store.Create(garden("Garden"))
 	if rec := call(t, h, http.MethodPut, "/api/maps/active", `{"id": "`+m.ID+`"}`); rec.Code != http.StatusNoContent {
 		t.Fatalf("activate: %d %s", rec.Code, rec.Body)
@@ -124,7 +124,7 @@ func TestAPIErrors(t *testing.T) {
 		t.Run(fmt.Sprintf("%s %s %s", tt.method, tt.path, tt.body), func(t *testing.T) {
 			f := newStore(t)
 			_, _ = f.store.Create(garden("taken"))
-			rec := call(t, f.store.Handler(&fakeUploader{}), tt.method, tt.path, tt.body)
+			rec := call(t, f.store.Handler(&fakeUploader{}, &fakeReshaper{}), tt.method, tt.path, tt.body)
 			if rec.Code != tt.want || !strings.Contains(rec.Body.String(), `"error"`) {
 				t.Errorf("got %d %s, want %d with error", rec.Code, rec.Body, tt.want)
 			}
@@ -136,7 +136,7 @@ func TestAPIUpload(t *testing.T) {
 	f := newStore(t)
 	up := &fakeUploader{}
 	m, _ := f.store.Create(garden("Garden"))
-	rec := call(t, f.store.Handler(up), http.MethodPost, "/api/maps/"+m.ID+"/upload", "")
+	rec := call(t, f.store.Handler(up, &fakeReshaper{}), http.MethodPost, "/api/maps/"+m.ID+"/upload", "")
 	if rec.Code != http.StatusNoContent {
 		t.Fatalf("upload: %d %s", rec.Code, rec.Body)
 	}
@@ -163,7 +163,7 @@ func TestAPIUploadErrors(t *testing.T) {
 		t.Run(tt.err.Error(), func(t *testing.T) {
 			f := newStore(t)
 			m, _ := f.store.Create(garden("Garden"))
-			rec := call(t, f.store.Handler(&fakeUploader{err: tt.err}), http.MethodPost, "/api/maps/"+m.ID+"/upload", "")
+			rec := call(t, f.store.Handler(&fakeUploader{err: tt.err}, &fakeReshaper{}), http.MethodPost, "/api/maps/"+m.ID+"/upload", "")
 			if rec.Code != tt.want {
 				t.Errorf("status %d, want %d", rec.Code, tt.want)
 			}

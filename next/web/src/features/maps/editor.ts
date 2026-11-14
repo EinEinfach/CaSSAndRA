@@ -2,17 +2,31 @@
 import type { Point } from '#shared/viewport.ts';
 import type { MapShape } from './types.ts';
 
+/**
+ * The map being edited, plus the area drawn to add to the lawn or cut out of
+ * it (legacy "figure"). The area is not part of the saved map.
+ */
+export interface Draft extends MapShape {
+	figure?: Point[];
+}
+
+/** The lawn: what an area is added to or cut out of. */
+export type Lawn = Pick<MapShape, 'perimeter' | 'exclusions'>;
+
 /** The part of the map being edited. */
 export type Layer =
 	| { kind: 'perimeter' }
 	| { kind: 'exclusion'; index: number }
 	| { kind: 'dock' }
-	| { kind: 'searchWire' };
+	| { kind: 'searchWire' }
+	| { kind: 'figure' };
+
+export const figureLayer: Layer = { kind: 'figure' };
 
 export const perimeterLayer: Layer = { kind: 'perimeter' };
 
 /** Polygons are closed; dock path and search wire are lines. */
-export const isClosed = (layer: Layer) => layer.kind === 'perimeter' || layer.kind === 'exclusion';
+export const isClosed = (layer: Layer) => layer.kind !== 'dock' && layer.kind !== 'searchWire';
 
 export const sameLayer = (a: Layer, b: Layer) =>
 	a.kind === b.kind && (a.kind !== 'exclusion' || a.index === (b as typeof a).index);
@@ -27,6 +41,8 @@ export function layerName(layer: Layer): string {
 			return 'Dock path';
 		case 'searchWire':
 			return 'Search wire';
+		case 'figure':
+			return 'Area';
 	}
 }
 
@@ -34,7 +50,7 @@ export function emptyShape(name = ''): MapShape {
 	return { name, perimeter: [], exclusions: [], dock: [], searchWire: [] };
 }
 
-export function pointsOf(m: MapShape, layer: Layer): Point[] {
+export function pointsOf(m: Draft, layer: Layer): Point[] {
 	switch (layer.kind) {
 		case 'perimeter':
 			return m.perimeter;
@@ -44,10 +60,12 @@ export function pointsOf(m: MapShape, layer: Layer): Point[] {
 			return m.dock;
 		case 'searchWire':
 			return m.searchWire;
+		case 'figure':
+			return m.figure ?? [];
 	}
 }
 
-export function withPoints(m: MapShape, layer: Layer, pts: Point[]): MapShape {
+export function withPoints(m: Draft, layer: Layer, pts: Point[]): Draft {
 	switch (layer.kind) {
 		case 'perimeter':
 			return { ...m, perimeter: pts };
@@ -57,6 +75,8 @@ export function withPoints(m: MapShape, layer: Layer, pts: Point[]): MapShape {
 			return { ...m, dock: pts };
 		case 'searchWire':
 			return { ...m, searchWire: pts };
+		case 'figure':
+			return { ...m, figure: pts };
 	}
 }
 
@@ -71,7 +91,7 @@ export const roundPoint = (p: Point): Point => ({
  * Polygons with at least 3 points get the point on their nearest edge, so a
  * click near an edge adds a corner there; lines and new polygons grow at the end.
  */
-export function addPoint(m: MapShape, layer: Layer, p: Point): { map: MapShape; index: number } {
+export function addPoint(m: Draft, layer: Layer, p: Point): { map: Draft; index: number } {
 	const pts = pointsOf(m, layer);
 	const pt = roundPoint(p);
 	let index = pts.length;
@@ -89,7 +109,7 @@ export function addPoint(m: MapShape, layer: Layer, p: Point): { map: MapShape; 
 	return { map: withPoints(m, layer, next), index };
 }
 
-export function movePoint(m: MapShape, layer: Layer, index: number, p: Point): MapShape {
+export function movePoint(m: Draft, layer: Layer, index: number, p: Point): Draft {
 	return withPoints(
 		m,
 		layer,
@@ -97,7 +117,7 @@ export function movePoint(m: MapShape, layer: Layer, index: number, p: Point): M
 	);
 }
 
-export function removePoint(m: MapShape, layer: Layer, index: number): MapShape {
+export function removePoint(m: Draft, layer: Layer, index: number): Draft {
 	return withPoints(
 		m,
 		layer,
@@ -105,7 +125,7 @@ export function removePoint(m: MapShape, layer: Layer, index: number): MapShape 
 	);
 }
 
-export function addExclusion(m: MapShape): { map: MapShape; layer: Layer } {
+export function addExclusion(m: Draft): { map: Draft; layer: Layer } {
 	return {
 		map: { ...m, exclusions: [...m.exclusions, []] },
 		layer: { kind: 'exclusion', index: m.exclusions.length }
@@ -113,25 +133,26 @@ export function addExclusion(m: MapShape): { map: MapShape; layer: Layer } {
 }
 
 /** Removes an exclusion entirely, or clears any other layer. */
-export function clearLayer(m: MapShape, layer: Layer): MapShape {
+export function clearLayer(m: Draft, layer: Layer): Draft {
 	if (layer.kind === 'exclusion') {
 		return { ...m, exclusions: m.exclusions.filter((_, i) => i !== layer.index) };
 	}
 	return withPoints(m, layer, []);
 }
 
-export function allLayers(m: MapShape): Layer[] {
+export function allLayers(m: Draft): Layer[] {
 	return [
 		perimeterLayer,
 		...m.exclusions.map((_, index): Layer => ({ kind: 'exclusion', index })),
 		{ kind: 'dock' },
-		{ kind: 'searchWire' }
+		{ kind: 'searchWire' },
+		figureLayer
 	];
 }
 
 /** The point within radius of p, preferring the given layer. */
 export function hitPoint(
-	m: MapShape,
+	m: Draft,
 	p: Point,
 	radius: number,
 	prefer?: Layer
@@ -153,6 +174,25 @@ export function hitPoint(
 		if (best >= 0) return { layer, index: best };
 	}
 	return null;
+}
+
+/** Whether the drawn area can be added or cut out. */
+export const figureReady = (m: Draft) => (m.figure ?? []).length >= 3;
+
+/** The draft with a reshaped lawn; the area is used up. */
+export function withLawn(m: Draft, lawn: Lawn): Draft {
+	return { ...m, perimeter: lawn.perimeter, exclusions: lawn.exclusions, figure: [] };
+}
+
+/** The map without the drawn area, as it is saved. */
+export function shapeOf(m: Draft): MapShape {
+	return {
+		name: m.name,
+		perimeter: m.perimeter,
+		exclusions: m.exclusions,
+		dock: m.dock,
+		searchWire: m.searchWire
+	};
 }
 
 export function distanceToSegment(p: Point, a: Point, b: Point): number {

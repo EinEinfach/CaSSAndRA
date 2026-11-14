@@ -3,7 +3,8 @@
 	import MapCanvas, { type MapInteraction } from '#shared/MapCanvas.svelte';
 	import MapLayout from '#shared/MapLayout.svelte';
 	import type { Point } from '#shared/viewport.ts';
-	import { allLayers, layerName, pointsOf } from './editor.ts';
+	import { reshapeLawn, type ReshapeOp } from './api.ts';
+	import { allLayers, layerName, pointsOf, type Lawn } from './editor.ts';
 	import { EditorSession } from './session.svelte.ts';
 	import type { MapShape } from './types.ts';
 
@@ -11,12 +12,18 @@
 		initial,
 		title = 'New map',
 		robotPosition = null,
+		robotSolution = null,
+		reshape = reshapeLawn,
 		save,
 		cancel
 	}: {
 		initial: MapShape;
 		title?: string;
 		robotPosition?: Point | null;
+		/** GPS solution of the robot ("fix", "float", "invalid"); null = unknown. */
+		robotSolution?: string | null;
+		/** Adds the drawn area to the lawn or cuts it out. */
+		reshape?: (lawn: Lawn, figure: Point[], op: ReshapeOp) => Promise<Lawn>;
 		save: (m: MapShape) => Promise<void>;
 		cancel: () => void;
 	} = $props();
@@ -36,6 +43,36 @@
 		...session.canvasLayers,
 		robot: robotPosition ? { position: robotPosition, headingRad: Math.PI / 2 } : null
 	});
+
+	// Legacy asks before recording a point without RTK fix: it may be off by decimeters.
+	let confirmingNoFix = $state(false);
+
+	function addRobotPosition(confirmed = false) {
+		if (!robotPosition) return;
+		if (robotSolution !== 'fix' && !confirmed) {
+			confirmingNoFix = true;
+			return;
+		}
+		confirmingNoFix = false;
+		session.add(robotPosition);
+	}
+
+	let reshaping = $state(false);
+
+	async function applyFigure(op: ReshapeOp) {
+		error = '';
+		reshaping = true;
+		try {
+			const { perimeter, exclusions, figure = [] } = session.draft;
+			// Exclusions just begun have no area yet and cannot take part.
+			const lawn = { perimeter, exclusions: exclusions.filter((e) => e.length >= 3) };
+			session.applyLawn(await reshape(lawn, figure, op));
+		} catch (err) {
+			error = err instanceof Error ? err.message : String(err);
+		} finally {
+			reshaping = false;
+		}
+	}
 
 	async function submit() {
 		error = '';
@@ -90,7 +127,7 @@
 				>
 				<button
 					type="button"
-					onclick={() => robotPosition && session.add(robotPosition)}
+					onclick={() => addRobotPosition()}
 					disabled={!robotPosition}
 					title="Add a point where the robot is">Robot position</button
 				>
@@ -103,6 +140,20 @@
 					{session.layer.kind === 'exclusion' ? 'Remove exclusion' : 'Clear'}
 				</button>
 			</div>
+			{#if confirmingNoFix}
+				<div class="confirm" role="alertdialog" aria-label="No RTK fix">
+					<p>
+						The robot has no RTK fix{robotSolution === 'float' ? ' (float)' : ''}. Its position may
+						be off by more than a few centimeters.
+					</p>
+					<div class="buttons">
+						<button type="button" onclick={() => (confirmingNoFix = false)}>Don't add</button>
+						<button type="button" class="primary" onclick={() => addRobotPosition(true)}
+							>Add anyway</button
+						>
+					</div>
+				</div>
+			{/if}
 		</div>
 	{/snippet}
 	{#snippet panel()}
@@ -144,10 +195,29 @@
 				>+ Exclusion</button
 			>
 		</div>
-		<p class="help">
-			Tap to add a point to the {layerName(session.layer).toLowerCase()}, tap a point to select it,
-			drag it to move it. Polygons get new corners on their nearest edge.
-		</p>
+		{#if session.layer.kind === 'figure'}
+			<p class="help">
+				Draw an area: tap its corners or add the robot position. Then add it to the lawn or cut it
+				out. Cut out inside the lawn it becomes an exclusion; added over an exclusion it fills it.
+			</p>
+			<div class="buttons">
+				<button
+					type="button"
+					disabled={reshaping || !session.figureReady}
+					onclick={() => applyFigure('add')}>Add to lawn</button
+				>
+				<button
+					type="button"
+					disabled={reshaping || !session.figureReady}
+					onclick={() => applyFigure('subtract')}>Cut out of lawn</button
+				>
+			</div>
+		{:else}
+			<p class="help">
+				Tap to add a point to the {layerName(session.layer).toLowerCase()}, tap a point to select
+				it, drag it to move it. Polygons get new corners on their nearest edge.
+			</p>
+		{/if}
 		{#if session.problems.length > 0}
 			<ul class="problems" aria-label="Before saving">
 				{#each session.problems as p (p)}<li>{p}</li>{/each}
@@ -217,6 +287,10 @@
 		background: var(--map-wire);
 		border-color: transparent;
 	}
+	.chip.figure::before {
+		background: var(--map-selection-fill);
+		border: 1px dashed var(--map-selection);
+	}
 	.chip.add::before {
 		display: none;
 	}
@@ -252,6 +326,23 @@
 	}
 	.tools button:not(:disabled):hover {
 		background: var(--surface-sunken);
+	}
+	.confirm {
+		position: absolute;
+		left: 50%;
+		bottom: 72px;
+		transform: translateX(-50%);
+		width: min(340px, calc(100% - 24px));
+		display: grid;
+		gap: 8px;
+		padding: 12px;
+		border-radius: 14px;
+		background: var(--surface);
+		box-shadow: var(--shadow);
+		border: 1px solid var(--border);
+	}
+	.confirm p {
+		margin: 0;
 	}
 	.help {
 		margin: 0;

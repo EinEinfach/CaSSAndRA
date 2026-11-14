@@ -4,6 +4,7 @@ import {
 	createMap,
 	deleteMap,
 	fetchMaps,
+	reshapeLawn,
 	updateMap,
 	uploadMap
 } from '#features/maps/api.ts';
@@ -59,5 +60,29 @@ describe('maps api', () => {
 		await expect(
 			uploadMap('m1', respond(409, { error: 'robot is driving, stop it first' }))
 		).rejects.toThrow('robot is driving');
+	});
+
+	it('reshapes a lawn without saving', async () => {
+		const g = garden();
+		const lawn = { perimeter: g.perimeter, exclusions: [] };
+		const fetchFn = respond(200, lawn);
+		const figure = [
+			{ x: 1, y: 1 },
+			{ x: 2, y: 1 },
+			{ x: 2, y: 2 }
+		];
+		await expect(reshapeLawn(g, figure, 'subtract', fetchFn)).resolves.toEqual(lawn);
+		expect(fetchFn).toHaveBeenLastCalledWith(
+			'/api/maps/reshape',
+			expect.objectContaining({
+				method: 'POST',
+				body: JSON.stringify({
+					perimeter: g.perimeter,
+					exclusions: g.exclusions,
+					figure,
+					op: 'subtract'
+				})
+			})
+		);
 	});
 });

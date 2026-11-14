@@ -202,6 +202,13 @@ bildet beide exakt nach (float32), Golden-Werte stammen aus `tests/protocol/test
 greift – und lehnt Uploads ab, solange der Roboter fährt (AT+W mit Index 0 löscht seine Route). Legacy toleriert
 stattdessen eine Abweichung < 200. Der Simulator rechnet wie Sunray unter Linux.
 
+**Karten-Editor, Fläche (Legacy „figure“):** Neben Perimeter, Ausschlüssen, Dockpfad und Suchdraht zeichnet der Editor
+eine Fläche (Ebene „Area“, auch aus Roboterpositionen), die zum Rasen hinzugefügt oder abgezogen wird: im Rasen
+abgezogen = neue Ausschlusszone, über einer Ausschlusszone hinzugefügt = gefüllt, die erste Fläche einer leeren Karte =
+Perimeter. Gerechnet wird im Backend mit Clipper2 (`planner.Reshape`, `clip.cpp`; `POST /api/maps/reshape`, zustandslos,
+ohne Build-Tag `cpp` 501), Ergebnis in cm; der Rasen muss ein Stück bleiben (sonst 400). Der Entwurf samt Undo liegt im
+Browser, die Fläche wird nie gespeichert. „Robot position“ fragt ohne RTK-Fix nach (wie Legacy).
+
 **Gefahrene Spur:** `robot` führt sie (`robot/trail.go`: 5 cm Mindestabstand, neue Spur nach Sprung > 5 m, max. 2000 Punkte)
 und beginnt sie neu, sobald der Status auf docked/charging wechselt oder über `DELETE /api/robot/trail`. Der Zustand
 trägt `trailId`; der Browser holt die Spur nur bei neuer Id (`GET /api/robot/trail`) und verlängert sie sonst selbst.

@@ -24,4 +24,7 @@ func TestWithoutCppThePlannerIsUnavailable(t *testing.T) {
 	if _, err := p.Way(context.Background(), planner.Area{}, geo.Point{}, geo.Point{}); !errors.Is(err, planner.ErrUnavailable) {
 		t.Errorf("Way: %v", err)
 	}
+	if _, _, err := p.Reshape(planner.Area{}, []geo.Point{{}, {X: 1}, {Y: 1}}, true); !errors.Is(err, planner.ErrUnavailable) {
+		t.Errorf("Reshape: %v", err)
+	}
 }

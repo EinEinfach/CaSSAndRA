@@ -4,6 +4,11 @@ import {
 	addExclusion,
 	addPoint,
 	allLayers,
+	figureLayer,
+	figureReady,
+	shapeOf,
+	withLawn,
+	withPoints,
 	clearLayer,
 	distanceToSegment,
 	emptyShape,
@@ -41,8 +46,25 @@ describe('layers', () => {
 			'Perimeter',
 			'Exclusion 1',
 			'Dock path',
-			'Search wire'
+			'Search wire',
+			'Area'
 		]);
+	});
+
+	it('keeps a drawn area beside the map', () => {
+		const m = garden();
+		expect(isClosed(figureLayer)).toBe(true);
+		expect(pointsOf(m, figureLayer)).toEqual([]);
+		expect(figureReady(m)).toBe(false);
+		const drawn = withPoints(m, figureLayer, pts(1, 1, 2, 1, 2, 2));
+		expect(figureReady(drawn)).toBe(true);
+		expect(shapeOf(drawn)).toEqual(shapeOf(m));
+		expect(shapeOf(drawn)).not.toHaveProperty('figure');
+		expect(clearLayer(drawn, figureLayer).figure).toEqual([]);
+
+		const lawn = { perimeter: pts(0, 0, 5, 0, 5, 5), exclusions: [] };
+		const next = withLawn(drawn, lawn);
+		expect(next).toMatchObject({ ...lawn, figure: [], dock: m.dock, name: m.name });
 	});
 
 	it('reads points of every layer, empty for a missing exclusion', () => {

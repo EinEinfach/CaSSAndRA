@@ -65,3 +65,45 @@ test('a map that is not valid cannot be saved', async ({ page }) => {
 	await button(page, 'Cancel').click();
 	await expect(page.getByRole('heading', { name: 'Maps' })).toBeVisible();
 });
+
+test('build a lawn from areas: add, cut out an exclusion, refuse a split', async ({ page }) => {
+	const drawArea = async (corners: [number, number][]) => {
+		await page.getByRole('tab', { name: /Area/ }).click();
+		for (const [fx, fy] of corners) await clickCanvas(page, fx, fy);
+		await expect(page.getByRole('tab', { name: /Area/ })).toContainText(String(corners.length));
+	};
+	const rect = (x0: number, y0: number, x1: number, y1: number): [number, number][] => [
+		[x0, y0],
+		[x1, y0],
+		[x1, y1],
+		[x0, y1]
+	];
+
+	await page.goto('/maps');
+	await button(page, '+ New map').click();
+
+	// The first area becomes the perimeter.
+	await drawArea(rect(0.3, 0.3, 0.7, 0.7));
+	await button(page, 'Add to lawn').click();
+	await expect(page.getByRole('tab', { name: /Perimeter/ })).toContainText('4');
+	await expect(page.getByRole('tab', { name: /Area/ })).toContainText('0');
+
+	// Cut out inside the lawn it becomes an exclusion.
+	await drawArea(rect(0.45, 0.45, 0.55, 0.55));
+	await button(page, 'Cut out of lawn').click();
+	await expect(page.getByRole('tab', { name: /Exclusion 1/ })).toContainText('4');
+
+	// An area across the border makes the lawn bigger: its 2 outer corners and 2 crossings are new.
+	await drawArea(rect(0.65, 0.35, 0.8, 0.4));
+	await button(page, 'Add to lawn').click();
+	await expect(page.getByRole('tab', { name: /Perimeter/ })).toContainText('8');
+
+	// A cut right through would leave two lawns.
+	await drawArea(rect(0.2, 0.6, 0.9, 0.65));
+	await button(page, 'Cut out of lawn').click();
+	await expect(page.getByRole('alert')).toContainText('fall into 2 pieces');
+	await expect(page.getByRole('tab', { name: /Perimeter/ })).toContainText('8');
+
+	await button(page, 'Cancel').click();
+	await expect(page.getByRole('heading', { name: 'Maps' })).toBeVisible();
+});

@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/EinEinfach/CaSSAndRA/next/backend/geo"
 )
@@ -90,6 +91,86 @@ func (n *Native) Way(ctx context.Context, area Area, start, goal geo.Point) ([]g
 		return nil, fmt.Errorf("find way: %w", err)
 	}
 	return pts, nil
+}
+
+// minRingM2: rings smaller than this are slivers of the clipping, not lawn.
+const minRingM2 = 0.01
+
+// Reshape adds figure to the lawn of area (perimeter minus exclusions) or,
+// with add false, cuts it out. It returns the new perimeter and exclusions in
+// centimeter precision. The lawn has to stay in one piece: a figure added
+// next to it or one that cuts it in two is ErrInvalid. An area without
+// perimeter is an empty lawn, so adding a figure starts a new one.
+func (n *Native) Reshape(area Area, figure []geo.Point, add bool) (perimeter []geo.Point, exclusions [][]geo.Point, err error) {
+	if !available {
+		return nil, nil, ErrUnavailable
+	}
+	if len(figure) < 3 {
+		return nil, nil, fmt.Errorf("%w: the area needs at least 3 points", ErrInvalid)
+	}
+	if math.Abs(signedArea(figure)) < minRingM2 {
+		return nil, nil, fmt.Errorf("%w: the area is too small", ErrInvalid)
+	}
+	if n := len(area.Perimeter); n != 0 && n < 3 {
+		return nil, nil, fmt.Errorf("%w: perimeter needs at least 3 points", ErrInvalid)
+	}
+	for i, e := range area.Exclusions {
+		if len(e) < 3 {
+			return nil, nil, fmt.Errorf("%w: exclusion %d needs at least 3 points", ErrInvalid, i)
+		}
+	}
+	rings, err := reshape(area, figure, add)
+	if err != nil {
+		return nil, nil, err
+	}
+	var outlines [][]geo.Point
+	exclusions = [][]geo.Point{}
+	for _, r := range rings {
+		r = roundRing(r)
+		switch a := signedArea(r); {
+		case a >= minRingM2:
+			outlines = append(outlines, r)
+		case a <= -minRingM2:
+			exclusions = append(exclusions, r)
+		}
+	}
+	switch {
+	case len(outlines) == 1:
+		return outlines[0], exclusions, nil
+	case len(outlines) == 0:
+		return nil, nil, fmt.Errorf("%w: no lawn would be left", ErrInvalid)
+	case add:
+		return nil, nil, fmt.Errorf("%w: the area does not touch the lawn", ErrInvalid)
+	default:
+		return nil, nil, fmt.Errorf("%w: the lawn would fall into %d pieces", ErrInvalid, len(outlines))
+	}
+}
+
+// roundRing rounds to centimeters, as maps are stored (Clipper2 scales by a
+// power of two, so its own rounding is finer), and drops points that then
+// repeat their predecessor.
+func roundRing(r []geo.Point) []geo.Point {
+	out := make([]geo.Point, 0, len(r))
+	for _, p := range r {
+		p = geo.Point{X: math.Round(p.X*100) / 100, Y: math.Round(p.Y*100) / 100}
+		if len(out) == 0 || out[len(out)-1] != p {
+			out = append(out, p)
+		}
+	}
+	if len(out) > 1 && out[0] == out[len(out)-1] {
+		out = out[:len(out)-1]
+	}
+	return out
+}
+
+// signedArea is positive for counter-clockwise rings (shoelace formula).
+func signedArea(r []geo.Point) float64 {
+	sum := 0.0
+	for i, p := range r {
+		q := r[(i+1)%len(r)]
+		sum += p.X*q.Y - q.X*p.Y
+	}
+	return sum / 2
 }
 
 // run executes f in the planner slot. The C++ code cannot be interrupted: if

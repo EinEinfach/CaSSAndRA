@@ -107,11 +107,101 @@ describe('MapEditor', () => {
 		render(MapEditor, {
 			initial: emptyShape('x'),
 			robotPosition: { x: 1.234, y: 2 },
+			robotSolution: 'fix',
 			save: vi.fn(),
 			cancel: vi.fn()
 		});
 		await userEvent.click(button(/Robot position/));
 		expect(screen.getByRole('tab', { name: /Perimeter/ }).textContent).toContain('1');
+	});
+
+	it.each(['float', 'invalid', null])(
+		'asks before adding a position with solution %s',
+		async (s) => {
+			render(MapEditor, {
+				initial: emptyShape('x'),
+				robotPosition: { x: 1, y: 2 },
+				robotSolution: s,
+				save: vi.fn(),
+				cancel: vi.fn()
+			});
+			const points = () => screen.getByRole('tab', { name: /Perimeter/ }).textContent;
+			await userEvent.click(button(/Robot position/));
+			expect(screen.getByRole('alertdialog').textContent).toContain('no RTK fix');
+			expect(points()).toContain('0');
+			await userEvent.click(button("Don't add"));
+			expect(screen.queryByRole('alertdialog')).toBeNull();
+			expect(points()).toContain('0');
+
+			await userEvent.click(button(/Robot position/));
+			await userEvent.click(button('Add anyway'));
+			expect(screen.queryByRole('alertdialog')).toBeNull();
+			expect(points()).toContain('1');
+		}
+	);
+
+	it('draws an area and adds it to the lawn', async () => {
+		const lawn = {
+			perimeter: [
+				{ x: 0, y: 0 },
+				{ x: 14, y: 0 },
+				{ x: 14, y: 10 },
+				{ x: 0, y: 10 }
+			],
+			exclusions: []
+		};
+		const reshape = vi.fn(async () => lawn);
+		const save = vi.fn(async () => {});
+		render(MapEditor, { initial: garden(), reshape, save, cancel: vi.fn() });
+
+		await userEvent.click(screen.getByRole('tab', { name: /Area/ }));
+		expect(button('Add to lawn').disabled).toBe(true);
+		await tap(5, 5);
+		await tap(8, 5);
+		await tap(8, 8);
+		await userEvent.click(button('Add to lawn'));
+
+		const g = garden();
+		expect(reshape).toHaveBeenCalledWith(
+			{ perimeter: g.perimeter, exclusions: g.exclusions },
+			[
+				{ x: 5, y: 5 },
+				{ x: 8, y: 5 },
+				{ x: 8, y: 8 }
+			],
+			'add'
+		);
+		// The area is used up and the perimeter is edited again.
+		expect(screen.getByRole('tab', { name: /Area/ }).textContent).toContain('0');
+		expect(screen.getByRole('tab', { name: /Perimeter/ }).getAttribute('aria-selected')).toBe(
+			'true'
+		);
+		await userEvent.click(button('Save map'));
+		// Saved without the area.
+		expect(save).toHaveBeenCalledWith({
+			name: g.name,
+			dock: g.dock,
+			searchWire: g.searchWire,
+			...lawn
+		});
+
+		await userEvent.click(button('Undo'));
+		expect(screen.getByRole('tab', { name: /Area/ }).textContent).toContain('3');
+	});
+
+	it('cuts an area out and shows why it failed', async () => {
+		const reshape = vi.fn().mockRejectedValue(new Error('the lawn would fall into 2 pieces'));
+		render(MapEditor, { initial: garden(), reshape, save: vi.fn(), cancel: vi.fn() });
+		await userEvent.click(screen.getByRole('tab', { name: /Area/ }));
+		await tap(5, 5);
+		await tap(8, 5);
+		await tap(8, 8);
+		await userEvent.click(button('Cut out of lawn'));
+		expect(reshape.mock.calls[0][2]).toBe('subtract');
+		expect((await screen.findByRole('alert')).textContent).toBe(
+			'the lawn would fall into 2 pieces'
+		);
+		expect(screen.getByRole('tab', { name: /Area/ }).textContent).toContain('3');
 	});
 
 	it('cannot add the robot position without a robot', () => {

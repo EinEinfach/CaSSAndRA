@@ -22,6 +22,31 @@ namespace
             path.emplace_back(line.points[i].x, line.points[i].y);
         return path;
     }
+
+    // Copies paths (total points in all) into malloc'ed arrays for the Go side.
+    int emit(const Clipper2Lib::PathsD &paths, size_t total,
+             planner_point **out_points, size_t **out_counts, size_t *out_polys)
+    {
+        auto *pts = static_cast<planner_point *>(std::malloc(total * sizeof(planner_point)));
+        auto *counts = static_cast<size_t *>(std::malloc(paths.size() * sizeof(size_t)));
+        if (pts == nullptr || counts == nullptr)
+        {
+            std::free(pts);
+            std::free(counts);
+            return -1;
+        }
+        size_t k = 0;
+        for (size_t i = 0; i < paths.size(); ++i)
+        {
+            counts[i] = paths[i].size();
+            for (const auto &p : paths[i])
+                pts[k++] = {p.x, p.y};
+        }
+        *out_points = pts;
+        *out_counts = counts;
+        *out_polys = paths.size();
+        return 0;
+    }
 }
 
 extern "C" int cassandra_clip_areas(planner_line perimeter, const planner_line *exclusions, size_t exclusion_count,
@@ -57,25 +82,53 @@ extern "C" int cassandra_clip_areas(planner_line perimeter, const planner_line *
         }
         if (outer.empty())
             return 0;
-        auto *pts = static_cast<planner_point *>(std::malloc(total * sizeof(planner_point)));
-        auto *counts = static_cast<size_t *>(std::malloc(outer.size() * sizeof(size_t)));
-        if (pts == nullptr || counts == nullptr)
+        return emit(outer, total, out_points, out_counts, out_polys);
+    }
+    catch (const std::exception &)
+    {
+        return -1;
+    }
+}
+
+// Adds a figure to the lawn (perimeter minus exclusions) or cuts it out, as
+// legacy CaSSAndRA did with shapely union/difference. Returns every ring of
+// the result: outlines counter-clockwise (positive
+// area), holes clockwise. An empty perimeter is an empty lawn.
+extern "C" int cassandra_reshape_lawn(planner_line perimeter, const planner_line *exclusions, size_t exclusion_count,
+                                      planner_line figure, int add,
+                                      planner_point **out_points, size_t **out_counts, size_t *out_polys)
+{
+    *out_points = nullptr;
+    *out_counts = nullptr;
+    *out_polys = 0;
+    try
+    {
+        const auto rule = Clipper2Lib::FillRule::NonZero;
+        Clipper2Lib::PathsD lawn;
+        if (perimeter.count >= 3)
         {
-            std::free(pts);
-            std::free(counts);
-            return -1;
+            Clipper2Lib::PathsD holes;
+            for (size_t i = 0; i < exclusion_count; ++i)
+                holes.push_back(toPath(exclusions[i]));
+            lawn = Clipper2Lib::Difference(Clipper2Lib::PathsD{toPath(perimeter)}, holes, rule, 2);
         }
-        size_t k = 0;
-        for (size_t i = 0; i < outer.size(); ++i)
+        // Union with nothing first: the figure counts once however it was drawn.
+        Clipper2Lib::PathsD shape = Clipper2Lib::Union(Clipper2Lib::PathsD{toPath(figure)}, rule, 2);
+        Clipper2Lib::PathsD result = add ? Clipper2Lib::Union(lawn, shape, rule, 2)
+                                         : Clipper2Lib::Difference(lawn, shape, rule, 2);
+        Clipper2Lib::PathsD rings;
+        size_t total = 0;
+        for (auto &p : result)
         {
-            counts[i] = outer[i].size();
-            for (const auto &p : outer[i])
-                pts[k++] = {p.x, p.y};
+            if (p.size() >= 3)
+            {
+                total += p.size();
+                rings.push_back(std::move(p));
+            }
         }
-        *out_points = pts;
-        *out_counts = counts;
-        *out_polys = outer.size();
-        return 0;
+        if (rings.empty())
+            return 0;
+        return emit(rings, total, out_points, out_counts, out_polys);
     }
     catch (const std::exception &)
     {

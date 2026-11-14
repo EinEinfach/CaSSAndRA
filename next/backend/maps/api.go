@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/EinEinfach/CaSSAndRA/next/backend/geo"
+	"github.com/EinEinfach/CaSSAndRA/next/backend/planner"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/protocol"
 	"github.com/EinEinfach/CaSSAndRA/next/backend/robot"
 )
@@ -15,6 +17,26 @@ import (
 // Uploader transfers a map to the robot. *robot.Robot implements it.
 type Uploader interface {
 	UploadMap(ctx context.Context, m protocol.Map) error
+}
+
+// Reshaper adds an area to a lawn or cuts it out. *planner.Native implements it.
+type Reshaper interface {
+	Reshape(area planner.Area, figure []geo.Point, add bool) (perimeter []geo.Point, exclusions [][]geo.Point, err error)
+}
+
+// ReshapeJSON is the body of POST /api/maps/reshape: the lawn being edited
+// (not a saved map), the drawn area and what to do with it.
+type ReshapeJSON struct {
+	Perimeter  []geo.Point   `json:"perimeter"`
+	Exclusions [][]geo.Point `json:"exclusions"`
+	Figure     []geo.Point   `json:"figure"`
+	Op         string        `json:"op"` // "add" or "subtract"
+}
+
+// LawnJSON is the reshaped lawn.
+type LawnJSON struct {
+	Perimeter  []geo.Point   `json:"perimeter"`
+	Exclusions [][]geo.Point `json:"exclusions"`
 }
 
 // uploadTimeout covers large maps over slow links plus the checksum wait.
@@ -34,8 +56,34 @@ func (s *Store) ListJSON() ListJSON {
 }
 
 // Handler serves the maps API under /api/maps.
-func (s *Store) Handler(up Uploader) http.Handler {
+func (s *Store) Handler(up Uploader, shaper Reshaper) http.Handler {
 	mux := http.NewServeMux()
+	// Stateless: the editor in the browser keeps the draft and its undo history.
+	mux.HandleFunc("POST /api/maps/reshape", func(w http.ResponseWriter, r *http.Request) {
+		var body ReshapeJSON
+		if !decode(w, r, &body) {
+			return
+		}
+		if body.Op != "add" && body.Op != "subtract" {
+			writeError(w, http.StatusBadRequest, `op must be "add" or "subtract"`)
+			return
+		}
+		area := planner.Area{Perimeter: body.Perimeter, Exclusions: body.Exclusions}
+		perimeter, exclusions, err := shaper.Reshape(area, body.Figure, body.Op == "add")
+		switch {
+		case errors.Is(err, planner.ErrInvalid):
+			writeError(w, http.StatusBadRequest, err.Error())
+		case errors.Is(err, planner.ErrUnavailable):
+			writeError(w, http.StatusNotImplemented, err.Error())
+		case err != nil:
+			writeError(w, http.StatusInternalServerError, err.Error())
+		default:
+			if exclusions == nil {
+				exclusions = [][]geo.Point{}
+			}
+			writeJSON(w, http.StatusOK, LawnJSON{Perimeter: perimeter, Exclusions: exclusions})
+		}
+	})
 	mux.HandleFunc("GET /api/maps", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, s.ListJSON())
 	})

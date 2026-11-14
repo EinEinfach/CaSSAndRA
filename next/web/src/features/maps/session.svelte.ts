@@ -6,6 +6,7 @@ import {
 	addExclusion,
 	addPoint,
 	clearLayer,
+	figureReady,
 	hitPoint,
 	isClosed,
 	movePoint,
@@ -14,6 +15,10 @@ import {
 	problems,
 	removePoint,
 	sameLayer,
+	shapeOf,
+	withLawn,
+	type Draft,
+	type Lawn,
 	type Layer
 } from './editor.ts';
 import type { MapShape } from './types.ts';
@@ -23,15 +28,15 @@ export const GRAB_PX = 14;
 
 export class EditorSession {
 	/** The geometry; its name is ignored, see name. */
-	draft = $state.raw<MapShape>(null!);
+	draft = $state.raw<Draft>(null!);
 	/** The name is not part of the undo history. */
 	name = $state('');
 	layer = $state.raw<Layer>(perimeterLayer);
 	selected = $state<number | null>(null);
 	private revision = $state(0); // bumps on every history change, for canUndo/canRedo
 
-	private history: History<MapShape>;
-	private dragFrom: MapShape | null = null;
+	private history: History<Draft>;
+	private dragFrom: Draft | null = null;
 
 	readonly problems = $derived(problems(this.result));
 
@@ -53,7 +58,7 @@ export class EditorSession {
 
 	/** The map to save. */
 	get result(): MapShape {
-		return { ...this.draft, name: this.name };
+		return { ...shapeOf(this.draft), name: this.name };
 	}
 
 	/** Layers for MapCanvas, with handles on the edited layer. */
@@ -63,6 +68,7 @@ export class EditorSession {
 			exclusions: this.draft.exclusions,
 			dock: this.draft.dock,
 			searchWire: this.draft.searchWire,
+			selection: this.draft.figure ?? [],
 			edit: {
 				points: pointsOf(this.draft, this.layer),
 				closed: isClosed(this.layer),
@@ -71,7 +77,7 @@ export class EditorSession {
 		};
 	}
 
-	private commit(next: MapShape) {
+	private commit(next: Draft) {
 		this.history.push(next);
 		this.draft = next;
 		this.revision++;
@@ -146,6 +152,17 @@ export class EditorSession {
 		this.commit(clearLayer(this.draft, this.layer));
 		if (this.layer.kind === 'exclusion') this.layer = perimeterLayer;
 		this.selected = null;
+	}
+
+	/** Whether the drawn area can be added to the lawn or cut out of it. */
+	get figureReady(): boolean {
+		return figureReady(this.draft);
+	}
+
+	/** Takes over the lawn the backend computed from the drawn area; one undo step. */
+	applyLawn(lawn: Lawn): void {
+		this.commit(withLawn(this.draft, lawn));
+		this.selectLayer(perimeterLayer);
 	}
 
 	undo(): void {

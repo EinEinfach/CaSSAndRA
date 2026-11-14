@@ -278,7 +278,7 @@ func Run(ctx context.Context, cfg Config, ln net.Listener) error {
 	goroutine(func() { superviseLink(ctx, cfg, settingsStore, r, sender, reconnect, simMap) })
 	goroutine(func() { r.PublishState(ctx, cfg.PublishInterval, func(b []byte) { hub.Publish("robot", b) }) })
 
-	mapsAPI := mapStore.Handler(r)
+	mapsAPI := mapStore.Handler(r, planner.New()) // reshaping is plain geometry: no fake needed
 	tasksAPI := taskService.Handler()
 	srv := &http.Server{
 		Handler: server.New(server.Options{

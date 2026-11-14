@@ -11,3 +11,5 @@ func version() string { return "" }
 func route(Area, Settings, geo.Point) ([]geo.Point, error) { return nil, ErrUnavailable }
 
 func way(Area, geo.Point, geo.Point) ([]geo.Point, error) { return nil, ErrUnavailable }
+
+func reshape(Area, []geo.Point, bool) ([][]geo.Point, error) { return nil, ErrUnavailable }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emptyShape } from '#features/maps/editor.ts';
+import { emptyShape, figureLayer } from '#features/maps/editor.ts';
 import { EditorSession, GRAB_PX } from '#features/maps/session.svelte.ts';
 import { garden, pts } from './fixtures.ts';
 
@@ -107,5 +107,28 @@ describe('EditorSession', () => {
 		expect(s.result.name).toBe('Front lawn');
 		s.name = '';
 		expect(s.problems).toEqual(['Give the map a name.']);
+	});
+
+	it('draws an area next to the map and takes over the reshaped lawn', () => {
+		const s = new EditorSession(garden());
+		s.selectLayer(figureLayer);
+		expect(s.figureReady).toBe(false);
+		[pts(5, 5), pts(8, 5), pts(8, 8)].forEach(([p]) => s.tap(p, 0.01));
+		expect(s.figureReady).toBe(true);
+		expect(s.canvasLayers.selection).toHaveLength(3);
+		expect(s.canvasLayers.edit?.closed).toBe(true);
+		expect(s.result).not.toHaveProperty('figure');
+		expect(s.problems).toEqual([]);
+
+		const lawn = { perimeter: pts(0, 0, 12, 0, 12, 10, 0, 10), exclusions: [] };
+		s.applyLawn(lawn);
+		expect(s.result).toMatchObject(lawn);
+		expect(s.result.dock).toEqual(garden().dock);
+		expect(s.figureReady).toBe(false);
+		expect(s.isLayer({ kind: 'perimeter' })).toBe(true);
+
+		s.undo(); // one step back: the old lawn and the area again
+		expect(s.result.exclusions).toHaveLength(1);
+		expect(s.figureReady).toBe(true);
 	});
 });
